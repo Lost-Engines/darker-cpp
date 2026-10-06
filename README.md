@@ -22,9 +22,9 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation.
+The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation. City visibility now also follows the original 256-cell coordinate wrap, including scenery approaching across either seam.
 
-The Caero now starts at its original **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. This is not yet a complete mission: briefing flow, other actors, weapons, world audio, object-target cameras, landing and original death screens remain to be connected. Enter after a crash restores the initial state. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
+The Caero now starts at its original **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. This is not yet a complete mission: briefing flow, combat, world audio, object-target cameras, landing and original death screens remain to be connected. Enter after a crash restores the initial state. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
@@ -58,7 +58,7 @@ The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity 
 
 The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the upcoming mission runtime.
 The [font renderer and formatter](docs/fonts_and_text.md) consume original bitmap fonts and page controls, with native comparisons for glyph coverage, layout and cursor state.
-The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; these actor components are not yet connected to the live scene.
+The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; the first mission’s two aircraft now fly in the live Delphi scene and appear on radar. Their combined callback matches 2,048 original updates, including pursuit; firing and collision/death responses are still pending.
 
 ```sh
 ctest --test-dir build --output-on-failure

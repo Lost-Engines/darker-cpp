@@ -169,6 +169,8 @@ add_library(darker_game STATIC
   src/game/flight_motion.h
   src/game/beacon_light.cpp
   src/game/beacon_light.h
+  src/game/caero_weapons.cpp
+  src/game/caero_weapons.h
   src/game/caero_energy.cpp
   src/game/collision_cells.cpp
   src/game/collision_cells.h
@@ -300,6 +302,7 @@ if(BUILD_TESTING)
     tests/flight_controls_test.cpp
     tests/game_clock_test.cpp
     tests/skimma_flight_test.cpp
+    tests/caero_weapons_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_energy_test.cpp
     tests/object_impact_test.cpp
