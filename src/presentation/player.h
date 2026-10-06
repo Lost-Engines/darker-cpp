@@ -20,11 +20,11 @@ private:
   resources::font_resource const &font;
   std::span<std::byte const> program;
   std::span<std::byte const> text;
-  size_t cursor{0};
+  size_t cursor{0}, checkpoint{0};
   std::optional<size_t> next;
   size_t text_cursor{0};
   uint32_t ticks{0}, pending{0}, deadline{0};
-  uint8_t interval{1}, selected{7};
+  uint8_t interval{1}, selected{7}, object_counter{0};
   bool stopped{false};
   struct animation_pair { uint8_t current{160}; uint8_t target{160}; };
   std::array<animation_pair, 12> pairs{};
@@ -44,7 +44,7 @@ public:
   uint8_t music{0};
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,
-    resources::scenario_resource const &scenario, size_t record);
+    resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0);
   void advance(uint32_t elapsed_ticks);
   bool continue_page();
   bool finished() const noexcept;

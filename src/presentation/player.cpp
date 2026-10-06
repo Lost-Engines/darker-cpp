@@ -35,9 +35,9 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
 }
 
 player::player(resources::archive_set const &archives, resources::font_resource const &font,
-  resources::scenario_resource const &scenario, size_t const record) : archives{archives}, font{font},
+  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects) : archives{archives}, font{font},
   program{scenario.bytes(scenario.records()[record].shared)}, text{scenario.language(record, resources::scenario_language::english)},
-  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier} {
+  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier}, object_counter{completed_objects} {
   /// Keep the original record's shared program and language cursors separate
   if(interval == 0) throw std::invalid_argument{"Presentation interval is zero"};
   execute();
@@ -75,6 +75,13 @@ void player::execute() {
     auto const op{byte()};
     if(op >= 128) { selected = op & 127; if(selected >= pairs.size()) throw std::invalid_argument{"Invalid animation pair"}; continue; }
     switch(op) {
+    case 0x1a: checkpoint = cursor; break;
+    case 0x1f:
+      if(byte() > object_counter) {
+        cursor = checkpoint;
+        deadline += 8 * interval;
+      }
+      break;
     case 0x22: deadline += byte() * interval; break;
     case 0x23: stopped = true; break;
     case 0x30: byte(); break; // Weapon availability belongs to scenario setup, not presentation rendering.

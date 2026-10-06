@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate startup/briefing pixels against DF36 before emitting C++ fingerprints."""
+"""Validate startup/briefing/committal pixels against DF36 before emitting C++ fingerprints."""
 import sys
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from verify_animation_frames import verify
 from inspect_visual_assets import frames
 
 rows = []
-for slot in (1, 2):
+for slot in (0, 1, 2):
     data = (ROOT.parent / f'analysis/resources/01_{slot:03}.bin').read_bytes()
     for index, frame in enumerate(frames(data)):
         verify(data[frame['offset']:])

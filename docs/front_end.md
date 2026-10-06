@@ -22,25 +22,39 @@ text cursor is 1085, where the in-flight message interpreter resumes.
 Space, Enter or a click dismisses the startup/title and advances the briefing.
 Select a slot using 1–4, arrows and Enter, or the mouse. Empty slots ask for a
 pilot name. The run menu supports Enter to run, S to select another slot, E to
-erase the name, and Escape to confirm quitting. Confirmation uses up/down and
+erase the slot, and Escape to confirm quitting. Confirmation uses up/down and
 Enter, or clicking Yes/No. Escape during flight returns to the run menu; Enter
-after docking or a crash also returns there.
+after docking also returns there. Enter after a Caero crash opens the original
+Kismet committal presentation; Enter, Space, Escape or its back button then
+returns to the run menu. Escape directly from flight still leaves immediately.
 
-The four pilot slots are **session-only names**. They do not read or write
-DARKER.SAV, retain campaign progress, or provide four independent game states.
-Each starts mission one. Menu text uses original wording and fonts, but its
+The four pilot slots now persist in `darker-cpp.sav` in the current working
+directory. Creating a named pilot or confirming erasure writes the file through
+a temporary sibling and rename. It uses the original 6,600-byte format,
+CRC-16/XMODEM checksum, four records and two-byte Nightmare trailer. The typed
+codec preserves both packed city streams, weapon/return-site fields, opaque
+record tails and trailer bytes. A corrupt or wrongly sized file is reported,
+never silently reset. The retail `DARKER.SAV` is not automatically read or written.
+
+This does **not yet save mission completion**: playable slots still start stage
+one. If a later-stage retail record is copied into the reconstruction save, its
+stage is displayed but Run reports that the stage is not implemented. Other
+slots remain usable and the unsupported record is preserved. Campaign state
+commit, city restoration and stage selection are the next integration work.
+
+Menu text uses original wording and fonts, but its
 composition is provisional: exact borders, score fields and retail positioning
 remain to be reproduced. Nightmare mode is not exposed yet.
 
 Music-selection opcodes are decoded but music is not played. Palette fades,
 original input-policy details, exact presentation tick/display ordering,
-debriefing, death presentations and campaign progression remain outstanding.
+debriefing and campaign progression remain outstanding.
 The interpreter rejects unsupported opcodes rather than silently treating
 unimplemented presentations as complete. It currently selects English.
 
 ## Evidence and verification
 
-`tools/generate_presentation_reference.py` checks all 35 frames in startup 01/1
+`tools/generate_presentation_reference.py` checks all 47 frames in committal 01/0, startup 01/1
 and briefing 01/2 against the original DF36 routine under Unicorn, including
 VGA plane-mask writes. Its checked-in fingerprints are compared with the C++
 decoder by `resource_check`. This establishes pixel decoding, not full native
@@ -74,3 +88,30 @@ DA48 draws the navigation controls using glyphs 60 and 62 of the current font,
 at (287,226) and (305,226). Input-policy bits 4 and 1 select their visibility.
 The left control exits to the run menu; the right advances. Exact hover colours
 and the remaining original input policies are still outstanding.
+
+## Mission death and save verification
+
+Native exit code 3F15–3F3E forwards outcome 2 to D8D6, which selects record 2
+of 04/15. This uses still 03/7 and animation 01/0. It shows the committal text
+and repeats its animation sequence; opcode 1A saves a checkpoint, and 1F/FF
+rewinds there with an eight-interval delay while completed counter C21B is less
+than 255. This is a continuing presentation, not a movie that ends automatically.
+The presentation player now implements that checkpoint/counter wait. The host
+supplies the completed-object counter before resetting the failed mission.
+
+The underground abort screen is record 3; Nightmare victory is record 4.
+Neither is substituted for ordinary Escape or successful first-mission docking.
+These will connect when their corresponding gameplay outcomes exist.
+
+A windowed Xvfb/Mesa check created a pilot, restarted the executable and reloaded
+it, launched with the engine off to trigger a crash, ran the committal scene for
+31 seconds, returned to the menu and erased the slot. Its saved checksum was
+independently checked with Python; death left the save byte-for-byte unchanged.
+
+Tests cover 47 native-verified animation frames, two minutes of committal script
+advancement, and dismissal back to the menu. Save tests exercise original field
+offsets, opaque-byte retention, CRC, malformed lengths and corruption. The
+patterned 6,598-byte test payload `(offset * 37 + 11) & 255` produces CRC 7584;
+the original A110 writer produces the identical file and 0364 accepts it under
+the existing parent `tools/verify_save_file.py::Save` harness. These tests
+intercept DOS I/O and leave the retail save untouched.

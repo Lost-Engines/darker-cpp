@@ -1,13 +1,14 @@
 #include "presentation_check.h"
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
+#include "presentation/front_end.h"
 #include "presentation/player.h"
 #include "reference/presentation_samples.h"
 
 void check_presentations(darker::resources::archive_set const &archives) {
   /// Compare every startup and briefing animation frame with native-verified pixel streams
-  for(unsigned int slot : {1, 2}) {
+  for(unsigned int slot : {0, 1, 2}) {
     auto const frames{darker::presentation::decode_animation(archives.load({1,slot}))};
     for(auto const &sample : darker::test_reference::presentation_samples) {
       if(sample.slot != slot) continue;
@@ -64,5 +65,21 @@ void check_presentations(darker::resources::archive_set const &archives) {
   darker::presentation::player intro{archives,font,startup,1};
   for(unsigned int tick{0}; tick < 2000; ++tick) { intro.advance(1); intro.draw(frame); }
   if(!intro.finished()) throw std::runtime_error{"Startup presentation failed to finish"};
-  std::cout << "35 animation frames match native DF36; startup and four-page briefing complete with the expected message cursor." << std::endl;
+  darker::presentation::player committal{archives,font,startup,2};
+  for(unsigned int tick{0}; tick < 60000; tick += 33) {
+    committal.advance(33);
+    committal.draw(frame);
+  }
+  if(committal.finished() || committal.consumed_text() == 0 || committal.music != 5 || committal.input_policy != 4) {
+    throw std::runtime_error{"Committal presentation failed to retain its text while looping"};
+  }
+  darker::resources::save_file saves;
+  darker::presentation::front_end front{archives,font,mission,saves};
+  front.show_death(2);
+  front.advance(60000);
+  front.draw(frame);
+  front.key(darker::presentation::front_key::back);
+  front.draw(frame);
+  if(!front.active()) throw std::runtime_error{"Dismissing death must return to the menu, not launch a mission"};
+  std::cout << "47 animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
 }

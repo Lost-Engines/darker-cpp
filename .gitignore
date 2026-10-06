@@ -1,3 +1,6 @@
 /build*/
 /CMakeUserPresets.json
 __pycache__/
+
+/darker-cpp.sav
+/darker-cpp.sav.tmp

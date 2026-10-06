@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include "presentation/player.h"
+#include "resources/save_file.h"
 
 namespace darker::presentation {
 
@@ -10,7 +11,7 @@ enum class front_key { accept, back, up, down, erase_character, select, erase, q
 
 class front_end {
 private:
-  enum class screen { introduction, title, games, name, run, erase, quit, briefing, flight };
+  enum class screen { introduction, title, games, name, run, erase, quit, briefing, outcome, flight };
   resources::archive_set const &archives;
   resources::font_resource const &font;
   resources::scenario_resource const &mission;
@@ -20,7 +21,9 @@ private:
   screen previous{screen::games};
   framework::render::indexed_cockpit_framebuffer menu_background{}, title_background{};
   graphics::palette_state menu_palette, title_palette;
-  std::array<std::string, 4> names;
+  resources::save_file &save;
+  std::string draft_name;
+  bool unsupported_stage{false};
   unsigned int selected{0};
   bool confirmation{false};
   unsigned int ignored_character{0};
@@ -29,7 +32,8 @@ private:
 
 public:
   bool quit_requested{false};
-  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission);
+  bool save_requested{false};
+  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save);
   bool active() const noexcept;
   bool editing_name() const noexcept;
   size_t consumed_text() const noexcept;
@@ -39,6 +43,7 @@ public:
   void advance(uint32_t elapsed_ticks);
   void draw(framework::render::cockpit_framebuffer &output) const;
   void return_to_menu();
+  void show_death(uint8_t completed_objects);
 };
 
 } // namespace darker::presentation

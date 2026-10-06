@@ -6,6 +6,18 @@
 namespace darker::test_reference {
 struct presentation_sample { unsigned int slot, frame, pixels; uint64_t fingerprint; };
 inline constexpr auto presentation_samples = std::to_array<presentation_sample>({
+  {0, 0, 22740, 0xd7c2e29b697471d6ULL},
+  {0, 1, 23655, 0x74885bf1cd8c66b4ULL},
+  {0, 2, 13298, 0x8e17b5a8fe265bddULL},
+  {0, 3, 5149, 0x1ef5c30b9345c9c3ULL},
+  {0, 4, 27143, 0x9ed5b6001a897e82ULL},
+  {0, 5, 23855, 0xd994ad097abad70aULL},
+  {0, 6, 28590, 0x0bd1f1e2c59bf5d3ULL},
+  {0, 7, 21632, 0xc09eb49aa29b93f6ULL},
+  {0, 8, 20873, 0xce47f97b5c3a9571ULL},
+  {0, 9, 14602, 0x69116ccf639a0457ULL},
+  {0, 10, 13544, 0x6e0b161f0dcefbdaULL},
+  {0, 11, 13360, 0x68bb4ef27e6a29abULL},
   {1, 0, 949, 0x541440cc397469f9ULL},
   {1, 1, 1188, 0xb9b7af24e2a7acadULL},
   {1, 2, 1568, 0x7dc075648e8a888bULL},

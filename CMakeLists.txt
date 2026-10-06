@@ -85,6 +85,8 @@ configure_first_party(framework_platform)
 
 # Original resource access has no dependency on windowing or audio
 add_library(darker_resources STATIC
+  src/resources/save_file.cpp
+  src/resources/save_file.h
   src/resources/font.cpp
   src/resources/font.h
   src/resources/scenario.cpp
@@ -288,6 +290,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/save_file_test.cpp
     tests/world_sounds_test.cpp
     tests/effects_test.cpp
     tests/aircraft_combat_test.cpp
