@@ -10,6 +10,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 #include "game/city_collision.h"
+#include "game/city_sweep.h"
 #include "graphics/camera.h"
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
@@ -17,6 +18,7 @@
 #include "reference/city_collision_samples.h"
 #include "reference/city_frame_samples.h"
 #include "reference/city_placement_samples.h"
+#include "reference/city_sweep_samples.h"
 #include "reference/geometry_bank_samples.h"
 #include "reference/model_effect_samples.h"
 #include "reference/original_model_samples.h"
@@ -81,6 +83,24 @@ auto main(int const argc, char const *const argv[])->int try {
       }
       if(boxes.size() != sample.count || fingerprint != sample.fingerprint) {
         throw std::runtime_error{std::format("City collision decoding differs from native reference: bank {}, type {}, state {}, expansion {}", sample.slot, sample.type, sample.state, sample.expansion)};
+      }
+    }
+  }
+  for(unsigned int const slot : {30, 31, 32}) {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{slot}})};
+    std::array<darker::game::city_cell, 128 * 128> cells{};
+    for(auto const &sample : darker::test_reference::city_sweep_samples) {
+      if(sample.slot != slot) continue;
+      cells[20 * 128 + 20] = {.type{static_cast<std::uint8_t>(sample.type)}, .state{static_cast<std::uint8_t>(sample.state)}};
+      auto const words{[](std::array<int, 3> const &values){
+        return std::array<std::uint16_t, 3>{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
+      }};
+      auto end{words(sample.end)};
+      auto const result{darker::game::sweep_city(bank, cells, static_cast<std::uint8_t>(slot == 30 ? 0x20 : 0x60), words(sample.start), end)};
+      if(static_cast<unsigned int>(result.contact) != sample.hit || result.category != sample.category || end != words(sample.result)) {
+        throw std::runtime_error{std::format("City sweep differs from native reference: bank {}, type {}, state {}, start ({},{},{}), got contact {} category {} end ({},{},{}), expected {} {} ({},{},{})",
+          slot, sample.type, sample.state, sample.start[0], sample.start[1], sample.start[2], static_cast<unsigned int>(result.contact), result.category, end[0], end[1], end[2],
+          sample.hit, sample.category, sample.result[0], sample.result[1], sample.result[2])};
       }
     }
   }
