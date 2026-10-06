@@ -127,3 +127,17 @@ The return value requests expiry handling; it does **not** recycle the projectil
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_motion_reference.py ..
 ```
+
+## Angular response and homing with supplied target angles
+
+`calculate_angular_response` translates `83BF–8411`. It bounds angular error using the original signed complement convention, applies response and frame-step products, updates/damps the stored angular rate, clamps a sign crossing, and integrates the midpoint rate. Word truncation, byte-level rounding and the high step-byte contribution are retained. The original helper doubles CX then halves it logically before returning, so it also returns the resulting step word; callers must not silently restore the original high bit.
+
+`advance_homing_projectile` translates `CCDB–CD12` followed by the shared `CC64` movement path. It accepts target heading/pitch explicitly. Pitch uses the shortest wrapping word difference; heading retains the original quarter-turn test, ±192/193-unit correction and alternative negated-error branch. Pitch and heading angular rates update separately, then position/speed integration uses the step left by those helpers. Roll is unchanged. A valid definition reference is required before any state mutation.
+
+The target lookup/direction calculation before `CCDB` is not yet translated here. The native homing probe intercepts `CC9C` only to supply DI/DX target angles and resumes at `CCDB`; all subsequent steering and movement instructions execute normally. This is evidence for the steering consumer, not for map-height lookup, object target resolution or acquisition.
+
+`tools/generate_steering_reference.py` captures **384 angular-response cases** and **252 homing updates**. Cases exercise response/rate boundaries, error clamping, the quarter-turn heading branch, negative/wrapping errors and frame-step truncation. Tests compare the resulting rates, angles, position words, fraction bytes and speed. All **55 CTest cases** pass. The main application still does not run a projectile world; target-angle production and the object update loop remain integration work.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_steering_reference.py ..
+```
