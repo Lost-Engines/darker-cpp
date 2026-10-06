@@ -61,6 +61,8 @@ configure_first_party(framework_platform)
 
 # Original resource access has no dependency on windowing or audio
 add_library(darker_resources STATIC
+  src/resources/geometry_bank.cpp
+  src/resources/geometry_bank.h
   src/resources/archive_set.cpp
   src/resources/archive_set.h
   src/resources/decoder.cpp
@@ -75,6 +77,8 @@ add_library(darker_graphics STATIC
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
+  src/graphics/model_projection.cpp
+  src/graphics/model_projection.h
   src/graphics/flat_polygon.cpp
   src/graphics/flat_polygon.h
   src/graphics/cockpit.cpp
@@ -165,6 +169,8 @@ if(BUILD_TESTING)
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/direction_test.cpp
+    tests/geometry_bank_test.cpp
+    tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp
     tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp

@@ -1,12 +1,16 @@
 #include <algorithm>
 #include <cstdlib>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <boost/program_options.hpp>
 #include "resources/archive_set.h"
+#include "resources/geometry_bank.h"
+#include "reference/geometry_bank_samples.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes
@@ -37,6 +41,22 @@ auto main(int const argc, char const *const argv[])->int try {
       }
     }
   }
+  for(auto const &sample : darker::test_reference::geometry_bank_samples) {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
+    if(bank.city_types().size() != sample.types || bank.special_models().size() != sample.specials
+      || bank.model_pool().size() != sample.pool_size || bank.world_data().size() != sample.tail_size) {
+      throw std::runtime_error{"Geometry bank directory differs from the original reference"};
+    }
+    std::uint64_t fingerprint{0xcbf29ce484222325};
+    for(unsigned int type{1}; type <= sample.types; ++type) {
+      for(unsigned int state{0}; state < 256; ++state) {
+        auto const offset{bank.city_model_offset(type, static_cast<std::uint8_t>(state), static_cast<std::uint8_t>(sample.mask))};
+        for(auto const byte : {offset & 255, offset >> 8}) fingerprint = (fingerprint ^ byte) * 0x100000001b3;
+      }
+    }
+    if(fingerprint != sample.fingerprint) throw std::runtime_error{"City model state selection differs from the native reference"};
+  }
+  std::cout << "All three geometry banks match native model selection for every city type/state." << std::endl;
   std::cout << std::format("Decoded {} resources: {} bytes", darker::resources::resource_directory().size(), total) << std::endl;
   if(arguments.contains("reference")) std::cout << "All resources match reference files byte-for-byte." << std::endl;
   return EXIT_SUCCESS;
