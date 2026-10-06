@@ -271,3 +271,25 @@ positions, threshold strengths, engine flags, full buffers and wrap boundaries.
 No instructions within the probed functions are substituted. Native startup
 constructs the lookup used to choose each fixture's cell. The C++ lookup is
 constructed independently from the same original wrapping loop.
+
+## Shared flight movement
+
+`flight_motion` translates horizontal integration (`8208`), vertical integration
+(`826E`) and integer speed measurement (`8254`/`92E6`). Positions retain their
+16-bit coordinate plus fractional byte. Velocity smoothing preserves the
+original one-unit increment when the signed error product is zero, including
+zero-error cases. Midpoint integration, trigonometric table quantisation and
+word wrap are unchanged; integer square root avoids floating-point conversion.
+
+The caller supplies the already-transformed horizontal and vertical timesteps
+and mid-step heading/pitch. These are not complete craft callbacks: control
+processing, angular motion, lift, engine demand and update ordering still need
+integration. `tools/generate_flight_motion_reference.py WORKSPACE` captures 512
+steps in 32 native state sequences, including negative velocities, coordinate
+wrap and extreme timestep arithmetic. C++ tests retain state between steps and
+compare all position words/fractions, both velocities and measured speed.
+
+The formerly projectile-specific placement record is now `object_pose`, shared
+by flight and projectile motion. Launch construction still lives in
+`projectile_placement`; there is no compatibility alias or second copy of the
+coordinate representation. Both paths use `displace_object` for fractional carry.

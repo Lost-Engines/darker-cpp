@@ -7,7 +7,7 @@
 TEST_CASE("Straight projectile integration matches native speed smoothing and fractional displacement") {
   for(auto const &sample : darker::test_reference::motion_samples) {
     CAPTURE(sample.heading, sample.pitch, sample.step, sample.speed, sample.base);
-    darker::game::projectile_placement state{
+    darker::game::object_pose state{
       .position{0, 65535, 0}, .fractions{255, 127, 1},
       .angles{static_cast<std::uint16_t>(sample.heading), static_cast<std::uint16_t>(sample.pitch), 1234},
       .speed{static_cast<std::uint16_t>(sample.speed)},

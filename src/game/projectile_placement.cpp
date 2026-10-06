@@ -17,9 +17,9 @@ std::int16_t product(std::int16_t const a, std::int16_t const b) {
 
 } // namespace
 
-projectile_placement place_projectile(launch_emitter const &emitter) {
+object_pose place_projectile(launch_emitter const &emitter) {
   /// CB1F–CBCD calculate launch position and copy heading, pitch, roll and speed
-  projectile_placement result{.position{emitter.position}, .fractions{emitter.fractions}, .angles{emitter.angles}, .speed{emitter.speed}};
+  object_pose result{.position{emitter.position}, .fractions{emitter.fractions}, .angles{emitter.angles}, .speed{emitter.speed}};
   if(emitter.definition_strength == 0) {
     unsigned int const quadrant{static_cast<unsigned int>(static_cast<std::uint16_t>(emitter.angles[0] + 0x2000) >> 14)};
     std::array<int, 5> constexpr masks{-1, -1, 0, 0, -1};

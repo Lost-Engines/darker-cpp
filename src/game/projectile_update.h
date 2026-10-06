@@ -6,7 +6,7 @@
 
 namespace darker::game {
 
-using projectile_target = std::variant<std::monostate, projectile_placement const *, map_guidance_target>;
+using projectile_target = std::variant<std::monostate, object_pose const *, map_guidance_target>;
 
 enum class projectile_update_result { advanced, expired };
 

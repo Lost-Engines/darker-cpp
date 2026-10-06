@@ -14,7 +14,7 @@ struct projectile {
   projectile *next{nullptr};
   projectile *previous{nullptr};
   object_parameters parameters;
-  projectile_placement placement;
+  object_pose placement;
   std::array<std::uint16_t, 3> previous_position{};
   std::array<std::uint16_t, 3> angular_motion{};
   std::uint8_t flags{0};

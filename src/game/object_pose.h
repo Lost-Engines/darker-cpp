@@ -1,21 +1,19 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
-#include "game/object_pose.h"
 
 namespace darker::game {
 
-struct launch_emitter {
+struct object_pose {
   std::array<std::uint16_t, 3> position{};
   std::array<std::uint8_t, 3> fractions{};
-  // Heading, pitch, roll, in native wrapping angle units.
+  // Heading, pitch and roll in native wrapping angle units.
   std::array<std::uint16_t, 3> angles{};
   std::uint16_t speed{0};
-  std::uint8_t side_flags{0};
-  std::uint8_t definition_strength{0};
 };
 
-object_pose place_projectile(launch_emitter const &emitter);
+void displace_object(object_pose &pose, std::size_t axis, std::int32_t displacement) noexcept;
 
 } // namespace darker::game

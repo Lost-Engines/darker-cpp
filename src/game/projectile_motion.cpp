@@ -11,16 +11,9 @@ std::int16_t signed_word(int const value) {
   return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(value));
 }
 
-void displace(projectile_placement &state, std::size_t const axis, int const delta) {
-  /// Carry the fractional byte into its wrapping coordinate word
-  auto const position{static_cast<std::uint32_t>(static_cast<int>(state.position[axis]) * 256 + state.fractions[axis] + delta)};
-  state.position[axis] = static_cast<std::uint16_t>(position >> 8);
-  state.fractions[axis] = static_cast<std::uint8_t>(position);
-}
-
 } // namespace
 
-void advance_direct_projectile(projectile_placement &state, object_definition const &definition, std::uint16_t const frame_step) {
+void advance_direct_projectile(object_pose &state, object_definition const &definition, std::uint16_t const frame_step) {
   /// CC64/CC87/858F approach definition speed, integrate its midpoint, then project motion
   auto const old_speed{signed_word(state.speed)};
   auto const target{static_cast<std::int16_t>(definition.base_speed * 16)};
@@ -35,10 +28,10 @@ void advance_direct_projectile(projectile_placement &state, object_definition co
   unsigned int const heading{static_cast<unsigned int>(state.angles[0] >> 6)};
   auto const sine{[](unsigned int const angle){ return maths::original_sine[angle]; }};
   auto const cosine{[&](unsigned int const angle){ return sine((angle + 256) % 1024); }};
-  displace(state, 2, (sine(pitch) * distance) >> 8);
+  displace_object(state, 2, (sine(pitch) * distance) >> 8);
   auto const horizontal{signed_word((cosine(pitch) * distance) >> 15)};
-  displace(state, 1, -((cosine(heading) * horizontal) >> 11));
-  displace(state, 0, -((sine(heading) * horizontal) >> 11));
+  displace_object(state, 1, -((cosine(heading) * horizontal) >> 11));
+  displace_object(state, 0, -((sine(heading) * horizontal) >> 11));
 }
 
 bool update_projectile_deadline(projectile &record, std::uint16_t const clock) {

@@ -61,7 +61,7 @@ void advance_homing_projectile(projectile &record, std::uint16_t const target_he
   advance_direct_projectile(record.placement, *record.parameters.definition, heading.frame_step);
 }
 
-void advance_object_homing_projectile(projectile &record, projectile_placement const &target, std::uint16_t const frame_step) {
+void advance_object_homing_projectile(projectile &record, object_pose const &target, std::uint16_t const frame_step) {
   /// CCB9 resolves object positions; self-targeting deliberately retains the current angles
   auto const angles{&target == &record.placement
     ? maths::direction_angles{.heading{record.placement.angles[0]}, .pitch{record.placement.angles[1]}}

@@ -89,6 +89,8 @@ target_link_libraries(darker_graphics PUBLIC framework_core)
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/flight_motion.cpp
+  src/game/flight_motion.h
   src/game/beacon_light.cpp
   src/game/beacon_light.h
   src/game/caero_energy.cpp
@@ -98,6 +100,8 @@ add_library(darker_game STATIC
   src/game/object_definitions.h
   src/game/object_impact.cpp
   src/game/object_impact.h
+  src/game/object_pose.cpp
+  src/game/object_pose.h
   src/game/object_list.h
   src/game/player_damage.cpp
   src/game/player_damage.h
@@ -157,6 +161,7 @@ if(BUILD_TESTING)
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/direction_test.cpp
+    tests/flight_motion_test.cpp
     tests/beacon_energy_test.cpp
     tests/object_impact_test.cpp
     tests/player_damage_test.cpp

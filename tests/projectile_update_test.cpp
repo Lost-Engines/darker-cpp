@@ -25,7 +25,7 @@ TEST_CASE("Projectile update sequences preserve native deadline, snapshot and ca
       record.fade = 123;
       record.deadline = static_cast<std::uint16_t>(65500 + lifetimes[mode]);
     }
-    darker::game::projectile_placement const target{.position{static_cast<std::uint16_t>(sample.target[0]),
+    darker::game::object_pose const target{.position{static_cast<std::uint16_t>(sample.target[0]),
       static_cast<std::uint16_t>(sample.target[1]), static_cast<std::uint16_t>(sample.target[2])}};
     // Expiry must not need a target or execute the motion callback.
     auto const *resolved{sample.result[18] ? nullptr : sample.target_kind == 2 ? &record.placement : &target};

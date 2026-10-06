@@ -12,7 +12,7 @@ projectile_update_result update_projectile(projectile &record, std::uint16_t con
   if(!record.parameters.definition) throw std::invalid_argument{"projectile update requires an object definition"};
   auto const entry{record.parameters.update_entry};
   if(entry != 0xcc64 && entry != 0xcc61) throw std::invalid_argument{"projectile motion callback is not implemented"};
-  auto const *object{std::get_if<projectile_placement const *>(&target)};
+  auto const *object{std::get_if<object_pose const *>(&target)};
   auto const *cell{std::get_if<map_guidance_target>(&target)};
   if(entry == 0xcc61 && !cell && (!object || !*object)) throw std::invalid_argument{"homing update requires a resolved target"};
   record.previous_position = record.placement.position;
