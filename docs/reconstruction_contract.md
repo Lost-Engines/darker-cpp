@@ -56,7 +56,9 @@ Ordinary Catch2 tests require no proprietary assets. Original-pack comparison is
 
 ## Progression and deferred work
 
-Original indexed assets, model/city rendering, steering, both craft flight callbacks, city collisions and several live cockpit producers are now connected in an airborne checkpoint. Next replace that temporary launch state with original scenario setup, connect actors/weapons and complete the first mission, including landing and death/retry transitions.
+Original indexed assets, model/city rendering, steering, both craft flight callbacks, city collisions, flight cameras, player FM effects and several live cockpit producers are connected. Caero now starts inside its original HQ with engine-off charging and animated gate departure; Skimma starts remain airborne checkpoints.
+
+The scenario reader, bitmap fonts, mission timing/wait/message scheduler and actor construction/navigation components have native comparisons but are not yet a complete connected world. Next connect scenario activation and actor updates, firing/collision/lifecycle handling and briefing/message presentation, then complete the first mission's objective and return-to-HQ cycle. Preserve native update order when connecting these independently checked components; passing their isolated fixtures does not establish a working mission.
 
 Enemy behaviour, remaining weapons, other craft/cities, exceptional missions, spatial audio and menu/save integration follow with their own reference evidence. Unknown save fields, the anomalous convoy, full visibility/raster contracts and clock/pause behaviour remain open; see the existing [analysis inventory](../../docs/reconstruction-evidence-inventory.md).
 

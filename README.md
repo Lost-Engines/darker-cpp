@@ -58,6 +58,7 @@ The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity 
 
 The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the upcoming mission runtime.
 The [font renderer and formatter](docs/fonts_and_text.md) consume original bitmap fonts and page controls, with native comparisons for glyph coverage, layout and cursor state.
+The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; these actor components are not yet connected to the live scene.
 
 ```sh
 ctest --test-dir build --output-on-failure

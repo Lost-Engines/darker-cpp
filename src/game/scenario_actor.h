@@ -21,8 +21,10 @@ struct scenario_actor {
   std::array<std::uint16_t, 3> previous_position{};
   // Native 50–55: retained until all navigation consumers have named contracts.
   std::array<std::uint8_t, 6> behaviour{};
+  std::uint16_t selected_target{0};
   std::uint16_t target_token{0};
   std::uint16_t current_cell{0};
+  std::uint16_t clearance_floor{0};
   std::uint8_t index{0};
   std::uint8_t definition_slot{0};
   std::uint8_t flags{0};

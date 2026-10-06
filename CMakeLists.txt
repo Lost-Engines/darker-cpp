@@ -145,6 +145,8 @@ configure_first_party(darker_graphics)
 add_library(darker_game STATIC
   src/game/actor_motion.cpp
   src/game/actor_motion.h
+  src/game/actor_navigation.cpp
+  src/game/actor_navigation.h
   src/game/scenario_actor.cpp
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
@@ -245,6 +247,7 @@ if(BUILD_TESTING)
 
   add_executable(framework_tests
     tests/actor_motion_test.cpp
+    tests/actor_navigation_test.cpp
     tests/scenario_actor_test.cpp
     tests/actor_awareness_test.cpp
     tests/mission_script_test.cpp
