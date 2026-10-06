@@ -19,6 +19,7 @@
 #include "graphics/model_renderer.h"
 #include "hangar_flight_check.h"
 #include "mission_combat_check.h"
+#include "music_check.h"
 #include "reference/camera_samples.h"
 #include "reference/city_collision_samples.h"
 #include "reference/city_frame_samples.h"
@@ -57,6 +58,7 @@ auto main(int const argc, char const *const argv[])->int try {
   check_text_resources(archives);
   check_presentations(archives);
   check_city_persistence(archives);
+  check_music(archives);
   std::size_t total{0};
   for(auto const &entry : darker::resources::resource_directory()) {
     auto const decoded{archives.load(entry.id)};

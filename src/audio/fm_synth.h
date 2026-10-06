@@ -14,6 +14,7 @@ private:
 public:
   explicit fm_synth(unsigned int sample_rate);
   ~fm_synth();
+  void write(fm_write command) noexcept;
   void write(fm_program const &program) noexcept;
   void render(std::span<float> stereo) noexcept;
 };

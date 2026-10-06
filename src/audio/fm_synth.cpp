@@ -19,9 +19,14 @@ fm_synth::fm_synth(unsigned int const sample_rate) : state{std::make_unique<impl
 
 fm_synth::~fm_synth() = default;
 
+void fm_synth::write(fm_write const command) noexcept {
+  /// Music and effects share the same buffered OPL register interface
+  OPL3_WriteRegBuffered(&state->chip,command.address,command.value);
+}
+
 void fm_synth::write(fm_program const &program) noexcept {
   /// Deliver register writes in driver order with the emulator's hardware write delay
-  for(auto const command : program.view()) OPL3_WriteRegBuffered(&state->chip, command.address, command.value);
+  for(auto const command : program.view()) write(command);
 }
 
 void fm_synth::render(std::span<float> const stereo) noexcept {

@@ -378,8 +378,14 @@ auto main(int const argc, char const *const argv[])->int try {
     if(viewport.width > 0 && viewport.height > 0) host.front->click(static_cast<int>((x - viewport.x) * 320 / viewport.width),static_cast<int>((y - viewport.y) * 240 / viewport.height));
   });
   std::unique_ptr<framework::platform::audio_output> audio_device;
+  bool music_error_reported{false};
   if(!arguments.contains("mute")) {
     try {
+      if(caero) {
+        std::array<std::vector<std::byte>,6> songs;
+        for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + group * 5});
+        audio.configure_music(archives.load({0,33}),std::move(songs));
+      }
       audio_device = std::make_unique<framework::platform::audio_output>([](void *const data, std::span<float> const output) noexcept {
         static_cast<darker::audio::fm_stream *>(data)->render(output);
       }, &audio);
@@ -538,6 +544,11 @@ auto main(int const argc, char const *const argv[])->int try {
     if(audio_device) {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
+      audio.select_music(front ? front->music_group() : -1);
+      if(audio.music_failed() && !music_error_reported) {
+        std::cerr << "WARNING: music sequence playback failed; continuing with flight effects." << std::endl;
+        music_error_reported = true;
+      }
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
     }
     auto const status{host.briefing ? " - menu / presentation"

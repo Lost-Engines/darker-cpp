@@ -1,9 +1,11 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <span>
+#include <vector>
 
 namespace darker::audio {
 
@@ -25,6 +27,9 @@ private:
 public:
   explicit fm_stream(unsigned int sample_rate);
   ~fm_stream();
+  void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
+  void select_music(int group) noexcept;
+  bool music_failed() const noexcept;
   bool publish(fm_frame const &frame) noexcept;
   void render(std::span<float> stereo) noexcept;
 };

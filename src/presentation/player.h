@@ -42,7 +42,7 @@ private:
 
 public:
   uint16_t weapon_toggles{0};
-  uint8_t music{0};
+  std::optional<uint8_t> music;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,
     resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0);

@@ -36,7 +36,7 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
 - **Space / Enter:** advance briefing pages.
 - **1:** select Pinner Direct; **Space / left mouse:** fire on each press.
-- **Enter after docking:** return to the run menu.
+- **Docking:** saves progress and opens the next supported briefing automatically.
 - **Mouse / arrow keys:** steer; **Ctrl + arrows:** adjust control force.
 - **Enter:** Caero boost; upgraded Skimma turbo setting.
 - **Backspace:** brake.
@@ -57,7 +57,7 @@ Source RGB and square-pixel presentation remain inspection conventions pending o
 
 ## Structure
 
-`src/game` contains platform-independent gameplay state calculations, including complete Caero and Skimma flight callbacks, capped game clocks, swept city collision and player crash handling, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Player engine, boost, recharge and shield effects now use the original FM patches through a pinned Nuked OPL3 chip emulator. `--mute` disables PCM output. Combat sources now use native distance admission and Doppler; music, ambience, stereo positioning and complete native voice allocation remain outstanding; the proof-of-concept oscillator lives only in test support.
+`src/game` contains platform-independent gameplay state calculations, including complete Caero and Skimma flight callbacks, capped game clocks, swept city collision and player crash handling, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Player engine, boost, recharge and shield effects now use the original FM patches through a pinned Nuked OPL3 chip emulator. `--mute` disables PCM output. Combat sources now use native distance admission and Doppler; ambience, stereo positioning and complete native voice allocation remain outstanding; the proof-of-concept oscillator lives only in test support.
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
@@ -76,6 +76,8 @@ ctest --test-dir build --output-on-failure
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
 
-The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. Enter after a crash plays the original looping Kismet committal presentation. The first three missions now advance automatically after docking, saving city state, weapon availability and the return site. Stage four and later gameplay, music and exact retail menu composition remain outstanding. See [front end](docs/front_end.md) for controls and verification.
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. Enter after a crash plays the original looping Kismet committal presentation. The first three missions now advance automatically after docking, saving city state, weapon availability and the return site. Stage four and later gameplay and exact retail menu composition remain outstanding. See [front end](docs/front_end.md) for controls and verification.
 
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
+
+The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.

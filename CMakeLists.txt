@@ -39,6 +39,8 @@ endif()
 add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
 target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
 add_library(darker_audio STATIC
+  src/audio/sound_images.cpp
+  src/audio/sound_images.h
   src/audio/world_sounds.cpp
   src/audio/world_sounds.h
   src/audio/flight_sounds.cpp
@@ -274,6 +276,8 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check
+    tests/music_check.cpp
+    tests/music_check.h
     tests/city_persistence_check.cpp
     tests/city_persistence_check.h
     tests/mission_combat_check.cpp
@@ -290,7 +294,7 @@ if(BUILD_TESTING)
     tests/hangar_flight_check.cpp
     tests/hangar_flight_check.h
   )
-  target_link_libraries(resource_check PRIVATE darker_presentation PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
+  target_link_libraries(resource_check PRIVATE darker_audio PRIVATE darker_presentation PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests

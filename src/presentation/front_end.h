@@ -25,6 +25,7 @@ private:
   std::string draft_name;
   bool unsupported_stage{false};
   unsigned int selected{0};
+  int retained_music{-1};
   bool confirmation{false};
   unsigned int ignored_character{0};
   void choose_game();
@@ -38,6 +39,7 @@ public:
   bool editing_name() const noexcept;
   size_t consumed_text() const noexcept;
   uint16_t weapon_changes() const noexcept;
+  int music_group() const noexcept;
   void key(front_key input);
   void character(unsigned int code);
   void click(int x, int y);

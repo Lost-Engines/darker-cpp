@@ -71,7 +71,8 @@ ctest --test-dir build --output-on-failure
 This is a first-mission gameplay milestone, not finished retail presentation.
 Briefing artwork and transitions, music, complete spatial voice allocation/stereo,
 Nayas activity, aircraft lighting, aircraft/player ramming, original death and
-debrief screens, and loading the next mission remain outstanding. Player city
+later debrief screens and mission-four ground-vehicle runtime remain outstanding.
+The first three missions now advance automatically, committing city state after docking. Player city
 collision still occurs inside its flight update; the complete original global
 collision dispatch order has not yet been reconstructed. Other scenario actor
 callbacks, weapons and campaign setup blocks must not be inferred to work from

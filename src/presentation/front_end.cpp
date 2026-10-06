@@ -49,6 +49,13 @@ uint16_t front_end::weapon_changes() const noexcept {
   return scene ? scene->weapon_toggles : 0;
 }
 
+int front_end::music_group() const noexcept {
+  /// Presentation scripts select music groups; flight stops music and menus select group zero
+  if(current == screen::flight) return -1;
+  if(current == screen::introduction || current == screen::briefing || current == screen::outcome) return scene->music ? *scene->music : retained_music;
+  return 0;
+}
+
 void front_end::choose_game() {
   /// An empty slot asks for a name before exposing its run menu
   draft_name.clear();
@@ -59,6 +66,7 @@ void front_end::choose_game() {
 void front_end::begin_briefing() {
   /// Select the current supported campaign record for briefing
   if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 3) { unsupported_stage = true; return; }
+  retained_music = music_group();
   scene = std::make_unique<player>(archives,font,mission,save.pilots[selected].stage - 1);
   current = screen::briefing;
 }
@@ -161,6 +169,7 @@ void front_end::continue_campaign() {
 
 void front_end::show_death(uint8_t const completed_objects) {
   /// 3F15 forwards outcome 2 to D8D6, selecting the Kismet committal presentation in 04/15
+  retained_music = -1;
   scene = std::make_unique<player>(archives,font,introduction,2,completed_objects);
   current = screen::outcome;
 }

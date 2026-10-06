@@ -59,7 +59,7 @@ Menu text uses original wording and fonts, but its
 composition is provisional: exact borders, score fields and retail positioning
 remain to be reproduced. Nightmare mode is not exposed yet.
 
-Music-selection opcodes are decoded but music is not played. Palette fades,
+Original Sound Blaster [music playback](sound_images_music.md) is connected. Palette fades,
 original input-policy details, exact presentation tick/display ordering,
 later campaign records and their scripted events remain outstanding.
 The interpreter rejects unsupported opcodes rather than silently treating
