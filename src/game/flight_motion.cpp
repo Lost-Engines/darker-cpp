@@ -20,6 +20,23 @@ std::int16_t approach_velocity(std::uint16_t &velocity, std::uint16_t const targ
 
 } // namespace
 
+void advance_speed_motion(object_pose &pose, std::uint16_t const speed, std::uint16_t const frame_step) noexcept {
+  /// 8597 integrates the old/new speed midpoint and projects it through the object's current pitch and heading
+  auto const previous{signed_word(pose.speed)};
+  auto const midpoint{signed_word(previous + (signed_word(speed - previous) >> 1))};
+  pose.speed = speed;
+  auto const time{signed_word((frame_step & 255) << 8)};
+  auto const distance{signed_word((static_cast<std::int32_t>(midpoint) * time) >> 14)};
+  unsigned int const pitch{static_cast<unsigned int>(pose.angles[1] >> 6)};
+  unsigned int const heading{static_cast<unsigned int>(pose.angles[0] >> 6)};
+  auto const sine{[](unsigned int const angle){ return maths::original_sine[angle]; }};
+  auto const cosine{[&](unsigned int const angle){ return sine((angle + 256) % 1024); }};
+  displace_object(pose, 2, (sine(pitch) * distance) >> 8);
+  auto const horizontal{signed_word((cosine(pitch) * distance) >> 15)};
+  displace_object(pose, 1, -((cosine(heading) * horizontal) >> 11));
+  displace_object(pose, 0, -((sine(heading) * horizontal) >> 11));
+}
+
 void advance_horizontal_flight(object_pose &pose, std::uint16_t &velocity, std::uint16_t const target,
   std::uint16_t const timestep, std::uint16_t const heading, std::uint16_t const pitch) noexcept {
   /// 8208 projects the target by mid-step pitch, approaches velocity, then integrates both horizontal axes

@@ -143,6 +143,10 @@ target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resour
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/actor_motion.cpp
+  src/game/actor_motion.h
+  src/game/actor_awareness.cpp
+  src/game/actor_awareness.h
   src/game/mission_script.cpp
   src/game/mission_script.h
   src/game/hangar.cpp
@@ -238,6 +242,8 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/actor_motion_test.cpp
+    tests/actor_awareness_test.cpp
     tests/mission_script_test.cpp
     tests/hangar_test.cpp
     tests/font_test.cpp

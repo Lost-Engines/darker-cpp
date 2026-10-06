@@ -15,5 +15,6 @@ struct object_pose {
 };
 
 void displace_object(object_pose &pose, std::size_t axis, std::int32_t displacement) noexcept;
+std::uint16_t horizontal_distance(std::array<std::uint16_t, 3> const &position, std::array<std::uint16_t, 3> const &target) noexcept;
 
 } // namespace darker::game

@@ -1,7 +1,7 @@
 #include "game/projectile_motion.h"
 #include <algorithm>
 #include <bit>
-#include "maths/sine_table.h"
+#include "game/flight_motion.h"
 
 namespace darker::game {
 namespace {
@@ -20,18 +20,7 @@ void advance_direct_projectile(object_pose &state, object_definition const &defi
   auto const step{static_cast<std::uint16_t>(frame_step * 4)};
   auto const candidate{signed_word(old_speed < target ? old_speed + step : old_speed - step)};
   auto const speed{old_speed < target ? std::min(candidate, target) : std::max(candidate, target)};
-  state.speed = static_cast<std::uint16_t>(speed);
-  auto const midpoint{signed_word(old_speed + (signed_word(speed - old_speed) >> 1))};
-  auto const time{signed_word((frame_step & 255) << 8)};
-  auto const distance{signed_word((static_cast<std::int32_t>(midpoint) * time) >> 14)};
-  unsigned int const pitch{static_cast<unsigned int>(state.angles[1] >> 6)};
-  unsigned int const heading{static_cast<unsigned int>(state.angles[0] >> 6)};
-  auto const sine{[](unsigned int const angle){ return maths::original_sine[angle]; }};
-  auto const cosine{[&](unsigned int const angle){ return sine((angle + 256) % 1024); }};
-  displace_object(state, 2, (sine(pitch) * distance) >> 8);
-  auto const horizontal{signed_word((cosine(pitch) * distance) >> 15)};
-  displace_object(state, 1, -((cosine(heading) * horizontal) >> 11));
-  displace_object(state, 0, -((sine(heading) * horizontal) >> 11));
+  advance_speed_motion(state, static_cast<std::uint16_t>(speed), frame_step);
 }
 
 bool update_projectile_deadline(projectile &record, std::uint16_t const clock) {

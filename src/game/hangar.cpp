@@ -60,10 +60,8 @@ void advance_hangar_departure(player_flight &player, city_map &cells, hangar_sta
     }
     hangar.extension = static_cast<std::uint16_t>(sum);
   } else {
-    auto const difference_x{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(position[0] - ((centre % 128) * 256 + 128)))};
-    auto const difference_y{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(position[1] - ((centre / 128) * 256 + 152)))};
-    // 841C uses one's complement for negative X, but ordinary negation for negative Y.
-    auto const distance{static_cast<std::uint16_t>((difference_x < 0 ? ~difference_x : difference_x) + (difference_y < 0 ? -difference_y : difference_y))};
+    auto const distance{horizontal_distance(position, {static_cast<std::uint16_t>((centre % 128) * 256 + 128),
+      static_cast<std::uint16_t>((centre / 128) * 256 + 152), 0})};
     auto value{static_cast<std::uint16_t>(152 - distance)};
     if(distance != 0 && distance <= 152) value = 65535;
     unsigned int const sum{value + 232u};
