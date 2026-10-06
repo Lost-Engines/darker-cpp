@@ -263,7 +263,8 @@ Invalid arithmetic that would fault the original DIV is reported explicitly.
 reserve caps and the Jason Brooke boost patch. Its timestep is the accounting
 value already transformed by the flight callback (1028 for an ordinary input
 step of 8); it does not transform the input a second time. Reserve spending and
-full flight callback ordering remain to be integrated.
+full flight callback ordering are now implemented in [Caero flight](caero_flight.md);
+application/game-frame integration remains pending.
 
 `tools/generate_beacon_energy_reference.py WORKSPACE` captures 768 lighting cases
 and 400 energy updates, including map boundaries, non-beacon cells, fractional
@@ -305,5 +306,5 @@ Attitude normalisation retains the pitch XOR rather than substituting negation.
 `tools/generate_angular_motion_reference.py WORKSPACE` records 640 gain/impulse
 responses and a compact fingerprint of both folds for every 16-bit angle.
 The existing bounded-error and projectile trajectory fixtures continue to cover
-the third response entry and its callers. No platform input scaling or complete
-craft callback is implied by these shared helpers.
+the third response entry and its callers. No platform input scaling is implied by these shared helpers. The complete
+[Caero callback](caero_flight.md) now composes them in native update order.

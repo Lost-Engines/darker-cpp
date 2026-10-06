@@ -10,7 +10,7 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
   for(auto const &sample : darker::test_reference::impact_samples) {
     CAPTURE(sample.strength, sample.resistance, sample.mode, sample.damage, sample.flags, sample.seed);
     darker::game::object_impact_state state{
-      .rotation{.pitch{static_cast<std::uint16_t>(sample.pitch)}, .heading{static_cast<std::uint16_t>(sample.heading)}},
+      .rotation{.pitch{static_cast<std::uint16_t>(sample.pitch)}, .turn{static_cast<std::uint16_t>(sample.heading)}},
       .impact_accumulator{static_cast<std::uint16_t>(sample.accumulator)},
       .damage{static_cast<std::uint16_t>(sample.damage)},
       .update_entry{0x8823},
@@ -20,7 +20,7 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
     auto seed{static_cast<std::uint16_t>(sample.seed)};
     auto const effect{darker::game::apply_object_impact(state, static_cast<std::uint8_t>(sample.strength),
       static_cast<std::uint8_t>(sample.resistance), sample.mode == 2, static_cast<std::uint16_t>(sample.clock), seed)};
-    std::array<int, 9> const actual{state.rotation.pitch, state.rotation.heading, state.impact_accumulator,
+    std::array<int, 9> const actual{state.rotation.pitch, state.rotation.turn, state.impact_accumulator,
       state.damage, state.update_entry, state.deadline, state.flags, seed, static_cast<int>(effect)};
     CHECK(actual == sample.result);
   }

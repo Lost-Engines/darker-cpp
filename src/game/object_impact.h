@@ -6,7 +6,7 @@ namespace darker::game {
 
 struct impact_rotation {
   std::uint16_t pitch{0};
-  std::uint16_t heading{0};
+  std::uint16_t turn{0};                                                       // BP+28: bank response for Caero, turning response in other callbacks
 };
 
 struct object_impact_state {

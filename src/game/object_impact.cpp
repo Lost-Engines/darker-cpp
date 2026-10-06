@@ -9,9 +9,9 @@ void apply_impact_rotation(impact_rotation &rotation, std::uint8_t const amplitu
   auto const random{next_random(random_state)};
   auto const heading{static_cast<std::uint16_t>((random & 255) * amplitude + amplitude * 256)};
   auto const pitch{static_cast<std::uint16_t>((random >> 8) * amplitude + amplitude * 256)};
-  auto const old_heading{rotation.heading};
-  rotation.heading = (old_heading & 1) ? static_cast<std::uint16_t>(~heading) : heading;
-  rotation.pitch = (old_heading & 2) ? static_cast<std::uint16_t>(~(pitch >> 1)) : pitch >> 1;
+  auto const old_turn{rotation.turn};
+  rotation.turn = (old_turn & 1) ? static_cast<std::uint16_t>(~heading) : heading;
+  rotation.pitch = (old_turn & 2) ? static_cast<std::uint16_t>(~(pitch >> 1)) : pitch >> 1;
 }
 
 impact_effect apply_object_impact(object_impact_state &state, std::uint8_t const strength, std::uint8_t const resistance,
