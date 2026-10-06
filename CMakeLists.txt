@@ -93,6 +93,9 @@ add_library(darker_game STATIC
   src/game/object_definition.h
   src/game/object_definitions.h
   src/game/object_list.h
+  src/game/projectile_placement.cpp
+  src/game/projectile_placement.h
+  src/math/sine_table.h
   src/game/random.cpp
   src/game/random.h
   src/game/skimma_weapons.cpp
@@ -132,6 +135,7 @@ if(BUILD_TESTING)
     tests/object_definition_test.cpp
     tests/object_list_test.cpp
     tests/random_test.cpp
+    tests/projectile_placement_test.cpp
     tests/bitmap_hud_test.cpp
     tests/cockpit_test.cpp
     tests/palette_bitmap_test.cpp

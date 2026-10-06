@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include "graphics/blit.h"
 #include "graphics/cockpit_tables.h"
+#include "math/sine_table.h"
 
 namespace darker::graphics {
 
@@ -87,8 +88,8 @@ void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer cons
   int count{remaining};
   for(unsigned int offset{1}; offset < 1920; offset += ring_steps[weapon]) {
     offset |= 1;
-    int const sine{original_sine[offset / 2] >> 8};
-    int const cosine{original_sine[((offset + 512) % 2048) / 2] >> 8};
+    int const sine{math::original_sine[offset / 2] >> 8};
+    int const cosine{math::original_sine[((offset + 512) % 2048) / 2] >> 8};
     pixel_position const destination{.x{158 + ((sine * radius) >> 8)}, .y{88 - ((cosine * radius) >> 8)}};
     --count;
     copy_mask(cache.pixels, target.pixels, {.x{8 + 5 * (destination.x & 3)}, .y{count >= 0 ? 47 : 52}}, destination, ring_mask);

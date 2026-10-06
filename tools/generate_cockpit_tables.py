@@ -79,12 +79,7 @@ def main():
     lines.append('inline std::array<pixel_position, 4> constexpr weapon_status_sources{{')
     for p in range(0x5356, 0x535e, 2):
         lines.append('  ' + point(p) + ',')
-    lines += ['}};', '', '// Signed trigonometric words at 944A; no floating-point regeneration',
-              'inline std::array<std::int16_t, 1024> constexpr original_sine{']
-    values = [int.from_bytes(image[p:p+2], 'little', signed=True) for p in range(0x944a, 0x9c4a, 2)]
-    for i in range(0, 1024, 16):
-        lines.append('  ' + ', '.join(map(str, values[i:i+16])) + ',')
-    lines += ['};', '', '// Compass paired signed-byte offsets at 53DD',
+    lines += ['}};', '', '// Compass paired signed-byte offsets at 53DD',
               'inline std::array<pixel_position, 38> constexpr compass_offsets{{']
     for p in range(0x53dd, 0x5429, 2):
         x, y = (int.from_bytes(image[q:q+1], 'little', signed=True) for q in (p, p+1))

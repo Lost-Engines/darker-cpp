@@ -66,3 +66,23 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_definition_reference.py ..
 ```
 
 The independent native probe checks every definition with three model bindings and twenty isolated seed-boundary cases, for **119 expansions**. It seeds the rest of each original runtime record with a sentinel and confirms that only the eight expected words change. C++ tests check the expanded values and definition identity, including unsigned seeds 128 and 255. All **48 CTest cases** pass.
+
+## Projectile launch placement
+
+`place_projectile` translates the position, angle and speed results of `CB1F–CBCD`, including its two placement branches. Input position is three native coordinate words plus three fractional bytes; output retains that representation. All calculations use integer arithmetic and the original sine words, now shared by gameplay and graphics in `src/math/sine_table.h`.
+
+The branch is selected by the **emitter definition's byte +8**, not the projectile's definition:
+
+- Zero uses `CB25–CB66`: quantise the wrapping heading with a 2000h bias into four quadrants, transform offsets 6 and 36 through the original XOR/complement rules at `8FBD`, and choose the side from emitter byte +50 bit 80h. Fraction bytes are copied unchanged, altitude gains 160, heading flips by 8000h and pitch becomes 0ABEh. Roll is inherited. Complement operations are retained rather than replaced by negation, which would introduce one-unit placement errors.
+- Nonzero uses `CB67–CBA0`: `207A/2096` derives a direction from heading, pitch and roll. It reflects quantised indices using XOR 1023 and computes signed products with truncation and 16-bit wrapping between stages. The resulting components are scaled by 46, 46 and -184. Their fractional offsets carry into the three coordinate words exactly as the original byte additions do. Heading, pitch and roll are copied unchanged.
+
+Both paths inherit speed from emitter +3E. The function is a pure placement calculation, not a complete projectile/world record. The full native constructor also stores flags 20h at +7, FEh at +46, clears words +26/+28, and writes inherited roll, target and deadline. Those writes are checked by the native probe but are not claimed as C++ placement outputs or silently folded into unrelated state.
+
+The probe executes **the complete original `CB01` constructor**, including actual free-list allocation and definition expansion, using controlled emitters and a free projectile record. It captures 160 cases spanning both branches, heading-quadrant boundaries, pitch/roll changes, side flags, fractional carries and coordinate wraparound. The C++ outputs match every captured placement. The probe additionally verifies inherited roll at +56, target at +6C, and wrapping launch deadline at +68.
+
+```sh
+python3 tools/generate_sine_table.py ../analysis/unpacked/image.bin
+PYTHONPATH=/tmp/darker-python python3 tools/generate_placement_reference.py ..
+```
+
+All **49 CTest cases** and **381 cockpit comparisons** pass following the shared-table move. The next integration boundary is assembling these verified operations into owned world/projectile records, then translating movement and collision. There is still no live firing simulation in the main application.
