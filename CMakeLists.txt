@@ -129,6 +129,8 @@ add_library(darker_game STATIC
   src/game/city_sweep.h
   src/game/city_collision.cpp
   src/game/city_collision.h
+  src/game/game_clock.cpp
+  src/game/game_clock.h
   src/game/flight_attitude.cpp
   src/game/flight_attitude.h
   src/game/skimma_flight.cpp
@@ -220,6 +222,7 @@ if(BUILD_TESTING)
     tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp
     tests/flight_controls_test.cpp
+    tests/game_clock_test.cpp
     tests/skimma_flight_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_energy_test.cpp
