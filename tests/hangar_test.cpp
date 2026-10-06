@@ -16,6 +16,7 @@ TEST_CASE("Caero hangar placement matches native startup", "[game][hangar]") {
     CHECK(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} == sample.position);
     CHECK(std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} == sample.angles);
     CHECK(player.lifecycle.flags == sample.flags);
+    CHECK(player.engine_flags == 1);
     for(auto const index : {centre - 128, centre, centre + 128}) CHECK(cells[index].state == 128);
   }
 }
