@@ -71,16 +71,45 @@ target_link_libraries(framework_demo
 )
 configure_first_party(framework_demo)
 
+# Original resource access has no dependency on windowing or audio
+add_library(darker_resources STATIC
+  src/resources/archive_set.cpp
+  src/resources/archive_set.h
+  src/resources/decoder.cpp
+  src/resources/decoder.h
+  src/resources/directory.h
+)
+target_include_directories(darker_resources PUBLIC src)
+configure_first_party(darker_resources)
+
+add_executable(resource_check src/resources/check_main.cpp)
+target_link_libraries(resource_check
+  PRIVATE darker_resources
+  PRIVATE Boost::program_options
+)
+configure_first_party(resource_check)
+
+set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional integration verification")
+set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
+
 if(BUILD_TESTING)
   add_executable(framework_tests
     tests/sine_wave_test.cpp
     tests/framebuffer_test.cpp
+    tests/resource_decoder_test.cpp
   )
   target_link_libraries(framework_tests
     PRIVATE framework_core
+    PRIVATE darker_resources
     PRIVATE Catch2::Catch2WithMain
   )
   configure_first_party(framework_tests)
   include("${catch2_SOURCE_DIR}/extras/Catch.cmake")
   catch_discover_tests(framework_tests)
+  if(DARKER_INSTALL_DIR AND DARKER_REFERENCE_DIR)
+    add_test(NAME resources.original_pack_comparison
+      COMMAND resource_check --install "${DARKER_INSTALL_DIR}" --reference "${DARKER_REFERENCE_DIR}"
+    )
+    set_tests_properties(resources.original_pack_comparison PROPERTIES LABELS integration)
+  endif()
 endif()

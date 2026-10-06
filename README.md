@@ -1,6 +1,6 @@
 # Armchair platform proof of concept
 
-A small C++23 program in preparation for the Darker project. It contains no game logic or resource loading.
+A small C++23 program in preparation for the Darker project. The platform demo contains no game logic. A separate original-resource library and headless verifier now begin the faithful reconstruction.
 
 - GLFW 3.4 owns the window and input events.
 - A CPU-generated 320 × 200 RGBA framebuffer contains a checkerboard and moving green rectangle.
@@ -55,4 +55,14 @@ Upstream references: [GLFW](https://www.glfw.org/docs/3.4/), [miniaudio low-leve
 
 ## Verification on this workstation
 
-Built with GCC 16.2 in C++23 mode; all five Catch2 cases pass. A separate Xvfb/Mesa smoke run verified the displayed image, key press/release events, mouse deltas/buttons, capture/release, resizing and timed shutdown. PCM routed through a temporary PulseAudio-compatible sink measured approximately 220 Hz, 0.019989 peak and 0.014142 RMS. That sink was removed afterwards. The test measured the device stream, not acoustic speaker output. Native Wayland also opened successfully during runtime checking; the scripted input/screenshot checks used X11.
+Built with GCC 16.2 in C++23 mode; the five platform Catch2 cases pass. With the resource milestone enabled, all ten unit cases and the original-pack integration test pass. A separate Xvfb/Mesa smoke run verified the displayed image, key press/release events, mouse deltas/buttons, capture/release, resizing and timed shutdown. PCM routed through a temporary PulseAudio-compatible sink measured approximately 220 Hz, 0.019989 peak and 0.014142 RMS. That sink was removed afterwards. The test measured the device stream, not acoustic speaker output. Native Wayland also opened successfully during runtime checking; the scripted input/screenshot checks used X11.
+
+## Faithful reconstruction: first milestone
+
+The [reconstruction contract](docs/reconstruction_contract.md) defines the fidelity target, platform boundary, arithmetic/clock rules, ownership and acceptance criteria. The [resource loader](docs/resource_loading.md) reads all five original packs using the verified executable-resident directory, independently of the graphics/audio demo.
+
+```sh
+./build/resource_check --install ../darker --reference ../analysis/resources
+```
+
+The application does not need the extracted references; they are comparison inputs for this command only. Ordinary unit tests also need no game assets. See the resource documentation for optional CTest integration and directory regeneration.
