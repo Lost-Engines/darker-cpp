@@ -1,0 +1,14 @@
+#pragma once
+
+#include <cstdint>
+#include <optional>
+#include <span>
+#include "game/actor_navigation.h"
+
+namespace darker::game {
+
+std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
+  std::span<scenario_actor const> active, city_map const &cells, resources::geometry_bank const &bank,
+  uint8_t damage_mask, uint16_t frame_step);
+
+} // namespace darker::game

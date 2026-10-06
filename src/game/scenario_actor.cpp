@@ -1,5 +1,7 @@
 #include "game/scenario_actor.h"
+#include <algorithm>
 #include <stdexcept>
+#include "game/object_definitions.h"
 
 namespace darker::game {
 
@@ -45,6 +47,25 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     actor.script.stopped = true;
   }
   return actor;
+}
+
+std::vector<scenario_actor> make_scenario_group(resources::scenario_group const &group, resources::geometry_bank const &bank,
+  std::uint8_t first_index, std::uint8_t const world_mode, std::size_t const shared_offset) {
+  /// Construct source records with stable native indices, then preserve head insertion order within a category
+  if(!group.native_setup.empty()) throw std::invalid_argument{"Scenario group requires embedded setup operations"};
+  if(group.objects.size() > 255u - first_index) throw std::invalid_argument{"Scenario group exceeds the object index range"};
+  std::vector<scenario_actor> actors;
+  actors.reserve(group.objects.size());
+  for(auto const &placement : group.objects) {
+    if(placement.definition_slot >= original_object_definitions.size() || placement.definition_slot >= bank.special_models().size()) {
+      throw std::invalid_argument{"Scenario object definition is outside the loaded bank"};
+    }
+    auto const model{bank.special_models()[placement.definition_slot]};
+    actors.push_back(make_scenario_actor(placement, original_object_definitions[placement.definition_slot],
+      model, bank.header_at(model).height, first_index++, world_mode, shared_offset));
+  }
+  std::ranges::reverse(actors);
+  return actors;
 }
 
 } // namespace darker::game

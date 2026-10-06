@@ -3,11 +3,13 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 #include "game/actor_awareness.h"
 #include "game/actor_motion.h"
 #include "game/mission_script.h"
 #include "game/object_definition.h"
 #include "game/object_pose.h"
+#include "resources/geometry_bank.h"
 #include "resources/scenario.h"
 
 namespace darker::game {
@@ -35,5 +37,8 @@ struct scenario_actor {
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,
   object_definition const &definition, std::uint16_t model_token, std::int16_t model_height,
   std::uint8_t index, std::uint8_t world_mode, std::size_t shared_offset);
+
+std::vector<scenario_actor> make_scenario_group(resources::scenario_group const &group, resources::geometry_bank const &bank,
+  std::uint8_t first_index, std::uint8_t world_mode, std::size_t shared_offset);
 
 } // namespace darker::game

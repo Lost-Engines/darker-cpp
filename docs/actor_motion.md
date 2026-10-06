@@ -62,3 +62,29 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_target_reference.py .
 ```
 
 The slot-23 close-target action, firing helper, actor update/lifecycle ordering and complete scenario/world integration remain outstanding. These comparisons establish individual routine contracts, not an end-to-end native enemy simulation.
+
+## Combined surface flight
+
+`advance_surface_actor` now composes awareness, target selection, object/city
+courses, neighbour clearance, manoeuvre selection, steering and displacement in
+native callback order. It returns a firing-check request; weapon allocation and
+hit processing remain separate. Slot 23's special close-target action is rejected
+until that callback is connected.
+
+The application constructs the first mission's two slot-19 aircraft from
+`04_000 / 0`, preserving source identities and reverse active-list order. They
+fly in Delphi, appear as models and radar contacts, and reset with the player.
+This does not yet enable combat or claim a completable mission. Actor lighting,
+collision/death responses and weapon firing remain outstanding.
+
+An integration comparison executes original `8823` on the original Delphi map
+for **2,048 sequential actor updates**, checking 17 fields each time. Its
+controlled player position starts stationary, then follows closely enough to
+exercise pursuit. Script calls, firing and HUD threat selection are intercepted;
+all movement, awareness and obstacle scans execute natively. Construction has
+its separate native fixture. The comparison retains both actors' changing state
+and active-list order, so it checks composition as well as individual routines.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_flight_reference.py ..
+```

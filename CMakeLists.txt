@@ -145,6 +145,8 @@ configure_first_party(darker_graphics)
 add_library(darker_game STATIC
   src/game/actor_motion.cpp
   src/game/actor_motion.h
+  src/game/actor_update.cpp
+  src/game/actor_update.h
   src/game/actor_navigation.cpp
   src/game/actor_navigation.h
   src/game/scenario_actor.cpp
@@ -242,6 +244,8 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check
+    tests/actor_flight_check.cpp
+    tests/actor_flight_check.h
     tests/resource_check_main.cpp
     tests/scenario_resource_check.cpp
     tests/scenario_resource_check.h

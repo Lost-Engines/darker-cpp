@@ -10,11 +10,13 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
+#include "game/actor_update.h"
 #include "game/city_map.h"
 #include "game/flight_camera.h"
 #include "game/game_clock.h"
@@ -116,6 +118,13 @@ auto main(int const argc, char const *const argv[])->int try {
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
   }
+  darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
+  auto const &mission{scenario.records().front()};
+  auto actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
+    : std::vector<darker::game::scenario_actor>{}};
+  auto const initial_actors{actors};
+  std::vector<darker::graphics::scene_object> objects;
+  std::vector<darker::graphics::radar_contact> contacts;
   auto const initial_player{host.player};
   auto const initial_cells{cells};
   darker::graphics::city_renderer scene;
@@ -140,9 +149,14 @@ auto main(int const argc, char const *const argv[])->int try {
     animation.parameters[0] = std::bit_cast<std::int16_t>(host.hangar.extension);
     darker::graphics::update_fountain_parameters(animation, clock);
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
-    std::array<darker::graphics::scene_object, 1> const objects{{{.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}}}};
-    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation,
-      std::span<darker::graphics::scene_object const>{objects}.first(external ? 1 : 0))};
+    objects.clear();
+    contacts.clear();
+    for(auto const &actor : actors) {
+      objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
+      contacts.push_back({.position{actor.pose.position[0], actor.pose.position[1]}, .group{darker::graphics::radar_group::b}});
+    }
+    if(external) objects.push_back({.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
+    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation, objects)};
     display = cockpit;
     auto const components{darker::graphics::cockpit_components(type)};
     std::array<std::uint8_t, 9> instruments{};
@@ -172,7 +186,8 @@ auto main(int const argc, char const *const argv[])->int try {
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
       darker::graphics::draw_attitude_surround(display, 0);
-      if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, {});
+      darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
+      if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, {});
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
@@ -273,7 +288,7 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  std::cout << "Mission actors, weapons, world sound and original death screens are not connected yet." << std::endl;
+  std::cout << "First-mission aircraft are active in Delphi. Weapons, mission presentation, world sound and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -298,6 +313,7 @@ auto main(int const argc, char const *const argv[])->int try {
       host.shield_ready = false;
       if(audio_device) audio.publish({});
       cells = initial_cells;
+      actors = initial_actors;
       host.mouse_started = false;
       host.shield_deadline = 0;
       host.clock = 0;
@@ -316,6 +332,9 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     auto const contact{host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
       step, game_clock.frame_ticks, bank, cells)};
+    for(auto &actor : actors) {
+      darker::game::advance_surface_actor(actor, host.player.pose(), actors, cells, bank, 0x20, step);
+    }
     if(caero) darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
     if(contact.contact != darker::game::city_contact::none
       && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
