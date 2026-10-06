@@ -84,7 +84,12 @@ void player::execute() {
       break;
     case 0x22: deadline += byte() * interval; break;
     case 0x23: stopped = true; break;
-    case 0x30: byte(); break; // Weapon availability belongs to scenario setup, not presentation rendering.
+    case 0x30: {
+      auto const range{byte()};
+      auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
+      weapon_toggles ^= std::rotl(mask,range >> 4);
+      break;
+    }
     case 0x3a:
       text_y = byte(); image_height = byte();
       if(image_height) { image_width = word(); image_y = byte(); image_x = word(); }
@@ -118,6 +123,12 @@ void player::execute() {
     case 0x49: { auto const frame{byte()}; pairs[selected] = {frame,frame}; break; }
     case 0x4a: deadline += (std::abs(pairs[selected].current - pairs[selected].target) + 1) * interval; break;
     case 0x4b: pairs[selected] = {}; break;
+    case 0x4c: {
+      auto const duration{byte()};
+      repeat_delay = !repeat_delay;
+      if(repeat_delay) { cursor -= 2; deadline += duration * interval; }
+      break;
+    }
     default: throw std::invalid_argument{std::format("Unsupported presentation opcode {:02x}",op)};
     }
   }

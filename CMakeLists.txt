@@ -150,6 +150,8 @@ target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resour
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/city_persistence.cpp
+  src/game/city_persistence.h
   src/game/actor_motion.cpp
   src/game/actor_motion.h
   src/game/aircraft_combat.cpp
@@ -272,6 +274,8 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check
+    tests/city_persistence_check.cpp
+    tests/city_persistence_check.h
     tests/mission_combat_check.cpp
     tests/mission_combat_check.h
     tests/actor_flight_check.cpp

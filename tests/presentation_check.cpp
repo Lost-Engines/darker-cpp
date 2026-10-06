@@ -8,10 +8,10 @@
 
 void check_presentations(darker::resources::archive_set const &archives) {
   /// Compare every startup and briefing animation frame with native-verified pixel streams
-  for(unsigned int slot : {0, 1, 2}) {
-    auto const frames{darker::presentation::decode_animation(archives.load({1,slot}))};
+  for(auto const id : {darker::resources::resource_id{1,0},{1,1},{1,2},{1,3},{1,5},{3,2}}) {
+    auto const frames{darker::presentation::decode_animation(archives.load(id))};
     for(auto const &sample : darker::test_reference::presentation_samples) {
-      if(sample.slot != slot) continue;
+      if(sample.archive != id.archive || sample.slot != id.slot) continue;
       auto const &frame{frames.at(sample.frame)};
       uint64_t fingerprint{0xcbf29ce484222325};
       for(auto const &pixel : frame) {
@@ -61,6 +61,16 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
+  for(size_t record{1}; record <= 2; ++record) {
+    darker::presentation::player next{archives,font,mission,record};
+    size_t scenes{0};
+    do {
+      next.advance(3000);
+      next.draw(frame);
+      if(++scenes > 8) throw std::runtime_error{"Campaign briefing failed to terminate"};
+    } while(next.continue_page());
+    if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active"};
+  }
   darker::resources::scenario_resource const startup{archives.load({4,15})};
   darker::presentation::player intro{archives,font,startup,1};
   for(unsigned int tick{0}; tick < 2000; ++tick) { intro.advance(1); intro.draw(frame); }
@@ -81,5 +91,5 @@ void check_presentations(darker::resources::archive_set const &archives) {
   front.key(darker::presentation::front_key::back);
   front.draw(frame);
   if(!front.active()) throw std::runtime_error{"Dismissing death must return to the menu, not launch a mission"};
-  std::cout << "47 animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
+  std::cout << "Startup, committal and first three mission animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
 }

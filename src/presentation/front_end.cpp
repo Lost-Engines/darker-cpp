@@ -44,6 +44,11 @@ size_t front_end::consumed_text() const noexcept {
   return scene ? scene->consumed_text() : 0;
 }
 
+uint16_t front_end::weapon_changes() const noexcept {
+  /// Briefing opcode 30 applies its range toggles to the saved weapon availability
+  return scene ? scene->weapon_toggles : 0;
+}
+
 void front_end::choose_game() {
   /// An empty slot asks for a name before exposing its run menu
   draft_name.clear();
@@ -52,9 +57,9 @@ void front_end::choose_game() {
 }
 
 void front_end::begin_briefing() {
-  /// Recreate presentation state for a new first-mission session
-  if(save.pilots[selected].stage != 1) { unsupported_stage = true; return; }
-  scene = std::make_unique<player>(archives,font,mission,0);
+  /// Select the current supported campaign record for briefing
+  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 3) { unsupported_stage = true; return; }
+  scene = std::make_unique<player>(archives,font,mission,save.pilots[selected].stage - 1);
   current = screen::briefing;
 }
 
@@ -67,8 +72,8 @@ void front_end::key(front_key const input) {
     return;
   }
   if(current == screen::briefing) {
-    if(input == front_key::back) { current = screen::run; return; }
-    if(input == front_key::accept && !scene->continue_page()) current = screen::flight;
+    if(input == front_key::back && (scene->input_policy & 4)) { current = screen::run; return; }
+    if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::flight;
     return;
   }
   if(current == screen::name) {
@@ -140,6 +145,18 @@ void front_end::advance(uint32_t const elapsed_ticks) {
   if(current != screen::introduction && current != screen::briefing && current != screen::outcome) return;
   scene->advance(elapsed_ticks);
   if(current == screen::introduction && scene->finished()) current = screen::title;
+  if(current == screen::briefing && scene->finished() && scene->input_policy == 0) current = screen::flight;
+}
+
+resources::pilot_record &front_end::selected_pilot() noexcept {
+  /// The selected slot owns the last committed campaign state
+  return save.pilots[selected];
+}
+
+void front_end::continue_campaign() {
+  /// Successful progression enters the next briefing directly when its runtime is supported
+  current = screen::run;
+  begin_briefing();
 }
 
 void front_end::show_death(uint8_t const completed_objects) {

@@ -37,6 +37,7 @@ public:
   bool active() const noexcept;
   bool editing_name() const noexcept;
   size_t consumed_text() const noexcept;
+  uint16_t weapon_changes() const noexcept;
   void key(front_key input);
   void character(unsigned int code);
   void click(int x, int y);
@@ -44,6 +45,8 @@ public:
   void draw(framework::render::cockpit_framebuffer &output) const;
   void return_to_menu();
   void show_death(uint8_t completed_objects);
+  resources::pilot_record &selected_pilot() noexcept;
+  void continue_campaign();
 };
 
 } // namespace darker::presentation

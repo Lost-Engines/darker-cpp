@@ -25,7 +25,7 @@ private:
   size_t text_cursor{0};
   uint32_t ticks{0}, pending{0}, deadline{0};
   uint8_t interval{1}, selected{7}, object_counter{0};
-  bool stopped{false};
+  bool stopped{false}, repeat_delay{false};
   struct animation_pair { uint8_t current{160}; uint8_t target{160}; };
   std::array<animation_pair, 12> pairs{};
   std::array<std::vector<animation_frame>, 2> animations;
@@ -41,6 +41,7 @@ private:
   void image(resources::resource_id id, unsigned int width, unsigned int height, unsigned int x, unsigned int y);
 
 public:
+  uint16_t weapon_toggles{0};
   uint8_t music{0};
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,

@@ -21,6 +21,7 @@
 #include "audio/world_sounds.h"
 #include "game/beacon_light.h"
 #include "game/city_map.h"
+#include "game/city_persistence.h"
 #include "game/flight_camera.h"
 #include "game/game_clock.h"
 #include "game/hangar.h"
@@ -46,7 +47,7 @@
 
 namespace {
 
-enum class session_exit { none, menu, death };
+enum class session_exit { none, menu, death, completed };
 
 struct flight_host {
   darker::game::player_flight player{};
@@ -55,6 +56,7 @@ struct flight_host {
   darker::game::flight_camera camera;
   darker::game::hangar_state hangar;
   darker::game::mission_combat *combat{nullptr};
+  uint16_t available_weapons{0};
   bool primary_held{false};
   bool briefing{false};
   darker::presentation::front_end *front{nullptr};
@@ -135,9 +137,9 @@ auto main(int const argc, char const *const argv[])->int try {
     host.player.engine_flags = 0;
   }
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  auto const &mission{scenario.records().front()};
+  auto mission{scenario.records().front()};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
-  auto const text{scenario.language(0, darker::resources::scenario_language::english)};
+  auto text{scenario.language(0, darker::resources::scenario_language::english)};
   std::unique_ptr<darker::presentation::front_end> front;
   std::filesystem::path const save_path{"darker-cpp.sav"};
   darker::resources::save_file saves;
@@ -146,7 +148,7 @@ auto main(int const argc, char const *const argv[])->int try {
     front = std::make_unique<darker::presentation::front_end>(archives,font,scenario,saves);
     host.front = front.get();
   }
-  darker::game::mission_script const initial_script{
+  darker::game::mission_script initial_script{
     .continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset},
   };
   auto script{initial_script};
@@ -159,8 +161,8 @@ auto main(int const argc, char const *const argv[])->int try {
   if(caero) host.combat = combat.get();
   std::vector<darker::graphics::scene_object> objects;
   std::vector<darker::graphics::radar_contact> contacts;
-  auto const initial_player{host.player};
-  auto const initial_cells{cells};
+  auto initial_player{host.player};
+  auto initial_cells{cells};
   darker::graphics::city_renderer scene;
   darker::graphics::distance_shading const lighting;
   framework::render::indexed_cockpit_framebuffer display{}, world{};
@@ -310,7 +312,7 @@ auto main(int const argc, char const *const argv[])->int try {
       return;
     }
     if(action == GLFW_PRESS && key == GLFW_KEY_ENTER && host.hangar.returning == darker::game::hangar_return_phase::complete) {
-      host.exit_requested = session_exit::menu;
+      host.exit_requested = session_exit::completed;
       return;
     }
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
@@ -338,7 +340,7 @@ auto main(int const argc, char const *const argv[])->int try {
     using darker::game::flight_command;
     switch(key) {
       case GLFW_KEY_1:
-        if(host.combat && action == GLFW_PRESS) host.combat->primary_weapon = 1;
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & 1)) host.combat->primary_weapon = 1;
         break;
       case GLFW_KEY_E:
         host.player.command(flight_command::engine);
@@ -387,7 +389,7 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a Caero crash shows the committal sequence; Skimma restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Enter after docking returns to the menu." << std::endl;
+  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -407,6 +409,19 @@ auto main(int const argc, char const *const argv[])->int try {
     if(host.exit_requested != session_exit::none) {
       bool const died{host.exit_requested == session_exit::death};
       auto const completed{static_cast<uint8_t>(combat->completed_objectives)};
+      bool const completed_mission{host.exit_requested == session_exit::completed};
+      if(completed_mission && front) {
+        auto updated{front->selected_pilot()};
+        darker::game::pack_city_state(cells,bank.city_types(),updated.delphi);
+        updated.return_site = host.hangar.return_site;
+        updated.weapons = host.available_weapons;
+        ++updated.stage;
+        auto updated_saves{saves};
+        auto const slot_index{static_cast<size_t>(&front->selected_pilot() - saves.pilots.data())};
+        updated_saves.pilots[slot_index] = updated;
+        darker::resources::write_save(save_path,updated_saves);
+        saves = updated_saves;
+      }
       host.player = initial_player;
       host.camera = {};
       host.hangar = {};
@@ -421,7 +436,8 @@ auto main(int const argc, char const *const argv[])->int try {
       host.engine_indicator = 0;
       host.briefing = caero;
       if(front) {
-        if(died) front->show_death(completed);
+        if(completed_mission) front->continue_campaign();
+        else if(died) front->show_death(completed);
         else front->return_to_menu();
         glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL);
       }
@@ -434,7 +450,7 @@ auto main(int const argc, char const *const argv[])->int try {
       host.clock = 0;
       host.exit_requested = session_exit::none;
       game_clock = {};
-      std::cout << (caero ? (died ? "Showing the Kismet committal sequence." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
+      std::cout << (caero ? (completed_mission ? "Mission saved; continuing the campaign." : died ? "Showing the Kismet committal sequence." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
@@ -452,7 +468,30 @@ auto main(int const argc, char const *const argv[])->int try {
         host.briefing = active;
         host.mouse_started = false;
         glfwSetInputMode(window.get(),GLFW_CURSOR,active ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
-        if(!active) context.text_cursor = front->consumed_text();
+        if(!active) {
+          auto const &pilot{front->selected_pilot()};
+          host.available_weapons = pilot.weapons ^ front->weapon_changes();
+          auto const record{static_cast<size_t>(pilot.stage - 1)};
+          mission = scenario.records()[record];
+          text = scenario.language(record,darker::resources::scenario_language::english);
+          cells = darker::game::make_city_map(archives.load({0,68}),true);
+          darker::game::restore_city_state(cells,bank.city_types(),pilot.delphi,pilot.stage);
+          host.hangar = {};
+          if(pilot.stage > 1 && pilot.return_site != 0) host.hangar.return_site = pilot.return_site;
+          darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
+          initial_player = host.player;
+          initial_cells = cells;
+          initial_actors = darker::game::make_scenario_group(mission.groups[0],bank,1,0,mission.shared.offset);
+          combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+          host.combat = combat.get();
+          initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
+          script = initial_script;
+          context = {.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
+          message.reset();
+          game_clock = {};
+          host.clock = 0;
+          host.primary_held = false;
+        }
       }
     }
     game_clock.running = !host.briefing && host.hangar.returning != darker::game::hangar_return_phase::complete;
@@ -467,7 +506,10 @@ auto main(int const argc, char const *const argv[])->int try {
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
         contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
           step, game_clock.frame_ticks, bank, cells);
-      } else darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
+      } else {
+        darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
+        if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = session_exit::completed;
+      }
       if(caero) {
         combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held);
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
@@ -499,7 +541,7 @@ auto main(int const argc, char const *const argv[])->int try {
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
     }
     auto const status{host.briefing ? " - menu / presentation"
-      : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete: Enter for menu"
+      : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete"
       : host.player.lifecycle.crashing ? (caero ? " - crashed: Enter to continue" : " - crashed: Enter to restart") : " - flight"};
     std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
     glfwSetWindowTitle(window.get(), title.c_str());

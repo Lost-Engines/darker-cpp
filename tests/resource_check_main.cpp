@@ -10,6 +10,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 #include "actor_flight_check.h"
+#include "city_persistence_check.h"
 #include "game/city_collision.h"
 #include "game/city_sweep.h"
 #include "game/player_flight.h"
@@ -55,6 +56,7 @@ auto main(int const argc, char const *const argv[])->int try {
   check_scenario_resources(archives);
   check_text_resources(archives);
   check_presentations(archives);
+  check_city_persistence(archives);
   std::size_t total{0};
   for(auto const &entry : darker::resources::resource_directory()) {
     auto const decoded{archives.load(entry.id)};

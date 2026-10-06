@@ -2,7 +2,7 @@
 
 The default Caero launch now passes through the original startup animation,
 title image, game selection, pilot-name entry and first-mission briefing before
-entering the hangar. All images, animation frames and fonts are read directly
+entering the hangar. The first three campaign missions now run consecutively. All images, animation frames and fonts are read directly
 from the original packs. Skimma development starts still enter flight directly.
 
 `presentation::player` interprets the presentation portion of the scenario
@@ -24,7 +24,8 @@ Select a slot using 1–4, arrows and Enter, or the mouse. Empty slots ask for a
 pilot name. The run menu supports Enter to run, S to select another slot, E to
 erase the slot, and Escape to confirm quitting. Confirmation uses up/down and
 Enter, or clicking Yes/No. Escape during flight returns to the run menu; Enter
-after docking also returns there. Enter after a Caero crash opens the original
+after docking is no longer required: a completed docking saves progress and
+opens the next supported briefing automatically. Enter after a Caero crash opens the original
 Kismet committal presentation; Enter, Space, Escape or its back button then
 returns to the run menu. Escape directly from flight still leaves immediately.
 
@@ -36,11 +37,23 @@ codec preserves both packed city streams, weapon/return-site fields, opaque
 record tails and trailer bytes. A corrupt or wrongly sized file is reported,
 never silently reset. The retail `DARKER.SAV` is not automatically read or written.
 
-This does **not yet save mission completion**: playable slots still start stage
-one. If a later-stage retail record is copied into the reconstruction save, its
-stage is displayed but Run reports that the stage is not implemented. Other
-slots remain usable and the unsupported record is preserved. Campaign state
-commit, city restoration and stage selection are the next integration work.
+Successful docking now commits the Delphi city stream, current weapon mask and
+return site, increments the saved stage and opens the next briefing. The first
+three missions are connected. Completing the third saves stage four and returns
+to the menu with an explicit unsupported-stage notice; the next mission needs
+ground-vehicle logic. Loading stages beyond three preserves the record but
+does not launch it. Death and Escape leave the previous committed record intact.
+
+Each flight loads a fresh city, restores saved bits for stages after one, and
+recreates actors/scripts from its own scenario record. BB90/BBC6 packing and
+restoration match native fingerprints for both Delphi and Halon, including
+high-bit beacon templates and variant rebuilding. Stage one bypasses the whole
+BBC6 path, including variant rebuilding. Only Delphi is connected to campaign
+play at this milestone. All three supported missions have empty beacon queues;
+queued-outage exit handling remains necessary for later missions.
+
+Briefing opcode 30 now retains weapon-range toggles for the flight session;
+the first briefing grants Pinner Direct. Save commits retain that runtime mask.
 
 Menu text uses original wording and fonts, but its
 composition is provisional: exact borders, score fields and retail positioning
@@ -48,14 +61,14 @@ remain to be reproduced. Nightmare mode is not exposed yet.
 
 Music-selection opcodes are decoded but music is not played. Palette fades,
 original input-policy details, exact presentation tick/display ordering,
-debriefing and campaign progression remain outstanding.
+later campaign records and their scripted events remain outstanding.
 The interpreter rejects unsupported opcodes rather than silently treating
 unimplemented presentations as complete. It currently selects English.
 
 ## Evidence and verification
 
-`tools/generate_presentation_reference.py` checks all 47 frames in committal 01/0, startup 01/1
-and briefing 01/2 against the original DF36 routine under Unicorn, including
+`tools/generate_presentation_reference.py` checks all 113 frames in committal 01/0, startup 01/1,
+briefings 01/2, 01/3, 01/5 and cutscene 03/2 against the original DF36 routine under Unicorn, including
 VGA plane-mask writes. Its checked-in fingerprints are compared with the C++
 decoder by `resource_check`. This establishes pixel decoding, not full native
 presentation timing or exact menu composition.
@@ -115,3 +128,23 @@ patterned 6,598-byte test payload `(offset * 37 + 11) & 255` produces CRC 7584;
 the original A110 writer produces the identical file and 0364 accepts it under
 the existing parent `tools/verify_save_file.py::Save` harness. These tests
 intercept DOS I/O and leave the retail save untouched.
+
+## Campaign verification
+
+`tools/generate_city_persistence_reference.py` executes native BB90/BBC6 against
+both real maps/banks and emits full-stream and full-map fingerprints. Tests
+compare source patterns with all four state codes, beacon templates, the first
+stage bypass and later-stage restoration. No DOS save is modified.
+
+Controlled combat now completes all three supported missions with their own
+actors, source briefings, message cursors and original completion messages,
+then performs automatic docking. A separate windowed GDB fixture injects the
+completion outcome at the host boundary to exercise actual slot commits and
+transitions 1→2→3→4; it verifies CRC, Pinner availability and return-site bytes.
+This boundary test does not claim an unaided interactive playthrough.
+
+Mission two's second scene disables input and finishes automatically. C06E
+(opcode 4C) toggles its repeat flag, rewinds itself once and delays by its operand
+multiplied by the record interval. The player implements this delay, and the
+front end honours no-input scene completion. Framebuffer transition/fade details
+remain outside the pixel-decoder checks.
