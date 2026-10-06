@@ -29,3 +29,25 @@ box counts, all bounds and categories. The native fixture skips intersection
 tests after capturing their arguments; it does not replace stream decoding.
 Synthetic tests additionally cover signed endpoints, height-prefix reset,
 missing terminators, invalid pointers and non-colliding types.
+
+## Swept primitive tests
+
+`sweep_collision_box` tests a local movement segment against one decoded box,
+then shortens its endpoint on a hit. Exact rational comparisons express the
+original three projected intersection tests without floating point. Coordinates
+are made relative to the starting word so local movements across signed and
+unsigned word boundaries remain continuous.
+
+Impact placement follows `662B–6704`, including the `extent + 1` divisors,
+16-bit entry fraction, complement multiplication and zero-fraction special
+case. An object already inside can therefore move back one unit on a positive
+axis; replacing this with an ordinary interpolated ray hit would change the
+original behaviour. Boxes include their lower bounds and exclude their upper
+bounds during the initial rejection test.
+
+The native fixture executes intersection and shortening instructions unchanged
+for 4,096 cases (611 hits), including stationary, boundary, inside, reversed and
+wrapping coordinates. Both hit decisions and all endpoint words agree. These
+are local segments; ambiguous movements spanning half the wrapping coordinate
+space are not a supported flight contract. Map-cell traversal, terrain clipping
+and gameplay responses remain separate consumers.

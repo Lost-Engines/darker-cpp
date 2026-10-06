@@ -120,6 +120,9 @@ add_library(darker_game STATIC
   src/game/beacon_light.cpp
   src/game/beacon_light.h
   src/game/caero_energy.cpp
+  src/game/collision_box.h
+  src/game/collision_sweep.cpp
+  src/game/collision_sweep.h
   src/game/city_collision.cpp
   src/game/city_collision.h
   src/game/caero_flight.cpp
@@ -192,6 +195,7 @@ if(BUILD_TESTING)
     tests/random_test.cpp
     tests/direction_test.cpp
     tests/geometry_bank_test.cpp
+    tests/collision_sweep_test.cpp
     tests/city_collision_test.cpp
     tests/city_scene_test.cpp
     tests/camera_test.cpp
