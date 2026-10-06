@@ -154,3 +154,21 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_steering_reference.py ..
 python3 tools/generate_direction_table.py ../analysis/unpacked/image.bin
 PYTHONPATH=/tmp/darker-python python3 tools/generate_direction_reference.py ..
 ```
+
+## Ordered per-projectile update
+
+`update_projectile` now composes the post-visibility part of the object walker (`79E5–7A2D`) for direct and object-homing callbacks:
+
+1. Update the clock-dependent flags/fade. If this requests expiry, return immediately without looking up a target, taking a position snapshot or running motion.
+2. Copy the three current coordinate words to `previous_position` (native +38/+3A/+3C). Fraction bytes are not included in this snapshot.
+3. Dispatch the mutable update entry: `CC64` runs direct motion; `CC61` runs homing against the supplied resolved object placement, including the self-target case.
+
+The caller still performs visibility/update eligibility, resolves any native target token, and processes expiry's target-reference and mission effects. Map-target homing and other callbacks are not silently treated as direct motion: unsupported callbacks or missing required inputs report an error. Clock/fade processing precedes that validation, as expiry can bypass the callback entirely. The function does not recycle records or advance a global clock.
+
+`generate_update_reference.py` executes the original walker from `79E5`, stopping either at `7A52` (before expiry side effects) or at `7A30` (after the actual callback returns). No steering, direction, motion or deadline code is stubbed. **Thirty multi-frame sequences / 426 updates** cover both callbacks, fixed/moving/self targets, ordinary expiry, high-altitude deadline shortening, fade-in completion, untimed objects, immediate expiry, and clock wraparound. Tests compare old/current positions, fractions, angular rates, angles, speed, flags, fade, deadline and expiry outcome at each step. All **58 CTest cases** pass.
+
+The native step lives in the immediate operand at `7A2B`. After patching it between frames, the probe invalidates Unicorn's translated block and asserts the actual CX value at callback dispatch. Without that invalidation, cached code can retain an earlier step and produce misleading sequence captures. Production C++ uses an explicit step argument and has no such instruction patching.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_update_reference.py ..
+```
