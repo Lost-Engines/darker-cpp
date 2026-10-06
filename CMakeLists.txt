@@ -145,6 +145,8 @@ configure_first_party(darker_graphics)
 add_library(darker_game STATIC
   src/game/actor_motion.cpp
   src/game/actor_motion.h
+  src/game/aircraft_combat.cpp
+  src/game/aircraft_combat.h
   src/game/actor_update.cpp
   src/game/actor_update.h
   src/game/actor_navigation.cpp
@@ -153,6 +155,8 @@ add_library(darker_game STATIC
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
   src/game/actor_awareness.h
+  src/game/mission_combat.cpp
+  src/game/mission_combat.h
   src/game/mission_script.cpp
   src/game/mission_script.h
   src/game/hangar.cpp
@@ -246,6 +250,8 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check
+    tests/mission_combat_check.cpp
+    tests/mission_combat_check.h
     tests/actor_flight_check.cpp
     tests/actor_flight_check.h
     tests/resource_check_main.cpp
@@ -260,6 +266,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/aircraft_combat_test.cpp
     tests/actor_motion_test.cpp
     tests/actor_navigation_test.cpp
     tests/scenario_actor_test.cpp

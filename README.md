@@ -24,10 +24,13 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation. City visibility now also follows the original 256-cell coordinate wrap, including scenery approaching across either seam.
 
-The Caero now starts at its original **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. This is not yet a complete mission: briefing flow, combat, world audio, object-target cameras, landing and original death screens remain to be connected. Enter after a crash restores the initial state. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
+The Caero begins with the first mission’s original briefing text, then starts at its **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. The first mission now connects Pinner Direct combat, both aircraft objectives, the original return message and automatic HQ docking. Briefing artwork, combat effects, world audio, object-target cameras, original death screens and subsequent campaign progression remain outstanding. See [first mission](docs/first_mission.md) for scope and evidence. Enter after a crash restores the initial state. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
+- **Space / Enter:** advance briefing pages.
+- **1:** select Pinner Direct; **Space / left mouse:** fire on each press.
+- **Enter after docking:** restart the first mission.
 - **Mouse / arrow keys:** steer; **Ctrl + arrows:** adjust control force.
 - **Enter:** Caero boost; upgraded Skimma turbo setting.
 - **Backspace:** brake.
@@ -40,11 +43,11 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 - **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
 - **Escape:** close and release the captured mouse.
 
-The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. Weapon icons are empty until weapon integration.
+The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. The Caero primary icon follows Pinner Direct selection.
 
 The world view now draws the original 17 sky/ground colour bands, moving with pitch and bank. Halon’s distant grey building shades blend into its grey horizon; Delphi uses its own purple night palette. The original model distance-shading tables and draw radius are unchanged.
 
-Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/city.ppm` renders the initial checkpoint headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
+Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/frame.ppm` renders the initial frame headlessly (briefing for Caero, flight for Skimma); `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure
 
@@ -58,7 +61,7 @@ The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity 
 
 The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the upcoming mission runtime.
 The [font renderer and formatter](docs/fonts_and_text.md) consume original bitmap fonts and page controls, with native comparisons for glyph coverage, layout and cursor state.
-The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; the first mission’s two aircraft now fly in the live Delphi scene and appear on radar. Their combined callback matches 2,048 original updates, including pursuit; firing and collision/death responses are still pending.
+The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; the first mission’s two aircraft now fly in the live Delphi scene and appear on radar. Their combined callback matches 2,048 original updates, including pursuit. The connected first-mission combat and docking checks are described in [first mission](docs/first_mission.md).
 
 ```sh
 ctest --test-dir build --output-on-failure

@@ -15,7 +15,7 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_awareness_reference.py ..
 PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_motion_reference.py ..
 ```
 
-These components are not yet a complete actor simulation. Scenario activation, the navigation components below, firing and collision responses must be connected before enemy behaviour is playable. The proximity probe begins after the script call; mission execution has its own independent native comparisons.
+These components support the connected first-mission actors described below; general scenario activation and other actor callbacks remain outstanding. The proximity probe begins after the script call; mission execution has its own independent native comparisons.
 
 ## Scenario construction
 
@@ -61,7 +61,7 @@ Clearance follows the original order:
 PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_target_reference.py ..
 ```
 
-The slot-23 close-target action, firing helper, actor update/lifecycle ordering and complete scenario/world integration remain outstanding. These comparisons establish individual routine contracts, not an end-to-end native enemy simulation.
+The slot-23 close-target action, other weapon branches and complete scenario/world integration remain outstanding. These comparisons establish individual routine contracts, not an end-to-end native enemy simulation.
 
 ## Combined surface flight
 
@@ -74,8 +74,9 @@ until that callback is connected.
 The application constructs the first mission's two slot-19 aircraft from
 `04_000 / 0`, preserving source identities and reverse active-list order. They
 fly in Delphi, appear as models and radar contacts, and reset with the player.
-This does not yet enable combat or claim a completable mission. Actor lighting,
-collision/death responses and weapon firing remain outstanding.
+Their close-range gun, Pinner hits, falling/death responses and objective removal
+are now connected through [first-mission combat](first_mission.md). Actor lighting,
+ramming, combat effects and general scenario callbacks remain outstanding.
 
 An integration comparison executes original `8823` on the original Delphi map
 for **2,048 sequential actor updates**, checking 17 fields each time. Its

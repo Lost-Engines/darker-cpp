@@ -6,7 +6,7 @@ namespace darker::game {
 
 std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
   std::span<scenario_actor const> const active, city_map const &cells, resources::geometry_bank const &bank,
-  uint8_t const damage_mask, uint16_t frame_step) {
+  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire) {
   /// Compose 8823's airborne navigation after its script update; report firing checks for the weapon owner
   if(actor.parameters.update_entry != 0x8823 || actor.definition_slot == 23) {
     throw std::invalid_argument{"Actor requires a different movement callback"};
@@ -34,10 +34,12 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
     }
     course = actor_cell_course(actor, actor.selected_target, descriptor, model);
   }
+  auto const firing_course{course};
   reset_actor_clearance(actor);
   for(auto const &neighbour : active) consider_actor_clearance(actor, neighbour, course);
   adjust_actor_clearance(actor, course, actor_city_clearance(actor.pose, cells, bank, damage_mask));
   auto const manoeuvre{choose_actor_manoeuvre(actor, course)};
+  if(manoeuvre.firing_distance && fire) fire(actor, firing_course, *manoeuvre.firing_distance);
   frame_step = steer_actor(actor.pose, actor.attitude,
     {.response{actor.parameters.angular_response}, .bank_response{actor.parameters.motion[0]},
       .bank_limit{actor.parameters.motion[1]}, .turn_response{actor.parameters.motion[2]}},

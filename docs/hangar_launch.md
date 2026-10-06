@@ -6,7 +6,7 @@ Boost cells charge while waiting in the hangar with the engine enabled. Switchin
 
 C6D2 toggles the high state bit on the gate, neighbouring approach lights and hangar interior together. C5F9 grows the gate parameter while inside an entrance cell, derives it from distance while crossing the lights, and restores the three cells after departure. The parameter drives the existing model interpolation directly. The native negative-X distance asymmetry and the sound-level update skipped at extension saturation are preserved.
 
-The startup path is currently restricted to type-17 return sites: all nine Delphi return locations explicitly assigned by the analysed mission scripts use that type. This is not an assertion that the similarly shaped entrances in other orientations are interchangeable start locations. Landing capture, docking callbacks, mission completion/return permission and Skimma supply-pad starts remain separate work.
+The startup path is currently restricted to type-17 return sites: all nine Delphi return locations explicitly assigned by the analysed mission scripts use that type. This is not an assertion that the similarly shaped entrances in other orientations are interchangeable start locations. Landing capture and docking now use that same type-17 site after the first mission’s objectives clear. Skimma supply-pad starts remain separate work.
 
 **512 native startup cases** compare position, angles, landed flag and all three changed cells. **512 native departure cases** compare extension, sound level, landed flag and cell changes, including wrapping arithmetic and saturation. The GLFW application has also been exercised through charge, boost, pull-up and external flight view with simulated input.
 
@@ -14,7 +14,7 @@ The startup path is currently restricted to type-17 return sites: all nine Delph
 PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_reference.py ..
 ```
 
-The game still has no active mission actors or briefing flow. Enter after a crash restores the initial HQ state; this is a development retry, not yet the original campaign/death-screen path. Skimma starts remain airborne checkpoints.
+The first mission now has briefing text, active aircraft and combat. Enter after a crash restores the initial HQ state; this is a development retry, not yet the original campaign/death-screen path. Skimma starts remain airborne checkpoints.
 
 ## Retail and demo charging
 
@@ -44,3 +44,24 @@ The windowed test exposed a second issue: Xvfb/Mesa did not provide useful swap 
 The original AF61 waits for VGA vertical retrace. F15A's CRTC table programs total register 06 to 0Dh with overflow register 07 set to 3Eh: 525 plus two scan lines, or 527. With mode-13h's 800-dot line and 25.175 MHz clock this is approximately 59.71 Hz. The host now enforces that minimum frame interval even on faster displays or without functioning swap synchronisation. It retains elapsed-time physics steps and the original pending-time cap; this is not a complete emulation of the original page-flip/display scheduler.
 
 A windowed Xvfb/Mesa test now waits for charge, presses and releases Enter once, and remains airborne for eight seconds with no mouse or steering input. No physics coefficients were changed.
+
+## Mission return
+
+After both counted aircraft are removed, C670’s position and attitude checks admit
+an approach from the north, flying south towards the HQ. The capture window is
+608–863 horizontal units from the entrance reference, below 2,304 altitude units,
+with the original narrow roll, pitch and heading tolerances. Capture opens the
+site and transfers control to the 7CEF approach and 7D32 settling callbacks.
+
+**684 consecutive return frames** match the original execution on the real Delphi
+map, from `(12672,28380,500)` facing south through docking at tick 5,472. Fifteen
+fields per frame include fractional position, attitude, speed, gate extension
+and return phase. The integration check also rejects return before objectives
+clear. This is a controlled native routine trace, not a recorded DOSBox flight.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_return_reference.py ..
+```
+
+The current application stops at a simple completion overlay after docking;
+original debrief presentation and loading the next mission are still pending.

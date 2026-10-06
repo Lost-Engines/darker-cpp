@@ -1,0 +1,76 @@
+#include "mission_combat_check.h"
+#include <algorithm>
+#include <array>
+#include <iostream>
+#include <stdexcept>
+#include "game/hangar.h"
+#include "game/mission_combat.h"
+#include "graphics/formatted_text.h"
+#include "resources/archive_set.h"
+
+void check_mission_combat(darker::resources::archive_set const &archives) {
+  /// Drive real first-mission projectiles through real aircraft hulls, then observe removal and the original completion script
+  darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  auto cells{darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true)};
+  std::array<uint8_t, 256> limits{};
+  for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
+  darker::game::assign_city_variants(cells, limits);
+  darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
+  auto const &record{scenario.records().front()};
+  darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+  darker::game::player_flight player;
+  auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
+  caero.flying = true;
+  caero.energy.reserve = 0xcfff;
+  combat.primary_weapon = 1;
+  darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
+  auto const text{scenario.language(0, darker::resources::scenario_language::english)};
+  size_t cursor{0};
+  for(unsigned int page{0}; page < 4; ++page) cursor += darker::graphics::lay_out_text(text.subspan(cursor), fonts, darker::resources::font_face::compact).consumed;
+  darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
+  darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+  unsigned int shots{0};
+  bool message{false};
+  for(uint16_t clock{8}; clock < 30000; clock += 8) {
+    auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return !(actor.flags & 0x20); })};
+    bool const fire{target != combat.actors.end() && clock % 128 == 0};
+    if(target != combat.actors.end()) {
+      player.pose().position = target->pose.position;
+      player.pose().position[1] += 200;
+      player.pose().position[2] += 92;
+      player.pose().angles = {};
+      player.pose().speed = 496;
+    }
+    combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire);
+    if(combat.player_fired) ++shots;
+    // Supply controlled beacon power while isolating aim/collision/completion from navigation.
+    darker::game::charge_caero_energy(caero.energy, 13056, 1, 1028, false);
+    context.clock = clock;
+    context.objectives_complete = combat.remaining_objectives() == 0;
+    context.messages.clear();
+    darker::game::advance_mission_script(script, context);
+    for(auto const &event : context.messages) {
+      if(!context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
+      std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
+      if(actual != "Well done- you can return to base.") throw std::runtime_error{"Incorrect first-mission return message"};
+      message = true;
+    }
+    if(message && script.stopped) break;
+  }
+  if(!message || !script.stopped || combat.completed_objectives != 2 || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+    throw std::runtime_error{"First mission controlled combat did not complete: shots=" + std::to_string(shots)
+      + ", removed=" + std::to_string(combat.completed_objectives) + ", reserve=" + std::to_string(caero.energy.reserve)};
+  }
+  player.pose().position = {12672, 28380, 500};
+  player.pose().angles = {0x8000, 0, 0};
+  caero.damage.rotation = {};
+  darker::game::hangar_state hangar;
+  if(!darker::game::begin_hangar_return(player, cells, hangar, combat.remaining_objectives() == 0)) throw std::runtime_error{"Completed mission refused HQ return"};
+  for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {
+    context.clock += 8;
+    darker::game::advance_hangar_return(player, hangar, 8, static_cast<uint16_t>(context.clock));
+    darker::game::advance_hangar_departure(player, cells, hangar, 8);
+  }
+  if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
+  std::cout << "First mission controlled combat: " << shots << " shots, two objectives removed, original return message, script stop and completed HQ docking verified." << std::endl;
+}

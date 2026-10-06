@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -16,7 +17,7 @@
 #include <GLFW/glfw3.h>
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
-#include "game/actor_update.h"
+#include "game/mission_combat.h"
 #include "game/city_map.h"
 #include "game/flight_camera.h"
 #include "game/game_clock.h"
@@ -26,6 +27,8 @@
 #include "graphics/city_scene.h"
 #include "graphics/cockpit.h"
 #include "graphics/flight_instruments.h"
+#include "graphics/font.h"
+#include "graphics/formatted_text.h"
 #include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
 #include "graphics/procedural_hud.h"
@@ -43,6 +46,11 @@ struct flight_host {
   darker::audio::flight_sounds sounds;
   darker::game::flight_camera camera;
   darker::game::hangar_state hangar;
+  darker::game::mission_combat *combat{nullptr};
+  bool primary_held{false};
+  bool briefing{false};
+  bool next_page{false};
+  size_t briefing_page{0};
   bool shield_ready{false};
   bool gouraud{true};
   bool restart_requested{false};
@@ -120,9 +128,25 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
   auto const &mission{scenario.records().front()};
-  auto actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
+  darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
+  auto const text{scenario.language(0, darker::resources::scenario_language::english)};
+  std::vector<darker::graphics::formatted_page> briefing;
+  size_t text_cursor{0};
+  for(unsigned int page{0}; page < 4; ++page) {
+    briefing.push_back(darker::graphics::lay_out_text(text.subspan(text_cursor), font, darker::resources::font_face::compact, {.colour{0xff00}}));
+    text_cursor += briefing.back().consumed;
+  }
+  darker::game::mission_script const initial_script{
+    .continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset},
+  };
+  auto script{initial_script};
+  darker::game::mission_context context{.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{text_cursor}};
+  std::optional<darker::game::mission_message> message;
+  host.briefing = caero;
+  auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
-  auto const initial_actors{actors};
+  auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
+  if(caero) host.combat = combat.get();
   std::vector<darker::graphics::scene_object> objects;
   std::vector<darker::graphics::radar_contact> contacts;
   auto const initial_player{host.player};
@@ -132,6 +156,15 @@ auto main(int const argc, char const *const argv[])->int try {
   framework::render::indexed_cockpit_framebuffer display{}, world{};
   framework::render::cockpit_framebuffer output;
   auto const render{[&](std::uint16_t const clock, bool const enlarged, std::uint16_t const frame_step = 0){
+    if(host.briefing) {
+      display.pixels.fill(0);
+      for(auto const &glyph : briefing.at(host.briefing_page).glyphs) {
+        darker::graphics::draw_glyph(display, font, darker::resources::font_face::compact, glyph.code, glyph.position,
+          {.ink{static_cast<uint8_t>(glyph.colour >> 8)}, .edge{static_cast<uint8_t>(glyph.colour)}});
+      }
+      framework::render::expand_palette(display, bitmap.palette.colours, output);
+      return size_t{0};
+    }
     bool const cockpit_visible{host.camera.visible_mode() == darker::game::camera_mode::cockpit};
     bool const external{host.camera.visible_mode() != darker::game::camera_mode::cockpit && host.camera.visible_mode() != darker::game::camera_mode::fullscreen};
     int const height{cockpit_visible ? (caero ? 168 : 180) : 240};
@@ -151,9 +184,13 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
     objects.clear();
     contacts.clear();
-    for(auto const &actor : actors) {
+    for(auto const &actor : combat->actors) {
+      if(actor.flags & 8) continue;
       objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
       contacts.push_back({.position{actor.pose.position[0], actor.pose.position[1]}, .group{darker::graphics::radar_group::b}});
+    }
+    for(auto *shot{combat->projectiles.objects().head}; shot; shot = shot->next) {
+      if(!(shot->flags & 8)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
     }
     if(external) objects.push_back({.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
     auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation, objects)};
@@ -181,7 +218,7 @@ auto main(int const argc, char const *const argv[])->int try {
       .row{static_cast<std::uint8_t>(view.row >> 8)}, .column{static_cast<std::uint8_t>(view.column >> 8)},
     };
     if(cockpit_visible && caero) {
-      darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{0}, .secondary_weapon{0}});
+      darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{0}});
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
@@ -191,6 +228,15 @@ auto main(int const argc, char const *const argv[])->int try {
     } else if(cockpit_visible) {
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, {});
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
+    }
+    if(message) {
+      darker::graphics::draw_text(display, font, darker::resources::font_face::compact,
+        text.subspan(message->offset, message->length), {.x{static_cast<int16_t>((320 - message->width) / 2)}, .y{32}}, {.ink{255}, .edge{0}});
+    }
+    if(host.hangar.returning == darker::game::hangar_return_phase::complete) {
+      std::string const complete{"Mission complete"};
+      darker::graphics::draw_text(display, font, darker::resources::font_face::interface,
+        std::as_bytes(std::span{complete}), {.x{104}, .y{72}}, {.ink{255}, .edge{0}});
     }
     framework::render::expand_palette(display, bitmap.palette.colours, output);
     return count;
@@ -229,6 +275,14 @@ auto main(int const argc, char const *const argv[])->int try {
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
     if(key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if(host.briefing) {
+      if(action == GLFW_PRESS && (key == GLFW_KEY_SPACE || key == GLFW_KEY_ENTER)) host.next_page = true;
+      return;
+    }
+    if(action == GLFW_PRESS && key == GLFW_KEY_ENTER && host.hangar.returning == darker::game::hangar_return_phase::complete) {
+      host.restart_requested = true;
+      return;
+    }
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
       auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
       if(key >= GLFW_KEY_F5) {
@@ -253,6 +307,9 @@ auto main(int const argc, char const *const argv[])->int try {
     using darker::audio::flight_sound;
     using darker::game::flight_command;
     switch(key) {
+      case GLFW_KEY_1:
+        if(host.combat && action == GLFW_PRESS) host.combat->primary_weapon = 1;
+        break;
       case GLFW_KEY_E:
         host.player.command(flight_command::engine);
         if(host.player.engine_flags & 1) {
@@ -288,7 +345,7 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  std::cout << "First-mission aircraft are active in Delphi. Weapons, mission presentation, world sound and original death screens are not connected yet." << std::endl;
+  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Enter after docking restarts." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -313,7 +370,16 @@ auto main(int const argc, char const *const argv[])->int try {
       host.shield_ready = false;
       if(audio_device) audio.publish({});
       cells = initial_cells;
-      actors = initial_actors;
+      combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+      if(caero) host.combat = combat.get();
+      host.primary_held = false;
+      host.briefing = caero;
+      host.briefing_page = 0;
+      host.next_page = false;
+      script = initial_script;
+      context.text_cursor = text_cursor;
+      context.messages.clear();
+      message.reset();
       host.mouse_started = false;
       host.shield_deadline = 0;
       host.clock = 0;
@@ -324,18 +390,38 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
     if(seconds > 0 && elapsed >= seconds) break;
+    if(host.next_page) {
+      host.next_page = false;
+      if(++host.briefing_page >= briefing.size()) { host.briefing = false; host.mouse_started = false; }
+    }
+    game_clock.running = !host.briefing && host.hangar.returning != darker::game::hangar_return_phase::complete;
     auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
     darker::game::advance_game_clock(game_clock, interrupts - previous_interrupts);
     previous_interrupts = interrupts;
     auto const step{darker::game::consume_game_frame(game_clock)};
     auto const *caero_state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
-    auto const contact{host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
-      step, game_clock.frame_ticks, bank, cells)};
-    for(auto &actor : actors) {
-      darker::game::advance_surface_actor(actor, host.player.pose(), actors, cells, bank, 0x20, step);
+    darker::game::city_collision_result contact;
+    bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
+    if(step != 0) {
+      if(host.hangar.returning == darker::game::hangar_return_phase::none) {
+        contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
+          step, game_clock.frame_ticks, bank, cells);
+      } else darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
+      if(caero) {
+        combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held);
+        context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
+        context.objectives_complete = combat->remaining_objectives() == 0;
+        context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
+        context.messages.clear();
+        darker::game::advance_mission_script(script, context);
+        for(auto const &event : context.messages) message = event;
+        if(message && std::bit_cast<int16_t>(static_cast<uint16_t>(game_clock.frame_ticks - message->expiry)) >= 0) message.reset();
+        darker::game::begin_hangar_return(host.player, cells, host.hangar, context.objectives_complete);
+        darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+      }
     }
-    if(caero) darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+    host.primary_held = primary_held;
     if(contact.contact != darker::game::city_contact::none
       && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")
@@ -348,7 +434,10 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const count{render(clock, enlarged, step)};
     if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
     if(audio_device) audio.publish(host.sounds.advance(host.player, clock, host.shield_ready, host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen));
-    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight")};
+    auto const status{host.briefing ? " - briefing: Space/Enter to continue"
+      : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete: Enter to restart"
+      : host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight"};
+    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);
   }

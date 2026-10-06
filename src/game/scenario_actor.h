@@ -27,6 +27,8 @@ struct scenario_actor {
   std::uint16_t target_token{0};
   std::uint16_t current_cell{0};
   std::uint16_t clearance_floor{0};
+  uint16_t expiry{0};
+  uint16_t last_shot{0};
   std::uint8_t index{0};
   std::uint8_t definition_slot{0};
   std::uint8_t flags{0};

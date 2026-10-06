@@ -15,9 +15,9 @@ internal engine buffer are separate and are not spent by this weapon.
 120 native comparisons cover exact cost boundaries, player flags, trigger edges
 and free-list exhaustion. The probe intercepts CB01 after the guards and energy
 accounting, capturing its lifetime argument. Actual allocation, placement and
-movement retain their separate native comparisons. Selection, input edges,
-projectile hit processing and presentation must be connected before this weapon
-is exposed in the playable application.
+movement retain their separate native comparisons. The application now connects
+selection on **1**, trigger edges from **Space / left mouse**, the cockpit icon,
+projectile movement and hits through [first-mission combat](first_mission.md).
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_caero_weapon_reference.py ..

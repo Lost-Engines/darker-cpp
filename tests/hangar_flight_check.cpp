@@ -6,6 +6,7 @@
 #include <string>
 #include "game/hangar.h"
 #include "reference/hangar_flight_samples.h"
+#include "reference/hangar_return_samples.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 
@@ -69,4 +70,25 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
   }
   if(!first_mismatch.empty()) throw std::runtime_error{first_mismatch};
   std::cout << darker::test_reference::hangar_flight_samples.size() << " hands-off HQ launch frames match original execution." << std::endl;
+  player = {};
+  hangar = {};
+  cells = darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true);
+  player.pose().position = {12672, 28380, 500};
+  player.pose().angles[0] = 0x8000;
+  if(darker::game::begin_hangar_return(player, cells, hangar, false)) throw std::runtime_error{"Hangar admitted incomplete objectives"};
+  if(!darker::game::begin_hangar_return(player, cells, hangar, true)) throw std::runtime_error{"Hangar rejected native approach"};
+  for(auto const &sample : darker::test_reference::hangar_return_samples) {
+    darker::game::advance_hangar_return(player, hangar, 8, sample[0]);
+    darker::game::advance_hangar_departure(player, cells, hangar, 8);
+    auto const &pose{player.pose()};
+    auto const &rotation{std::get<darker::game::caero_flight_state>(player.craft).damage.rotation};
+    std::array<int, 15> const actual{sample[0], pose.position[0], pose.position[1], pose.position[2],
+      pose.fractions[0], pose.fractions[1], pose.fractions[2], rotation.pitch, rotation.turn,
+      pose.angles[0], pose.angles[1], pose.angles[2], pose.speed, hangar.extension, static_cast<int>(hangar.returning)};
+    for(size_t field{0}; field < actual.size(); ++field) {
+      if(actual[field] != sample[field]) throw std::runtime_error{"Hangar return tick " + std::to_string(sample[0]) + ", field " + std::to_string(field)
+        + ": " + std::to_string(actual[field]) + " != " + std::to_string(sample[field])};
+    }
+  }
+  std::cout << "684 automatic hangar return frames match original execution." << std::endl;
 }
