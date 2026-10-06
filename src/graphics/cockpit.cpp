@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "graphics/cockpit_tables.h"
+#include "graphics/flight_instruments.h"
 
 namespace darker::graphics {
 
@@ -29,6 +30,19 @@ framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::ren
   copy_rectangle(sheet.pixels, result.pixels, {.x{0}, .y{0}}, {.x{0}, .y{0}}, 320, 136);
   copy_rectangle(sheet.pixels, result.pixels, {.x{0}, .y{96}}, {.x{0}, .y{136}}, 320, 104);
   return result;
+}
+
+void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target, std::uint8_t const state) {
+  /// 5192 draws the startup range into the same mask as the ordinary shield-strength gauge
+  if(state > 23) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
+  auto const range{skimma_shield_strips(state)};
+  auto const &descriptor{components_4d70[1]};
+  for(std::size_t i{range.first}; i < range.end; ++i) {
+    auto const &strip{descriptor.strips[i]};
+    copy_mask(cache.pixels, target.pixels, {.x{descriptor.on_source.x}, .y{descriptor.on_source.y + strip.y_offset}},
+      {.x{descriptor.destination.x}, .y{descriptor.destination.y + strip.y_offset}}, strip.rows);
+  }
 }
 
 void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft const type, std::uint8_t const colour) {

@@ -106,3 +106,27 @@ The existing 381 whole-cockpit comparisons include these additions. The enlarged
 The application exposes the assembled Caero view through the original hold-Insert/keypad-0 binding. It draws onto a copy of the current cockpit surface, so release restores the normal view without disturbing instrument state. Contacts, heading and coordinates remain fixed sample inputs. Coverage, interference, allegiance classification, world traversal, update scheduling and stereo variants remain outside this milestone.
 
 All 38 CTest cases pass, including 256 complete enlarged-surround checksums, 144 enlarged projection cases and 144 height/alignment contact checksums derived from native captures. The existing 381 whole-cockpit comparisons still pass. An isolated Xvfb/Mesa check confirmed that actual window pixels match headless output, both Insert and keypad 0 display the enlarged view, releasing either restores the original pixels exactly, and Escape exits cleanly.
+
+
+## Live Skimma shield and warning producers
+
+`measure_skimma_instruments` now follows `579C–5828`: the low-altitude warning
+is **one strip** below height 1024, or zero otherwise. `579C` uses `ADC AL,AL`
+after clearing AL, so its carry contributes one, correcting the earlier
+analysis note that described value two. The optional warning blink follows
+clock bit 0100 when its enabling mode is present.
+
+Enabling shields starts the original wrapping deadline `clock + 06FF`.
+The display passes through its startup phases, then limits the visible strength
+by the shield reserve's high byte. Its deadline correction retains the original
+mutated DX value, including the byte-only DH shift. `5845` maps strength to
+shield strips and returns an alternating first-strip index for the startup
+pulse. `5192` draws that pulse into the same shield mask; once ready, the normal
+454C component takes over. The producer exposes a ready-sound request for the
+future sound consumer; the application is still silent at this milestone.
+
+1,024 native comparisons cover warning thresholds/blinking, enabled/disabled
+shields, depleted reserves, startup phases, deadline wrap and mutation, and both
+5845 strip-range outputs. Ordinary tests use captured reference data and do not
+need Unicorn. Original directional-hit effects and weapon/mission indications
+still require those systems to be integrated.

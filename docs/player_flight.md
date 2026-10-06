@@ -49,9 +49,11 @@ and mouse sensitivity require interactive comparison; the complete original
 50 Hz button polling and modal input paths are not claimed here.
 
 First-person rendering follows the craft pose. Several gauges are now live;
-weapon icons are blank. Directional Skimma shields, low-altitude warning, Caero
-stall dimming and Nayas activity remain separate producers. Other actors,
+weapon icons are blank. Skimma shield startup/strength and the low-altitude
+warning are live; directional hit effects, Caero stall dimming and Nayas activity
+remain separate producers. Other actors,
 weapons, sound, landing, alternate camera modes, explosions and death/retry
-screens are not yet connected. A crash currently requires closing/relaunching
-the application. The reconstructed deadline is retained for the future scene
+screens are not yet connected. Enter after a crash restores the temporary airborne checkpoint, including the
+initial city state and neutral steering. This is a development checkpoint retry,
+not the original campaign death/retry flow. The reconstructed deadline is retained for the future scene
 transition; no automatic retry policy has been invented.

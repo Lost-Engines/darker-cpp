@@ -29,6 +29,8 @@ struct hud_component {
 std::span<hud_component const> cockpit_components(craft type);
 std::size_t instrument_limit(craft type, std::size_t component);
 framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::render::indexed_framebuffer const &sheet);
+void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target, std::uint8_t state);
 void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft type, std::uint8_t colour);
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft type, std::size_t component,

@@ -34,6 +34,9 @@ namespace {
 struct flight_host {
   darker::game::player_flight player{};
   bool gouraud{true};
+  bool restart_requested{false};
+  std::uint16_t clock{0};
+  std::uint16_t shield_deadline{0};
   bool mouse_started{false};
   double mouse_origin_x{0};
   double mouse_origin_y{0};
@@ -106,6 +109,8 @@ auto main(int const argc, char const *const argv[])->int try {
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
   }
+  auto const initial_player{host.player};
+  auto const initial_cells{cells};
   darker::graphics::city_renderer scene;
   darker::graphics::distance_shading const lighting;
   framework::render::indexed_cockpit_framebuffer display{}, world{};
@@ -133,6 +138,12 @@ auto main(int const argc, char const *const argv[])->int try {
       instruments = {measured.altitude, measured.impact, measured.damage_lights, measured.power_cells, measured.charging,
         state->energy.incoming_display, state->energy.reserve_display, static_cast<std::uint8_t>(host.player.engine_flags & 1), 0};
     } else {
+      auto const &skimma{std::get<darker::game::skimma_flight_state>(host.player.craft)};
+      auto const measured{darker::graphics::measure_skimma_instruments(pose.position[2], skimma.damage.shield_charge,
+        skimma.damage.shield_enabled, false, clock, host.shield_deadline)};
+      darker::graphics::draw_skimma_shield_startup(cache, display, measured.shield_startup);
+      instruments[0] = measured.low_altitude;
+      instruments[1] = measured.shield;
       instruments[2] = darker::graphics::skimma_speed_instrument(pose.speed, host.player.upgraded);
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
@@ -189,9 +200,16 @@ auto main(int const argc, char const *const argv[])->int try {
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
     if(key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if(key == GLFW_KEY_ENTER && host.player.lifecycle.crashing) {
+      if(action == GLFW_PRESS) host.restart_requested = true;
+      return;
+    }
     using darker::game::flight_command;
     switch(key) {
-      case GLFW_KEY_E: host.player.command(flight_command::engine); break;
+      case GLFW_KEY_E:
+        host.player.command(flight_command::engine);
+        if(host.player.engine_flags & 1) host.shield_deadline = static_cast<std::uint16_t>(host.clock + 0x6ff);
+        break;
       case GLFW_KEY_A: host.player.command(flight_command::altitude_hold); break;
       case GLFW_KEY_ENTER: host.player.command(flight_command::boost); break;
       case GLFW_KEY_MINUS: host.player.command(flight_command::speed_low); break;
@@ -200,13 +218,23 @@ auto main(int const argc, char const *const argv[])->int try {
     }
   });
   framework::platform::framebuffer_presenter presenter{*window};
-  std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; F9 shading; Insert/keypad 0 radar; Escape closes." << std::endl;
-  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, sound, external cameras and death/restart screens are not connected yet." << std::endl;
+  std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
+  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, sound, external cameras and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
   while(!glfwWindowShouldClose(window.get())) {
     glfwPollEvents();
+    if(host.restart_requested) {
+      host.player = initial_player;
+      cells = initial_cells;
+      host.mouse_started = false;
+      host.shield_deadline = 0;
+      host.clock = 0;
+      host.restart_requested = false;
+      game_clock = {};
+      std::cout << "Restarted the airborne checkpoint." << std::endl;
+    }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
     if(seconds > 0 && elapsed >= seconds) break;
@@ -222,8 +250,9 @@ auto main(int const argc, char const *const argv[])->int try {
     }
     bool const enlarged{caero && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
     auto const clock{game_clock.frame_ticks};
+    host.clock = clock;
     auto const count{render(clock, enlarged)};
-    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed" : " - flight")};
+    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight")};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);
     glfwWaitEventsTimeout(0.01);

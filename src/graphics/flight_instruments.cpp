@@ -7,7 +7,7 @@ namespace darker::graphics {
 caero_instruments measure_caero_instruments(game::caero_flight_state const &state, std::uint16_t const clock) noexcept {
   /// 56D3–573B derives damage, boost and altitude strips; charging sounds are a separate event consumer
   unsigned int impact{state.damage.damage & 255u};
-  unsigned int lights{state.damage.damage >> 8};
+  unsigned int lights{static_cast<unsigned int>(state.damage.damage >> 8)};
   if(lights >= 3) {
     if(lights != 3) impact = 67;
     lights = impact >= 36 && (clock & 128) ? 0 : 3;
@@ -19,6 +19,50 @@ caero_instruments measure_caero_instruments(game::caero_flight_state const &stat
     .power_cells{static_cast<std::uint8_t>(state.energy.boost >> 13)},
     .charging{static_cast<std::uint8_t>((13 * ((state.energy.boost >> 5) & 255)) >> 8)},
   };
+}
+
+shield_strip_range skimma_shield_strips(std::uint8_t const strength) noexcept {
+  /// 5845 supplies both the shield count and alternating first strip used during startup
+  unsigned int count{strength};
+  std::uint8_t first{0};
+  if(count >= 8) {
+    count -= 2;
+    first = static_cast<std::uint8_t>((count & 1) == 0 ? 1 : 0);
+    count += count >> 1;
+  }
+  return {.first{first}, .end{static_cast<std::uint8_t>(count <= 2 ? (count == 0 ? 0 : 1) : count - 2)}};
+}
+
+skimma_instruments measure_skimma_instruments(std::uint16_t const height, std::uint16_t const shield_charge, bool const shield_enabled,
+  bool const warning_flash, std::uint16_t const clock, std::uint16_t &shield_deadline) noexcept {
+  /// 579C–5828 separates the height warning, shield startup animation and available shield-strength strip
+  skimma_instruments result{.low_altitude{static_cast<std::uint8_t>(height < 1024 && !(warning_flash && (clock & 256)) ? 1 : 0)}};
+  if(!shield_enabled) return result;
+  auto remaining{static_cast<std::uint16_t>(shield_deadline - clock)};
+  auto const charge{static_cast<std::uint8_t>(shield_charge >> 8)};
+  std::uint8_t strength{charge};
+  if(remaining & 0x8000) {
+    shield_deadline = clock;
+  } else if(remaining >> 8) {
+    auto const high{remaining >> 8};
+    if(high <= 2) result.shield_startup = high == 1 ? 1 : 0;
+    else {
+      auto const phase{static_cast<std::uint16_t>(remaining - 768) >> 2};
+      result.shield_startup = static_cast<std::uint8_t>(4 + ((20 * static_cast<std::uint8_t>(~phase)) >> 8));
+    }
+    return result;
+  } else {
+    remaining = static_cast<std::uint16_t>((remaining << 2) + (remaining >> 1));
+    remaining = static_cast<std::uint16_t>((remaining & 255) | (((remaining & 0xff00) << 4) & 0xff00));
+    strength = static_cast<std::uint8_t>(191 - (remaining >> 8));
+    if(strength > charge) {
+      shield_deadline = static_cast<std::uint16_t>(shield_deadline - remaining);
+      strength = charge;
+    }
+  }
+  result.shield = skimma_shield_strips(static_cast<std::uint8_t>(strength >> 3)).end;
+  result.shield_ready_sound = true;
+  return result;
 }
 
 std::uint8_t skimma_speed_instrument(std::uint16_t const speed, bool const upgraded) noexcept {

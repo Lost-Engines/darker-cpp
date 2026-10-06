@@ -24,7 +24,7 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation.
 
-This is an **airborne flight checkpoint**, not yet a complete mission. It temporarily starts above the city with a usable flight state. Original scenario/launch setup, other actors, weapons, sound, external cameras, landing and death/restart screens remain to be connected. Close and relaunch after crashing. Skimma shield logic is present, but its directional display is not yet driven; Caero stall dimming and Nayas activity also remain outstanding.
+This is an **airborne flight checkpoint**, not yet a complete mission. It temporarily starts above the city with a usable flight state. Original scenario/launch setup, other actors, weapons, sound, external cameras, landing and original death screens remain to be connected. Enter after a crash restores the airborne checkpoint, including city state. Skimma shield startup/strength and low-altitude warning now drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
