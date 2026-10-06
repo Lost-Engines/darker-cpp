@@ -57,6 +57,7 @@ The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity 
 ## Verification
 
 The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the upcoming mission runtime.
+The [font renderer and formatter](docs/fonts_and_text.md) consume original bitmap fonts and page controls, with native comparisons for glyph coverage, layout and cursor state.
 
 ```sh
 ctest --test-dir build --output-on-failure

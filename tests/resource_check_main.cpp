@@ -27,6 +27,7 @@
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 #include "scenario_resource_check.h"
+#include "text_resource_check.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes
@@ -44,6 +45,7 @@ auto main(int const argc, char const *const argv[])->int try {
   boost::program_options::notify(arguments);
   darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
   check_scenario_resources(archives);
+  check_text_resources(archives);
   std::size_t total{0};
   for(auto const &entry : darker::resources::resource_directory()) {
     auto const decoded{archives.load(entry.id)};

@@ -83,6 +83,8 @@ configure_first_party(framework_platform)
 
 # Original resource access has no dependency on windowing or audio
 add_library(darker_resources STATIC
+  src/resources/font.cpp
+  src/resources/font.h
   src/resources/scenario.cpp
   src/resources/scenario.h
   src/resources/geometry_bank.cpp
@@ -97,6 +99,10 @@ target_include_directories(darker_resources PUBLIC src)
 configure_first_party(darker_resources)
 
 add_library(darker_graphics STATIC
+  src/graphics/formatted_text.cpp
+  src/graphics/formatted_text.h
+  src/graphics/font.cpp
+  src/graphics/font.h
   src/graphics/bitmap_hud.cpp
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
@@ -223,11 +229,12 @@ set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional int
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
 
 if(BUILD_TESTING)
-  add_executable(resource_check tests/resource_check_main.cpp tests/scenario_resource_check.cpp tests/scenario_resource_check.h)
+  add_executable(resource_check tests/resource_check_main.cpp tests/scenario_resource_check.cpp tests/scenario_resource_check.h tests/text_resource_check.cpp tests/text_resource_check.h)
   target_link_libraries(resource_check PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/font_test.cpp
     tests/scenario_test.cpp
     tests/support/sine_wave.cpp
     tests/support/sine_wave.h
