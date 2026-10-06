@@ -1,0 +1,73 @@
+#include "graphics/cockpit.h"
+#include <algorithm>
+#include <stdexcept>
+#include "graphics/cockpit_tables.h"
+
+namespace darker::graphics {
+
+std::span<hud_component const> cockpit_components(craft const type) {
+  /// Select the original Caero or shared Skimma directory
+  switch(type) {
+  case craft::caero: return components_4615;
+  case craft::skimma:
+  case craft::upgraded_skimma: return components_4d70;
+  }
+  throw std::invalid_argument{"unknown cockpit craft"};
+}
+
+std::size_t instrument_limit(craft const type, std::size_t const component) {
+  /// Ordinary Skimma has sixteen engine-output steps; the upgrade has twenty
+  auto const components{cockpit_components(type)};
+  if(component >= components.size()) throw std::out_of_range{"cockpit component index"};
+  if(type == craft::skimma && components[component].field == 0x454d) return 16;
+  return components[component].strips.size();
+}
+
+framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::render::indexed_framebuffer const &sheet) {
+  /// BF72–BF94 copies the top 136 rows and repeats source rows 96–199 below them
+  framework::render::indexed_cockpit_framebuffer result;
+  copy_rectangle(sheet.pixels, result.pixels, {.x{0}, .y{0}}, {.x{0}, .y{0}}, 320, 136);
+  copy_rectangle(sheet.pixels, result.pixels, {.x{0}, .y{96}}, {.x{0}, .y{136}}, 320, 104);
+  return result;
+}
+
+void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft const type, std::uint8_t const colour) {
+  /// Reserve the original view rectangle for a later world renderer
+  int const top{type == craft::caero ? 8 : 0};
+  int const height{type == craft::caero ? 168 : 180};
+  std::fill_n(target.pixels.begin() + top * 320, height * 320, colour);
+}
+
+void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target, craft const type, std::size_t const component,
+  std::uint8_t const old_state, std::uint8_t const new_state) {
+  /// Translate 457B–45A6 strip-count changes and 51B8 scanline-mask copying
+  auto const limit{instrument_limit(type, component)};
+  auto const &descriptor{cockpit_components(type)[component]};
+  std::size_t const old_count{static_cast<std::size_t>(old_state & 127)};
+  std::size_t const new_count{static_cast<std::size_t>(new_state & 127)};
+  if(old_count > limit || new_count > limit) throw std::out_of_range{"instrument state exceeds craft limit"};
+  if(((old_state | new_state) & 128) && !(type == craft::caero && descriptor.field == 0x4552)) {
+    throw std::invalid_argument{"alternate source is verified only for the Caero engine light"};
+  }
+  bool const restoring{new_count < old_count};
+  auto source{restoring ? descriptor.destination : (new_state & 128) ? descriptor.alternate_source : descriptor.on_source};
+  std::size_t const first{old_count == new_count ? (new_count ? new_count - 1 : 0) : std::min(old_count, new_count)};
+  std::size_t const end{std::max(old_count, new_count)};
+  for(std::size_t i{first}; i < end; ++i) {
+    auto const &strip{descriptor.strips[i]};
+    auto const sy{source.y + strip.y_offset};
+    auto const dy{descriptor.destination.y + strip.y_offset};
+    for(std::size_t row{0}; row < strip.rows.size(); ++row) {
+      int const source_y{sy + static_cast<int>(row)};
+      int const destination_y{dy + static_cast<int>(row)};
+      // AF57 shifts logical rows 0–167 by eight in the normal Caero cockpit.
+      int const source_offset{type == craft::caero && source_y < 168 ? 8 : 0};
+      int const destination_offset{type == craft::caero && destination_y < 168 ? 8 : 0};
+      copy_mask(cache.pixels, target.pixels, {.x{source.x}, .y{source_y + source_offset}},
+        {.x{descriptor.destination.x}, .y{destination_y + destination_offset}}, strip.rows.subspan(row, 1));
+    }
+  }
+}
+
+} // namespace darker::graphics

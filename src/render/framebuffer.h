@@ -14,11 +14,15 @@ struct rgba_pixel {
 
 static_assert(sizeof(rgba_pixel) == 4);
 
-struct framebuffer {
+template<unsigned int rows>
+struct basic_framebuffer {
   static unsigned int constexpr width{320};
-  static unsigned int constexpr height{200};
+  static unsigned int constexpr height{rows};
   std::array<rgba_pixel, width * height> pixels;
 };
+
+using framebuffer = basic_framebuffer<200>;
+using cockpit_framebuffer = basic_framebuffer<240>;
 
 struct viewport {
   int x;
@@ -27,7 +31,6 @@ struct viewport {
   int height;
 };
 
-viewport fit_viewport(int width, int height) noexcept;
-void draw_demo(framebuffer &target, double seconds) noexcept;
+viewport fit_viewport(int width, int height, int source_width = 320, int source_height = 200) noexcept;
 
 } // namespace framework::render

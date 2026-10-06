@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include "archive_set.h"
+#include "resources/archive_set.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes

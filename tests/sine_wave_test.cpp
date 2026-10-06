@@ -3,7 +3,7 @@
 #include <limits>
 #include <span>
 #include <vector>
-#include "audio/sine_wave.h"
+#include "support/sine_wave.h"
 
 TEST_CASE("PCM phase and ramp survive arbitrary callback boundaries") {
   framework::audio::sine_wave whole{48'000, 220.0, 0.02f};

@@ -34,7 +34,7 @@ The default expansion ceiling is 8,000,000 bytes per resource, matching the insp
 
 ## Verification
 
-From this project's directory:
+The verifier is built only with `BUILD_TESTING=ON`; it is a test utility, not a shipped application. From this project's directory:
 
 ```sh
 ./build/resource_check --data-dir ../darker --reference ../analysis/resources

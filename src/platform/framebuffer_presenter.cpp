@@ -33,19 +33,27 @@ framebuffer_presenter::~framebuffer_presenter() {
   glDeleteTextures(1, &texture);
 }
 
-void framebuffer_presenter::present(render::framebuffer const &source) {
+void framebuffer_presenter::present(std::span<render::rgba_pixel const> const pixels, int const source_width, int const source_height) {
   /// Upload CPU pixels and draw a nearest-filtered quad inside a letterboxed viewport
+  if(source_width <= 0 || source_height <= 0 || pixels.size() != static_cast<std::size_t>(source_width) * static_cast<std::size_t>(source_height)) {
+    throw std::invalid_argument{"invalid presentation surface dimensions"};
+  }
   int width{0};
   int height{0};
   glfwGetFramebufferSize(&window, &width, &height);
   if(width == 0 || height == 0) return;
-  auto const viewport{render::fit_viewport(width, height)};
+  auto const viewport{render::fit_viewport(width, height, source_width, source_height)};
   glViewport(0, 0, width, height);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, render::framebuffer::width, render::framebuffer::height, GL_RGBA, GL_UNSIGNED_BYTE, source.pixels.data());
+  if(texture_width != source_width || texture_height != source_height) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_width, source_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    texture_width = source_width;
+    texture_height = source_height;
+  }
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, source_width, source_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
   glBegin(GL_TRIANGLE_STRIP);
   glTexCoord2f(0.0f, 0.0f);
   glVertex2f(-1.0f, 1.0f);

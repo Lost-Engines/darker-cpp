@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(armchair_framework VERSION 0.1.0 LANGUAGES C CXX)
+project(darker VERSION 0.1.0 LANGUAGES C CXX)
 
 include(CTest)
 find_package(Boost 1.85 CONFIG REQUIRED COMPONENTS program_options)
@@ -35,13 +35,10 @@ if(UNIX)
   target_link_libraries(pcm_device PRIVATE m)
 endif()
 
-# Platform-independent demo signal and framebuffer generation
+# Platform-independent framebuffer presentation data
 add_library(framework_core STATIC
-  src/audio/sine_wave.cpp
-  src/audio/sine_wave.h
   src/render/framebuffer.cpp
   src/render/framebuffer.h
-  src/render/indexed_framebuffer.cpp
   src/render/indexed_framebuffer.h
 )
 target_include_directories(framework_core PUBLIC src)
@@ -53,8 +50,6 @@ add_library(framework_platform STATIC
   src/platform/audio_output.h
   src/platform/framebuffer_presenter.cpp
   src/platform/framebuffer_presenter.h
-  src/platform/input.cpp
-  src/platform/input.h
 )
 target_link_libraries(framework_platform
   PUBLIC framework_core
@@ -63,15 +58,6 @@ target_link_libraries(framework_platform
   PRIVATE pcm_device
 )
 configure_first_party(framework_platform)
-
-add_executable(framework_demo src/main.cpp)
-target_link_libraries(framework_demo
-  PRIVATE framework_platform
-  PRIVATE glfw
-  PRIVATE Boost::program_options
-  PRIVATE Boost::headers
-)
-configure_first_party(framework_demo)
 
 # Original resource access has no dependency on windowing or audio
 add_library(darker_resources STATIC
@@ -84,22 +70,20 @@ add_library(darker_resources STATIC
 target_include_directories(darker_resources PUBLIC src)
 configure_first_party(darker_resources)
 
-add_executable(resource_check src/resources/check_main.cpp)
-target_link_libraries(resource_check
-  PRIVATE darker_resources
-  PRIVATE Boost::program_options
-)
-configure_first_party(resource_check)
-
 add_library(darker_graphics STATIC
+  src/graphics/blit.cpp
+  src/graphics/blit.h
+  src/graphics/cockpit.cpp
+  src/graphics/cockpit.h
+  src/graphics/cockpit_tables.h
   src/graphics/palette_bitmap.cpp
   src/graphics/palette_bitmap.h
 )
 target_link_libraries(darker_graphics PUBLIC framework_core)
 configure_first_party(darker_graphics)
 
-add_executable(bitmap_viewer src/graphics/viewer_main.cpp)
-target_link_libraries(bitmap_viewer
+add_executable(darker src/main.cpp)
+target_link_libraries(darker
   PRIVATE darker_graphics
   PRIVATE darker_resources
   PRIVATE framework_platform
@@ -107,15 +91,22 @@ target_link_libraries(bitmap_viewer
   PRIVATE Boost::program_options
   PRIVATE Boost::headers
 )
-configure_first_party(bitmap_viewer)
+configure_first_party(darker)
 
 set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional integration verification")
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
 
 if(BUILD_TESTING)
+  add_executable(resource_check tests/resource_check_main.cpp)
+  target_link_libraries(resource_check PRIVATE darker_resources PRIVATE Boost::program_options)
+  configure_first_party(resource_check)
+
   add_executable(framework_tests
+    tests/support/sine_wave.cpp
+    tests/support/sine_wave.h
     tests/sine_wave_test.cpp
     tests/framebuffer_test.cpp
+    tests/cockpit_test.cpp
     tests/palette_bitmap_test.cpp
     tests/resource_decoder_test.cpp
   )

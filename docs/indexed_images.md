@@ -1,6 +1,6 @@
 # Indexed image milestone
 
-The original-pack path now reaches the window: `archive_set::load` decompresses a resource, `decode_bitmap` reads its palette prefix and index bytes, and `expand_palette` resolves those bytes for the existing platform presenter. No converted assets or Python code are needed at runtime. The generic framework demo remains separate.
+The original-pack path now reaches the window: `archive_set::load` decompresses a resource, `decode_bitmap` reads its palette prefix and index bytes, and `expand_palette` resolves those bytes for the existing platform presenter. No converted assets or Python code are needed at runtime. The temporary framework and bitmap executables have since been retired; this indexed path now feeds the main `darker` application.
 
 ## Original format
 
