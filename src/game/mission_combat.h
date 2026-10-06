@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include "game/aircraft_combat.h"
+#include "game/effects.h"
 #include "game/player_flight.h"
 #include "game/projectile_pool.h"
 
@@ -12,6 +13,7 @@ class mission_combat {
 public:
   std::vector<scenario_actor> actors;
   projectile_pool projectiles;
+  effect_system effects;
   uint16_t random_state{0};
   uint8_t primary_weapon{0};
   bool weapon_ready{false};

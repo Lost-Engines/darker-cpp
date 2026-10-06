@@ -4,6 +4,7 @@
 #include <utility>
 #include "game/actor_update.h"
 #include "game/caero_weapons.h"
+#include "game/effect_tables.h"
 #include "game/object_definitions.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
@@ -22,6 +23,7 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
   uint16_t const clock, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed) {
   /// Follow air callbacks, player firing, projectile movement and collision/removal phases for the first Delphi mission
+  effects.advance(clock, frame_step);
   player_fired = false;
   player_hit = false;
   auto &caero{std::get<caero_flight_state>(player.craft)};
@@ -42,6 +44,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           player_hit = true;
         }
       });
+    if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
+      effects.trail(actor.previous_position, *severity, random_state, clock);
+    }
   }
   auto const &pose{player.pose()};
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
@@ -62,6 +67,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(actor.flags & 8) continue;
     auto const contact{sweep_city(bank, cells, 0x20, actor.previous_position, actor.pose.position, 12, 10)};
     if(contact.contact != city_contact::none) {
+      effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);
       actor.flags |= 0x28;
       actor.parameters.update_entry = 0x6ed3;
       actor.expiry = static_cast<uint16_t>(clock + 256);
@@ -82,12 +88,23 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
-    if(victim) hit_aircraft(*victim, shot->parameters.definition->impact_strength, clock, random_state);
+    if(victim) {
+      auto const reaction{hit_aircraft(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
+      effects.spawn(reaction == impact_effect::fatal ? 0x7319 : 0x72df, impact, clock);
+    }
     else if(contact.contact == city_contact::building && contact.category == 2) {
       auto &cell{cells[contact.row * 128 + contact.column]};
       auto const model{bank.city_model_offset(cell.type, cell.state, 0x20)};
       auto const bytes{bank.model_pool()};
-      if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) cell.state = static_cast<uint8_t>(cell.state + 32);
+      if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
+        cell.state = static_cast<uint8_t>(cell.state + 32);
+        auto const &type{bank.city_types()[cell.type - 1]};
+        effects.spawn(building_effect_recipes.at(type.unknown_5),
+          {static_cast<uint16_t>(contact.column * 256 + type.column_fraction), static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact[2]}, clock);
+      } else effects.spawn(0x7386, impact, clock);
+    }
+    if(!victim && !(contact.contact == city_contact::building && contact.category == 2)) {
+      effects.spawn(contact.contact == city_contact::building ? 0x7386 : 0x721c, impact, clock);
     }
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;

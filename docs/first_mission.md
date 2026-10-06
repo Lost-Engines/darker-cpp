@@ -45,7 +45,7 @@ and effect spawning. Damage accounting has separate native comparisons.
 
 The resource integration check uses the original map, models and first-mission
 placements. It positions and recharges the player deliberately to isolate combat
-from navigation, fires 12 real projectiles to remove both objectives, checks the
+from navigation, fires real projectiles to remove both objectives, checks the
 original message and stopped script, then places the player at the HQ approach
 and completes docking. This is **controlled integration**, not an autonomous
 flown playthrough or a recording of retail play. A separate native trace compares
@@ -54,8 +54,9 @@ enabled, as do the launch and individual weapon/damage checks.
 
 Window checks advance the briefing, charge and launch, select the weapon, fire
 and close cleanly. Screenshots confirm that the briefing text fits and the Pinner
-icon appears. A human combat-and-return playtest remains useful for spotting
-integration differences outside these controlled traces.
+icon appears. The user has since completed the mission interactively and confirmed seamless
+landing. Combat effects are now connected; see [particle effects](particle_effects.md)
+for their separate native comparisons and remaining limits.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_aircraft_combat_reference.py ..
@@ -67,7 +68,7 @@ ctest --test-dir build --output-on-failure
 ## Remaining scope
 
 This is a first-mission gameplay milestone, not finished retail presentation.
-Briefing artwork and transitions, music, gun/explosion visual and sound effects,
+Briefing artwork and transitions, music, gun flashes and combat sound effects,
 Nayas activity, aircraft lighting, aircraft/player ramming, original death and
 debrief screens, and loading the next mission remain outstanding. Player city
 collision still occurs inside its flight update; the complete original global

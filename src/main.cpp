@@ -193,7 +193,8 @@ auto main(int const argc, char const *const argv[])->int try {
       if(!(shot->flags & 8)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
     }
     if(external) objects.push_back({.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
-    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation, objects)};
+    darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
+    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
     auto const components{darker::graphics::cockpit_components(type)};
     std::array<std::uint8_t, 9> instruments{};

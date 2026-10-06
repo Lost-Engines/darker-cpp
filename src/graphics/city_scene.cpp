@@ -1,7 +1,9 @@
 #include "graphics/city_scene.h"
 #include <algorithm>
 #include <bit>
+#include <ranges>
 #include <stdexcept>
+#include "graphics/particles.h"
 
 namespace darker::graphics {
 
@@ -147,7 +149,7 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
 
 std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
   std::span<game::city_cell const, 128 * 128> const cells, city_view const view, std::uint8_t const damage_mask,
-  distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects) {
+  distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects, particle_scene const *const particles) {
   /// Assemble and draw the ordinary city path; underground visibility propagation and dynamic objects remain separate
   auto const basis{make_camera_basis(view.angles)};
   camera_position const camera{
@@ -162,8 +164,30 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
   for(auto const &object : objects) {
     if(auto item{place_scene_object(bank, object, basis, camera)}) items.push_back(*item);
   }
+  if(particles) {
+    auto const append{[&](auto const &emitters){
+      for(auto const &emitter : emitters | std::views::reverse) {
+        auto const phase{game::particle_phase(emitter, particles->clock)};
+        if(!phase) continue;
+        // 2F35 admits effects through the same wrapping coordinate window as moving objects.
+        auto const dx{static_cast<uint8_t>((emitter.position[0] >> 8) - (view.column >> 8) + view.radius)};
+        auto const dy{static_cast<uint8_t>((emitter.position[1] >> 8) - (view.row >> 8) + view.radius)};
+        if(dx >= view.radius * 2 || dy >= view.radius * 2) continue;
+        auto const placement{place_model(basis, camera, {.column{emitter.position[0]}, .row{emitter.position[1]}, .height{word(-emitter.position[2])}})};
+        items.push_back({.placement{placement}, .emitter{&emitter}, .phase{*phase}});
+      }
+    }};
+    append(particles->effects.trails);
+    append(particles->effects.emitters);
+  }
   order_city_models(items);
   for(auto const &item : items) {
+    if(item.emitter) {
+      for(auto const point : project_emitter(*item.emitter, item.placement, basis, view.origin)) {
+        draw_particle(target, particles->sheet, point, item.phase, view.bottom);
+      }
+      continue;
+    }
     projection_parameters const projection{
       .axes{item.orientation.value_or(basis)}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
       .depth{item.placement.depth}, .origin{view.origin},

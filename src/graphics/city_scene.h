@@ -6,6 +6,7 @@
 #include <span>
 #include <vector>
 #include "game/city_map.h"
+#include "game/effects.h"
 #include "game/object_pose.h"
 #include "graphics/camera.h"
 #include "graphics/model_lighting.h"
@@ -22,6 +23,8 @@ struct city_draw_item {
   bool force_flat{false};
   std::optional<camera_basis> orientation{};
   std::uint8_t object_light{255};
+  game::particle_emitter const *emitter{nullptr};
+  uint8_t phase{0};
 };
 
 std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, std::uint16_t index,
@@ -51,6 +54,12 @@ struct city_view {
   bool gouraud{true};
 };
 
+struct particle_scene {
+  game::effect_system const &effects;
+  framework::render::indexed_cockpit_framebuffer const &sheet;
+  uint16_t clock;
+};
+
 class city_renderer {
 private:
   std::vector<std::uint16_t> candidates;
@@ -59,7 +68,7 @@ private:
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
     std::span<game::city_cell const, 128 * 128> cells, city_view view, std::uint8_t damage_mask,
-    distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {});
+    distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {}, particle_scene const *particles = nullptr);
 };
 
 void collect_city_cells(std::span<game::city_cell const, 128 * 128> cells, std::uint8_t column, std::uint8_t row,

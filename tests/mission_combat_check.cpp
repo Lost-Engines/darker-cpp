@@ -31,6 +31,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
   unsigned int shots{0};
   bool message{false};
+  bool saw_burst{false}, saw_trail{false};
   for(uint16_t clock{8}; clock < 30000; clock += 8) {
     auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return !(actor.flags & 0x20); })};
     bool const fire{target != combat.actors.end() && clock % 128 == 0};
@@ -43,6 +44,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire);
     if(combat.player_fired) ++shots;
+    saw_burst |= !combat.effects.emitters.empty();
+    saw_trail |= !combat.effects.trails.empty();
     // Supply controlled beacon power while isolating aim/collision/completion from navigation.
     darker::game::charge_caero_energy(caero.energy, 13056, 1, 1028, false);
     context.clock = clock;
@@ -61,6 +64,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"First mission controlled combat did not complete: shots=" + std::to_string(shots)
       + ", removed=" + std::to_string(combat.completed_objectives) + ", reserve=" + std::to_string(caero.energy.reserve)};
   }
+  if(!saw_burst || !saw_trail) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
   player.pose().position = {12672, 28380, 500};
   player.pose().angles = {0x8000, 0, 0};
   caero.damage.rotation = {};

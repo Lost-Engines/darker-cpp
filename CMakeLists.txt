@@ -117,6 +117,9 @@ add_library(darker_graphics STATIC
   src/graphics/model_lighting.h
   src/graphics/model_renderer.cpp
   src/graphics/model_renderer.h
+  src/graphics/particles.cpp
+  src/graphics/particles.h
+  src/graphics/particle_tables.h
   src/graphics/city_scene.cpp
   src/graphics/city_scene.h
   src/graphics/camera.cpp
@@ -155,6 +158,9 @@ add_library(darker_game STATIC
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
   src/game/actor_awareness.h
+  src/game/effects.cpp
+  src/game/effects.h
+  src/game/effect_tables.h
   src/game/mission_combat.cpp
   src/game/mission_combat.h
   src/game/mission_script.cpp
@@ -266,6 +272,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/effects_test.cpp
     tests/aircraft_combat_test.cpp
     tests/actor_motion_test.cpp
     tests/actor_navigation_test.cpp
