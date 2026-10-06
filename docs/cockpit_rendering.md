@@ -43,6 +43,39 @@ An Xvfb/Mesa smoke check compared actual window pixels with headless output at 3
 
 ## Remaining boundary
 
-The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. This milestone does not draw the callback-owned weapon icons, coordinate digits, compass, radar, bearing symbols, target markers or other procedural HUD graphics. Those can now use the same indexed surfaces and recovered copying primitives.
+The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. Enlarged radar, target markers and attitude-line rasterisation remain to be implemented. Those can now use the same indexed surfaces and recovered copying primitives.
 
 Source RGB colours and square-pixel presentation retain the previous inspection convention; original runtime fades, DAC quantisation, display timing and stereo/VR modes remain separate. The cockpit inspector is the current milestone in the single application; its temporary controls will be replaced as gameplay arrives.
+
+
+## Caero bitmap callbacks
+
+`graphics/bitmap_hud` implements changed-field dispatch for the two weapon icons and two normal cockpit coordinate fields, using the same immutable indexed cache and opaque rectangle blitter. There is no input or windowing code in this module.
+
+- `5429/542C`: row goes to (44,185), column to (56,185). The input is the native encoded position byte, not a displayed grid number. For bytes 1–127, the display is `floor((value - 1) / 9) + 1`, written as two digits including a leading zero. Both zero and bytes 128–255 take the cached-background restoration path: native CBW/DEC/JS makes the signed-byte distinction significant. Glyphs are 4×5 at source X=308, physical Y=`8 + 5*digit`.
+- `5484/5487`: 8×12 weapon artwork at physical source `(140 + 8*selection, 8)` is copied to (260,195) or (268,195). Allowed primary IDs are 1,2,3,7; secondary IDs are 4,5,6,8,9,10. These restrictions come from weapon selection logic, rather than the low-level rectangle callback itself.
+- Selection zero restores the corresponding cached panel. This follows the user-confirmed empty-slot behaviour. The exact original zero-selection clear/skip call chain is still unresolved; the low-level selector alone would incorrectly sample the altitude artwork. Do not treat this high-level restoration choice as newly proven native control flow.
+
+The main program supplies fixed sample state until position and weapon producers are translated. No new inspection keys or command-line options were introduced. Skimma screens remain unchanged.
+
+Three additional engine tests exercise native coordinate boundaries, allowed weapon slots, empty-state restoration, pixel extents and changed-field dispatch. Coordinate expectations at 0,1,9,10,81,82,127,128,135,255 were checked by executing the original routine. All 22 CTest cases pass. The existing 381 image comparisons now include the recovered Caero glyph/icon PNGs in their expected composites; they still exercise all prior gauge/restoration paths.
+
+## Skimma and navigation follow-up
+
+The main application now also draws the following from executable-resident constants and original cockpit cache pixels:
+
+- **Skimma bearing (`520A/5227`)**: restore the previous symbol's mask, then draw the new symbol. Zero turns it off; symbols 1–7 are preserved. All 49 symbol-to-symbol transitions restore correctly.
+- **Skimma weapon status (`52AB/52E0/5356`)**: four source patches per slot, with the third slot restricted to upgraded Skimma. State zero uses the native restoration source. Masks retain coverage, rather than copying their bounding rectangles.
+- **Caero compass (`5384–53D2`)**: the 38 original signed-byte offset pairs are folded/reflected into 136 phases. Heading uses the native byte rotation and quantisation at `56C7–56CF`. Old pixels are erased with index zero; the five new colours are 9E/9C/9C/9C/9E.
+- **Normal Caero radar (`5AC9–5B55`, normal contact callbacks)**: unsigned 16-bit position differences, the 42-cell candidate window, signed high-word products from the original 1,024-word sine table, word wrapping, arithmetic shifts, radius clipping and group-specific distance colour are retained. Positions include fractional cell bytes. Hidden and uncovered contacts are rejected. Contacts draw in supplied order.
+- **Skimma weapon ring (`5D83–5DDC`)**: native byte increments 146/255/205 produce 14/8/10 positions. Signed sine high bytes determine placement; source selection preserves destination alignment and the pre-draw remaining-count decrement. Normal-play centre/baseline (160,88), radius 15–127 and valid working capacities are supported. Ordinary Skimma cannot select weapon index 2.
+
+The main application supplies fixed demonstration state without new keys or options. This is not live radar: world-object traversal, coverage/interference production, contact classification, clearing between world frames and scheduling still belong to the game loop. The contact drawer only writes current contacts. Similarly, the ring renderer consumes radius/count inputs; it does not yet implement reload deadlines, spread smoothing or the non-play baseline. Enlarged radar, target outlines and attitude-line rasterisation remain separate.
+
+Production tables are recovered directly from the hash-checked executable by `generate_cockpit_tables.py`. Tests independently use captures from the earlier native probes, generated with:
+
+```sh
+python3 tools/generate_navigation_reference.py ..
+```
+
+Reference headers record source hashes and contain no runtime dependency on analysis JSON or Python. All 136 compass phases, 144 whole-cell radar cases, eight additional native fractional/wraparound cases, 19 Skimma callback source/mask cases and 140 ring-placement cases pass. The latter cases compare complete synthetic indexed surfaces against native-capture-derived checksums. Checks focus on permanent engine arithmetic and drawing behaviour, not inspection controls.

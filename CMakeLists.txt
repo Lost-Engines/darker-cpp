@@ -71,11 +71,15 @@ target_include_directories(darker_resources PUBLIC src)
 configure_first_party(darker_resources)
 
 add_library(darker_graphics STATIC
+  src/graphics/bitmap_hud.cpp
+  src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
   src/graphics/cockpit.cpp
   src/graphics/cockpit.h
   src/graphics/cockpit_tables.h
+  src/graphics/navigation_hud.cpp
+  src/graphics/navigation_hud.h
   src/graphics/palette_bitmap.cpp
   src/graphics/palette_bitmap.h
 )
@@ -106,6 +110,8 @@ if(BUILD_TESTING)
     tests/support/sine_wave.h
     tests/sine_wave_test.cpp
     tests/framebuffer_test.cpp
+    tests/navigation_hud_test.cpp
+    tests/bitmap_hud_test.cpp
     tests/cockpit_test.cpp
     tests/palette_bitmap_test.cpp
     tests/resource_decoder_test.cpp

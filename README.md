@@ -20,7 +20,7 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments. The black windscreen is intentional: world rendering and gameplay are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
+The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal radar contacts, and Skimma bearing/weapon indicators and weapon rings. The black windscreen is intentional: world rendering and gameplay are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
 
 Use `--craft skimma` or `--craft upgraded` to inspect the other cockpits. Temporary controls:
 
@@ -31,7 +31,7 @@ Use `--craft skimma` or `--craft upgraded` to inspect the other cockpits. Tempor
 - **D:** toggle Caero engine dimming.
 - **Escape:** close.
 
-`--fill 0` starts with inactive strips; the default half-filled gauges are an inspection example, not game initial state. `--static` shows the underlying cockpit cache. `--field N --states 3 1` supplies a sequence of display states. `--output /tmp/cockpit.ppm` renders headlessly for verification; `--seconds` permits timed window runs. These are temporary development options, not proposed game controls.
+`--fill 0` starts with inactive strips; the default half-filled gauges are an inspection example, not game initial state. `--static` shows the underlying cockpit cache. `--field N --states 3 1` supplies a sequence of display states. `--output /tmp/cockpit.ppm` renders headlessly for verification; `--seconds` permits timed window runs. Cockpits currently use fixed sample navigation, contact and weapon states until their gameplay producers are connected. These are temporary development options, not proposed game controls.
 
 ## Structure
 

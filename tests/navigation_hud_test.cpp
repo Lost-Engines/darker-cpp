@@ -1,0 +1,117 @@
+#include <catch2/catch_test_macros.hpp>
+#include <array>
+#include <cstdint>
+#include "graphics/bitmap_hud.h"
+#include "graphics/navigation_hud.h"
+#include "reference/navigation_samples.h"
+
+TEST_CASE("Every compass phase matches original-code pixel captures") {
+  for(std::uint8_t phase{0}; phase < 136; ++phase) {
+    auto const points{darker::graphics::compass_points(phase)};
+    auto const &expected{darker::test_reference::compass[phase]};
+    for(std::size_t i{0}; i < points.size(); ++i) {
+      REQUIRE(points[i].x == expected[i].x);
+      REQUIRE(points[i].y == expected[i].y);
+    }
+  }
+  REQUIRE(darker::graphics::compass_phase(0) == 34);
+  REQUIRE(darker::graphics::compass_phase(16384) == 68);
+  REQUIRE(darker::graphics::compass_phase(32768) == 102);
+  REQUIRE(darker::graphics::compass_phase(49152) == 0);
+  framework::render::indexed_cockpit_framebuffer screen;
+  screen.pixels.fill(17);
+  darker::graphics::update_compass(screen, 0, 34);
+  REQUIRE(screen.pixels[215 * 320 + 30] == 0);
+  auto const marker{darker::test_reference::compass[34]};
+  REQUIRE(screen.pixels[marker[0].y * 320 + marker[0].x] == 0x9e);
+  REQUIRE(screen.pixels[marker[2].y * 320 + marker[2].x] == 0x9c);
+}
+
+TEST_CASE("Normal radar projection matches all captured headings, clipping and group colours") {
+  for(auto const &sample : darker::test_reference::radar) {
+    auto const actual{darker::graphics::project_radar_contact({.x{60 * 256}, .y{60 * 256}}, sample.heading,
+      {.position{.x{static_cast<std::uint16_t>((60 + sample.x) * 256)}, .y{static_cast<std::uint16_t>((60 + sample.y) * 256)}}, .group{sample.group}})};
+    REQUIRE(actual.has_value() == sample.pixel.has_value());
+    if(actual) {
+      REQUIRE(actual->position.x == sample.pixel->position.x);
+      REQUIRE(actual->position.y == sample.pixel->position.y);
+      REQUIRE(actual->colour == sample.pixel->colour);
+    }
+  }
+}
+
+TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw order") {
+  namespace hud = darker::graphics;
+  hud::world_position const player{.x{0}, .y{0}};
+  hud::radar_contact contact{.position{player}, .group{hud::radar_group::a}, .hidden{true}};
+  REQUIRE_FALSE(hud::project_radar_contact(player, 0, contact));
+  contact.hidden = false;
+  contact.covered = false;
+  REQUIRE_FALSE(hud::project_radar_contact(player, 0, contact));
+  contact.covered = true;
+  framework::render::indexed_cockpit_framebuffer screen;
+  screen.pixels.fill(99);
+  std::array<hud::radar_contact, 2> const contacts{{contact, {.position{player}, .group{hud::radar_group::b}}}};
+  hud::draw_radar_contacts(screen, player, 0, contacts);
+  REQUIRE(screen.pixels[215 * 320 + 54] == 242);
+  REQUIRE(screen.pixels[215 * 320 + 55] == 99);
+}
+
+TEST_CASE("Skimma masked callbacks match independently extracted sprite coverage") {
+  framework::render::indexed_cockpit_framebuffer cache;
+  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(auto const &sample : darker::test_reference::skimma) {
+    auto target{cache};
+    darker::graphics::skimma_bitmap_state state;
+    if(sample.bearing) state.bearing = sample.state;
+    else state.weapons[sample.index] = sample.state;
+    darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::upgraded_skimma, {}, state);
+    std::uint64_t checksum{14695981039346656037ULL};
+    for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
+    REQUIRE(checksum == sample.checksum);
+  }
+}
+
+TEST_CASE("Radar retains fractional positions and native word wrapping at world and range boundaries") {
+  namespace hud = darker::graphics;
+  struct sample {
+    hud::world_position player;
+    hud::world_position contact;
+    std::uint16_t heading;
+    std::optional<hud::radar_pixel> expected;
+  };
+  // Native 5AC9/5AE9 captures, with 59A3 coverage supplied as true and DBC1 pixel writes intercepted.
+  std::array<sample, 8> const samples{{
+    {.player{15377, 15487}, .contact{15376, 15742}, .heading{1}, .expected{hud::radar_pixel{{53, 215}, 249}}},
+    {.player{15377, 15487}, .contact{15632, 15486}, .heading{8191}, .expected{hud::radar_pixel{{54, 215}, 249}}},
+    {.player{0, 0}, .contact{65279, 511}, .heading{65535}, .expected{hud::radar_pixel{{53, 216}, 249}}},
+    {.player{65520, 64}, .contact{241, 65087}, .heading{8191}, .expected{hud::radar_pixel{{56, 214}, 249}}},
+    {.player{32760, 65510}, .contact{38135, 65253}, .heading{1}, .expected{hud::radar_pixel{{74, 213}, 237}}},
+    {.player{32760, 65510}, .contact{38136, 65253}, .heading{1}, .expected{}},
+    {.player{0, 0}, .contact{60160, 511}, .heading{65535}, .expected{}},
+    {.player{0, 0}, .contact{60159, 511}, .heading{65535}, .expected{}},
+  }};
+  for(auto const &sample : samples) {
+    auto const actual{hud::project_radar_contact(sample.player, sample.heading, {.position{sample.contact}, .group{hud::radar_group::a}})};
+    REQUIRE(actual.has_value() == sample.expected.has_value());
+    if(actual) {
+      REQUIRE(actual->position.x == sample.expected->position.x);
+      REQUIRE(actual->position.y == sample.expected->position.y);
+      REQUIRE(actual->colour == sample.expected->colour);
+    }
+  }
+}
+
+TEST_CASE("Skimma weapon rings match all native placement and source-selection captures") {
+  framework::render::indexed_cockpit_framebuffer cache;
+  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(auto const &sample : darker::test_reference::rings) {
+    auto target{cache};
+    darker::graphics::draw_skimma_weapon_ring(cache, target, darker::graphics::craft::upgraded_skimma, sample.weapon, sample.radius, sample.remaining);
+    std::uint64_t checksum{14695981039346656037ULL};
+    for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
+    REQUIRE(checksum == sample.checksum);
+  }
+  auto target{cache};
+  REQUIRE_THROWS(darker::graphics::draw_skimma_weapon_ring(cache, target, darker::graphics::craft::skimma, 2, 63, 10));
+}

@@ -55,7 +55,46 @@ def main():
                          f'.on_source{point(pointer)}, .destination{point(pointer+2)}, .alternate_source{point(pointer-2)}, .strips{{strips_{pointer:04x}}}}},')
         lines += ['}};', '']
     assert total == 127
-    lines += ['} // namespace darker::graphics', '']
+    for base, end, name in [(0x5227, 0x52ab, 'bearing'), (0x52e0, 0x5356, 'weapon_status')]:
+        cursor = base + 2
+        strips = []
+        while cursor < end:
+            size, offset = image[cursor:cursor + 2]
+            assert size % 2 and cursor + size + 1 <= end
+            rows = size // 2
+            row_name = f'{name}_rows_{len(strips)}'
+            lines.append(f'inline std::array<mask_row, {rows}> constexpr {row_name}{{{{')
+            for i in range(rows):
+                skip, width = image[cursor + 2 + 2*i:cursor + 4 + 2*i]
+                lines.append(f'  {{.skip{{{skip}}}, .width{{{width}}}}},')
+            lines += ['}};', '']
+            strips.append((offset, row_name))
+            cursor += size + 1
+        assert cursor == end
+        lines.append(f'inline pixel_position constexpr {name}_destination{point(base)};')
+        lines.append(f'inline std::array<hud_strip, {len(strips)}> constexpr {name}_strips{{{{')
+        for offset, row_name in strips:
+            lines.append(f'  {{.y_offset{{{offset}}}, .rows{{{row_name}}}}},')
+        lines += ['}};', '']
+    lines.append('inline std::array<pixel_position, 4> constexpr weapon_status_sources{{')
+    for p in range(0x5356, 0x535e, 2):
+        lines.append('  ' + point(p) + ',')
+    lines += ['}};', '', '// Signed trigonometric words at 944A; no floating-point regeneration',
+              'inline std::array<std::int16_t, 1024> constexpr original_sine{']
+    values = [int.from_bytes(image[p:p+2], 'little', signed=True) for p in range(0x944a, 0x9c4a, 2)]
+    for i in range(0, 1024, 16):
+        lines.append('  ' + ', '.join(map(str, values[i:i+16])) + ',')
+    lines += ['};', '', '// Compass paired signed-byte offsets at 53DD',
+              'inline std::array<pixel_position, 38> constexpr compass_offsets{{']
+    for p in range(0x53dd, 0x5429, 2):
+        x, y = (int.from_bytes(image[q:q+1], 'little', signed=True) for q in (p, p+1))
+        lines.append(f'  {{.x{{{x}}}, .y{{{y}}}}},')
+    lines += ['}};', '', 'inline std::array<std::uint8_t, 3> constexpr ring_steps{' + ', '.join(map(str, image[0x5e16:0x5e19])) + '};',
+              'inline std::array<std::uint8_t, 3> constexpr ring_capacities{' + ', '.join(map(str, image[0x5e19:0x5e1c])) + '};',
+              'inline std::array<mask_row, 4> constexpr ring_mask{{']
+    for p in range(0x6010, 0x6018, 2):
+        lines.append(f'  {{.skip{{{image[p]}}}, .width{{{image[p+1]}}}}},')
+    lines += ['}};', '', '} // namespace darker::graphics', '']
     args.output.write_text('\n'.join(lines))
 
 

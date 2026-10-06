@@ -13,7 +13,9 @@
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
+#include "graphics/bitmap_hud.h"
 #include "graphics/cockpit.h"
+#include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
 #include "platform/framebuffer_presenter.h"
 #include "resources/archive_set.h"
@@ -105,6 +107,20 @@ auto main(int const argc, char const *const argv[])->int try {
     if(black == 256) throw std::runtime_error{"cockpit palette has no defined black entry"};
     darker::graphics::clear_windscreen(state.screen, type, static_cast<std::uint8_t>(black));
     for(std::size_t i{0}; i < components.size(); ++i) state.set(i, static_cast<unsigned int>(darker::graphics::instrument_limit(type, i) * fill / 100));
+    if(type == darker::graphics::craft::caero) {
+      // Temporary display fixture until player position and weapon selection supply these fields.
+      darker::graphics::update_caero_bitmaps(cache, state.screen, {}, {.row{1}, .column{1}, .primary_weapon{1}, .secondary_weapon{5}});
+      darker::graphics::update_compass(state.screen, 0, darker::graphics::compass_phase(0));
+      std::array<darker::graphics::radar_contact, 2> const contacts{{
+        {.position{.x{50 * 256}, .y{70 * 256}}, .group{darker::graphics::radar_group::a}},
+        {.position{.x{65 * 256}, .y{55 * 256}}, .group{darker::graphics::radar_group::b}},
+      }};
+      darker::graphics::draw_radar_contacts(state.screen, {.x{60 * 256}, .y{60 * 256}}, 0, contacts);
+    } else {
+      darker::graphics::update_skimma_bitmaps(cache, state.screen, type, {},
+        {.bearing{1}, .weapons{1, 2, static_cast<std::uint8_t>(type == darker::graphics::craft::upgraded_skimma ? 3 : 0)}});
+      darker::graphics::draw_skimma_weapon_ring(cache, state.screen, type, 0, 63, 14);
+    }
     if(arguments.contains("states")) {
       for(auto const value : arguments["states"].as<std::vector<unsigned int>>()) state.set(state.selected, value);
     }
