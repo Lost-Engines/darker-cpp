@@ -89,6 +89,9 @@ target_link_libraries(darker_graphics PUBLIC framework_core)
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/object_definition.cpp
+  src/game/object_definition.h
+  src/game/object_definitions.h
   src/game/object_list.h
   src/game/random.cpp
   src/game/random.h
@@ -126,6 +129,7 @@ if(BUILD_TESTING)
     tests/procedural_hud_test.cpp
     tests/navigation_hud_test.cpp
     tests/skimma_weapons_test.cpp
+    tests/object_definition_test.cpp
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/bitmap_hud_test.cpp

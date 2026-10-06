@@ -36,3 +36,33 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_world_reference.py ..
 The 56 list fixtures cover active lengths zero through six, every active removal position, free-list exhaustion and tail reuse. Tests compare returned identity, header links, and every record's next/previous link, including stale free links. C++ tests also check that payload values survive these operations.
 
 The random check executes **all 65,536 input states**, checking both native return value and stored state, then compares the C++ sequence using checksums grouped by input high byte. All **47 CTest cases** pass. No application controls or additional deliverable executable were introduced.
+
+## Typed definitions and parameter expansion
+
+`object_definitions.h` contains the 33 original 24-byte records, generated from the hash-checked executable. The C++ representation separates angular/motion seeds, impact and speed parameters, eight role-dependent bytes, and sound parameters. Callback entries remain native identifiers for future dispatch translation; they are not machine-code pointers called by C++. The eight role-dependent bytes are deliberately not assigned universal names because their meanings differ between craft and projectiles.
+
+`apply_object_definition` translates `BF41–BF6E`. It writes the following subset, represented by `object_parameters` rather than an opaque 112-byte memory image:
+
+| Native runtime offset | C++ field | Source |
+| --- | --- | --- |
+| 44h | `definition` | Non-owning pointer to the supplied typed definition |
+| 22h | `model_token` | Explicit geometry-bank binding |
+| 66h | `update_entry` | Definition +2 word |
+| 4Ch | `flags_4c` | C0C0h |
+| 30h | `angular_response` | Definition +4 unsigned byte × 8 |
+| 32h | `motion[0]` | Definition +5 unsigned byte × 256 |
+| 34h | `motion[1]` | Definition +6 unsigned byte × 64 |
+| 36h | `motion[2]` | Definition +7 unsigned byte × 128 |
+
+The definition must outlive the resulting parameters; the generated static array provides stable storage. Definitions retain their original zero model words. The original loader patched those words per geometry bank, so the C++ function instead accepts a separate model binding and leaves shared definitions immutable. This token is still a native-format model reference pending geometry loading, not a host pointer.
+
+The function represents only these eight writes. Clearing at `BF25–BF3E`, complete runtime object construction and the projectile placement transforms are separate. In particular, `CB01` stores a launch deadline, inherited roll and target before calling `BF41`; a whole-record reset there would erase required state. The current code does not pretend to complete that launch using guessed coordinates or an artificial successful allocation.
+
+Regeneration:
+
+```sh
+python3 tools/generate_object_definitions.py ../analysis/unpacked/image.bin
+PYTHONPATH=/tmp/darker-python python3 tools/generate_definition_reference.py ..
+```
+
+The independent native probe checks every definition with three model bindings and twenty isolated seed-boundary cases, for **119 expansions**. It seeds the rest of each original runtime record with a sentinel and confirms that only the eight expected words change. C++ tests check the expanded values and definition identity, including unsigned seeds 128 and 255. All **48 CTest cases** pass.
