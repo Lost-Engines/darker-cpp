@@ -61,3 +61,30 @@ The next visual milestone is original bitmap/font/palette data presented through
 Enemy behaviour, remaining weapons, other craft/cities, exceptional missions, spatial audio and menu/save integration follow with their own reference evidence. Unknown save fields, the anomalous convoy, full visibility/raster contracts and clock/pause behaviour remain open; see the existing [analysis inventory](../../docs/reconstruction-evidence-inventory.md).
 
 Converted assets, configurable gameplay controls, adjustable fog, alternative world renderers and the browser re-engine belong to the second project stage. They must not silently enter fidelity tests for this one.
+
+
+## Optional enhancements after completion
+
+First complete and verify the faithful reconstruction. Afterwards, this same
+reconstruction may gain opt-in extensions which preserve the original game's
+character and rendering mechanisms, separately from the converted-asset/browser
+re-engine. Keep the original settings and arithmetic available as the reference
+mode; enhancements must not change the baseline fidelity comparisons.
+
+Deferred candidates:
+
+- **Longer viewing distance:** widen coordinate arithmetic sympathetically across
+  placement, projection, culling and sorting, and review traversal limits. The
+  radius-only experiment caused nearby tiles to disappear through original word
+  wrapping; increasing a constant is insufficient. Check continuity while moving
+  and turning, as well as distant geometry and unchanged baseline frames.
+- **Higher internal rendering resolution:** extend software drawing, clipping and
+  framebuffer addressing coherently, including cockpit/HUD placement. This means
+  more rendered pixels, beyond the existing host-window scaling.
+- **Customisable field of view:** make projection and corresponding visibility
+  bounds configurable together, preserving the original projection as default.
+- **Other small optional presentation tweaks:** consider only once the complete
+  game provides a reliable behavioural and visual reference.
+
+Do not implement these extensions during reconstruction milestones. Defer their
+API and implementation design until the working original mechanisms are in place.

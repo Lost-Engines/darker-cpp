@@ -84,7 +84,6 @@ auto main(int const argc, char const *const argv[])->int try {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
-    ("view-distance", po::value<unsigned int>()->default_value(15), "city radius in cells, 2-32; above 15 is experimental (original coordinate wrapping)")
     ("seconds", po::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
     ("output", po::value<std::string>(), "write RGB PPM without opening a window");
   po::variables_map arguments;
@@ -94,9 +93,6 @@ auto main(int const argc, char const *const argv[])->int try {
     return EXIT_SUCCESS;
   }
   po::notify(arguments);
-  auto const radius{arguments["view-distance"].as<unsigned int>()};
-  if(radius < 2 || radius > 32) throw std::invalid_argument{"--view-distance must be between 2 and 32 cells"};
-  if(radius > 15) std::cerr << "Experimental viewing radius: original 16-bit coordinates can wrap beyond the normal 15-cell range." << std::endl;
   auto const name{arguments["craft"].as<std::string>()};
   if(name != "caero" && name != "skimma" && name != "upgraded") throw std::invalid_argument{"unknown --craft"};
   auto const type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
@@ -132,8 +128,7 @@ auto main(int const argc, char const *const argv[])->int try {
   framework::render::cockpit_framebuffer output;
   auto const render{[&](std::uint16_t const clock, bool const enlarged){
     int const height{caero ? 168 : 180};
-    auto view{camera.view(height)};
-    view.radius = radius;
+    auto const view{camera.view(height)};
     darker::graphics::model_animation animation;
     darker::graphics::update_fountain_parameters(animation, clock);
     world.pixels.fill(0);
