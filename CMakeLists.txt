@@ -88,8 +88,16 @@ add_library(darker_graphics STATIC
 target_link_libraries(darker_graphics PUBLIC framework_core)
 configure_first_party(darker_graphics)
 
+add_library(darker_game STATIC
+  src/game/skimma_weapons.cpp
+  src/game/skimma_weapons.h
+)
+target_include_directories(darker_game PUBLIC src)
+configure_first_party(darker_game)
+
 add_executable(darker src/main.cpp)
 target_link_libraries(darker
+  PRIVATE darker_game
   PRIVATE darker_graphics
   PRIVATE darker_resources
   PRIVATE framework_platform
@@ -114,6 +122,7 @@ if(BUILD_TESTING)
     tests/framebuffer_test.cpp
     tests/procedural_hud_test.cpp
     tests/navigation_hud_test.cpp
+    tests/skimma_weapons_test.cpp
     tests/bitmap_hud_test.cpp
     tests/cockpit_test.cpp
     tests/palette_bitmap_test.cpp
@@ -123,6 +132,7 @@ if(BUILD_TESTING)
     PRIVATE framework_core
     PRIVATE darker_resources
     PRIVATE darker_graphics
+    PRIVATE darker_game
     PRIVATE Catch2::Catch2WithMain
   )
   configure_first_party(framework_tests)

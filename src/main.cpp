@@ -13,6 +13,7 @@
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
+#include "game/skimma_weapons.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/cockpit.h"
 #include "graphics/navigation_hud.h"
@@ -125,7 +126,11 @@ auto main(int const argc, char const *const argv[])->int try {
       darker::graphics::update_skimma_bitmaps(cache, state.screen, type, {},
         {.bearing{1}, .weapons{1, 2, static_cast<std::uint8_t>(type == darker::graphics::craft::upgraded_skimma ? 3 : 0)}});
       darker::graphics::draw_target_marker(state.screen, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
-      darker::graphics::draw_skimma_weapon_ring(cache, state.screen, type, 0, 63, 14);
+      darker::game::weapon_ammunition ammunition;
+      darker::game::refill_skimma_weapon(ammunition, 0);
+      if(auto const ring{darker::game::calculate_weapon_ring(ammunition, {.reload_deadline{0}, .spread{252}}, 0, 1)}) {
+        darker::graphics::draw_skimma_weapon_ring(cache, state.screen, type, 0, ring->radius, ring->remaining);
+      }
     }
     if(arguments.contains("states")) {
       for(auto const value : arguments["states"].as<std::vector<unsigned int>>()) state.set(state.selected, value);

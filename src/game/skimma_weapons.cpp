@@ -1,0 +1,89 @@
+#include "game/skimma_weapons.h"
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <stdexcept>
+
+namespace darker::game {
+namespace {
+
+std::array<std::uint8_t, 3> constexpr working_capacity{14, 8, 10};
+std::array<std::uint8_t, 3> constexpr reserve_capacity{5, 3, 4};
+
+void validate_weapon(std::uint8_t const weapon) {
+  /// The caller selects a craft-available slot; the native tables contain three slots
+  if(weapon >= working_capacity.size()) throw std::invalid_argument{"Skimma weapon index must be below three"};
+}
+
+} // namespace
+
+void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {
+  /// 5E44–5E58 refill both counters without changing the shared reload deadline
+  validate_weapon(weapon);
+  ammunition = {.working{working_capacity[weapon]}, .reserve{reserve_capacity[weapon]}};
+}
+
+bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring, std::uint8_t const weapon, std::uint16_t const clock) {
+  /// 5E1F consumes one reserve only when empty, then starts the wrapping 1024-tick deadline
+  validate_weapon(weapon);
+  if(ammunition.working != 0) return false;
+  auto const next{static_cast<std::uint8_t>(ammunition.reserve - 1)};
+  if((next & 0x80) != 0) return false;
+  ammunition = {.working{working_capacity[weapon]}, .reserve{next}};
+  ring = {.reload_deadline{static_cast<std::uint16_t>(clock + 1024)}, .spread{508}};
+  return true;
+}
+
+std::optional<weapon_ring_display> calculate_weapon_ring(weapon_ammunition const ammunition,
+  weapon_ring_state const ring, std::uint16_t const clock, std::uint8_t const enable_flags) {
+  /// 5D66–5DF6 preserve signed deadline comparison and truncation before radius extraction
+  if((enable_flags & 1) == 0) return std::nullopt;
+  auto const delta{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - ring.reload_deadline))};
+  if(delta < 0) {
+    auto const radius{static_cast<std::uint8_t>(static_cast<std::uint16_t>(delta * 64) >> 9)};
+    if(radius < 15) return std::nullopt;
+    return weapon_ring_display{.radius{radius}, .remaining{0}};
+  }
+  auto const radius{static_cast<std::uint8_t>(static_cast<std::uint16_t>(ring.spread * 64) >> 8)};
+  return weapon_ring_display{.radius{std::max<std::uint8_t>(15, radius)}, .remaining{ammunition.working}};
+}
+
+std::optional<weapon_ring_display> update_weapon_ring(weapon_ammunition const ammunition,
+  weapon_ring_state &ring, std::uint16_t const clock, std::uint8_t const enable_flags, std::uint16_t const frame_step) {
+  /// 5DF9 follows drawing only outside reload; even a disabled weapon advances smoothing
+  auto const display{calculate_weapon_ring(ammunition, ring, clock, enable_flags)};
+  auto const delta{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - ring.reload_deadline))};
+  if(delta >= 0) {
+    ring.reload_deadline = clock;
+    auto const spread{std::bit_cast<std::int16_t>(ring.spread)};
+    // 7CDB approaches zero using wrapping arithmetic and signed comparisons.
+    auto const next{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(spread < 0 ? spread + frame_step : spread - frame_step))};
+    ring.spread = static_cast<std::uint16_t>(spread < 0 ? std::min<std::int16_t>(next, 0) : std::max<std::int16_t>(next, 0));
+  }
+  return display;
+}
+
+std::uint8_t update_skimma_weapon_status(std::span<skimma_weapon_slot> const weapons, weapon_ring_state &ring,
+  std::uint8_t const selected, std::uint16_t const clock, std::int16_t const target, std::uint16_t const target_count) {
+  /// C90A reloads the selected slot first, then updates status bits and the reserve display
+  if((weapons.size() != 2 && weapons.size() != 3) || selected >= weapons.size()) {
+    throw std::invalid_argument{"Skimma status requires two or three slots and an available selection"};
+  }
+  reload_skimma_weapon(weapons[selected].ammunition, ring, selected, clock);
+  std::uint8_t reserve_display{0};
+  for(std::size_t i{weapons.size()}; i-- > 0;) {
+    auto &slot{weapons[i]};
+    slot.flags &= 0xfd;
+    auto reserve{slot.ammunition.reserve};
+    if(i == selected && (slot.flags & 1) != 0) {
+      reserve_display = reserve;
+      if(target == -1 || target_count == 0) continue;
+      // CBW replaces AH with the sign of AL before testing working ammunition.
+      reserve = (slot.flags & 0x80) != 0 ? 255 : 0;
+    }
+    if((reserve | slot.ammunition.working) != 0) slot.flags |= 2;
+  }
+  return reserve_display;
+}
+
+} // namespace darker::game
