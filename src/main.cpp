@@ -15,12 +15,15 @@
 #include <GLFW/glfw3.h>
 #include "game/skimma_weapons.h"
 #include "graphics/bitmap_hud.h"
+#include "graphics/camera.h"
 #include "graphics/cockpit.h"
+#include "graphics/model_renderer.h"
 #include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
 #include "graphics/procedural_hud.h"
 #include "platform/framebuffer_presenter.h"
 #include "resources/archive_set.h"
+#include "resources/geometry_bank.h"
 
 namespace {
 
@@ -65,12 +68,57 @@ struct inspector {
   }
 };
 
+// Temporary application milestone; world traversal will supply the models and camera.
+struct model_inspection {
+  darker::resources::geometry_bank bank;
+  darker::graphics::camera_angles angles{.heading{8192}, .pitch{57344}};
+  bool dragging{false};
+  double last_x{0};
+  double last_y{0};
+
+  void mouse(double const x, double const y, bool const pressed) {
+    /// Temporary model inspection until the flight loop supplies camera state
+    if(pressed && dragging) {
+      auto const dx{static_cast<int>(std::clamp(x - last_x, -512.0, 512.0) * 64)};
+      auto const dy{static_cast<int>(std::clamp(y - last_y, -512.0, 512.0) * 64)};
+      angles.heading = static_cast<std::uint16_t>(angles.heading + dx);
+      int const pitch{angles.pitch > 32767 ? static_cast<int>(angles.pitch) - 65536 : angles.pitch};
+      angles.pitch = static_cast<std::uint16_t>(std::clamp(pitch + dy, -12000, 12000));
+    }
+    dragging = pressed;
+    last_x = x;
+    last_y = y;
+  }
+
+  void draw(framework::render::indexed_cockpit_framebuffer &target, darker::graphics::craft const type) const {
+    /// Exercise original geometry and camera coefficients at a safe fixed depth, then compose the cockpit view
+    framework::render::indexed_cockpit_framebuffer view{};
+    darker::graphics::projection_parameters const projection{
+      .axes{darker::graphics::make_camera_basis(angles)},
+      .depth{.whole{2048}}, .origin{.x{160}, .y{110}},
+    };
+    darker::graphics::model_colours colours{.dynamic{17}};
+    for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
+    int const top{type == darker::graphics::craft::caero ? 8 : 0};
+    int const height{type == darker::graphics::craft::caero ? 168 : 180};
+    darker::graphics::draw_flat_model(view, bank.model_pool(), bank.city_model_offset(30, 0, 0x20), projection, colours, height);
+    darker::graphics::copy_rectangle(view.pixels, target.pixels, {.x{0}, .y{0}}, {.x{0}, .y{top}}, 320, height);
+    if(type == darker::graphics::craft::caero) {
+      auto const attitude{darker::graphics::calculate_attitude(0, 0, 0, false)};
+      darker::graphics::draw_hud_line(target, attitude.first, attitude.last, attitude.colour);
+      darker::graphics::draw_attitude_surround(target, 0);
+    } else {
+      darker::graphics::draw_target_marker(target, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
+    }
+  }
+};
+
 } // namespace
 
 auto main(int const argc, char const *const argv[])->int try {
-  /// Assemble an original cockpit and expose masked instruments for inspection
+  /// Present original model bytecode and cockpit graphics through the single application
   namespace po = boost::program_options;
-  po::options_description options{"Darker (current cockpit milestone)"};
+  po::options_description options{"Darker (current model and cockpit milestone)"};
   options.add_options()
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
@@ -119,13 +167,9 @@ auto main(int const argc, char const *const argv[])->int try {
       darker::graphics::update_caero_bitmaps(cache, state.screen, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{1}, .secondary_weapon{5}});
       darker::graphics::update_compass(state.screen, 0, darker::graphics::compass_phase(navigation.heading));
       darker::graphics::draw_radar_contacts(state.screen, navigation.player, navigation.heading, contacts);
-      auto const attitude{darker::graphics::calculate_attitude(0, 0, 0, false)};
-      darker::graphics::draw_hud_line(state.screen, attitude.first, attitude.last, attitude.colour);
-      darker::graphics::draw_attitude_surround(state.screen, 0);
     } else {
       darker::graphics::update_skimma_bitmaps(cache, state.screen, type, {},
         {.bearing{1}, .weapons{1, 2, static_cast<std::uint8_t>(type == darker::graphics::craft::upgraded_skimma ? 3 : 0)}});
-      darker::graphics::draw_target_marker(state.screen, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
       darker::game::weapon_ammunition ammunition;
       darker::game::refill_skimma_weapon(ammunition, 0);
       if(auto const ring{darker::game::calculate_weapon_ring(ammunition, {.reload_deadline{0}, .spread{252}}, 0, 1)}) {
@@ -136,8 +180,11 @@ auto main(int const argc, char const *const argv[])->int try {
       for(auto const value : arguments["states"].as<std::vector<unsigned int>>()) state.set(state.selected, value);
     }
   } else if(arguments.contains("states")) throw std::invalid_argument{"--states cannot be used with --static"};
+  model_inspection model{.bank{archives.load({.archive{0}, .slot{type == darker::graphics::craft::caero ? 30u : 31u}})}};
+  auto display{state.screen};
+  if(!static_view) model.draw(display, type);
   framework::render::cockpit_framebuffer output;
-  framework::render::expand_palette(state.screen, bitmap.palette.colours, output);
+  framework::render::expand_palette(display, bitmap.palette.colours, output);
   if(arguments.contains("output")) {
     std::ofstream file{arguments["output"].as<std::string>(), std::ios::binary};
     file.exceptions(std::ios::failbit | std::ios::badbit);
@@ -175,9 +222,8 @@ auto main(int const argc, char const *const argv[])->int try {
     }
   });
   framework::platform::framebuffer_presenter presenter{*window};
-  std::cout << "Inspection only: no world or gameplay simulation. Up/down: instrument; left/right: count; Home/End: empty/full; R/F: all empty/full; D: Caero engine dimming; Escape: close.\n";
+  std::cout << "Inspection only: isolated original model, no flight simulation. Left-drag: rotate model view. Up/down: instrument; left/right: count; Home/End: empty/full; R/F: all empty/full; D: Caero engine dimming; Escape: close.\n";
   for(std::size_t i{0}; i < components.size(); ++i) std::cout << i << ": " << components[i].label << " (max " << darker::graphics::instrument_limit(type, i) << ")\n";
-  auto display{state.screen};
   std::cout << "Hold Insert or keypad 0 for the Caero enlarged radar.\n";
   auto const start{std::chrono::steady_clock::now()};
   while(!glfwWindowShouldClose(window.get())) {
@@ -191,13 +237,17 @@ auto main(int const argc, char const *const argv[])->int try {
     glfwSetWindowTitle(window.get(), title.c_str());
     bool const enlarged{!static_view && type == darker::graphics::craft::caero
       && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
-    if(enlarged) {
-      display = state.screen;
-      darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
-      framework::render::expand_palette(display, bitmap.palette.colours, output);
-    } else {
-      framework::render::expand_palette(state.screen, bitmap.palette.colours, output);
+    display = state.screen;
+    if(!static_view) {
+      double x{0}, y{0};
+      glfwGetCursorPos(window.get(), &x, &y);
+      model.mouse(x, y, glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+      model.draw(display, type);
     }
+    if(enlarged) {
+      darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
+    }
+    framework::render::expand_palette(display, bitmap.palette.colours, output);
     presenter.present(output);
     glfwWaitEventsTimeout(0.01);
   }

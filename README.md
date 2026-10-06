@@ -22,10 +22,11 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal/enlarged radar contacts, Caero attitude/vector graphics, and Skimma bearing/weapon indicators, aim marks and weapon rings. The black windscreen is intentional: world rendering and gameplay are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
+The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal/enlarged radar contacts, Caero attitude/vector graphics, and Skimma bearing/weapon indicators, aim marks and weapon rings. The windscreen now contains an original building model: bank 30 type 30 for the Caero, bank 31 type 30 for either Skimma. Left-drag rotates the view using the original fixed-point camera coefficients and model interpreter. This is an isolated model at a safe fixed distance, using the original Gouraud-off mode and an unattenuated shade table; city traversal, near-plane clipping, distance shading and gameplay integration are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
 
 Use `--craft skimma` or `--craft upgraded` to inspect the other cockpits. Temporary controls:
 
+- **Left mouse drag:** rotate the model view horizontally and vertically.
 - **Up / Down:** select an instrument; its name and count appear in the window title.
 - **Left / Right:** decrease / increase its count.
 - **Home / End:** empty / fill the selected instrument.
@@ -39,7 +40,7 @@ The original **hold Insert / keypad 0** binding displays the enlarged Caero rada
 
 ## Structure
 
-`src/game` contains platform-independent gameplay state calculations, including Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit and flat-polygon logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
+`src/game` contains platform-independent gameplay state calculations, including Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 

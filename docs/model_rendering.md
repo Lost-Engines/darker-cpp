@@ -98,3 +98,21 @@ three elevations. Camera coefficients come from the native setup, depth varies
 per vertex, and clipping uses the Caero/Skimma view heights of 168/180 rows.
 These checks exercise camera setup, model interpretation, projection and drawing
 together; they do not substitute for scene traversal or near-plane handling.
+
+
+## Application milestone
+
+The single `darker` application now draws a type-30 building from the appropriate
+original city bank in the cockpit windscreen. Left-drag adjusts a temporary
+inspection camera; it does not simulate craft motion. Distance stays safely
+outside the selected model, and the scene uses the original flat rendering mode
+with an identity shade table. The viewport is clipped before the Caero's eight-row
+destination offset is applied. Cockpit inspection controls remain available.
+This small application fixture will be replaced by scene traversal and gameplay
+camera state; it is not a separate executable or a new engine input abstraction.
+
+An isolated Xvfb/Mesa run compared window pixels against the headless render,
+simulated dragging, checked unchanged cockpit pixels, verified enlarged-radar
+press/release restoration, resized the window and exited with Escape. Full
+perspective-frame comparisons above cover the underlying rendering behaviour;
+no unit tests were added for the temporary inspection controls.
