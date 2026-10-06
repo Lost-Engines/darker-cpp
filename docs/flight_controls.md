@@ -25,5 +25,6 @@ handover, counter wrapping and sensitivities 1/12/25. Tests compare both output
 drives and all eight persistent words. The fixture selects ordinary mouse mode
 and suppresses the separate joystick fallback through its native input flags.
 
-The application retains its inspection controls until collision handling and
-frame ordering can support a coherent flight loop.
+The application now supplies GLFW relative mouse counters and held arrow/Ctrl
+keys to this filter. The former free-camera controls have been removed. Host
+mouse sensitivity still needs comparison with the original DOS input path.

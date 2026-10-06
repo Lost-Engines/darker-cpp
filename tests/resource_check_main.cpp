@@ -11,6 +11,7 @@
 #include <boost/program_options.hpp>
 #include "game/city_collision.h"
 #include "game/city_sweep.h"
+#include "game/player_flight.h"
 #include "graphics/camera.h"
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
@@ -22,6 +23,7 @@
 #include "reference/geometry_bank_samples.h"
 #include "reference/model_effect_samples.h"
 #include "reference/original_model_samples.h"
+#include "reference/player_flight_samples.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 
@@ -101,6 +103,34 @@ auto main(int const argc, char const *const argv[])->int try {
         throw std::runtime_error{std::format("City sweep differs from native reference: bank {}, type {}, state {}, start ({},{},{}), got contact {} category {} end ({},{},{}), expected {} {} ({},{},{})",
           slot, sample.type, sample.state, sample.start[0], sample.start[1], sample.start[2], static_cast<unsigned int>(result.contact), result.category, end[0], end[1], end[2],
           sample.hit, sample.category, sample.result[0], sample.result[1], sample.result[2])};
+      }
+    }
+  }
+  {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+    darker::game::city_map cells{};
+    darker::game::player_flight player;
+    for(auto const &sample : darker::test_reference::player_flight_samples) {
+      auto const &input{sample.input};
+      if(input[4] == 8) {
+        cells.fill({});
+        cells[20 * 128 + 20] = {.type{static_cast<std::uint8_t>(input[1])}};
+        player = {};
+        darker::game::object_pose const pose{.position{5248, 5504, static_cast<std::uint16_t>(input[2])}, .speed{1500}};
+        if(input[0] == 25) player.craft = darker::game::caero_flight_state{.pose{pose}, .horizontal_velocity{1500}, .flying{true}};
+        else player.craft = darker::game::skimma_flight_state{.pose{pose}, .damage{.shield_charge{0xbf00}}, .horizontal_velocity{1500}};
+        player.upgraded = input[0] == 27;
+        player.engine_flags = static_cast<std::uint8_t>(input[3]);
+        player.forward_setting = 256;
+      }
+      player.advance({}, false, 8, static_cast<std::uint16_t>(input[4]), bank, cells);
+      auto const velocity{std::visit([](auto const &state){ return std::array<int, 2>{state.vertical_velocity, state.horizontal_velocity}; }, player.craft)};
+      auto const &pose{player.pose()};
+      if(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} != sample.position || velocity != sample.velocity
+        || std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} != sample.angles
+        || player.lifecycle.crashing != (sample.outcome[0] == 0x6ef7) || cells[20 * 128 + 20].state != sample.outcome[1]) {
+        throw std::runtime_error{std::format("Player flight/collision differs from native reference: craft {}, type {}, height {}, engine {}, tick {}: position ({},{},{}) expected ({},{},{})",
+          input[0], input[1], input[2], input[3], input[4], pose.position[0], pose.position[1], pose.position[2], sample.position[0], sample.position[1], sample.position[2])};
       }
     }
   }

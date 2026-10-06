@@ -95,6 +95,8 @@ add_library(darker_graphics STATIC
   src/graphics/gouraud_polygon.cpp
   src/graphics/gouraud_polygon.h
   src/graphics/flat_polygon.h
+  src/graphics/flight_instruments.cpp
+  src/graphics/flight_instruments.h
   src/graphics/cockpit.cpp
   src/graphics/cockpit.h
   src/graphics/cockpit_tables.h
@@ -146,6 +148,10 @@ add_library(darker_game STATIC
   src/game/object_pose.cpp
   src/game/object_pose.h
   src/game/object_list.h
+  src/game/player_flight.cpp
+  src/game/player_flight.h
+  src/game/player_crash.cpp
+  src/game/player_crash.h
   src/game/player_damage.cpp
   src/game/player_damage.h
   src/game/projectile_expiry.cpp
@@ -227,6 +233,7 @@ if(BUILD_TESTING)
     tests/caero_flight_test.cpp
     tests/beacon_energy_test.cpp
     tests/object_impact_test.cpp
+    tests/player_crash_test.cpp
     tests/player_damage_test.cpp
     tests/projectile_expiry_test.cpp
     tests/projectile_update_test.cpp
@@ -235,6 +242,7 @@ if(BUILD_TESTING)
     tests/projectile_pool_test.cpp
     tests/projectile_placement_test.cpp
     tests/bitmap_hud_test.cpp
+    tests/flight_instruments_test.cpp
     tests/cockpit_test.cpp
     tests/palette_bitmap_test.cpp
     tests/resource_decoder_test.cpp

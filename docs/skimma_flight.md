@@ -30,5 +30,6 @@ sets, all three speed settings, braking, full attitude ranges, varied heights,
 shield accumulator boundaries and initial speeds on either side of 2047.
 All sixteen persistent fields agree across 512 updates (8,192 assertions).
 The existing full Caero traces also pass after extracting the shared helpers.
-These are callback comparisons; scenario setup, collision responses and the
-application flight loop remain separate integration work.
+These are callback comparisons. The player composition now connects city
+collision and a windowed flight checkpoint; original scenario/startup setup
+and the remaining game loop still need integration.

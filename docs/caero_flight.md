@@ -4,8 +4,8 @@
 callback `7EB6–802C`, including the coupling helpers through `80EE`. It composes
 the previously verified angular response, movement, beacon charging, damage
 repair and energy routines in their native order. This is a complete craft
-update, not yet a complete game frame: collision handling, controls, camera
-tracking and the object-list dispatcher remain separate integration work.
+update. The player-flight composition now connects steering and city collision;
+scenario setup, camera modes and the object-list dispatcher remain separate work.
 
 The named state owns position/fractions/attitude, velocity components, angular
 response rates, the pitch-assistance accumulator, active boost drive, carried
@@ -60,5 +60,5 @@ fixture does, then returns its updated damage/phase to the callback. No flight
 arithmetic is replaced with Python. This limitation is explicit in the generated
 fixture and does not alter the C++ repair implementation.
 
-The application still uses its inspection camera until native input, collision
-and game-frame ordering can supply a coherent flight loop.
+The application now uses the player-flight composition from an explicit airborne
+checkpoint; this does not replace original scenario/launch initialisation.

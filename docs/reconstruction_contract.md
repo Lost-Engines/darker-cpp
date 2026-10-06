@@ -22,7 +22,7 @@ The game core must not depend on GLFW, OpenGL or miniaudio. The host supplies in
 - Audio output consumes PCM. Its asynchronous callback must not advance mission/flight state, allocate game objects or determine simulation timing.
 - Recorded input and explicit clock values must be usable without a window or audio device. Reference comparisons must not depend on refresh rate or host execution speed.
 
-The current platform demo stays runnable while the game-specific library develops separately.
+The single application stays runnable while the game-specific systems are connected incrementally.
 
 ## Arithmetic and clocks
 
@@ -30,7 +30,7 @@ Use exact widths where recovered storage or arithmetic requires them. Preserve w
 
 Resource and object offsets are values within defined domains, not native addresses. Read little-endian fields explicitly; do not cast pack bytes to C++ structs. Recovered segment distinctions, especially SS-relative object state versus code/data state, become named data ownership rather than an emulated universal pointer space.
 
-Original tick sources, modulo comparisons, self-modifying accumulators and update order need explicit state. The measured source frequency is approximately 500 Hz; that is not permission to impose a fixed 500 Hz simulation loop, equate one tick to one frame, or discard fractional clock behaviour. Recorded traces supply the exact timestep sequence used by each comparison. Complete pause/input/clock contracts remain analysis work before gameplay integration.
+Original tick sources, modulo comparisons, self-modifying accumulators and update order need explicit state. The measured source frequency is approximately 500 Hz; that is not permission to impose a fixed 500 Hz simulation loop, equate one tick to one frame, or discard fractional clock behaviour. Recorded traces supply the exact timestep sequence used by each comparison. The interrupt cap and frame-accounting contract are now reconstructed; outer-loop input polling, modal pauses and mission scheduling still need integration.
 
 Self-modifying code should become explicit parameters or state-machine transitions where understood. Startup changes, including the sine-table extension, are part of initialisation. A readable rewrite must preserve them even when the untouched executable bytes look different.
 
@@ -56,7 +56,7 @@ Ordinary Catch2 tests require no proprietary assets. Original-pack comparison is
 
 ## Progression and deferred work
 
-The next visual milestone is original bitmap/font/palette data presented through an indexed framebuffer. Then recover drawing primitives, one model, a stationary city, camera movement, input/flight/collision, cockpit integration and a complete first mission.
+Original indexed assets, model/city rendering, steering, both craft flight callbacks, city collisions and several live cockpit producers are now connected in an airborne checkpoint. Next replace that temporary launch state with original scenario setup, connect actors/weapons and complete the first mission, including landing and death/retry transitions.
 
 Enemy behaviour, remaining weapons, other craft/cities, exceptional missions, spatial audio and menu/save integration follow with their own reference evidence. Unknown save fields, the anomalous convoy, full visibility/raster contracts and clock/pause behaviour remain open; see the existing [analysis inventory](../../docs/reconstruction-evidence-inventory.md).
 

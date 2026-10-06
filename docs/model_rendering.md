@@ -248,21 +248,19 @@ lighting model is introduced.
 
 ## Application milestone
 
-The single `darker` application now assembles the original city rather than an
-isolated building. W/A/S/D move a temporary inspection camera, R/F change height,
-and left-drag changes heading/pitch. These host controls use continuous positions
-which are converted at the boundary into the renderer's original fixed-point
-fields. They are not flight physics and will be removed when gameplay supplies
-the camera. The old instrument-adjustment controls have been retired.
+The single `darker` application draws the city from the reconstructed player
+pose. The temporary free-camera controls have been removed; see
+[player flight](player_flight.md) for the airborne checkpoint and its limits.
+The scene uses Gouraud mode with original distance shading and beacon-state
+lighting. F9 selects the original flat fallback. The viewport is clipped before
+the Caero's eight-row destination offset is applied.
 
-The scene uses Gouraud mode with original distance shading and beacon-state lighting.
-F9 selects the original flat fallback. The viewport is clipped
-before the Caero's eight-row destination offset is applied. Compass and map-grid
-coordinates follow the camera, while cockpit gauges and weapon displays remain
-explicit sample values. No moving objects, collision handling, mission state,
-underground scenes are connected yet.
+Compass and map-grid coordinates follow the craft. Caero energy, damage and
+altitude gauges and the Skimma speed chart now follow live state. Weapon icons
+remain empty until weapon integration. Other actors, missions and underground
+scenes are not connected yet.
 
-An isolated Xvfb/Mesa run exercised mouse look, forward/sideways movement, height
-changes, enlarged radar, resizing and Escape. Headless renders cover all three
-cockpit selections. A further sweep rendered 2,000 positions across both cities,
-varying altitude, heading and pitch, without errors. No unit tests were added for these temporary controls.
+Isolated Xvfb/Mesa checks exercise all three craft selections, steering, boost,
+braking, engine/shield commands, shading, window resizing and Escape. Earlier
+native renderer comparisons and the 2,000-position city sweep remain applicable;
+no tests preserve the removed temporary controls.

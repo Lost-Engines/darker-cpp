@@ -22,28 +22,32 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application draws Delphi or Halon directly from the original city map and geometry bank, inside the corresponding 320×240 cockpit. City traversal, model selection, placement, ordering, near-plane clipping, flat polygons, lines, beacon discs and fountain vertex animation now use reconstructed original routines. The camera can move through the scene; flight, collisions, moving objects and missions are not connected yet.
+The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation.
 
-Use `--craft skimma` or `--craft upgraded` to explore Halon. Temporary inspection controls:
+This is an **airborne flight checkpoint**, not yet a complete mission. It temporarily starts above the city with a usable flight state. Original scenario/launch setup, other actors, weapons, sound, external cameras, landing and death/restart screens remain to be connected. Close and relaunch after crashing. Skimma shield logic is present, but its directional display is not yet driven; Caero stall dimming and Nayas activity also remain outstanding.
 
-- **W / S:** move forwards / backwards.
-- **A / D:** move sideways.
-- **R / F:** rise / lower.
-- **Left mouse drag:** look horizontally and vertically.
-- **F9:** toggle original Gouraud shading.
-- **Escape:** close.
+Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
-The original **hold Insert / keypad 0** binding displays the enlarged Caero radar. Compass and grid coordinates follow the inspection camera; gauges and weapon displays remain sample values, and there are no radar contacts yet. The older instrument-adjustment controls have been removed.
+- **Mouse / arrow keys:** steer; **Ctrl + arrows:** adjust control force.
+- **Enter:** Caero boost; upgraded Skimma turbo setting.
+- **Backspace:** brake.
+- **E:** Caero engine / Skimma shields.
+- **A:** Caero automatic altitude adjustment.
+- **− / =:** Skimma low/high speed settings.
+- **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
+- **Escape:** close and release the captured mouse.
 
-The scene uses original Gouraud shading, distance ramps and Delphi beacon-state lighting, including the original distance-based flat fallback. Original palette/display handling and gameplay camera integration remain to come. Source RGB and square-pixel presentation are inspection conventions. `--output /tmp/city.ppm` renders the initial view headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
+The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. Weapon icons are empty until weapon integration.
+
+Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/city.ppm` renders the initial checkpoint headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure
 
-`src/game` contains platform-independent gameplay state calculations, including the complete Caero flight callback, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
+`src/game` contains platform-independent gameplay state calculations, including complete Caero and Skimma flight callbacks, capped game clocks, swept city collision and player crash handling, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
-The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) and [city/model rendering](docs/model_rendering.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records the first translated reload/state routines and remaining integration. [Caero flight](docs/caero_flight.md) records the complete startup and flight callback. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
+The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) and [city/model rendering](docs/model_rendering.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records the first translated reload/state routines and remaining integration. [Caero flight](docs/caero_flight.md), [Skimma flight](docs/skimma_flight.md), [steering](docs/flight_controls.md), [clocks](docs/game_clock.md), [city collision](docs/city_collision.md) and [player integration](docs/player_flight.md) record the new runtime path and its native comparisons. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
 
 ## Verification
 
