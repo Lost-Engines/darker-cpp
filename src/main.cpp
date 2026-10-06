@@ -273,7 +273,7 @@ auto main(int const argc, char const *const argv[])->int try {
     }
   }
   std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
-  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, world sound, detached cameras and original death screens are not connected yet." << std::endl;
+  std::cout << "Original flight, charging, city collisions and flight cameras. Airborne checkpoint; missions, weapons, world sound and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
