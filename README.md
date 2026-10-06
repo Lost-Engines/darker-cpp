@@ -39,6 +39,8 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
 The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. Weapon icons are empty until weapon integration.
 
+The world view now draws the original 17 sky/ground colour bands, moving with pitch and bank. Halon’s distant grey building shades blend into its grey horizon; Delphi uses its own purple night palette. The original model distance-shading tables and draw radius are unchanged.
+
 Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/city.ppm` renders the initial checkpoint headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure

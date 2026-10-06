@@ -23,6 +23,7 @@
 #include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
 #include "graphics/procedural_hud.h"
+#include "graphics/sky_ground.h"
 #include "maths/sine_table.h"
 #include "platform/framebuffer_presenter.h"
 #include "resources/archive_set.h"
@@ -122,7 +123,7 @@ auto main(int const argc, char const *const argv[])->int try {
     view.gouraud = host.gouraud;
     darker::graphics::model_animation animation;
     darker::graphics::update_fountain_parameters(animation, clock);
-    world.pixels.fill(0);
+    darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
     auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation)};
     display = cockpit;
     auto const components{darker::graphics::cockpit_components(type)};

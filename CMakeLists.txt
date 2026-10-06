@@ -77,6 +77,8 @@ add_library(darker_graphics STATIC
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
+  src/graphics/sky_ground.cpp
+  src/graphics/sky_ground.h
   src/graphics/screen_primitives.cpp
   src/graphics/screen_primitives.h
   src/graphics/near_clip.cpp
@@ -217,6 +219,7 @@ if(BUILD_TESTING)
     tests/city_collision_test.cpp
     tests/city_scene_test.cpp
     tests/camera_test.cpp
+    tests/sky_ground_test.cpp
     tests/screen_primitives_test.cpp
     tests/near_clip_test.cpp
     tests/model_animation_test.cpp

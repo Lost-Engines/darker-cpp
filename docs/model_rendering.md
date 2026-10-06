@@ -264,3 +264,36 @@ Isolated Xvfb/Mesa checks exercise all three craft selections, steering, boost,
 braking, engine/shield commands, shading, window resizing and Escape. Earlier
 native renderer comparisons and the 2,000-position city sweep remain applicable;
 no tests preserve the removed temporary controls.
+
+
+## Sky and ground background
+
+`graphics::draw_sky_ground` restores the city background before model drawing,
+using `B409–B71A`. It uses the cockpit's existing palette, not a new RGB fog
+filter. Halon's shade-one entries are mostly grey: drawing them against the
+previous black clear made distant buildings conspicuous. The background supplies
+the matching grey horizon and ground. Delphi instead has purple sky colours.
+
+The 17 palette indices at `B71A` are 28–31, 60–63, 252, 92–95 and 124–127.
+Their sixteen signed band offsets at `B72B` are 74, 56, 42, 30, 20, 12, 6, 2,
+−2, −6, −12, −20, −30, −42, −56 and −74. The projection uses the original
+sine words and rounded camera phases, signed high-word products, integer pitch
+tangent, and 8.8 bank slope. Half-turn folding reverses the colour sequence;
+the other bank quadrant reverses scanline order. Steep pitch selects a solid
+outer colour. The nearly horizontal slope path also clips and rebases its
+scanline origin before stepping, preserving the small rounding differences.
+
+The C++ implementation draws these spans directly into the indexed framebuffer.
+It does not emulate VGA planes or the original binary search for the first
+visible span. `tools/generate_sky_ground_reference.py` runs the native setup
+and clipping code, captures its horizontal/tilted band spans, and supplies the
+outer fills which the original performs after the band loop. **400 indexed
+background hashes** agree at both cockpit heights, including steep pitch,
+inverted views and banks close to the horizontal and vertical boundaries.
+This comparison checks resulting band pixels, not VGA write ordering or DAC
+output. Ground colours are the infinite background, not new terrain geometry.
+
+The flight checkpoint calls this for both Caero and Skimma before drawing city
+models. It does not change the 60-entry model shade tables, visibility radius,
+projection, or resource palettes. Underground background handling remains part
+of the future underground scene integration.
