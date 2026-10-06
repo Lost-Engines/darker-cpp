@@ -62,7 +62,21 @@ Built with GCC 16.2 in C++23 mode; the five platform Catch2 cases pass. With the
 The [reconstruction contract](docs/reconstruction_contract.md) defines the fidelity target, platform boundary, arithmetic/clock rules, ownership and acceptance criteria. The [resource loader](docs/resource_loading.md) reads all five original packs using the verified executable-resident directory, independently of the graphics/audio demo.
 
 ```sh
-./build/resource_check --install ../darker --reference ../analysis/resources
+./build/resource_check --data-dir ../darker --reference ../analysis/resources
 ```
 
 The application does not need the extracted references; they are comparison inputs for this command only. Ordinary unit tests also need no game assets. See the resource documentation for optional CTest integration and directory regeneration.
+
+## Original indexed bitmap viewer
+
+```sh
+./build/bitmap_viewer --data-dir ../darker
+./build/bitmap_viewer --data-dir ../darker --slot 17
+./build/bitmap_viewer --data-dir ../darker --slot 16 --output /tmp/caero.ppm
+```
+
+This separate, silent viewer reads archive 00 slots 15–18 directly from the original packs. Slot 16 is the Caero cockpit/HUD/sprite source sheet; 17 and 18 are Skimma sheets. It shows the complete source sheet, not an assembled live cockpit. Escape closes the window; `--seconds` supports timed runs. `--output` writes a portable RGB PPM without initialising GLFW or opening a window.
+
+The CPU image retains 8-bit indices. Palette expansion to RGBA happens at the presentation boundary; changing the palette does not change the indexed pixels. The original palette decoder preserves skipped entries from a supplied previous palette, tracks which colours are defined, and rejects malformed streams or images using undefined colours. The bitmap decoder deliberately accepts only 320×200 payloads: other presentation sizes and the assembled cockpit layout need their own verified handling.
+
+Colours match the existing source-RGB exports. Runtime fades, lighting and VGA DAC conversion are not implemented yet; square-pixel presentation is still an inspection convention. See [indexed image notes](docs/indexed_images.md).

@@ -1,0 +1,45 @@
+#include "graphics/palette_bitmap.h"
+#include <cstdint>
+#include <stdexcept>
+
+namespace darker::graphics {
+
+palette_update decode_palette(std::span<std::byte const> const data, palette_state previous) {
+  /// Reproduce the palette skip/literal stream used by original routines 4185/4190
+  std::size_t position{0};
+  std::size_t index{0};
+  while(index < previous.colours.size()) {
+    if(position == data.size()) throw std::runtime_error{"truncated palette command"};
+    auto const value{std::to_integer<std::uint8_t>(data[position++])};
+    if(value & 1) {
+      index += (value >> 1) + 1;
+      if(index > previous.colours.size()) throw std::runtime_error{"palette skip exceeds 256 entries"};
+    } else {
+      if(data.size() - position < 2) throw std::runtime_error{"truncated palette colour"};
+      previous.colours[index] = {
+        .red{value},
+        .green{std::to_integer<std::uint8_t>(data[position])},
+        .blue{std::to_integer<std::uint8_t>(data[position + 1])},
+      };
+      previous.defined.set(index++);
+      position += 2;
+    }
+  }
+  return {.palette{previous}, .bytes_consumed{position}};
+}
+
+palette_bitmap decode_bitmap(std::span<std::byte const> const data, palette_state previous) {
+  /// Decode only the known 320 by 200 sheets, rejecting undefined colours and other layouts
+  auto const update{decode_palette(data, previous)};
+  auto const pixels{data.subspan(update.bytes_consumed)};
+  palette_bitmap result{.palette{update.palette}, .image{}};
+  if(pixels.size() != result.image.pixels.size()) throw std::runtime_error{"expected a 320x200 source bitmap"};
+  for(std::size_t i{0}; i < pixels.size(); ++i) {
+    auto const index{std::to_integer<std::uint8_t>(pixels[i])};
+    if(!result.palette.defined[index]) throw std::runtime_error{"bitmap uses an undefined palette entry"};
+    result.image.pixels[i] = index;
+  }
+  return result;
+}
+
+} // namespace darker::graphics

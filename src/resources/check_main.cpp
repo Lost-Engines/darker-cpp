@@ -13,7 +13,7 @@ auto main(int const argc, char const *const argv[])->int try {
   boost::program_options::options_description options{"Original resource verification"};
   options.add_options()
     ("help,h", "show usage")
-    ("install", boost::program_options::value<std::string>()->required(), "directory containing DARKER.00 through DARKER.04")
+    ("data-dir", boost::program_options::value<std::string>()->required(), "directory containing DARKER.00 through DARKER.04")
     ("reference", boost::program_options::value<std::string>(), "directory of independently decoded NN_NNN.bin files");
   boost::program_options::variables_map arguments;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), arguments);
@@ -22,7 +22,7 @@ auto main(int const argc, char const *const argv[])->int try {
     return EXIT_SUCCESS;
   }
   boost::program_options::notify(arguments);
-  darker::resources::archive_set const archives{arguments["install"].as<std::string>()};
+  darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
   std::size_t total{0};
   for(auto const &entry : darker::resources::resource_directory()) {
     auto const decoded{archives.load(entry.id)};

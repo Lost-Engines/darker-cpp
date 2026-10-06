@@ -41,6 +41,8 @@ add_library(framework_core STATIC
   src/audio/sine_wave.h
   src/render/framebuffer.cpp
   src/render/framebuffer.h
+  src/render/indexed_framebuffer.cpp
+  src/render/indexed_framebuffer.h
 )
 target_include_directories(framework_core PUBLIC src)
 configure_first_party(framework_core)
@@ -89,6 +91,24 @@ target_link_libraries(resource_check
 )
 configure_first_party(resource_check)
 
+add_library(darker_graphics STATIC
+  src/graphics/palette_bitmap.cpp
+  src/graphics/palette_bitmap.h
+)
+target_link_libraries(darker_graphics PUBLIC framework_core)
+configure_first_party(darker_graphics)
+
+add_executable(bitmap_viewer src/graphics/viewer_main.cpp)
+target_link_libraries(bitmap_viewer
+  PRIVATE darker_graphics
+  PRIVATE darker_resources
+  PRIVATE framework_platform
+  PRIVATE glfw
+  PRIVATE Boost::program_options
+  PRIVATE Boost::headers
+)
+configure_first_party(bitmap_viewer)
+
 set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional integration verification")
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
 
@@ -96,11 +116,13 @@ if(BUILD_TESTING)
   add_executable(framework_tests
     tests/sine_wave_test.cpp
     tests/framebuffer_test.cpp
+    tests/palette_bitmap_test.cpp
     tests/resource_decoder_test.cpp
   )
   target_link_libraries(framework_tests
     PRIVATE framework_core
     PRIVATE darker_resources
+    PRIVATE darker_graphics
     PRIVATE Catch2::Catch2WithMain
   )
   configure_first_party(framework_tests)
@@ -108,7 +130,7 @@ if(BUILD_TESTING)
   catch_discover_tests(framework_tests)
   if(DARKER_INSTALL_DIR AND DARKER_REFERENCE_DIR)
     add_test(NAME resources.original_pack_comparison
-      COMMAND resource_check --install "${DARKER_INSTALL_DIR}" --reference "${DARKER_REFERENCE_DIR}"
+      COMMAND resource_check --data-dir "${DARKER_INSTALL_DIR}" --reference "${DARKER_REFERENCE_DIR}"
     )
     set_tests_properties(resources.original_pack_comparison PROPERTIES LABELS integration)
   endif()

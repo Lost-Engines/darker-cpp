@@ -37,7 +37,7 @@ The default expansion ceiling is 8,000,000 bytes per resource, matching the insp
 From this project's directory:
 
 ```sh
-./build/resource_check --install ../darker --reference ../analysis/resources
+./build/resource_check --data-dir ../darker --reference ../analysis/resources
 ```
 
 Without `--reference`, the tool still loads and decodes all resources. With it, every byte is compared, not just sizes or checksums. A mismatch reports the resource and first differing byte. This is a read-only command and does not regenerate references.
