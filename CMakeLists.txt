@@ -35,6 +35,28 @@ if(UNIX)
   target_link_libraries(pcm_device PRIVATE m)
 endif()
 
+# Original OPL register driver and low-level chip emulation
+add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
+target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
+add_library(darker_audio STATIC
+  src/audio/flight_sounds.cpp
+  src/audio/flight_sounds.h
+  src/audio/fm_stream.cpp
+  src/audio/fm_stream.h
+  src/audio/fm_driver.cpp
+  src/audio/fm_driver.h
+  src/audio/fm_patches.h
+  src/audio/fm_synth.cpp
+  src/audio/fm_synth.h
+)
+target_include_directories(darker_audio PUBLIC src)
+target_link_libraries(darker_audio
+  PUBLIC darker_game
+  PRIVATE nuked_opl3
+  PRIVATE Boost::headers
+)
+configure_first_party(darker_audio)
+
 # Platform-independent framebuffer presentation data
 add_library(framework_core STATIC
   src/render/framebuffer.cpp
@@ -182,6 +204,7 @@ configure_first_party(darker_game)
 
 add_executable(darker src/main.cpp)
 target_link_libraries(darker
+  PRIVATE darker_audio
   PRIVATE darker_game
   PRIVATE darker_graphics
   PRIVATE darker_resources
@@ -204,6 +227,7 @@ if(BUILD_TESTING)
     tests/support/sine_wave.cpp
     tests/support/sine_wave.h
     tests/sine_wave_test.cpp
+    tests/fm_driver_test.cpp
     tests/framebuffer_test.cpp
     tests/procedural_hud_test.cpp
     tests/navigation_hud_test.cpp
@@ -251,6 +275,7 @@ if(BUILD_TESTING)
     tests/resource_decoder_test.cpp
   )
   target_link_libraries(framework_tests
+    PRIVATE darker_audio
     PRIVATE framework_core
     PRIVATE darker_resources
     PRIVATE darker_graphics

@@ -123,7 +123,7 @@ mutated DX value, including the byte-only DH shift. `5845` maps strength to
 shield strips and returns an alternating first-strip index for the startup
 pulse. `5192` draws that pulse into the same shield mask; once ready, the normal
 454C component takes over. The producer exposes a ready-sound request for the
-future sound consumer; the application is still silent at this milestone.
+player sound consumer, which switches the original shield sound to its ready phase.
 
 1,024 native comparisons cover warning thresholds/blinking, enabled/disabled
 shields, depleted reserves, startup phases, deadline wrap and mutation, and both

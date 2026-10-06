@@ -13,6 +13,8 @@
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
+#include "audio/flight_sounds.h"
+#include "audio/fm_stream.h"
 #include "game/city_map.h"
 #include "game/game_clock.h"
 #include "game/player_flight.h"
@@ -25,6 +27,7 @@
 #include "graphics/procedural_hud.h"
 #include "graphics/sky_ground.h"
 #include "maths/sine_table.h"
+#include "platform/audio_output.h"
 #include "platform/framebuffer_presenter.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
@@ -33,6 +36,8 @@ namespace {
 
 struct flight_host {
   darker::game::player_flight player{};
+  darker::audio::flight_sounds sounds;
+  bool shield_ready{false};
   bool gouraud{true};
   bool restart_requested{false};
   std::uint16_t clock{0};
@@ -69,6 +74,7 @@ auto main(int const argc, char const *const argv[])->int try {
   options.add_options()
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
+    ("mute", "disable PCM sound output")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
     ("seconds", po::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
     ("output", po::value<std::string>(), "write RGB PPM without opening a window");
@@ -141,6 +147,7 @@ auto main(int const argc, char const *const argv[])->int try {
       auto const &skimma{std::get<darker::game::skimma_flight_state>(host.player.craft)};
       auto const measured{darker::graphics::measure_skimma_instruments(pose.position[2], skimma.damage.shield_charge,
         skimma.damage.shield_enabled, false, clock, host.shield_deadline)};
+      host.shield_ready = measured.shield_ready_sound;
       darker::graphics::draw_skimma_shield_startup(cache, display, measured.shield_startup);
       instruments[0] = measured.low_altitude;
       instruments[1] = measured.shield;
@@ -204,22 +211,45 @@ auto main(int const argc, char const *const argv[])->int try {
       if(action == GLFW_PRESS) host.restart_requested = true;
       return;
     }
+    if(host.player.lifecycle.crashing) return;
+    using darker::audio::flight_sound;
     using darker::game::flight_command;
     switch(key) {
       case GLFW_KEY_E:
         host.player.command(flight_command::engine);
-        if(host.player.engine_flags & 1) host.shield_deadline = static_cast<std::uint16_t>(host.clock + 0x6ff);
+        if(host.player.engine_flags & 1) {
+          host.shield_deadline = static_cast<std::uint16_t>(host.clock + 0x6ff);
+          if(!std::holds_alternative<darker::game::caero_flight_state>(host.player.craft)) host.sounds.trigger(flight_sound::shield_start, host.clock);
+        }
+        host.sounds.trigger(std::holds_alternative<darker::game::caero_flight_state>(host.player.craft) ? flight_sound::caero_switch : flight_sound::skimma_switch, host.clock);
         break;
       case GLFW_KEY_A: host.player.command(flight_command::altitude_hold); break;
-      case GLFW_KEY_ENTER: host.player.command(flight_command::boost); break;
+      case GLFW_KEY_ENTER: {
+        auto const *caero{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
+        auto const previous{caero ? caero->energy.boost : 0};
+        host.player.command(flight_command::boost);
+        if(caero && caero->energy.boost < previous) host.sounds.trigger(flight_sound::boost, host.clock);
+        break;
+      }
       case GLFW_KEY_MINUS: host.player.command(flight_command::speed_low); break;
       case GLFW_KEY_EQUAL: host.player.command(flight_command::speed_high); break;
       default: break;
     }
   });
   framework::platform::framebuffer_presenter presenter{*window};
+  darker::audio::fm_stream audio{framework::platform::audio_output::sample_rate};
+  std::unique_ptr<framework::platform::audio_output> audio_device;
+  if(!arguments.contains("mute")) {
+    try {
+      audio_device = std::make_unique<framework::platform::audio_output>([](void *const data, std::span<float> const output) noexcept {
+        static_cast<darker::audio::fm_stream *>(data)->render(output);
+      }, &audio);
+    } catch(std::exception const &error) {
+      std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
+    }
+  }
   std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
-  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, sound, external cameras and original death screens are not connected yet." << std::endl;
+  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, world sound, external cameras and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -227,6 +257,9 @@ auto main(int const argc, char const *const argv[])->int try {
     glfwPollEvents();
     if(host.restart_requested) {
       host.player = initial_player;
+      host.sounds = {};
+      host.shield_ready = false;
+      if(audio_device) audio.publish({});
       cells = initial_cells;
       host.mouse_started = false;
       host.shield_deadline = 0;
@@ -242,6 +275,8 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::game::advance_game_clock(game_clock, interrupts - previous_interrupts);
     previous_interrupts = interrupts;
     auto const step{darker::game::consume_game_frame(game_clock)};
+    auto const *caero_state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
+    auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     auto const contact{host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
       step, game_clock.frame_ticks, bank, cells)};
     if(contact.contact != darker::game::city_contact::none) {
@@ -252,6 +287,8 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const clock{game_clock.frame_ticks};
     host.clock = clock;
     auto const count{render(clock, enlarged)};
+    if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
+    if(audio_device) audio.publish(host.sounds.advance(host.player, clock, host.shield_ready));
     std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight")};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);

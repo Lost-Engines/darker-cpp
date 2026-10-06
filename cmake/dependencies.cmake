@@ -15,7 +15,12 @@ FetchContent_Declare(miniaudio
   URL_HASH SHA256=412326cf55133404cbfb81ec8974b10149dc68732ce5bdeee8ba9cfc2695d646
   SOURCE_SUBDIR unused_upstream_build
 )
-FetchContent_MakeAvailable(glfw miniaudio)
+FetchContent_Declare(nuked_opl3
+  URL https://codeload.github.com/nukeykt/Nuked-OPL3/tar.gz/765ec962e473aeb767e4cba74ffdc8f588ffbfe8
+  URL_HASH SHA256=2fad908c3904d3ef51b55e0d6a8980c7142942e2d0baa7e99bf038cf0a41199d
+  SOURCE_SUBDIR unused_upstream_build
+)
+FetchContent_MakeAvailable(glfw miniaudio nuked_opl3)
 
 if(BUILD_TESTING)
   FetchContent_Declare(catch2
