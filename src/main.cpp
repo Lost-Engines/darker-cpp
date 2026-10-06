@@ -121,6 +121,7 @@ auto main(int const argc, char const *const argv[])->int try {
     camera.altitude = 768;
     camera.angles.pitch = 0;
   }
+  bool gouraud{true};
   darker::graphics::city_renderer scene;
   darker::graphics::distance_shading const lighting;
   framework::render::indexed_cockpit_framebuffer display{}, world{};
@@ -129,6 +130,7 @@ auto main(int const argc, char const *const argv[])->int try {
     int const height{caero ? 168 : 180};
     auto view{camera.view(height)};
     view.beacon_lighting = caero;
+    view.gouraud = gouraud;
     darker::graphics::model_animation animation;
     darker::graphics::update_fountain_parameters(animation, clock);
     world.pixels.fill(0);
@@ -179,12 +181,17 @@ auto main(int const argc, char const *const argv[])->int try {
   if(!window) throw std::runtime_error{"cannot create the GLFW window"};
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
+  glfwSetWindowUserPointer(window.get(), &gouraud);
   glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int){
+    if(key == GLFW_KEY_F9 && action == GLFW_PRESS) {
+      auto &enabled{*static_cast<bool *>(glfwGetWindowUserPointer(window))};
+      enabled = !enabled;
+    }
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
   });
   framework::platform::framebuffer_presenter presenter{*window};
-  std::cout << "City inspection: W/A/S/D move; R/F rise/lower; left-drag look; Insert/keypad 0 enlarged radar; Escape close." << std::endl;
-  std::cout << "Free camera only: no flight, collisions or missions. Original distance shading in flat mode; gauges remain sample values." << std::endl;
+  std::cout << "City inspection: W/A/S/D move; R/F rise/lower; left-drag look; F9 shading; Insert/keypad 0 enlarged radar; Escape close." << std::endl;
+  std::cout << "Free camera only: no flight, collisions or missions. Original distance and Gouraud shading; gauges remain sample values." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   auto previous{start};
   while(!glfwWindowShouldClose(window.get())) {
@@ -197,7 +204,7 @@ auto main(int const argc, char const *const argv[])->int try {
     bool const enlarged{caero && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
     auto const clock{static_cast<std::uint16_t>(std::fmod(elapsed * (1193180.0 / 2386), 65536.0))};
     auto const count{render(clock, enlarged)};
-    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models"};
+    std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (gouraud ? "Gouraud" : "flat")};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);
     glfwWaitEventsTimeout(0.01);

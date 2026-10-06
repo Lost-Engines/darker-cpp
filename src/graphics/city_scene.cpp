@@ -143,7 +143,8 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     }
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     animation.cell_state = cells[item.cell].state;
-    draw_flat_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation);
+    draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation,
+      view.gouraud && !item.force_flat ? model_shading::gouraud : model_shading::flat);
   }
   return items.size();
 }

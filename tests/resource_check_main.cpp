@@ -79,7 +79,7 @@ auto main(int const argc, char const *const argv[])->int try {
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
     framework::render::indexed_cockpit_framebuffer frame{};
     try {
-      darker::graphics::draw_flat_model(frame, bank.model_pool(), bank.city_model_offset(sample.type, 0, 0x20), projection, colours);
+      darker::graphics::draw_model(frame, bank.model_pool(), bank.city_model_offset(sample.type, 0, 0x20), projection, colours);
     } catch(std::exception const &error) {
       throw std::runtime_error{std::format("Bank {}, type {}, view {}: {}", sample.slot, sample.type, sample.view, error.what())};
     }
@@ -99,7 +99,7 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::model_colours colours{.dynamic{17}};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_flat_model(frame, bank.model_pool(), bank.city_model_offset(30, 0, 0x20), projection, colours, sample.slot == 30 ? 168 : 180);
+    darker::graphics::draw_model(frame, bank.model_pool(), bank.city_model_offset(30, 0, 0x20), projection, colours, sample.slot == 30 ? 168 : 180);
     std::uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     if(fingerprint != sample.fingerprint) {
@@ -138,7 +138,7 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::update_fountain_parameters(animation, static_cast<std::uint16_t>(sample.clock));
     animation.parameters[0] = std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(sample.gate));
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_flat_model(frame, bank.model_pool(), bank.city_model_offset(sample.type, 0, 0x20), projection, colours, 168,
+    darker::graphics::draw_model(frame, bank.model_pool(), bank.city_model_offset(sample.type, 0, 0x20), projection, colours, 168,
       sample.near ? darker::graphics::model_path::near_clipped : darker::graphics::model_path::direct, animation);
     std::uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
@@ -168,7 +168,7 @@ auto main(int const argc, char const *const argv[])->int try {
       .column{static_cast<std::uint16_t>(sample.column)}, .row{static_cast<std::uint16_t>(sample.row)},
       .altitude{static_cast<std::int16_t>(sample.altitude)},
       .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}},
-      .beacon_lighting{sample.slot == 30},
+      .beacon_lighting{sample.slot == 30}, .gouraud{sample.gouraud != 0},
     };
     darker::graphics::distance_shading const lighting;
     darker::graphics::model_animation animation{};

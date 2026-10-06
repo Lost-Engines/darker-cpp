@@ -38,15 +38,15 @@ operation. No drawing or visibility commands are included in these streams.
 
 ## Flat drawing streams
 
-`graphics::draw_flat_model` executes original pool bytecode against the stateful
+`graphics::draw_model` executes original pool bytecode against the stateful
 projection cache and the original flat polygon filler. It follows relative
 calls/jumps and both visibility branches, preserves vertex cursor rewrites, and
 resolves palette groups through a supplied distance shade table. Dynamic colour
 codes use the original byte wrapping and clamp. The distance branch tests the
 sign bit of a byte subtraction, including its wrap, rather than a host signed
 comparison. Unsupported commands fail explicitly; this is not yet a complete
-world renderer. Gouraud interpolation remains separate work. Gouraud commands are supported
-through the original flat fallback (`312A`), skipping each vertex shade operand.
+world renderer. Gouraud commands support both original interpolation and the
+flat fallback (`312A`), which skips each vertex shade operand.
 
 `tools/generate_model_renderer_reference.py WORKSPACE` captures 108 complete
 synthetic drawing streams with the original interpreter, projection, colour
@@ -105,7 +105,7 @@ The near path retains signed 24-bit camera coordinates and clips at depth 32.
 `22B4` finds intersections through ordered arithmetic halvings, with asymmetric
 rounding and distant-coordinate saturation. This is deliberately not replaced
 by a floating-point intersection formula. Tests compare 512 native intersections
-and 132 complete synthetic near-clipped frames, including winding, visibility
+and 264 complete synthetic near-clipped frames in flat and Gouraud modes, including winding, visibility
 branches and the Gouraud-off path.
 
 World lines share the HUD line rasteriser after the original `A86D` viewport
@@ -161,9 +161,10 @@ flat-distance threshold. There are 1,564 native placement/cull cases across all
 order; ordinary entries sort by decreasing distance with stable ties, matching
 the original list and tree traversal.
 
-Twenty-four complete scene frames execute original setup, traversal, placement,
+Forty-eight complete scene frames execute original setup, traversal, placement,
 ordering, beacon selection, distance-shade selection, bytecode and drawing in
-Unicorn. Gouraud interpolation is disabled, matching the current C++ mode.
+Unicorn. Both Gouraud and flat modes are checked, including the native
+distance-dependent switch to flat drawing.
 Delphi cases include beacon strengths 255, 128 and zero; Halon uses its native
 constant-strength path. These replace the earlier identity-table scene fixtures.
 The original-pack integration check compares initial map bytes, accepted model
@@ -215,6 +216,36 @@ WORKSPACE` and composed scene fixtures with `tools/generate_city_frame_reference
 WORKSPACE`. The scene capture now executes the original lighting routines without
 the earlier identity-shading hook.
 
+## Gouraud polygons
+
+`graphics::draw_gouraud_polygon` reproduces `A99D–AF51`, including palette-index
+accumulators, colour clipping, edge stepping and discrete colour-band lengths.
+The original VGA masks are represented as contiguous indexed pixel spans. Narrow
+spans distribute multiple shade steps per pixel; wider spans distribute repeated
+colour bands with integer quotient/remainder error tracking. Edge colours advance
+before drawing, just like edge coordinates, and their step includes the original
+extra unit before signed division.
+
+Model commands `0E/0F/11` resolve each vertex shade through the selected distance
+table. The starting accumulator is `((range+shade)<<8)+shade+128`, retaining the
+otherwise unusual repeated shade byte. Near-plane clipping at `2195` interpolates
+colour using a ratio of **whole** depths, independently of the coordinate-halving
+algorithm; replacing these with one shared floating-point interpolation changes
+pixels. Both mechanisms are now implemented.
+
+`tools/generate_gouraud_reference.py WORKSPACE` captures 256 synthetic polygons,
+including gradients in both directions, palette ranges, thin spans, clipping and
+winding. The near-model fixture now captures 264 whole model frames in both modes.
+Complete city comparisons additionally verify per-model distance fallback and
+restoration of Gouraud dispatch between models. Native capture follows VGA plane
+masks and records CPU-written colour bytes when the original rasteriser enables
+that mode; flat fills retain the earlier set/reset capture.
+
+The common entry is now `draw_model`, with explicit path and shading arguments.
+F9 changes only the application shading selection, preserving the original flat
+path and all earlier reference tests. No alternative renderer or modernised
+lighting model is introduced.
+
 ## Application milestone
 
 The single `darker` application now assembles the original city rather than an
@@ -224,11 +255,12 @@ which are converted at the boundary into the renderer's original fixed-point
 fields. They are not flight physics and will be removed when gameplay supplies
 the camera. The old instrument-adjustment controls have been retired.
 
-The scene uses flat mode with original distance shading and beacon-state lighting. The viewport is clipped
+The scene uses Gouraud mode with original distance shading and beacon-state lighting.
+F9 selects the original flat fallback. The viewport is clipped
 before the Caero's eight-row destination offset is applied. Compass and map-grid
 coordinates follow the camera, while cockpit gauges and weapon displays remain
 explicit sample values. No moving objects, collision handling, mission state,
-underground scenes or Gouraud interpolation are connected yet.
+underground scenes are connected yet.
 
 An isolated Xvfb/Mesa run exercised mouse look, forward/sideways movement, height
 changes, enlarged radar, resizing and Escape. Headless renders cover all three

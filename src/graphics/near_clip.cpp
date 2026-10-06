@@ -87,4 +87,31 @@ std::size_t clip_near_polygon(std::span<camera_vertex const> const vertices, scr
   return count;
 }
 
+std::size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertices, std::span<std::uint16_t const> const shades,
+  screen_vertex const origin, std::span<shaded_vertex> const output) {
+  /// 2195 retains geometric halving but interpolates colour using a separate ratio of whole depths
+  if(vertices.size() != shades.size()) throw std::invalid_argument{"Near polygon colour count differs from its vertices"};
+  std::size_t count{0};
+  auto const emit{[&](screen_vertex const point, std::uint16_t const shade){
+    if(count == output.size()) throw std::invalid_argument{"Near shaded polygon exceeds its output buffer"};
+    output[count++] = {.x{point.x}, .y{point.y}, .shade{shade}};
+  }};
+  for(std::size_t i{0}; i < vertices.size(); ++i) {
+    auto const j{(i + 1) % vertices.size()};
+    bool const current_inside{vertices[i].depth >= 32 * 256}, next_inside{vertices[j].depth >= 32 * 256};
+    if(current_inside) emit(project_vertex(vertices[i], origin), shades[i]);
+    if(current_inside == next_inside) continue;
+    auto const inside{current_inside ? i : j}, outside{current_inside ? j : i};
+    auto const depth{vertices[inside].depth >> 8};
+    auto const divisor{static_cast<std::uint16_t>(2 * (depth - (vertices[outside].depth >> 8)))};
+    auto const numerator{static_cast<std::uint32_t>(depth - 32) * 65536};
+    if(divisor == 0 || numerator / divisor > 65535) throw std::domain_error{"Near shade interpolation exceeds the original quotient"};
+    auto const fraction{static_cast<std::int16_t>(numerator / divisor)};
+    int const delta{word((shades[outside] - shades[inside]) * 2)};
+    auto const shade{static_cast<std::uint16_t>(shades[inside] + ((delta * fraction) >> 16))};
+    emit(near_intersection(vertices[inside], vertices[outside], origin), shade);
+  }
+  return count;
+}
+
 } // namespace darker::graphics

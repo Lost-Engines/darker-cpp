@@ -24,7 +24,7 @@ TEST_CASE("Flat model bytecode reproduces complete native indexed frames", "[gra
     std::array<std::byte, 64> bytes{};
     for(std::size_t i{0}; i < bytes.size(); ++i) bytes[i] = static_cast<std::byte>(sample.code[i]);
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_flat_model(frame, std::span{bytes}.first(sample.size), 0, parameters, colours);
+    darker::graphics::draw_model(frame, std::span{bytes}.first(sample.size), 0, parameters, colours);
     std::uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     REQUIRE(fingerprint == sample.fingerprint);

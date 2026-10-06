@@ -92,6 +92,8 @@ add_library(darker_graphics STATIC
   src/graphics/model_projection.cpp
   src/graphics/model_projection.h
   src/graphics/flat_polygon.cpp
+  src/graphics/gouraud_polygon.cpp
+  src/graphics/gouraud_polygon.h
   src/graphics/flat_polygon.h
   src/graphics/cockpit.cpp
   src/graphics/cockpit.h
@@ -193,6 +195,7 @@ if(BUILD_TESTING)
     tests/model_renderer_test.cpp
     tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp
+    tests/gouraud_polygon_test.cpp
     tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp
     tests/beacon_energy_test.cpp

@@ -19,7 +19,7 @@ TEST_CASE("Gate interpolation reproduces both original projection paths", "[grap
     darker::graphics::model_animation animation{};
     animation.parameters[0] = std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(sample.gate));
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_flat_model(frame, code, 0, projection, colours, 168,
+    darker::graphics::draw_model(frame, code, 0, projection, colours, 168,
       sample.near ? darker::graphics::model_path::near_clipped : darker::graphics::model_path::direct, animation);
     std::uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;

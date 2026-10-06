@@ -9,6 +9,8 @@
 
 namespace darker::graphics {
 
+enum class model_shading { flat, gouraud };
+
 enum class model_path { direct, near_clipped };
 
 struct model_animation {
@@ -23,7 +25,7 @@ struct model_colours {
   std::uint8_t dynamic{0};
 };
 
-void draw_flat_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> pool,
-  std::size_t model_offset, projection_parameters projection, model_colours const &colours, int bottom = 240, model_path path = model_path::direct, model_animation const &animation = {});
+void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> pool,
+  std::size_t model_offset, projection_parameters projection, model_colours const &colours, int bottom = 240, model_path path = model_path::direct, model_animation const &animation = {}, model_shading shading = model_shading::flat);
 
 } // namespace darker::graphics

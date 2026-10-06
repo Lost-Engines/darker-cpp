@@ -36,6 +36,7 @@ struct city_view {
   unsigned int radius{15};                                                    // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
   int bottom{168};
   bool beacon_lighting{true};
+  bool gouraud{true};
 };
 
 class city_renderer {

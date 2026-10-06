@@ -32,6 +32,7 @@ private:
   std::uint8_t distance_high;
   int bottom;
   model_path path;
+  model_shading shading;
   screen_vertex screen_origin;
   std::array<camera_vertex, 256> camera_vertices{};
   std::array<screen_vertex, 256> vertices{};
@@ -131,8 +132,8 @@ private:
 
 public:
   interpreter(framework::render::indexed_cockpit_framebuffer &frame, std::span<std::byte const> const bytes,
-    projection_parameters const parameters, model_colours const &palette, int const height, model_path const drawing_path, model_animation const &animation_state)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<std::uint8_t>(parameters.depth.whole >> 8)}, bottom{height}, path{drawing_path}, screen_origin{parameters.origin} {
+    projection_parameters const parameters, model_colours const &palette, int const height, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
+    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<std::uint8_t>(parameters.depth.whole >> 8)}, bottom{height}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
@@ -228,15 +229,32 @@ public:
         {
           bool const shaded{opcode >= 0x0e};
           unsigned int const count{static_cast<unsigned int>(opcode == 1 || opcode == 0x11 ? byte(position) : shaded ? opcode - 12 : opcode) + 1};
-          auto const index{colour(byte(position))};
+          auto const source_colour{byte(position)};
+          auto const index{colour(source_colour)};
           std::array<screen_vertex, 260> face{};
+          std::array<shaded_vertex, 260> shaded_face{};
+          std::array<std::uint16_t, 256> vertex_shades{};
           std::array<camera_vertex, 256> camera_face{};
           for(unsigned int i{0}; i < count; ++i) {
             auto const source{byte(position)};
             if(!defined[source]) throw std::invalid_argument{"Model face references an undefined vertex"};
             if(path == model_path::near_clipped) camera_face[i] = camera_vertices[source];
             else face[i] = vertices[source];
-            if(shaded) byte(position);                                         // 312A's flat mode skips each Gouraud shade operand
+            if(shaded) {
+              auto const operand{byte(position)};
+              if(shading == model_shading::gouraud) {
+                if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
+                auto const shade{colours.shades[operand]};
+                vertex_shades[i] = static_cast<std::uint16_t>(((source_colour & 224) + shade) * 256 + shade + 128);
+                shaded_face[i] = {.x{face[i].x}, .y{face[i].y}, .shade{vertex_shades[i]}};
+              }
+            }
+          }
+          if(shaded && shading == model_shading::gouraud) {
+            auto const projected_count{path == model_path::near_clipped
+              ? clip_near_shaded_polygon(std::span{camera_face}.first(count), std::span{vertex_shades}.first(count), screen_origin, shaded_face) : count};
+            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), 319, bottom);
+            break;
           }
           auto const projected_count{path == model_path::near_clipped
             ? clip_near_polygon(std::span{camera_face}.first(count), screen_origin, face) : count};
@@ -288,12 +306,12 @@ void update_fountain_parameters(model_animation &animation, std::uint16_t const 
   animation.parameters[9 + (band + 1) % 6] -= static_cast<std::int16_t>((2 * amplitudes[band + 1] * sine) >> 16);
 }
 
-void draw_flat_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> const pool,
-  std::size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation) {
+void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> const pool,
+  std::size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation, model_shading const shading) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
   if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};
-  interpreter{target, pool, projection, colours, bottom, path, animation}.run(model_offset + 11);
+  interpreter{target, pool, projection, colours, bottom, path, animation, shading}.run(model_offset + 11);
 }
 
 } // namespace darker::graphics
