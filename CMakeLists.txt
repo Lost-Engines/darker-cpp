@@ -114,6 +114,8 @@ add_library(darker_game STATIC
   src/game/angular_motion.cpp
   src/game/angular_motion.h
   src/game/flight_motion.cpp
+  src/game/flight_controls.cpp
+  src/game/flight_controls.h
   src/game/flight_motion.h
   src/game/beacon_light.cpp
   src/game/beacon_light.h
@@ -200,6 +202,7 @@ if(BUILD_TESTING)
     tests/gouraud_polygon_test.cpp
     tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp
+    tests/flight_controls_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_energy_test.cpp
     tests/object_impact_test.cpp
