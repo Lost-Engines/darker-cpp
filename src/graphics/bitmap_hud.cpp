@@ -22,16 +22,25 @@ void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cach
 }
 
 void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, pixel_position const destination, std::uint8_t const encoded_coordinate) {
-  /// 5429/542C divide the encoded lattice coordinate minus one by nine, then display 01–15
-  if(encoded_coordinate == 0 || encoded_coordinate >= 128) {
+  framework::render::indexed_cockpit_framebuffer &target, pixel_position const destination,
+  std::uint8_t const encoded_coordinate, coordinate_font const font) {
+  /// 5429/5472 share number conversion, but large invalid coordinates use blank glyphs
+  if(font != coordinate_font::small && font != coordinate_font::large) throw std::invalid_argument{"unknown coordinate font"};
+  bool const large{font == coordinate_font::large};
+  bool const valid{encoded_coordinate > 0 && encoded_coordinate < 128};
+  if(!valid && !large) {
     copy_rectangle(cache.pixels, target.pixels, destination, destination, 8, 5);
     return;
   }
-  unsigned int const number{static_cast<unsigned int>((encoded_coordinate - 1) / 9 + 1)};
-  copy_rectangle(cache.pixels, target.pixels, {.x{308}, .y{8 + static_cast<int>(number / 10) * 5}}, destination, 4, 5);
-  copy_rectangle(cache.pixels, target.pixels, {.x{308}, .y{8 + static_cast<int>(number % 10) * 5}},
-    {.x{destination.x + 4}, .y{destination.y}}, 4, 5);
+  int const width{large ? 8 : 4};
+  int const height{large ? 7 : 5};
+  int const source_x{large ? 312 : 308};
+  int const number{valid ? (encoded_coordinate - 1) / 9 + 1 : 0};
+  std::array<int, 2> const digits{valid ? number / 10 : 10, valid ? number % 10 : 10};
+  for(int i{0}; i < 2; ++i) {
+    copy_rectangle(cache.pixels, target.pixels, {.x{source_x}, .y{8 + digits[i] * height}},
+      {.x{destination.x + i * width}, .y{destination.y}}, width, height);
+  }
 }
 
 void update_caero_bitmaps(framework::render::indexed_cockpit_framebuffer const &cache,

@@ -101,6 +101,11 @@ auto main(int const argc, char const *const argv[])->int try {
   inspector state{.type{type}, .cache{cache}, .screen{cache}, .selected{arguments["field"].as<std::size_t>()}, .keys{}};
   auto const components{darker::graphics::cockpit_components(type)};
   if(state.selected >= components.size()) throw std::invalid_argument{"--field outside craft instrument list"};
+  darker::graphics::radar_view_state const navigation{.player{.x{60 * 256}, .y{60 * 256}}, .heading{0}, .row{1}, .column{1}};
+  std::array<darker::graphics::radar_contact, 2> const contacts{{
+    {.position{.x{50 * 256}, .y{70 * 256}}, .group{darker::graphics::radar_group::a}},
+    {.position{.x{65 * 256}, .y{55 * 256}}, .group{darker::graphics::radar_group::b}},
+  }};
   bool const static_view{arguments.contains("static")};
   if(!static_view) {
     std::size_t black{0};
@@ -110,13 +115,9 @@ auto main(int const argc, char const *const argv[])->int try {
     for(std::size_t i{0}; i < components.size(); ++i) state.set(i, static_cast<unsigned int>(darker::graphics::instrument_limit(type, i) * fill / 100));
     if(type == darker::graphics::craft::caero) {
       // Temporary display fixture until player position and weapon selection supply these fields.
-      darker::graphics::update_caero_bitmaps(cache, state.screen, {}, {.row{1}, .column{1}, .primary_weapon{1}, .secondary_weapon{5}});
-      darker::graphics::update_compass(state.screen, 0, darker::graphics::compass_phase(0));
-      std::array<darker::graphics::radar_contact, 2> const contacts{{
-        {.position{.x{50 * 256}, .y{70 * 256}}, .group{darker::graphics::radar_group::a}},
-        {.position{.x{65 * 256}, .y{55 * 256}}, .group{darker::graphics::radar_group::b}},
-      }};
-      darker::graphics::draw_radar_contacts(state.screen, {.x{60 * 256}, .y{60 * 256}}, 0, contacts);
+      darker::graphics::update_caero_bitmaps(cache, state.screen, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{1}, .secondary_weapon{5}});
+      darker::graphics::update_compass(state.screen, 0, darker::graphics::compass_phase(navigation.heading));
+      darker::graphics::draw_radar_contacts(state.screen, navigation.player, navigation.heading, contacts);
       auto const attitude{darker::graphics::calculate_attitude(0, 0, 0, false)};
       darker::graphics::draw_hud_line(state.screen, attitude.first, attitude.last, attitude.colour);
       darker::graphics::draw_attitude_surround(state.screen, 0);
@@ -171,6 +172,8 @@ auto main(int const argc, char const *const argv[])->int try {
   framework::platform::framebuffer_presenter presenter{*window};
   std::cout << "Inspection only: no world or gameplay simulation. Up/down: instrument; left/right: count; Home/End: empty/full; R/F: all empty/full; D: Caero engine dimming; Escape: close.\n";
   for(std::size_t i{0}; i < components.size(); ++i) std::cout << i << ": " << components[i].label << " (max " << darker::graphics::instrument_limit(type, i) << ")\n";
+  auto display{state.screen};
+  std::cout << "Hold Insert or keypad 0 for the Caero enlarged radar.\n";
   auto const start{std::chrono::steady_clock::now()};
   while(!glfwWindowShouldClose(window.get())) {
     glfwPollEvents();
@@ -181,7 +184,15 @@ auto main(int const argc, char const *const argv[])->int try {
     state.keys.clear();
     std::string const title{"Darker - " + name + " - " + (static_view ? std::string{"static cache"} : std::string{components[state.selected].label} + " " + std::to_string(state.states[state.selected] & 127) + "/" + std::to_string(darker::graphics::instrument_limit(type, state.selected)))};
     glfwSetWindowTitle(window.get(), title.c_str());
-    framework::render::expand_palette(state.screen, bitmap.palette.colours, output);
+    bool const enlarged{!static_view && type == darker::graphics::craft::caero
+      && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
+    if(enlarged) {
+      display = state.screen;
+      darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
+      framework::render::expand_palette(display, bitmap.palette.colours, output);
+    } else {
+      framework::render::expand_palette(state.screen, bitmap.palette.colours, output);
+    }
     presenter.present(output);
     glfwWaitEventsTimeout(0.01);
   }

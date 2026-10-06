@@ -43,7 +43,7 @@ An Xvfb/Mesa smoke check compared actual window pixels with headless output at 3
 
 ## Remaining boundary
 
-The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. Enlarged radar remains separate; the procedural follow-up below adds target markers and attitude-line rasterisation. Those can now use the same indexed surfaces and recovered copying primitives.
+The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. The enlarged-radar follow-up below adds that view; the procedural follow-up adds target markers and attitude-line rasterisation. Those can now use the same indexed surfaces and recovered copying primitives.
 
 Source RGB colours and square-pixel presentation retain the previous inspection convention; original runtime fades, DAC quantisation, display timing and stereo/VR modes remain separate. The cockpit inspector is the current milestone in the single application; its temporary controls will be replaced as gameplay arrives.
 
@@ -70,7 +70,7 @@ The main application now also draws the following from executable-resident const
 - **Normal Caero radar (`5AC9–5B55`, normal contact callbacks)**: unsigned 16-bit position differences, the 42-cell candidate window, signed high-word products from the original 1,024-word sine table, word wrapping, arithmetic shifts, radius clipping and group-specific distance colour are retained. Positions include fractional cell bytes. Hidden and uncovered contacts are rejected. Contacts draw in supplied order.
 - **Skimma weapon ring (`5D83–5DDC`)**: native byte increments 146/255/205 produce 14/8/10 positions. Signed sine high bytes determine placement; source selection preserves destination alignment and the pre-draw remaining-count decrement. Normal-play centre/baseline (160,88), radius 15–127 and valid working capacities are supported. Ordinary Skimma cannot select weapon index 2.
 
-The main application supplies fixed demonstration state without new keys or options. This is not live radar: world-object traversal, coverage/interference production, contact classification, clearing between world frames and scheduling still belong to the game loop. The contact drawer only writes current contacts. Similarly, the ring renderer consumes radius/count inputs; it does not yet implement reload deadlines, spread smoothing or the non-play baseline. Enlarged radar remains separate; target outlines and attitude drawing are covered in the following section.
+The main application supplies fixed demonstration state without new keys or options. This is not live radar: world-object traversal, coverage/interference production, contact classification, clearing between world frames and scheduling still belong to the game loop. The contact drawer only writes current contacts. Similarly, the ring renderer consumes radius/count inputs; it does not yet implement reload deadlines, spread smoothing or the non-play baseline. Enlarged radar is covered below; target outlines and attitude drawing are covered in the following section.
 
 Production tables are recovered directly from the hash-checked executable by `generate_cockpit_tables.py`. Tests independently use captures from the earlier native probes, generated with:
 
@@ -97,4 +97,18 @@ Tests compare all 289 native attitude-frame rasterisations, 22 additional native
 PYTHONPATH=/tmp/darker-python python3 tools/generate_procedural_reference.py ..
 ```
 
-The existing 381 whole-cockpit comparisons include these additions. Remaining HUD work includes enlarged-radar background/heading drawing, navigation contacts, the remaining live display producers and frame update ordering. General world clipping, camera coupling and target acquisition remain separate from these verified drawing primitives.
+The existing 381 whole-cockpit comparisons include these additions. The enlarged-radar and navigation-contact follow-up below completes those drawing consumers. Remaining HUD work includes live display producers and frame update ordering. General world clipping, camera coupling and target acquisition remain separate from these verified drawing primitives.
+
+
+## Enlarged radar and height-coded navigation contacts
+
+`graphics/navigation_hud` now assembles the normal mono Caero enlarged radar from drawing operations and original cockpit glyphs:
+
+- `A5D6/A712`: the radius-63 disc uses integer scanline stepping, exclusive right edges and symmetry about two centre rows. The background, centre symbol and heading line reproduce all 256 captured heading views. This is the specific radar geometry, not a general replacement for every original circle/clipping path.
+- The existing contact projection retains its candidate window and signed high-word products. Enlarged mode multiplies the rotated words by three **before** shifting, preserving word wrapping, rejects squared distance at 3965, and uses the original group-dependent distance colours. Contacts use the twelve-pixel rounded diamond.
+- Large coordinates use 8×7 glyphs at source X=312 and physical Y=`8 + 7*glyph`. Unlike the small coordinate callback, an unavailable position draws blank glyph 10 rather than restoring the cache. Row, separator and column occupy physical Y=41.
+- `5B92`: the navigation-contact drawer restores the six-row mask using one of four alignment-specific source positions, then draws the diamond. Height differences wrap to a signed byte before halving. Negative magnitudes use complement, not absolute value; magnitude is capped at ten and selects the original palette ramp. Position and reference height are supplied by callers; their live producers are not yet translated.
+
+The application exposes the assembled Caero view through the original hold-Insert/keypad-0 binding. It draws onto a copy of the current cockpit surface, so release restores the normal view without disturbing instrument state. Contacts, heading and coordinates remain fixed sample inputs. Coverage, interference, allegiance classification, world traversal, update scheduling and stereo variants remain outside this milestone.
+
+All 38 CTest cases pass, including 256 complete enlarged-surround checksums, 144 enlarged projection cases and 144 height/alignment contact checksums derived from native captures. The existing 381 whole-cockpit comparisons still pass. An isolated Xvfb/Mesa check confirmed that actual window pixels match headless output, both Insert and keypad 0 display the enlarged view, releasing either restores the original pixels exactly, and Escape exits cleanly.

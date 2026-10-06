@@ -115,3 +115,39 @@ TEST_CASE("Skimma weapon rings match all native placement and source-selection c
   auto target{cache};
   REQUIRE_THROWS(darker::graphics::draw_skimma_weapon_ring(cache, target, darker::graphics::craft::skimma, 2, 63, 10));
 }
+
+TEST_CASE("Enlarged radar disc and heading match all 256 captured native surrounds") {
+  for(unsigned int phase{0}; phase < 256; ++phase) {
+    INFO("heading=" << phase * 256);
+    framework::render::indexed_cockpit_framebuffer target{};
+    darker::graphics::draw_enlarged_radar_surround(target, static_cast<std::uint16_t>(phase * 256));
+    std::uint64_t checksum{14695981039346656037ULL};
+    for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
+    REQUIRE(checksum == darker::test_reference::enlarged_surround_checksums[phase]);
+  }
+}
+
+TEST_CASE("Enlarged contact scale, clipping and palette colours match native captures") {
+  for(auto const &sample : darker::test_reference::enlarged_radar) {
+    auto const actual{darker::graphics::project_radar_contact({.x{60 * 256}, .y{60 * 256}}, sample.heading,
+      {.position{.x{static_cast<std::uint16_t>((60 + sample.x) * 256)}, .y{static_cast<std::uint16_t>((60 + sample.y) * 256)}}, .group{sample.group}}, darker::graphics::radar_scale::enlarged)};
+    REQUIRE(actual.has_value() == sample.pixel.has_value());
+    if(actual) {
+      REQUIRE(actual->position.x == sample.pixel->position.x);
+      REQUIRE(actual->position.y == sample.pixel->position.y);
+      REQUIRE(actual->colour == sample.pixel->colour);
+    }
+  }
+}
+
+TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and alignment-specific backgrounds") {
+  framework::render::indexed_cockpit_framebuffer cache;
+  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(auto const &sample : darker::test_reference::heights) {
+    auto target{cache};
+    darker::graphics::draw_navigation_contact(cache, target, {.x{156 + sample.alignment}, .y{81}}, sample.height, sample.reference);
+    std::uint64_t checksum{14695981039346656037ULL};
+    for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
+    REQUIRE(checksum == sample.checksum);
+  }
+}

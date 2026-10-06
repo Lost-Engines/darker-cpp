@@ -118,3 +118,25 @@ TEST_CASE("Skimma bearing changes restore previous pixels and ordinary craft rej
   auto target{cache};
   REQUIRE_THROWS(darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::skimma, {}, {.weapons{0, 0, 1}}));
 }
+
+TEST_CASE("Large coordinate font uses blank glyphs for unavailable coordinates") {
+  framework::render::indexed_cockpit_framebuffer cache;
+  cache.pixels.fill(42);
+  for(unsigned int digit{0}; digit < 12; ++digit) {
+    for(unsigned int row{0}; row < 7; ++row) std::fill_n(cache.pixels.begin() + (8 + digit * 7 + row) * 320 + 312, 8, static_cast<std::uint8_t>(digit));
+  }
+  for(auto const encoded : {0, 1, 82, 127, 128, 255}) {
+    auto target{cache};
+    darker::graphics::draw_grid_coordinate(cache, target, {.x{56}, .y{41}}, static_cast<std::uint8_t>(encoded), darker::graphics::coordinate_font::large);
+    auto const tens{target.pixels[41 * 320 + 56]};
+    auto const units{target.pixels[47 * 320 + 71]};
+    if(encoded == 0 || encoded >= 128) {
+      REQUIRE(tens == 10);
+      REQUIRE(units == 10);
+    } else {
+      REQUIRE(tens == (encoded == 1 ? 0 : 1));
+      REQUIRE(units == (encoded == 1 ? 1 : encoded == 82 ? 0 : 5));
+    }
+    REQUIRE(target.pixels[48 * 320 + 56] == cache.pixels[48 * 320 + 56]);
+  }
+}

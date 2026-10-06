@@ -78,6 +78,45 @@ def main():
         for byte in screen:
             checksum = ((checksum ^ byte) * 1099511628211) & ((1 << 64) - 1)
         lines.append(f'  {{.weapon{{{sample["weapon"]}}}, .radius{{{sample["radius"]}}}, .remaining{{{sample["count"]}}}, .checksum{{0x{checksum:016x}ULL}}}},')
+    lines += ['}};', '']
+    radar_graphics_path = args.workspace / 'analysis/interface/dynamic/radar-graphics.json'
+    surround = json.loads(radar_graphics_path.read_text())['surround']
+    lines += ['// Enlarged surround SHA-256: ' + hashlib.sha256(radar_graphics_path.read_bytes()).hexdigest(),
+              'inline std::array<std::uint64_t, 256> constexpr enlarged_surround_checksums{']
+    for heading in surround['heading_runs']:
+        screen = bytearray(320 * 240)
+        for x, y, width, colour in surround['base_runs'] + heading:
+            screen[y*320+x:y*320+x+width] = bytes([colour]) * width
+        checksum = 14695981039346656037
+        for byte in screen:
+            checksum = ((checksum ^ byte) * 1099511628211) & ((1 << 64) - 1)
+        lines.append(f'  0x{checksum:016x}ULL,')
+    enlarged = procedural['verification']['enlarged_radar_cases']
+    lines += ['};', '', f'inline std::array<radar_sample, {len(enlarged)}> const enlarged_radar{{{{']
+    for heading, x, y, kind, points in enlarged:
+        pixel = '{}'
+        if points:
+            px, py, colour = points[0]
+            pixel = f'{{graphics::radar_pixel{{.position{{.x{{{px}}}, .y{{{py+8}}}}}, .colour{{{colour}}}}}}}'
+        group = 'a' if kind == 0 else 'b'
+        lines.append(f'  {{.heading{{{heading}}}, .x{{{x}}}, .y{{{y}}}, .group{{graphics::radar_group::{group}}}, .pixel{pixel}}},')
+    lines += ['}};', '', 'struct height_sample {', '  std::uint8_t height;', '  std::uint8_t reference;',
+              '  int alignment;', '  std::uint64_t checksum;', '};', '']
+    height_data = json.loads(radar_graphics_path.read_text())['height_contact']
+    lines.append(f'inline std::array<height_sample, {len(height_data["checks"])}> constexpr heights' + '{{')
+    for sample in height_data['checks']:
+        screen = bytearray(cache)
+        sx = height_data['source_x'][sample['alignment']]
+        dx = 156 + sample['alignment']
+        for y, (skip, width) in enumerate(height_data['mask_rows']):
+            for x in range(skip, skip + width):
+                screen[(81+y)*320+dx+x] = cache[(8+y)*320+sx+x]
+        for x, y, _ in procedural['enlarged_symbol']['pixels']:
+            screen[(81+y)*320+dx+x] = sample['colour']
+        checksum = 14695981039346656037
+        for byte in screen:
+            checksum = ((checksum ^ byte) * 1099511628211) & ((1 << 64) - 1)
+        lines.append(f'  {{.height{{{sample["height"]}}}, .reference{{{sample["reference"]}}}, .alignment{{{sample["alignment"]}}}, .checksum{{0x{checksum:016x}ULL}}}},')
     lines += ['}};', '', '} // namespace darker::test_reference', '']
     args.output.write_text('\n'.join(lines))
 
