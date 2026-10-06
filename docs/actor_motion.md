@@ -16,3 +16,13 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_motion_reference.py .
 ```
 
 These components are not yet a complete actor simulation. Scenario activation, target selection, obstacle avoidance, firing decisions and collision responses must be connected before enemy behaviour is playable. The proximity probe begins after the script call; mission execution has its own independent native comparisons.
+
+## Scenario construction
+
+`make_scenario_actor` translates the BE07/BF1A/C7BF construction paths for surface moving objects, compact special objects and absolute static objects. It expands the original definition, subtracts model height from nominal placement height, preserves objective/attribute bits, initial speed, behaviour bytes and cached cell/position, and resolves stored script or object-target references. Program pointers become offsets into the shared scenario program; the executable-resident stop script becomes explicit stopped state.
+
+384 native cases exercise all three placement forms, varied definitions and model heights, both surface modes, static underground placement and both program/target operands. Moving underground actors deliberately require their separate BEE7 route initialiser. This constructor does not activate category lists or execute the seven embedded scenario setup blocks, and creating reserve objects does not imply activating them.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_scenario_actor_reference.py ..
+```
