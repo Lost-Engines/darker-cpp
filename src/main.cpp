@@ -272,13 +272,24 @@ auto main(int const argc, char const *const argv[])->int try {
     }
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
-  std::cout << (caero ? "Caero HQ launch: boost cells charge automatically; Enter to launch and pull up (Down arrow)." : "Skimma airborne checkpoint.") << std::endl;
+  std::cout << (caero ? "Caero HQ launch: boost cells charge automatically; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   std::cout << "Mission actors, weapons, world sound and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
+  // F15A's VGA timing gives 800 pixels per line and 527 lines at the mode-13h 25.175 MHz clock.
+  // AF61 waits for retrace; host swap synchronisation alone can exceed this rate or provide no pacing.
+  auto const display_interval{std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    std::chrono::duration<double>{800.0 * 527.0 / 25'175'000.0})};
+  auto next_frame{std::chrono::steady_clock::now()};
   while(!glfwWindowShouldClose(window.get())) {
     glfwPollEvents();
+    auto const frame_time{std::chrono::steady_clock::now()};
+    if(frame_time < next_frame) {
+      glfwWaitEventsTimeout(std::chrono::duration<double>(next_frame - frame_time).count());
+      continue;
+    }
+    next_frame = frame_time + display_interval;
     if(host.restart_requested) {
       host.player = initial_player;
       host.camera = {};
@@ -321,7 +332,6 @@ auto main(int const argc, char const *const argv[])->int try {
     std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight")};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);
-    glfwWaitEventsTimeout(0.01);
   }
   return EXIT_SUCCESS;
 } catch(std::exception const &error) {

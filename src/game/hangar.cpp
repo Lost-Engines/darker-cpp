@@ -26,6 +26,8 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
   auto const centre{site_index(hangar.return_site)};
   if(cells[centre].type != 17) throw std::invalid_argument{"Caero launch requires a campaign type-17 hangar"};
   player = {};
+  // Outer startup 3D50–3D52 supplies thrust energy independently of the visible boost-cell reserve.
+  std::get<caero_flight_state>(player.craft).energy.buffer = 0x6000;
   player.pose() = {
     .position{static_cast<std::uint16_t>((centre % 128) * 256 + 128), static_cast<std::uint16_t>((centre / 128) * 256 + 152),
       static_cast<std::uint16_t>(-104 - model_height)},

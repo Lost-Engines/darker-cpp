@@ -15,6 +15,7 @@
 #include "graphics/camera.h"
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
+#include "hangar_flight_check.h"
 #include "reference/camera_samples.h"
 #include "reference/city_collision_samples.h"
 #include "reference/city_frame_samples.h"
@@ -35,7 +36,8 @@ auto main(int const argc, char const *const argv[])->int try {
   options.add_options()
     ("help,h", "show usage")
     ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
-    ("reference", boost::program_options::value<std::string>(), "directory of independently decoded NN_NNN.bin files");
+    ("reference", boost::program_options::value<std::string>(), "directory of independently decoded NN_NNN.bin files")
+    ("launch-trace", boost::program_options::value<std::string>(), "write the hands-off HQ launch comparison as CSV");
   boost::program_options::variables_map arguments;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), arguments);
   if(arguments.contains("help")) {
@@ -44,6 +46,7 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   boost::program_options::notify(arguments);
   darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
+  check_hangar_flight(archives, arguments.contains("launch-trace") ? arguments["launch-trace"].as<std::string>() : std::string{});
   check_scenario_resources(archives);
   check_text_resources(archives);
   std::size_t total{0};

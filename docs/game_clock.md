@@ -21,7 +21,7 @@ clock to a floating-point seconds counter.
 `advance_game_clock` can coalesce many interrupts, preserving all intermediate
 bit transitions. Its first interrupt still applies the native cap even if a
 caller has changed the limit or supplied an inconsistent starting state.
-No catch-up physics substeps or host framerate policy are introduced here.
+No catch-up physics substeps are introduced by these clock functions. The application caps host updates at the original VGA refresh rate independently of swap synchronisation; see the [hands-off launch pacing investigation](hangar_launch.md#display-pacing).
 
 The fixture compares 1,024 native interrupt/frame sequences, including pause,
 wrap, caps 0/1/80/FFFF, changed limits and pending transition masks. A separate

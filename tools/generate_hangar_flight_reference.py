@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""Trace original HQ startup, one boost press and hands-off flight over the real Delphi map."""
+import argparse
+import csv
+import hashlib
+from pathlib import Path
+import struct
+import sys
+from generate_resource_directory import IMAGE_SHA256
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('workspace', type=Path)
+    parser.add_argument('--csv', type=Path)
+    args = parser.parse_args()
+    sys.path.insert(0, str(args.workspace.resolve() / 'tools'))
+    from verify_player_collisions import setup
+    from verify_flight_physics import BP, LOOKUP, put, word
+    from unicorn import UC_HOOK_CODE
+    image = (args.workspace / 'analysis/unpacked/image.bin').read_bytes()
+    assert hashlib.sha256(image).hexdigest() == IMAGE_SHA256
+    h, bank, _ = setup(30)
+    cells = bytearray(32768)
+    types = (args.workspace / 'analysis/resources/00_068.bin').read_bytes()
+    limits = {t['type']: bytes.fromhex(t['record_hex'])[6] for t in bank['types']}
+    counters = [0] * 256
+    for n, kind in enumerate(types):
+        row, column = divmod(n, 128)
+        state = 255 if kind == 1 and row % 9 == 0 and column % 9 == 0 else 0
+        cells[n * 2:n * 2 + 2] = bytes([kind, (state + counters[kind]) & 255])
+        counters[kind] += 1
+        if counters[kind] >= limits.get(kind, 0): counters[kind] = 0
+    h.cpu.mem_write(0x60000, bytes(cells))
+    h.cpu.mem_write(0x6a800, LOOKUP)
+    h.write(0xf003, b'\1')
+    h.write(0x6202, b'\0')
+    h.write(0xc81e, struct.pack('<H', 0x7162))
+    h.write(0xc610, struct.pack('<H', 0x7162))
+    h.write(0xb91f, b'\x19')
+    h.cpu.mem_write(h.STACK + BP, bytes(112))
+    definition = 0x1926 + 25 * 24
+    h.write(definition, struct.pack('<H', bank['special_offsets'][25] + 0x400))
+    h.setreg('BP', BP)
+    h.setreg('BX', definition)
+    h.call(0xbf41)
+    record = h.read(definition, 24)
+    h.write(0x7f20, struct.pack('<H', record[14] * 8))
+    h.write(0x8006, record[15:16])
+    phase = 'placement'
+
+    def hook(cpu, address, size, data):
+        off = address - h.BASE
+        if phase == 'placement' and off == 0xbd98 or phase == 'boost' and off == 0xb974:
+            h.setreg('IP', h.RETURN)
+        elif off in (0x67d6, 0x680c, 0x6815):
+            # Keep native collision/lifecycle writes; omit effect spawning and its sound notification.
+            h.setreg('DS', 0x1000)
+            sp = h.getreg('SP')
+            h.setreg('IP', int.from_bytes(cpu.mem_read(h.STACK + sp, 2), 'little'))
+            h.setreg('SP', sp + 2)
+
+    h.cpu.hook_add(UC_HOOK_CODE, hook)
+    h.cpu.ctl_remove_cache(h.BASE, h.BASE + 65536)
+    h.call(0xbd34)
+    phase = 'startup'
+    h.setreg('DS', 0x1000)
+    h.cpu.emu_start(h.BASE + 0x3d1a, h.BASE + 0x3d60, count=5000)
+    assert h.getreg('IP') == 0x3d60
+    h.write(0x6fd0, struct.pack('<HH', BP, BP))
+    h.write(0xb9f4, b'\0\0')
+    h.write(0x7ed2, b'\0')
+    # No keyboard steering, relative mouse motion or altitude hold.
+    h.write(0x7eba, b'\0\0')
+    h.write(0x7ecf, b'\0\0')
+    def state():
+        result = [word(h, at) for at in (8, 10, 12)]
+        result += list(h.cpu.mem_read(h.STACK + BP + 4, 3))
+        result += [word(h, at) for at in (0x2a, 0x2c, 0x2e, 0x3e, 0x42, 0x40)]
+        result += [int.from_bytes(h.read(at, 2), 'little') for at in (0x7f0d, 0x7f8f, 0x7fa6, 0x8540, 0x7e8e, 0x7f27, 0x80c7, 0x8509, 0x8518)]
+        result += [word(h, at) for at in (0x26, 0x28)]
+        result += [h.read(0x4552)[0], h.cpu.mem_read(h.STACK + BP + 7, 1)[0],
+                   int.from_bytes(h.cpu.mem_read(h.STACK + 0x7935, 2), 'little'), int(word(h, 0x66) == 0x6ef7)]
+        return result
+    initial = state()
+    def departure():
+        if word(h, 0x66) == 0x6ef7 or not h.cpu.mem_read(h.STACK + BP + 7, 1)[0] & 16:
+            return
+        x, y = word(h, 8) >> 8, word(h, 10) >> 8
+        h.write(0x7a2b, struct.pack('<H', 8))
+        h.setreg('BP', BP); h.setreg('DS', 0x1000); h.setreg('ES', 0x6000)
+        h.setreg('AX', h.cpu.mem_read(0x60000 + y * 256 + x * 2, 1)[0] if x < 128 and y < 128 else 255)
+        h.call(0xc5f9)
+
+    for tick in range(8, 3001, 8):
+        h.setreg('BP', BP); h.setreg('CX', 8); h.setreg('DS', 0x1000)
+        h.cpu.ctl_remove_cache(h.BASE, h.BASE + 65536)
+        h.call(word(h, 0x66))
+        departure()
+    charged = state()
+    phase = 'boost'
+    h.call(0xb963)
+    phase = 'flight'
+    rows = []
+    for tick in range(8, 4001, 8):
+        h.write(0xbf0, struct.pack('<H', 3000 + tick))
+        h.write(0xbf8, struct.pack('<H', 3000 + tick))
+        for offset, previous in zip((0x38, 0x3a, 0x3c), state()[:3]): put(h, offset, previous)
+        h.setreg('BP', BP); h.setreg('CX', 8); h.setreg('DS', 0x1000)
+        h.cpu.ctl_remove_cache(h.BASE, h.BASE + 65536)
+        h.call(word(h, 0x66))
+        h.call(0x6f0f)
+        departure()
+        rows.append((tick, state()))
+        if rows[-1][1][-1]: break
+    lines = ['#pragma once', '', '// Generated by tools/generate_hangar_flight_reference.py; controlled original-code HQ launch',
+             '// Image SHA-256: ' + IMAGE_SHA256, '', '#include <array>', '', 'namespace darker::test_reference {', '',
+             'inline constexpr std::array<int, 27> hangar_flight_initial{' + ', '.join(map(str, initial)) + '};',
+             'inline constexpr std::array<int, 27> hangar_flight_charged{' + ', '.join(map(str, charged)) + '};',
+             'struct hangar_flight_sample { int tick; std::array<int, 27> state; };',
+             f'inline constexpr std::array<hangar_flight_sample, {len(rows)}> hangar_flight_samples{{{{']
+    lines += ['  {' + str(tick) + ', {' + ', '.join(map(str, values)) + '}},' for tick, values in rows]
+    lines += ['}};', '', '} // namespace darker::test_reference', '']
+    (Path(__file__).resolve().parents[1] / 'tests/reference/hangar_flight_samples.h').write_text('\n'.join(lines))
+    if args.csv:
+        with args.csv.open('w') as stream:
+            writer = csv.writer(stream)
+            writer.writerow(['tick', 'x', 'y', 'z', 'fraction_x', 'fraction_y', 'fraction_z', 'heading', 'pitch', 'roll', 'speed', 'horizontal_velocity', 'vertical_velocity', 'active_boost', 'buffer', 'reserve', 'boost_pips', 'startup_charge', 'forward_bias', 'pitch_assist', 'damage', 'repair_phase', 'pitch_rate', 'bank_rate', 'engine', 'flags', 'gate', 'crashed'])
+            writer.writerow([-3000, *initial]); writer.writerow([0, *charged])
+            writer.writerows([tick, *values] for tick, values in rows)
+    print('Initial:', initial)
+    print('Charged:', charged)
+    print('Frames:', len(rows), 'last:', rows[-1])
+
+
+if __name__ == '__main__':
+    main()
