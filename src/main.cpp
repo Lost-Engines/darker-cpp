@@ -17,6 +17,7 @@
 #include "graphics/cockpit.h"
 #include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
+#include "graphics/procedural_hud.h"
 #include "platform/framebuffer_presenter.h"
 #include "resources/archive_set.h"
 
@@ -116,9 +117,13 @@ auto main(int const argc, char const *const argv[])->int try {
         {.position{.x{65 * 256}, .y{55 * 256}}, .group{darker::graphics::radar_group::b}},
       }};
       darker::graphics::draw_radar_contacts(state.screen, {.x{60 * 256}, .y{60 * 256}}, 0, contacts);
+      auto const attitude{darker::graphics::calculate_attitude(0, 0, 0, false)};
+      darker::graphics::draw_hud_line(state.screen, attitude.first, attitude.last, attitude.colour);
+      darker::graphics::draw_attitude_surround(state.screen, 0);
     } else {
       darker::graphics::update_skimma_bitmaps(cache, state.screen, type, {},
         {.bearing{1}, .weapons{1, 2, static_cast<std::uint8_t>(type == darker::graphics::craft::upgraded_skimma ? 3 : 0)}});
+      darker::graphics::draw_target_marker(state.screen, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
       darker::graphics::draw_skimma_weapon_ring(cache, state.screen, type, 0, 63, 14);
     }
     if(arguments.contains("states")) {

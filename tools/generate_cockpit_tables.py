@@ -94,7 +94,11 @@ def main():
               'inline std::array<mask_row, 4> constexpr ring_mask{{']
     for p in range(0x6010, 0x6018, 2):
         lines.append(f'  {{.skip{{{image[p]}}}, .width{{{image[p+1]}}}}},')
-    lines += ['}};', '', '} // namespace darker::graphics', '']
+    lines += ['}};', '']
+    for name, start, end in [('small', 0x5fcc, 0x5fdd), ('large', 0x5fdd, 0x5fea), ('skimma', 0x5fea, 0x6009)]:
+        lines.append(f'inline std::array<std::uint8_t, {end-start}> constexpr marker_{name}' + '{' + ', '.join(f'0x{value:02x}' for value in image[start:end]) + '};')
+    lines.append('inline std::array<std::uint8_t, 101> constexpr attitude_outline{' + ', '.join(f'0x{value:02x}' for value in image[0x5f67:0x5fcc]) + '};')
+    lines += ['', '} // namespace darker::graphics', '']
     args.output.write_text('\n'.join(lines))
 
 

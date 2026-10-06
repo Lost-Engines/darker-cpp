@@ -43,7 +43,7 @@ An Xvfb/Mesa smoke check compared actual window pixels with headless output at 3
 
 ## Remaining boundary
 
-The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. Enlarged radar, target markers and attitude-line rasterisation remain to be implemented. Those can now use the same indexed surfaces and recovered copying primitives.
+The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. Enlarged radar remains separate; the procedural follow-up below adds target markers and attitude-line rasterisation. Those can now use the same indexed surfaces and recovered copying primitives.
 
 Source RGB colours and square-pixel presentation retain the previous inspection convention; original runtime fades, DAC quantisation, display timing and stereo/VR modes remain separate. The cockpit inspector is the current milestone in the single application; its temporary controls will be replaced as gameplay arrives.
 
@@ -70,7 +70,7 @@ The main application now also draws the following from executable-resident const
 - **Normal Caero radar (`5AC9–5B55`, normal contact callbacks)**: unsigned 16-bit position differences, the 42-cell candidate window, signed high-word products from the original 1,024-word sine table, word wrapping, arithmetic shifts, radius clipping and group-specific distance colour are retained. Positions include fractional cell bytes. Hidden and uncovered contacts are rejected. Contacts draw in supplied order.
 - **Skimma weapon ring (`5D83–5DDC`)**: native byte increments 146/255/205 produce 14/8/10 positions. Signed sine high bytes determine placement; source selection preserves destination alignment and the pre-draw remaining-count decrement. Normal-play centre/baseline (160,88), radius 15–127 and valid working capacities are supported. Ordinary Skimma cannot select weapon index 2.
 
-The main application supplies fixed demonstration state without new keys or options. This is not live radar: world-object traversal, coverage/interference production, contact classification, clearing between world frames and scheduling still belong to the game loop. The contact drawer only writes current contacts. Similarly, the ring renderer consumes radius/count inputs; it does not yet implement reload deadlines, spread smoothing or the non-play baseline. Enlarged radar, target outlines and attitude-line rasterisation remain separate.
+The main application supplies fixed demonstration state without new keys or options. This is not live radar: world-object traversal, coverage/interference production, contact classification, clearing between world frames and scheduling still belong to the game loop. The contact drawer only writes current contacts. Similarly, the ring renderer consumes radius/count inputs; it does not yet implement reload deadlines, spread smoothing or the non-play baseline. Enlarged radar remains separate; target outlines and attitude drawing are covered in the following section.
 
 Production tables are recovered directly from the hash-checked executable by `generate_cockpit_tables.py`. Tests independently use captures from the earlier native probes, generated with:
 
@@ -79,3 +79,22 @@ python3 tools/generate_navigation_reference.py ..
 ```
 
 Reference headers record source hashes and contain no runtime dependency on analysis JSON or Python. All 136 compass phases, 144 whole-cell radar cases, eight additional native fractional/wraparound cases, 19 Skimma callback source/mask cases and 140 ring-placement cases pass. The latter cases compare complete synthetic indexed surfaces against native-capture-derived checksums. Checks focus on permanent engine arithmetic and drawing behaviour, not inspection controls.
+
+## Procedural line and vector drawing
+
+`graphics/procedural_hud` now translates drawing code instead of using pre-rendered frames:
+
+- `5E6F–5ED3` computes attitude endpoints from the original sine words using signed high-word products. Both table indices accept all 1,024 positions. The pitch-high-byte shade adjustment and alternate-colour branch are retained, including byte wrapping. The returned coordinates include the normal Caero eight-row viewport offset.
+- `5F5D/A77B` orders endpoints and draws the original horizontal/vertical runs using quotient/remainder stepping. Its endpoint convention is unusual: X is inclusive, while non-horizontal lines span the Y difference; descending lines begin one row below the supplied start in the direction of travel. Half-error ties, zero-length lines, vertical lines and the original wide-span case are covered by native comparisons. This entry accepts endpoints already within the display; the original world-line clipping path is still separate.
+- `5F39/E302/E305` draws the small target marker, large target marker and Skimma aim symbol by interpreting their executable-resident byte streams. Command bits 0/1 advance the horizontal and vertical positions; the arithmetic right-shifted signed byte supplies the colour increment for the next pair of pixels. This is why the native outlines have graded colours rather than one flat colour per half.
+- `5ED6–5F0D` uses that same outline decoder for the fixed Caero surround. Its final pair begins on different rows and advances inward, preserving the original separate row-pointer behaviour. The colour parameter at `5F01` remains a supplied raw word; its gameplay producer is not inferred.
+
+The main application now renders the level Caero attitude line and surround, and the Skimma aim mark at its native X=164 and normal-view centre Y=90. Target marker shapes are available to the renderer but are not drawn as fictitious acquired objects in the default display. No new application, input controls or command-line options were added.
+
+Tests compare all 289 native attitude-frame rasterisations, 22 additional native line cases (reversals, slope boundaries, axes, point and 320-pixel spans), 12 additional native attitude endpoint/colour cases, all three target-marker captures and the fixed surround. Production code contains only lookup tables and original command streams; captured frames/checksums live in test references. Regeneration requires the existing Python reverse-engineering dependencies (Pillow and Unicorn):
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_procedural_reference.py ..
+```
+
+The existing 381 whole-cockpit comparisons include these additions. Remaining HUD work includes enlarged-radar background/heading drawing, navigation contacts, the remaining live display producers and frame update ordering. General world clipping, camera coupling and target acquisition remain separate from these verified drawing primitives.

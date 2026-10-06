@@ -20,7 +20,7 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal radar contacts, and Skimma bearing/weapon indicators and weapon rings. The black windscreen is intentional: world rendering and gameplay are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
+The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal radar contacts, Caero attitude/vector graphics, and Skimma bearing/weapon indicators, aim marks and weapon rings. The black windscreen is intentional: world rendering and gameplay are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
 
 Use `--craft skimma` or `--craft upgraded` to inspect the other cockpits. Temporary controls:
 

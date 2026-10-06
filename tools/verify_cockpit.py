@@ -24,6 +24,7 @@ def main():
     compass = json.loads((sprites_dir / 'procedural-hud.json').read_text())['compass']
     procedural = json.loads((root / 'analysis/interface/dynamic/procedural.json').read_text())
     radar = json.loads((root / 'analysis/interface/dynamic/verification.json').read_text())['radar_checks']
+    reticles = json.loads((root / 'analysis/interface/dynamic/dynamic-hud.json').read_text())['reticles']
     cases = 0
     with tempfile.TemporaryDirectory(prefix='darker-cockpit-') as temporary:
         output = Path(temporary) / 'actual.ppm'
@@ -55,6 +56,12 @@ def main():
                     sample = next(s for s in radar if (s['heading'], s['x'], s['y'], s['kind']) == (0, x, y, kind))
                     for px, py, colour in sample['points']:
                         background.putpixel((px, py), tuple(palette[colour*3:colour*3+3]) + (255,))
+                attitude = next(frame for frame in procedural['attitude']['frames'] if frame['pitch'] == 0 and frame['roll'] == 0)
+                for x, y, length in attitude['runs']:
+                    for offset in range(length):
+                        background.putpixel((x + offset, y + 8), tuple(palette[14*3:14*3+3]) + (255,))
+                for x, y, colour in procedural['attitude']['overlay']:
+                    background.putpixel((x, y + 8), tuple(palette[colour*3:colour*3+3]) + (255,))
             else:
                 identifiers = [f'{resource}-callback-5227-0-0', f'{resource}-callback-52e0-0-1', f'{resource}-callback-52e0-1-2']
                 if resource == 18:
@@ -62,6 +69,10 @@ def main():
                 for identifier in identifiers:
                     asset = next(a for a in sprites_data['assets'] if a['id'] == identifier)
                     background.alpha_composite(Image.open(sprites_dir / asset['file']).convert('RGBA'), tuple(asset['destination']))
+                palette = sprites_data['palettes'][str(resource)]
+                aim = next(marker for marker in reticles if marker['name'] == 'skimma-aim')
+                for x, y, colour in aim['pixels']:
+                    background.putpixel((x + 164, y + 90), tuple(palette[colour*3:colour*3+3]) + (255,))
                 ring = next(r for r in procedural['verification']['ring_cases'] if (r['weapon'], r['radius'], r['count']) == (0, 63, 14))
                 for blit in ring['blits']:
                     asset = next(a for a in procedural['ring']['assets'] if a['resource'] == resource and a['source'][:2] == blit['source'])

@@ -80,6 +80,8 @@ add_library(darker_graphics STATIC
   src/graphics/cockpit_tables.h
   src/graphics/navigation_hud.cpp
   src/graphics/navigation_hud.h
+  src/graphics/procedural_hud.cpp
+  src/graphics/procedural_hud.h
   src/graphics/palette_bitmap.cpp
   src/graphics/palette_bitmap.h
 )
@@ -110,6 +112,7 @@ if(BUILD_TESTING)
     tests/support/sine_wave.h
     tests/sine_wave_test.cpp
     tests/framebuffer_test.cpp
+    tests/procedural_hud_test.cpp
     tests/navigation_hud_test.cpp
     tests/bitmap_hud_test.cpp
     tests/cockpit_test.cpp
