@@ -1,7 +1,5 @@
 #include "graphics/model_projection.h"
 #include <bit>
-#include <limits>
-#include <stdexcept>
 
 namespace darker::graphics {
 namespace {
@@ -21,17 +19,6 @@ void negate(projection_term &term) noexcept {
 std::uint32_t bits(projection_term const term) noexcept {
   /// Join the original coordinate word and fractional byte
   return static_cast<std::uint32_t>(term.whole) * 256 + term.fraction;
-}
-
-std::int16_t divide(std::uint32_t const numerator, std::int16_t const depth, std::int16_t const origin) {
-  /// FC97 divides a signed 24-bit numerator, then wraps the screen-origin addition
-  auto const signed_numerator{std::bit_cast<std::int32_t>((numerator & 0xffffffu) << 8) >> 8};
-  if(depth == 0) throw std::domain_error{"Model projection has zero depth"};
-  auto const quotient{signed_numerator / depth};
-  if(quotient < std::numeric_limits<std::int16_t>::min() || quotient > std::numeric_limits<std::int16_t>::max()) {
-    throw std::domain_error{"Model projection exceeds the original signed quotient"};
-  }
-  return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(quotient + origin));
 }
 
 } // namespace
@@ -67,7 +54,7 @@ void model_projection::negate_component(std::size_t const axis) {
   fraction = static_cast<std::uint8_t>(-fraction);
 }
 
-projected_vertex model_projection::project() const {
+camera_vertex model_projection::transform() const noexcept {
   /// FC97 accumulates cached words and fractional carries before the two signed divisions
   auto horizontal{bits(parameters.horizontal)};
   auto depth{bits(parameters.depth)};
@@ -77,11 +64,14 @@ projected_vertex model_projection::project() const {
     depth += bits(cached.depth);
     vertical += static_cast<std::uint32_t>(cached.vertical) * 256;
   }
-  auto const divisor{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(depth >> 8))};
-  return {
-    .screen{.x{divide(horizontal, divisor, parameters.origin.x)}, .y{divide(vertical, divisor, parameters.origin.y)}},
-    .depth{divisor},
-  };
+  auto const signed_coordinate{[](std::uint32_t const value){ return std::bit_cast<std::int32_t>(value << 8) >> 8; }};
+  return {.horizontal{signed_coordinate(horizontal)}, .vertical{signed_coordinate(vertical)}, .depth{signed_coordinate(depth)}};
+}
+
+projected_vertex model_projection::project() const {
+  /// The direct path divides the same cached camera coordinates that the near path retains
+  auto const vertex{transform()};
+  return {.screen{project_vertex(vertex, parameters.origin)}, .depth{static_cast<std::int16_t>(vertex.depth >> 8)}};
 }
 
 } // namespace darker::graphics

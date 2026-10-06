@@ -59,52 +59,6 @@ attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t 
   };
 }
 
-void draw_hud_line(framework::render::indexed_cockpit_framebuffer &target,
-  pixel_position first, pixel_position last, std::uint8_t const colour) {
-  /// Translate 5F5D/A77B for endpoints already inside the physical display
-  auto const inside{[](pixel_position const point){ return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y < 240; }};
-  if(!inside(first) || !inside(last)) throw std::invalid_argument{"HUD line endpoints must be inside the display"};
-  if(first.x >= last.x) std::swap(first, last);
-  int const width{last.x - first.x + 1};
-  int const direction{last.y < first.y ? -1 : 1};
-  int const height{(last.y - first.y) * direction};
-  int y{first.y - (direction < 0 ? 1 : 0)};
-  int x{first.x};
-  if(height < width) {
-    int const rows{std::max(height, 1)};
-    int const quotient{width / rows};
-    int const remainder{width % rows};
-    int error{rows / 2};
-    for(int row{0}; row < rows; ++row) {
-      int count{quotient};
-      error -= remainder;
-      if(error < 0) {
-        ++count;
-        error += rows;
-      }
-      for(int pixel{0}; pixel < count; ++pixel) put_pixel(target, x++, y, colour);
-      y += direction;
-    }
-  } else {
-    int const quotient{height / width};
-    int const remainder{height % width};
-    int error{width / 2};
-    for(int column{0}; column < width; ++column) {
-      int count{quotient};
-      error -= remainder;
-      if(error < 0) {
-        ++count;
-        error += width;
-      }
-      for(int pixel{0}; pixel < count; ++pixel) {
-        put_pixel(target, x, y, colour);
-        y += direction;
-      }
-      ++x;
-    }
-  }
-}
-
 void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
   target_marker const marker, pixel_position const centre, std::uint8_t const upper_colour, std::uint8_t const lower_colour) {
   /// 5F39 emits paired outlines; E302/E305 consume horizontal/vertical step bits

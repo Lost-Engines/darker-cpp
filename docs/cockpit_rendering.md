@@ -25,25 +25,19 @@ The generator rejects an unsupported executable hash. It embeds masks and coordi
 
 The Nayas receiver's three masks overlap, as do two incoming-power strips at one pixel. A decrease restores only the removed strips: it does not redraw all remaining strips. Therefore a state reached by decreasing can differ from the same count reached from zero. The existing browser's rebuild-from-background approach does not expose every such distinction.
 
-The C++ inspector retains the original incremental behaviour. A native x86 probe confirmed receiver transitions 0→3, 3→1, 1→1 and 1→0. In particular, 3→1 restores strips 1 and 2 from source word 58DE; a subsequent equal-count redraw repaints strip 0 from source word 2C1D. These are display-updater semantics, not proof that every synthetic state sequence is produced during gameplay.
+The C++ instrument updater retains the original incremental behaviour. A native x86 probe confirmed receiver transitions 0→3, 3→1, 1→1 and 1→0. In particular, 3→1 restores strips 1 and 2 from source word 58DE; a subsequent equal-count redraw repaints strip 0 from source word 2C1D. These are display-updater semantics, not proof that every synthetic state sequence is produced during gameplay.
 
 ## Verification
 
-All 19 CTest cases pass, including the full original-pack decompression comparison. New unit tests cover opaque copying, clipping correspondence, mask gaps, background layout, all instrument restorations, craft limits and engine alternate-state redraw.
+Unit tests cover opaque copying, clipping correspondence, mask gaps, background layout, instrument restorations, craft limits and engine alternate-state redraw, alongside the original-pack integration check.
 
-The reusable image comparison performs **381 exact RGB comparisons** against the independently extracted background and masked-strip PNGs. It covers all three craft, every supported instrument count, decreases from maximum, zero restoration and dim/normal changes:
-
-```sh
-PYTHONPATH=/tmp/darker-python python3 tools/verify_cockpit.py
-```
-
-This development-only check requires Pillow and the parent workspace's existing analysis exports. No reference artwork is installed into the application. The comparison replays base-strip restoration in order, preserving the receiver overlap rather than assuming a unique final image per count.
+At the cockpit-only milestone, **381 exact RGB comparisons** against independently extracted background and masked-strip PNGs covered all three craft, every supported instrument count, decreases from maximum, zero restoration and dim/normal changes. The comparison replayed base-strip restoration in order, preserving receiver overlap. Its temporary application controls and comparison script have now been retired as the main application progresses to city rendering; the underlying instrument tests remain.
 
 An Xvfb/Mesa smoke check compared actual window pixels with headless output at 3× scale and after resizing to 800×700 with 2× letterboxing. Keyboard selection, increase/decrease, engine dimming and Escape shutdown passed.
 
 ## Remaining boundary
 
-The black windscreen is an explicit empty viewport, not a rendered scene. Slider/key values are inspection inputs, not health, flight or charging simulation. The Caero bitmap callbacks below now cover its weapon icons and small coordinate digits. The follow-up below adds the compass, normal radar contacts and Skimma bearing/weapon graphics. The enlarged-radar follow-up below adds that view; the procedural follow-up adds target markers and attitude-line rasterisation. Those can now use the same indexed surfaces and recovered copying primitives.
+The windscreen now contains the original city; see [city/model rendering](model_rendering.md). Gauges remain sample values until health, flight and charging state are connected. The following sections record the successive HUD reconstruction steps and their native verification.
 
 Source RGB colours and square-pixel presentation retain the previous inspection convention; original runtime fades, DAC quantisation, display timing and stereo/VR modes remain separate. The cockpit inspector is the current milestone in the single application; its temporary controls will be replaced as gameplay arrives.
 

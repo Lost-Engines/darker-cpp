@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include "graphics/flat_polygon.h"
+#include "graphics/near_clip.h"
 
 namespace darker::graphics {
 
@@ -49,6 +50,7 @@ public:
   void set_component(std::size_t axis, std::int16_t value);
   void zero_component(std::size_t axis);
   void negate_component(std::size_t axis);
+  camera_vertex transform() const noexcept;
   projected_vertex project() const;
 };
 

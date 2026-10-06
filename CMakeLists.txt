@@ -77,8 +77,14 @@ add_library(darker_graphics STATIC
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
+  src/graphics/screen_primitives.cpp
+  src/graphics/screen_primitives.h
+  src/graphics/near_clip.cpp
+  src/graphics/near_clip.h
   src/graphics/model_renderer.cpp
   src/graphics/model_renderer.h
+  src/graphics/city_scene.cpp
+  src/graphics/city_scene.h
   src/graphics/camera.cpp
   src/graphics/camera.h
   src/graphics/model_projection.cpp
@@ -95,10 +101,12 @@ add_library(darker_graphics STATIC
   src/graphics/palette_bitmap.cpp
   src/graphics/palette_bitmap.h
 )
-target_link_libraries(darker_graphics PUBLIC framework_core)
+target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resources)
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/city_map.cpp
+  src/game/city_map.h
   src/game/angular_motion.cpp
   src/game/angular_motion.h
   src/game/flight_motion.cpp
@@ -158,7 +166,7 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check tests/resource_check_main.cpp)
-  target_link_libraries(resource_check PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
+  target_link_libraries(resource_check PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
@@ -174,7 +182,11 @@ if(BUILD_TESTING)
     tests/random_test.cpp
     tests/direction_test.cpp
     tests/geometry_bank_test.cpp
+    tests/city_scene_test.cpp
     tests/camera_test.cpp
+    tests/screen_primitives_test.cpp
+    tests/near_clip_test.cpp
+    tests/model_animation_test.cpp
     tests/model_renderer_test.cpp
     tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp

@@ -22,21 +22,19 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 ## Current milestone
 
-The application currently assembles a 320×240 cockpit from the original artwork and implements its main masked instruments, plus Caero weapon icons, map-grid digits, compass and normal/enlarged radar contacts, Caero attitude/vector graphics, and Skimma bearing/weapon indicators, aim marks and weapon rings. The windscreen now contains an original building model: bank 30 type 30 for the Caero, bank 31 type 30 for either Skimma. Left-drag rotates the view using the original fixed-point camera coefficients and model interpreter. This is an isolated model at a safe fixed distance, using the original Gouraud-off mode and an unattenuated shade table; city traversal, near-plane clipping, distance shading and gameplay integration are still to come. Source RGB and square-pixel presentation are inspection conventions pending original palette/display handling.
+The application draws Delphi or Halon directly from the original city map and geometry bank, inside the corresponding 320×240 cockpit. City traversal, model selection, placement, ordering, near-plane clipping, flat polygons, lines, beacon discs and fountain vertex animation now use reconstructed original routines. The camera can move through the scene; flight, collisions, moving objects and missions are not connected yet.
 
-Use `--craft skimma` or `--craft upgraded` to inspect the other cockpits. Temporary controls:
+Use `--craft skimma` or `--craft upgraded` to explore Halon. Temporary inspection controls:
 
-- **Left mouse drag:** rotate the model view horizontally and vertically.
-- **Up / Down:** select an instrument; its name and count appear in the window title.
-- **Left / Right:** decrease / increase its count.
-- **Home / End:** empty / fill the selected instrument.
-- **R / F:** empty / fill all instruments.
-- **D:** toggle Caero engine dimming.
+- **W / S:** move forwards / backwards.
+- **A / D:** move sideways.
+- **R / F:** rise / lower.
+- **Left mouse drag:** look horizontally and vertically.
 - **Escape:** close.
 
-The original **hold Insert / keypad 0** binding displays the enlarged Caero radar; releasing it restores the normal view.
+The original **hold Insert / keypad 0** binding displays the enlarged Caero radar. Compass and grid coordinates follow the inspection camera; gauges and weapon displays remain sample values, and there are no radar contacts yet. The older instrument-adjustment controls have been removed.
 
-`--fill 0` starts with inactive strips; the default half-filled gauges are an inspection example, not game initial state. `--static` shows the underlying cockpit cache. `--field N --states 3 1` supplies a sequence of display states. `--output /tmp/cockpit.ppm` renders headlessly for verification; `--seconds` permits timed window runs. Cockpits currently use fixed sample navigation, contact and weapon states until their gameplay producers are connected. These are temporary development options, not proposed game controls.
+The scene currently uses the original Gouraud-off mode with an unattenuated shade table. Distance shading, original palette/display handling and gameplay camera integration remain to come. Source RGB and square-pixel presentation are inspection conventions. `--output /tmp/city.ppm` renders the initial view headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure
 
@@ -44,7 +42,7 @@ The original **hold Insert / keypad 0** binding displays the enlarged Caero rada
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
-The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records the first translated reload/state routines and remaining integration. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
+The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) and [city/model rendering](docs/model_rendering.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records the first translated reload/state routines and remaining integration. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
 
 ## Verification
 
@@ -53,4 +51,4 @@ ctest --test-dir build --output-on-failure
 ./build/resource_check --data-dir ../darker --reference ../analysis/resources
 ```
 
-`framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. The development script `tools/verify_cockpit.py` compares the main application's output against the existing masked PNG references (requires Pillow).
+`framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.

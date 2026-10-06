@@ -17,6 +17,14 @@ struct city_type {
   std::uint8_t unknown_7{0};
 };
 
+struct model_header {
+  std::uint8_t point_distance{0};
+  std::uint8_t point_colour{0};
+  std::uint8_t flat_distance{0};
+  std::int16_t height{0};
+  std::uint16_t extent{0};
+};
+
 class geometry_bank {
 private:
   std::vector<std::byte> data;
@@ -33,6 +41,7 @@ public:
   std::span<std::uint16_t const> special_models() const noexcept;
   std::span<std::byte const> model_pool() const noexcept;
   std::span<std::byte const> world_data() const noexcept;
+  model_header header_at(std::size_t offset) const;
   std::size_t city_model_offset(unsigned int type, std::uint8_t state, std::uint8_t damage_mask) const;
 };
 

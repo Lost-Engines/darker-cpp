@@ -70,6 +70,16 @@ std::span<std::byte const> geometry_bank::world_data() const noexcept {
   return std::span{data}.subspan(pool_start + pool_size);
 }
 
+model_header geometry_bank::header_at(std::size_t const offset) const {
+  /// Decode the drawing metadata shared by city and special models, leaving linked-state traversal separate
+  check_model(offset);
+  auto const pool{model_pool()};
+  return {
+    .point_distance{byte(pool, offset + 4)}, .point_colour{byte(pool, offset + 5)}, .flat_distance{byte(pool, offset + 6)},
+    .height{std::bit_cast<std::int16_t>(word(pool, offset + 7))}, .extent{word(pool, offset + 9)},
+  };
+}
+
 std::size_t geometry_bank::city_model_offset(unsigned int const type, std::uint8_t const state, std::uint8_t const damage_mask) const {
   /// 2DE1 follows the alternate link first, then the bank-masked number of damage links
   if(type == 0 || type > types.size()) throw std::out_of_range{"City type is outside the geometry directory"};

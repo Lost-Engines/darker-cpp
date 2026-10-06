@@ -16,7 +16,7 @@ Regenerate the fingerprints with `tools/generate_geometry_bank_reference.py WORK
 `graphics::model_projection` translates the far-path coordinate cache and signed
 projection at `FC97`, with component set/zero/negate operations from the `FDxx`
 and `FFxx` handlers. Coefficients, translation and screen origin are supplied by
-the caller; camera-matrix construction and near-plane clipping are not included.
+the caller. Both direct projection and retained camera-space vertices share this cache.
 Signed products discard their lowest byte before caching, and negation acts on
 that cached result rather than recomputing the product. Depth is accumulated with
 fractional carry before signed division. Original division faults are explicit
@@ -45,8 +45,7 @@ resolves palette groups through a supplied distance shade table. Dynamic colour
 codes use the original byte wrapping and clamp. The distance branch tests the
 sign bit of a byte subtraction, including its wrap, rather than a host signed
 comparison. Unsupported commands fail explicitly; this is not yet a complete
-world renderer. Gouraud interpolation, lines, discs, animated coordinates, near-plane
-handling and scene traversal remain separate work. Gouraud commands are supported
+world renderer. Gouraud interpolation and distance-shade setup remain separate work. Gouraud commands are supported
 through the original flat fallback (`312A`), skipping each vertex shade operand.
 
 `tools/generate_model_renderer_reference.py WORKSPACE` captures 108 complete
@@ -100,19 +99,88 @@ These checks exercise camera setup, model interpretation, projection and drawing
 together; they do not substitute for scene traversal or near-plane handling.
 
 
+## Near clipping, lines, discs and animation
+
+The near path retains signed 24-bit camera coordinates and clips at depth 32.
+`22B4` finds intersections through ordered arithmetic halvings, with asymmetric
+rounding and distant-coordinate saturation. This is deliberately not replaced
+by a floating-point intersection formula. Tests compare 512 native intersections
+and 132 complete synthetic near-clipped frames, including winding, visibility
+branches and the Gouraud-off path.
+
+World lines share the HUD line rasteriser after the original `A86D` viewport
+clipping. The 1,024 endpoint cases include both distant rejection and crossings
+close to the viewport. Disc drawing preserves `A5C4`'s overlapping span writes,
+including the visibly asymmetric small radii, with 224 complete native frames.
+
+Model commands `32/35/38` implement gate interpolation in both projection paths;
+`3B` reads the cell-state-indexed animation parameter. The direct interpolation
+path reads `FCD3/FCD4` together, accidentally including the adjacent `BA` MOV
+opcode as a fractional contribution to vertical coordinates. The C++ path
+preserves this extra 186/256 unit. A dedicated shallow-depth fixture exposes it:
+96 complete synthetic gate frames match both original paths, including fractional
+translation and almost-fully-open states.
+
+Fountain parameters follow `DB1A`, retaining six amplitudes, signed products and
+phase wrapping. A fingerprint compares every parameter byte over all 2,048 clock
+steps. At the measured PIT divisor 2,386 (approximately 500.075 Hz), this repeats
+in approximately 4.095 seconds. The application uses elapsed inspection time for
+this clock until the original game scheduling and pause handling are connected.
+The original-pack check also covers 176 complete beacon, line, gate and fountain
+model frames at varied headings, animation states and projection paths.
+
+## City setup and traversal
+
+`game::make_city_map` expands type bytes into typed mutable cells. Delphi's fresh
+beacon state follows `BB6D`: only type-one cells on the nine-cell lattice receive
+`FF`. `assign_city_variants` reproduces `BBFC`'s per-type counter in map order.
+Full initial map fingerprints match native setup for both cities.
+
+`collect_city_cells` translates `26EE`'s circular row spans and heading half-map
+selection. Steep pitches scan the full circle. Candidate order is retained, with
+192 native cases covering empty cells, map edges, headings, pitch and radius.
+This is the ordinary Delphi/Halon path; underground visibility propagation is
+not implemented here.
+
+`place_city_cell` translates `2A1A`: linked state selection, type-relative origin,
+header height and extent, signed culling, near/direct path selection, and the
+flat-distance threshold. There are 1,564 native placement/cull cases across all
+391 types and four cell states. Background entries draw in reverse insertion
+order; ordinary entries sort by decreasing distance with stable ties, matching
+the original list and tree traversal.
+
+Twelve complete scene frames execute original setup, traversal, placement,
+ordering, bytecode and drawing in Unicorn. The capture supplies an identity
+shade table and disables Gouraud interpolation, matching the current C++ mode.
+The original-pack integration check compares initial map bytes, accepted model
+counts and all 76,800 framebuffer pixels via fingerprints. These are composition
+checks in addition to the individual routine fixtures, not comparisons against
+a separately approximated renderer.
+
+Regenerate the additional fixtures with `tools/generate_near_clip_reference.py`,
+`generate_near_model_reference.py`, `generate_screen_primitives_reference.py`,
+`generate_model_animation_reference.py`, `generate_model_effect_reference.py`,
+`generate_city_scan_reference.py`, `generate_city_placement_reference.py` and
+`generate_city_frame_reference.py`, each taking the analysis workspace path.
+The generators require Unicorn and access to the original unpacked image;
+ordinary unit tests require neither.
+
 ## Application milestone
 
-The single `darker` application now draws a type-30 building from the appropriate
-original city bank in the cockpit windscreen. Left-drag adjusts a temporary
-inspection camera; it does not simulate craft motion. Distance stays safely
-outside the selected model, and the scene uses the original flat rendering mode
-with an identity shade table. The viewport is clipped before the Caero's eight-row
-destination offset is applied. Cockpit inspection controls remain available.
-This small application fixture will be replaced by scene traversal and gameplay
-camera state; it is not a separate executable or a new engine input abstraction.
+The single `darker` application now assembles the original city rather than an
+isolated building. W/A/S/D move a temporary inspection camera, R/F change height,
+and left-drag changes heading/pitch. These host controls use continuous positions
+which are converted at the boundary into the renderer's original fixed-point
+fields. They are not flight physics and will be removed when gameplay supplies
+the camera. The old instrument-adjustment controls have been retired.
 
-An isolated Xvfb/Mesa run compared window pixels against the headless render,
-simulated dragging, checked unchanged cockpit pixels, verified enlarged-radar
-press/release restoration, resized the window and exited with Escape. Full
-perspective-frame comparisons above cover the underlying rendering behaviour;
-no unit tests were added for the temporary inspection controls.
+The scene uses flat mode and an identity shade table. The viewport is clipped
+before the Caero's eight-row destination offset is applied. Compass and map-grid
+coordinates follow the camera, while cockpit gauges and weapon displays remain
+explicit sample values. No moving objects, collision handling, mission state,
+underground scenes or distance attenuation are connected yet.
+
+An isolated Xvfb/Mesa run exercised mouse look, forward/sideways movement, height
+changes, enlarged radar, resizing and Escape. Headless renders cover all three
+cockpit selections. A further sweep rendered 2,000 positions across both cities,
+varying altitude, heading and pitch, without errors. No unit tests were added for these temporary controls.

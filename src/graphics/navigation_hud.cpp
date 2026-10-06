@@ -153,7 +153,7 @@ void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer
     .x{76 + (maths::original_sine[angle] >> 10)},
     .y{108 - (maths::original_sine[(angle + 256) % 1024] >> 10)},
   };
-  draw_hud_line(target, {.x{76}, .y{108}}, end, 139);
+  draw_screen_line(target, {.x{76}, .y{108}}, end, 139);
 }
 
 void draw_enlarged_radar(framework::render::indexed_cockpit_framebuffer const &cache,

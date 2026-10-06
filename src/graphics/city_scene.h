@@ -1,0 +1,54 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <span>
+#include <vector>
+#include "game/city_map.h"
+#include "graphics/camera.h"
+#include "graphics/model_renderer.h"
+#include "resources/geometry_bank.h"
+
+namespace darker::graphics {
+
+struct city_draw_item {
+  std::uint16_t cell{0};
+  std::size_t model_offset{0};
+  model_placement placement{};
+  model_path path{model_path::direct};
+  bool background{false};
+  bool force_flat{false};
+};
+
+std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, std::uint16_t index,
+  std::uint8_t damage_mask, camera_basis const &basis, camera_position camera);
+void order_city_models(std::vector<city_draw_item> &items);
+
+struct city_view {
+  std::uint16_t column{0};                                                     // original 1/256-cell position words
+  std::uint16_t row{0};
+  std::uint8_t column_fraction{0};
+  std::uint8_t row_fraction{0};
+  std::int16_t altitude{0};
+  camera_angles angles{};
+  screen_vertex origin{.x{160}, .y{84}};
+  unsigned int radius{8};
+  int bottom{168};
+};
+
+class city_renderer {
+private:
+  std::vector<std::uint16_t> candidates;
+  std::vector<city_draw_item> items;
+
+public:
+  std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
+    std::span<game::city_cell const, 128 * 128> cells, city_view view, std::uint8_t damage_mask,
+    model_colours const &colours, model_animation animation);
+};
+
+void collect_city_cells(std::span<game::city_cell const, 128 * 128> cells, std::uint8_t column, std::uint8_t row,
+  camera_angles angles, unsigned int radius, std::vector<std::uint16_t> &output);
+
+} // namespace darker::graphics

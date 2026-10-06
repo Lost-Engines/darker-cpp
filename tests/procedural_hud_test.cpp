@@ -20,7 +20,7 @@ TEST_CASE("Attitude endpoint calculation and line rasterisation match 289 origin
     INFO("pitch=" << sample.pitch << " roll=" << sample.roll);
     framework::render::indexed_cockpit_framebuffer frame{};
     auto const line{darker::graphics::calculate_attitude(sample.pitch, sample.roll, 0, false)};
-    darker::graphics::draw_hud_line(frame, line.first, line.last, line.colour);
+    darker::graphics::draw_screen_line(frame, line.first, line.last, line.colour);
     REQUIRE(checksum(frame) == sample.checksum);
   }
 }
@@ -39,7 +39,7 @@ TEST_CASE("Original line endpoints and tie rules hold for both slopes, reversals
   for(auto const &sample : darker::test_reference::lines) {
     INFO("from " << sample.first.x << ',' << sample.first.y << " to " << sample.last.x << ',' << sample.last.y);
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_hud_line(frame, sample.first, sample.last, 14);
+    darker::graphics::draw_screen_line(frame, sample.first, sample.last, 14);
     REQUIRE(checksum(frame) == sample.checksum);
   }
 }

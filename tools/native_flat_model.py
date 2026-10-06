@@ -1,12 +1,12 @@
 """Original flat model interpreter with only VGA plane writes replaced by span capture."""
 import struct
+from unicorn import UC_HOOK_INSN, UC_HOOK_MEM_WRITE
+from unicorn.x86_const import UC_X86_INS_OUT
 
 
-def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic, bottom=240):
+def make_renderer(Harness, image):
     class Renderer(Harness):
         def hook(self, cpu, address, size, data):
-            if address-self.BASE in (0xfc1e, 0xfc22, 0xfc32, 0xfc35, 0xfc38, 0xfc3b):
-                raise ValueError(f'Non-flat command at {address-self.BASE:04x}')
             if address-self.BASE == 0xa583:
                 right, left, row = self.getreg('CX'), self.getreg('SI'), self.getreg('BP')//256
                 assert 0 <= left <= 320 and 0 <= right <= 320 and row < 240
@@ -18,6 +18,26 @@ def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic, bo
             super().hook(cpu, address, size, data)
     native = Renderer(image)
     native.pixels = bytearray(320*240)
+    mask = [0]
+    def output(cpu, port, size, value, data):
+        if port == 0x3c5:
+            mask[0] = value & 15
+    def write(cpu, access, address, size, value, data):
+        if 0xa0000 <= address < 0xb0000:
+            for byte in range(size):
+                for plane in range(4):
+                    if mask[0] >> plane & 1:
+                        offset = address-0xa0000+byte
+                        x, y = (offset%256)*4+plane, offset//256
+                        if 0 <= x < 320 and 0 <= y < 240:
+                            native.pixels[y*320+x] = native.read(0xa474)[0]
+    native.cpu.hook_add(UC_HOOK_INSN, output, None, 1, 0, UC_X86_INS_OUT)
+    native.cpu.hook_add(UC_HOOK_MEM_WRITE, write)
+    return native
+
+
+def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic, bottom=240, near=False, parameters=None, state=0):
+    native = make_renderer(Harness, image)
     word = lambda value: struct.pack('<H', value & 65535)
     for address, value in zip((0xfd05, 0xfd12, 0xfd1f, 0xfd31, 0xfd3e, 0xfd4b, 0xfd5d, 0xfd6a, 0xfd77), axes):
         native.write(address, word(value))
@@ -30,17 +50,32 @@ def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic, bo
     native.write(0xfdec, word(0x1000))
     native.write(0xfdf4, word(0xa000))
     native.write(0xa296, word(bottom))
+    segment = 0x1fe0 if near else 0x1fc0
+    page = 0xfe00 if near else 0xfc00
+    if near:
+        for address, value in ((0xfeb0, base[0]), (0xfed5, base[2]), (0xfe9b, base[4]),
+                               (0x2148, origin[0]), (0x2158, origin[1]), (0x2385, origin[0]), (0x236f, origin[1])):
+            native.write(address, word(value))
+        for address, value in ((0xfebf, base[1]), (0xfee4, base[3]), (0xfea8, base[5])):
+            native.write(address, bytes([value]))
+        native.write(0xfe13, word(0x32a8))  # Original near-path Gouraud-off dispatch.
+        native.write(0x30df, word(segment))
+        native.write(0xffec, word(0x1000))
     native.write(0x3385, word(0xe000))
     native.write(0x339a, bytes([dynamic]))
+    native.write(0x319f, word(state << 8))
+    native.cpu.mem_write(0x87935, struct.pack('<256H', *[(value&65535) for value in (parameters or [0]*256)]))
+    for address, value in ((0x3057, origin[0]), (0x307f, origin[0]), (0x3040, origin[1]), (0x317b, origin[0]), (0x318a, origin[1])):
+        native.write(address, word(value))
     native.write(0, struct.pack('<240H', *[y*256 for y in range(240)]))
     native.cpu.mem_write(0x20000, pool)
-    native.cpu.mem_write(0x2dc00, bytes(shades))
+    native.cpu.mem_write(segment*16+0xe000, bytes(shades))
     native.cpu.mem_write(0x8e000, bytes(shades))
     native.cpu.mem_write(0x8fffc, word(0x4400))
-    for register, value in [('CS', 0x1000), ('DS', 0x1fc0), ('ES', 0x1fc0), ('SS', 0x8000),
-                            ('SP', 0xfffc), ('SI', 0x400+offset+12), ('DI', 0xfc00), ('AX', 0xfc00 | pool[offset+11])]:
+    for register, value in [('CS', 0x1000), ('DS', segment), ('ES', segment), ('SS', 0x8000),
+                            ('SP', 0xfffc), ('SI', 0x20000-segment*16+offset+12), ('DI', 0xfc00), ('AX', page | pool[offset+11])]:
         native.setreg(register, value)
-    native.cpu.emu_start(native.BASE+0xfc00+pool[offset+11], native.BASE+0x4400, count=500000)
+    native.cpu.emu_start(native.BASE+page+pool[offset+11], native.BASE+0x4400, count=500000)
     assert native.getreg('IP') == 0x4400
     return native.pixels
 
