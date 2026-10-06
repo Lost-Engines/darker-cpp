@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include "game/angular_motion.h"
 #include "game/beacon_light.h"
+#include "game/flight_attitude.h"
 #include "game/flight_motion.h"
 #include "maths/sine_table.h"
 
@@ -18,11 +19,6 @@ std::int16_t word(int const value) noexcept {
 std::int16_t sine(std::uint16_t const angle) noexcept {
   /// Flight indexes the extended sine table without the renderer's rounding bias
   return maths::original_sine[angle >> 6];
-}
-
-std::int16_t cosine(std::uint16_t const angle) noexcept {
-  /// The startup sine extension provides the corresponding cosine phase
-  return maths::original_sine[((angle >> 6) + 256) % 1024];
 }
 
 std::int16_t high_product(std::int16_t const left, std::int16_t const right) noexcept {
@@ -61,7 +57,6 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   state.damage.rotation.turn = bank_response.rate;
   angles[2] = static_cast<std::uint16_t>(angles[2] + bank_response.angle_delta);
   auto const middle_bank{static_cast<std::uint16_t>(angles[2] - (word(bank_response.angle_delta) >> 1))};
-  auto const folded_bank{fold_bank_angle(middle_bank)};
 
   angular_response pitch_response{};
   if(input.altitude_hold) {
@@ -73,12 +68,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   }
   frame_step = pitch_response.frame_step;
   state.damage.rotation.pitch = pitch_response.rate;
-  int const pitch_sine{sine(angles[1])};
-  auto pitch_gain{cosine(middle_bank)};
-  int const sine_magnitude{pitch_sine < 0 ? -pitch_sine : pitch_sine};
-  int const cosine_magnitude{pitch_gain < 0 ? ~pitch_gain : pitch_gain};
-  if(cosine_magnitude < sine_magnitude) pitch_gain = word(pitch_gain < 0 ? -sine_magnitude : sine_magnitude);
-  auto pitch_delta{high_product(pitch_gain, word(pitch_response.angle_delta))};
+  auto pitch_delta{project_flight_pitch(angles[1], middle_bank, pitch_response.angle_delta)};
   auto const tentative_pitch{word(angles[1] + pitch_delta)};
   angular_response assist{};
   if(tentative_pitch > -4096 && state.pose.speed <= 300) {
@@ -93,13 +83,8 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const final_pitch{static_cast<std::uint16_t>(angles[1] + pitch_delta)};
   auto const middle_pitch{static_cast<std::uint16_t>(final_pitch - (pitch_delta >> 1))};
 
-  auto const bank_turn{high_product(word(folded_bank), cosine(middle_pitch))};
-  auto const turn_impulse{word((bank_turn * word(frame_step)) >> 9)};
-  auto const lift_projection{high_product(cosine(middle_bank), cosine(middle_pitch))};
-  auto const bank_sine{sine(middle_bank)};
-  auto const signed_pitch_drive{word(bank_sine < 0 ? -word(pitch_response.angle_delta) : word(pitch_response.angle_delta))};
-  auto const bank_square{word((bank_sine * bank_sine) >> 15)};
-  auto const heading_delta{word(turn_impulse - high_product(bank_square, signed_pitch_drive))};
+  auto const turn{couple_flight_turn(middle_bank, middle_pitch, pitch_response.angle_delta, frame_step)};
+  auto const heading_delta{turn.heading_delta};
   auto const final_heading{static_cast<std::uint16_t>(angles[0] + heading_delta)};
   auto const middle_heading{static_cast<std::uint16_t>(final_heading - (heading_delta >> 1))};
 
@@ -121,7 +106,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   charge_caero_energy(state.energy, incoming, input.engine_flags, accounting_step, input.boost_cheat);
 
   auto const vertical_drive{word((word(forward_target) * sine(middle_pitch)) >> 15)};
-  auto const absolute_projection{word(lift_projection < 0 ? -lift_projection : lift_projection)};
+  auto const absolute_projection{word(turn.lift_projection < 0 ? -turn.lift_projection : turn.lift_projection)};
   auto lift{high_product(absolute_projection, word(incoming))};
   if(lift >= 0) {
     if(input.brake) lift = std::min<std::int16_t>(lift, 255);
