@@ -145,6 +145,14 @@ The original setup at `BCE3–BCFB` installs radius 15 for map modes below four
 after the short-distance pop-in was noticed. This is the ordinary Delphi/Halon
 path; underground visibility propagation is not implemented here.
 
+The optional `--view-distance` inspection setting accepts the tested 2–32-cell
+scan range. It does not make the original renderer safe at arbitrary distances:
+placement doubles the signed 1/1024-cell difference into another 16-bit word
+(`2E21`), giving only about 16 cells of unwrapped range on either map axis.
+The doubled search radius therefore deliberately retains native wrapping
+artefacts. A correct extended-range renderer needs wider placement/projection
+arithmetic and separate verification; the default remains faithful at 15.
+
 `place_city_cell` translates `2A1A`: linked state selection, type-relative origin,
 header height and extent, signed culling, near/direct path selection, and the
 flat-distance threshold. There are 1,564 native placement/cull cases across all
