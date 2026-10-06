@@ -7,7 +7,7 @@
 #include <vector>
 #include "game/city_map.h"
 #include "graphics/camera.h"
-#include "graphics/model_renderer.h"
+#include "graphics/model_lighting.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::graphics {
@@ -35,6 +35,7 @@ struct city_view {
   screen_vertex origin{.x{160}, .y{84}};
   unsigned int radius{15};                                                    // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
   int bottom{168};
+  bool beacon_lighting{true};
 };
 
 class city_renderer {
@@ -45,7 +46,7 @@ private:
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
     std::span<game::city_cell const, 128 * 128> cells, city_view view, std::uint8_t damage_mask,
-    model_colours const &colours, model_animation animation);
+    distance_shading const &lighting, model_animation animation);
 };
 
 void collect_city_cells(std::span<game::city_cell const, 128 * 128> cells, std::uint8_t column, std::uint8_t row,

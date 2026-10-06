@@ -148,6 +148,14 @@ auto main(int const argc, char const *const argv[])->int try {
   for(auto const &sample : darker::test_reference::city_frame_samples) {
     darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
     auto cells{darker::game::make_city_map(archives.load({.archive{0}, .slot{sample.slot == 30 ? 68u : 69u}}), sample.slot == 30)};
+    if(sample.slot == 30) {
+      for(std::size_t row{0}; row < 128; row += 9) {
+        for(std::size_t column{0}; column < 128; column += 9) {
+          auto &cell{cells[row * 128 + column]};
+          if(cell.type == 1) cell.state = static_cast<std::uint8_t>(sample.light);
+        }
+      }
+    }
     std::array<std::uint8_t, 256> limits{};
     for(std::size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
     darker::game::assign_city_variants(cells, limits);
@@ -160,14 +168,14 @@ auto main(int const argc, char const *const argv[])->int try {
       .column{static_cast<std::uint16_t>(sample.column)}, .row{static_cast<std::uint16_t>(sample.row)},
       .altitude{static_cast<std::int16_t>(sample.altitude)},
       .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}},
+      .beacon_lighting{sample.slot == 30},
     };
-    darker::graphics::model_colours colours{};
-    for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
+    darker::graphics::distance_shading const lighting;
     darker::graphics::model_animation animation{};
     darker::graphics::update_fountain_parameters(animation, static_cast<std::uint16_t>(sample.clock));
     framework::render::indexed_cockpit_framebuffer frame{};
     darker::graphics::city_renderer scene;
-    auto const count{scene.draw(frame, bank, cells, view, sample.slot == 30 ? 0x20 : 0x60, colours, animation)};
+    auto const count{scene.draw(frame, bank, cells, view, sample.slot == 30 ? 0x20 : 0x60, lighting, animation)};
     std::uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     if(count != sample.count || fingerprint != sample.frame) throw std::runtime_error{std::format(

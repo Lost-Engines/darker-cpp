@@ -34,7 +34,7 @@ Use `--craft skimma` or `--craft upgraded` to explore Halon. Temporary inspectio
 
 The original **hold Insert / keypad 0** binding displays the enlarged Caero radar. Compass and grid coordinates follow the inspection camera; gauges and weapon displays remain sample values, and there are no radar contacts yet. The older instrument-adjustment controls have been removed.
 
-The scene currently uses the original Gouraud-off mode with an unattenuated shade table. Distance shading, original palette/display handling and gameplay camera integration remain to come. Source RGB and square-pixel presentation are inspection conventions. `--output /tmp/city.ppm` renders the initial view headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
+The scene currently uses the original Gouraud-off mode with original distance shading and Delphi beacon-state lighting. Gouraud interpolation, original palette/display handling and gameplay camera integration remain to come. Source RGB and square-pixel presentation are inspection conventions. `--output /tmp/city.ppm` renders the initial view headlessly; `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure
 

@@ -45,7 +45,7 @@ resolves palette groups through a supplied distance shade table. Dynamic colour
 codes use the original byte wrapping and clamp. The distance branch tests the
 sign bit of a byte subtraction, including its wrap, rather than a host signed
 comparison. Unsupported commands fail explicitly; this is not yet a complete
-world renderer. Gouraud interpolation and distance-shade setup remain separate work. Gouraud commands are supported
+world renderer. Gouraud interpolation remains separate work. Gouraud commands are supported
 through the original flat fallback (`312A`), skipping each vertex shade operand.
 
 `tools/generate_model_renderer_reference.py WORKSPACE` captures 108 complete
@@ -161,9 +161,11 @@ flat-distance threshold. There are 1,564 native placement/cull cases across all
 order; ordinary entries sort by decreasing distance with stable ties, matching
 the original list and tree traversal.
 
-Twelve complete scene frames execute original setup, traversal, placement,
-ordering, bytecode and drawing in Unicorn. The capture supplies an identity
-shade table and disables Gouraud interpolation, matching the current C++ mode.
+Twenty-four complete scene frames execute original setup, traversal, placement,
+ordering, beacon selection, distance-shade selection, bytecode and drawing in
+Unicorn. Gouraud interpolation is disabled, matching the current C++ mode.
+Delphi cases include beacon strengths 255, 128 and zero; Halon uses its native
+constant-strength path. These replace the earlier identity-table scene fixtures.
 The original-pack integration check compares initial map bytes, accepted model
 counts and all 76,800 framebuffer pixels via fingerprints. These are composition
 checks in addition to the individual routine fixtures, not comparisons against
@@ -177,6 +179,42 @@ Regenerate the additional fixtures with `tools/generate_near_clip_reference.py`,
 The generators require Unicorn and access to the original unpacked image;
 ordinary unit tests require neither.
 
+## Distance shading and beacon lighting
+
+`graphics::distance_shading` translates `B73C–B77F`: 60 rows of 28 shade entries
+for city scenes, or 28 rows for underground. Each shade starts with fractional
+value 128. Its signed step towards shade one is divided using IDIV truncation;
+ordered subtraction generates each successive distance row. Tests compare every
+byte of both complete native tables, plus 448 selections across light strengths,
+distance boundaries, far saturation and negative near-path origin depths.
+
+`2CE4–2D04` selects one table per model from its origin depth. For strength `L`,
+the effective depth is `uint16(depth + 16*(255-L))`; its high byte selects the row,
+clamped to the final row. Near-path negative origin depths first become zero.
+The same rotation supplies `F0h | (L >> 4)` for special colour codes 28–31.
+Normal face colours retain their upper three palette-range bits and replace the
+lower shade through the selected table. This is palette-index arithmetic, not
+RGB interpolation, a new fog equation or per-face illumination.
+
+Delphi's `2D85` obtains `L` from the state byte of the nearest nine-cell lattice
+position, using the same startup coordinate mapping as beacon charging. Unlike
+the charging routine, this renderer does not check for type one. All valid city
+coordinates map to `9*floor((coordinate+4)/9)`; native whole-scene comparisons
+exercise the lookup and mutable state together. Halon's `2DAC` supplies strength
+255 independently of beacon state. The city renderer now uses these paths for
+every selected model, including linked alternate/damage models.
+
+Consequently, a beacon outage changes the nearby buildings' shade selection and
+special colours as well as charging capability. The new scene fixtures set
+strengths directly to verify rendering; mission-driven outages are not connected
+to the application yet. The table generator accepts both original scene sizes,
+but this does not implement underground visibility.
+
+Regenerate lighting fixtures with `tools/generate_model_lighting_reference.py
+WORKSPACE` and composed scene fixtures with `tools/generate_city_frame_reference.py
+WORKSPACE`. The scene capture now executes the original lighting routines without
+the earlier identity-shading hook.
+
 ## Application milestone
 
 The single `darker` application now assembles the original city rather than an
@@ -186,11 +224,11 @@ which are converted at the boundary into the renderer's original fixed-point
 fields. They are not flight physics and will be removed when gameplay supplies
 the camera. The old instrument-adjustment controls have been retired.
 
-The scene uses flat mode and an identity shade table. The viewport is clipped
+The scene uses flat mode with original distance shading and beacon-state lighting. The viewport is clipped
 before the Caero's eight-row destination offset is applied. Compass and map-grid
 coordinates follow the camera, while cockpit gauges and weapon displays remain
 explicit sample values. No moving objects, collision handling, mission state,
-underground scenes or distance attenuation are connected yet.
+underground scenes or Gouraud interpolation are connected yet.
 
 An isolated Xvfb/Mesa run exercised mouse look, forward/sideways movement, height
 changes, enlarged radar, resizing and Escape. Headless renders cover all three

@@ -81,6 +81,8 @@ add_library(darker_graphics STATIC
   src/graphics/screen_primitives.h
   src/graphics/near_clip.cpp
   src/graphics/near_clip.h
+  src/graphics/model_lighting.cpp
+  src/graphics/model_lighting.h
   src/graphics/model_renderer.cpp
   src/graphics/model_renderer.h
   src/graphics/city_scene.cpp
@@ -187,6 +189,7 @@ if(BUILD_TESTING)
     tests/screen_primitives_test.cpp
     tests/near_clip_test.cpp
     tests/model_animation_test.cpp
+    tests/model_lighting_test.cpp
     tests/model_renderer_test.cpp
     tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp

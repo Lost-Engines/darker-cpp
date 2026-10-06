@@ -116,7 +116,7 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
 
 std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
   std::span<game::city_cell const, 128 * 128> const cells, city_view const view, std::uint8_t const damage_mask,
-  model_colours const &colours, model_animation animation) {
+  distance_shading const &lighting, model_animation animation) {
   /// Assemble and draw the ordinary city path; underground visibility propagation and dynamic objects remain separate
   auto const basis{make_camera_basis(view.angles)};
   camera_position const camera{
@@ -134,6 +134,14 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       .axes{basis}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
       .depth{item.placement.depth}, .origin{view.origin},
     };
+    std::uint8_t light{255};
+    if(view.beacon_lighting) {
+      // 2D85 samples the nearest lattice cell's state without the charging routine's type check
+      auto const column{((item.cell % 128 + 4) / 9) * 9};
+      auto const row{((item.cell / 128 + 4) / 9) * 9};
+      light = cells[row * 128 + column].state;
+    }
+    auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     animation.cell_state = cells[item.cell].state;
     draw_flat_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation);
   }

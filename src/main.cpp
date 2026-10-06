@@ -122,17 +122,17 @@ auto main(int const argc, char const *const argv[])->int try {
     camera.angles.pitch = 0;
   }
   darker::graphics::city_renderer scene;
-  darker::graphics::model_colours colours{};
-  for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
+  darker::graphics::distance_shading const lighting;
   framework::render::indexed_cockpit_framebuffer display{}, world{};
   framework::render::cockpit_framebuffer output;
   auto const render{[&](std::uint16_t const clock, bool const enlarged){
     int const height{caero ? 168 : 180};
-    auto const view{camera.view(height)};
+    auto view{camera.view(height)};
+    view.beacon_lighting = caero;
     darker::graphics::model_animation animation;
     darker::graphics::update_fountain_parameters(animation, clock);
     world.pixels.fill(0);
-    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, colours, animation)};
+    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation)};
     display = cockpit;
     darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{caero ? 8 : 0}}, 320, height);
     darker::graphics::radar_view_state const navigation{
@@ -184,7 +184,7 @@ auto main(int const argc, char const *const argv[])->int try {
   });
   framework::platform::framebuffer_presenter presenter{*window};
   std::cout << "City inspection: W/A/S/D move; R/F rise/lower; left-drag look; Insert/keypad 0 enlarged radar; Escape close." << std::endl;
-  std::cout << "Free camera only: no flight, collisions or missions. Flat shading without distance attenuation; gauges remain sample values." << std::endl;
+  std::cout << "Free camera only: no flight, collisions or missions. Original distance shading in flat mode; gauges remain sample values." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   auto previous{start};
   while(!glfwWindowShouldClose(window.get())) {
