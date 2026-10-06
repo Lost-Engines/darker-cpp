@@ -18,6 +18,7 @@
 #include "game/city_map.h"
 #include "game/flight_camera.h"
 #include "game/game_clock.h"
+#include "game/hangar.h"
 #include "game/player_flight.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/city_scene.h"
@@ -39,6 +40,7 @@ struct flight_host {
   darker::game::player_flight player{};
   darker::audio::flight_sounds sounds;
   darker::game::flight_camera camera;
+  darker::game::hangar_state hangar;
   bool shield_ready{false};
   bool gouraud{true};
   bool restart_requested{false};
@@ -105,12 +107,8 @@ auto main(int const argc, char const *const argv[])->int try {
   for(std::size_t i{0}; i < bank.city_types().size(); ++i) variant_limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, variant_limits);
   flight_host host;
-  // Temporary airborne checkpoint replaces the inspection camera until original scenario initialisation is connected.
   if(caero) {
-    host.player.craft = darker::game::caero_flight_state{
-      .pose{.position{14976, 18816, 3072}, .speed{1000}},
-      .energy{.buffer{8192}, .reserve{0xcfff}, .boost{0xbfff}}, .horizontal_velocity{1000}, .flying{true},
-    };
+    darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);
   } else {
     host.player.craft = darker::game::skimma_flight_state{
       .pose{.position{12672, 14976, 1536}, .speed{500}}, .damage{.shield_charge{0xbfff}}, .horizontal_velocity{500},
@@ -139,6 +137,7 @@ auto main(int const argc, char const *const argv[])->int try {
     view.beacon_lighting = caero;
     view.gouraud = host.gouraud;
     darker::graphics::model_animation animation;
+    animation.parameters[0] = std::bit_cast<std::int16_t>(host.hangar.extension);
     darker::graphics::update_fountain_parameters(animation, clock);
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
     std::array<darker::graphics::scene_object, 1> const objects{{{.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}}}};
@@ -272,8 +271,9 @@ auto main(int const argc, char const *const argv[])->int try {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
-  std::cout << "Original flight, charging, city collisions and flight cameras. Airborne checkpoint; missions, weapons, world sound and original death screens are not connected yet." << std::endl;
+  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
+  std::cout << (caero ? "Caero HQ launch: press E to charge boost cells, then Enter and pull up (Down arrow)." : "Skimma airborne checkpoint.") << std::endl;
+  std::cout << "Mission actors, weapons, world sound and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -282,6 +282,7 @@ auto main(int const argc, char const *const argv[])->int try {
     if(host.restart_requested) {
       host.player = initial_player;
       host.camera = {};
+      host.hangar = {};
       host.sounds = {};
       host.shield_ready = false;
       if(audio_device) audio.publish({});
@@ -291,7 +292,7 @@ auto main(int const argc, char const *const argv[])->int try {
       host.clock = 0;
       host.restart_requested = false;
       game_clock = {};
-      std::cout << "Restarted the airborne checkpoint." << std::endl;
+      std::cout << (caero ? "Returned to the HQ launch." : "Restarted the airborne checkpoint.") << std::endl;
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
@@ -304,7 +305,9 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     auto const contact{host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
       step, game_clock.frame_ticks, bank, cells)};
-    if(contact.contact != darker::game::city_contact::none) {
+    if(caero) darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+    if(contact.contact != darker::game::city_contact::none
+      && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")
                 << "; position " << host.player.pose().position[0] << ',' << host.player.pose().position[1] << ',' << host.player.pose().position[2] << std::endl;
     }

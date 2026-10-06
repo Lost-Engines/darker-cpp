@@ -143,6 +143,8 @@ target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resour
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/hangar.cpp
+  src/game/hangar.h
   src/game/city_map.cpp
   src/game/city_map.h
   src/game/angular_motion.cpp
@@ -234,6 +236,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/hangar_test.cpp
     tests/font_test.cpp
     tests/scenario_test.cpp
     tests/support/sine_wave.cpp
