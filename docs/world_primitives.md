@@ -86,3 +86,23 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_placement_reference.py ..
 ```
 
 All **49 CTest cases** and **381 cockpit comparisons** pass following the shared-table move. The next integration boundary is assembling these verified operations into owned world/projectile records, then translating movement and collision. There is still no live firing simulation in the main application.
+
+## Owned projectile pool and assembled creation
+
+`projectile_pool` now owns twelve records at stable addresses, matching the projectile list at `6FB8` and count 0Ch supplied to `1D49`. It cannot be copied or moved, because active/free links point into its storage. Initialisation prepends records in storage order, so allocation starts at slot 11 and proceeds backwards. The native probe now executes `1D49` directly and checks that free-list order.
+
+`launch` combines the verified allocation, definition expansion and placement functions with the remaining constructor writes:
+
+- Deadline +68 is the wrapping sum of supplied clock and lifetime delta. This is a projectile deadline, not a firing interval.
+- +56 receives the emitter's original roll, even if a placement branch subsequently changes projectile orientation.
+- +6C receives the supplied target token.
+- Flags +7 become 20h and lifecycle +46 becomes FEh.
+- Angular-motion words +26/+28 are cleared. Word +24 is **retained**, including after recycling.
+
+There is no blanket record reset. Definitions are non-owning references to stable data; callers must keep them alive. The pool's `recycle` operation accepts an active member and returns its next active neighbour, preserving the list-walker convention.
+
+If the pool is exhausted, C++ `launch` returns null without mutation or eviction. Original callers check capacity before entering `CB01`, whose inner allocator has no safe constructor-level exhaustion branch. The C++ check is an explicit boundary safeguard, not a claim that executing native `CB01` without a free record is valid.
+
+The typed `projectile` currently contains the fields required for creation and the retained angular-motion words. It is not yet the complete native runtime object; further movement, collision and lifecycle fields will be introduced with their consumers. Target tokens retain their native encoding until object/cell target resolution is implemented. This pool does not yet provide firing input, ammo consumption, target resolution, clock advancement or projectile movement, and the main application remains the cockpit milestone.
+
+The 160 complete native launch fixtures now include fifteen constructor metadata values as well as placement. An assembled C++ test checks all of them after recycling a record with nonzero angular state. A separate pool integration test fills all twelve slots, checks identities/order, attempts an exhausted launch and recycles/relaunches a middle record. All **51 CTest cases** pass. No new executable or inspection controls were added.

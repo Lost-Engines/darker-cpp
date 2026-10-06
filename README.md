@@ -39,7 +39,7 @@ The original **hold Insert / keypad 0** binding displays the enlarged Caero rada
 
 ## Structure
 
-`src/game` contains platform-independent gameplay state calculations, including Skimma weapon state, typed object definitions, projectile launch placement, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask and cockpit logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
+`src/game` contains platform-independent gameplay state calculations, including Skimma weapon state, typed object definitions, owned projectile creation, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask and cockpit logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Current playback is silent until game audio is connected; the proof-of-concept oscillator lives only in test support.
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
