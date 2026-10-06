@@ -9,10 +9,12 @@
 #include <stdexcept>
 #include <string>
 #include <boost/program_options.hpp>
+#include "game/city_collision.h"
 #include "graphics/camera.h"
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
 #include "reference/camera_samples.h"
+#include "reference/city_collision_samples.h"
 #include "reference/city_frame_samples.h"
 #include "reference/city_placement_samples.h"
 #include "reference/geometry_bank_samples.h"
@@ -64,6 +66,23 @@ auto main(int const argc, char const *const argv[])->int try {
       }
     }
     if(fingerprint != sample.fingerprint) throw std::runtime_error{"City model state selection differs from the native reference"};
+  }
+  for(unsigned int const slot : {30, 31, 32}) {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{slot}})};
+    for(auto const &sample : darker::test_reference::city_collision_samples) {
+      if(sample.slot != slot) continue;
+      auto const boxes{darker::game::city_collision_boxes(bank, sample.type, static_cast<std::uint8_t>(sample.state),
+        static_cast<std::uint8_t>(sample.slot == 30 ? 0x20 : 0x60), 20, 20, static_cast<std::uint16_t>(sample.expansion))};
+      std::uint64_t fingerprint{0xcbf29ce484222325};
+      for(auto const &box : boxes) {
+        for(unsigned int const value : {box.minimum[0], box.minimum[1], box.minimum[2], box.maximum[0], box.maximum[1], box.maximum[2], static_cast<std::uint16_t>(box.category)}) {
+          for(auto const byte : {value & 255, value >> 8}) fingerprint = (fingerprint ^ byte) * 0x100000001b3;
+        }
+      }
+      if(boxes.size() != sample.count || fingerprint != sample.fingerprint) {
+        throw std::runtime_error{std::format("City collision decoding differs from native reference: bank {}, type {}, state {}, expansion {}", sample.slot, sample.type, sample.state, sample.expansion)};
+      }
+    }
   }
   for(auto const &sample : darker::test_reference::original_model_samples) {
     darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
