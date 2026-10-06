@@ -33,7 +33,7 @@ struct city_view {
   std::int16_t altitude{0};
   camera_angles angles{};
   screen_vertex origin{.x{160}, .y{84}};
-  unsigned int radius{8};
+  unsigned int radius{15};                                                    // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
   int bottom{168};
 };
 

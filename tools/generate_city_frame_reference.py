@@ -53,7 +53,7 @@ def main():
             for register, angle in [('DI', heading), ('BX', pitch), ('CX', 0)]:
                 native.setreg(register, (((angle+15)&65535)>>6)*2)
             call(0x26c4)
-            for at, value in ((0x2700, column), (0x271b, row), (0x270c, 0), (0x2e36, altitude), (0x26ef, 8),
+            for at, value in ((0x2700, column), (0x271b, row), (0x270c, 0), (0x2e36, altitude), (0x26ef, 15),
                               (0xfdf0, 0x6000), (0x3142, 0x1fc0), (0x30df, 0x1fe0), (0xfdec, 0x1000), (0xffec, 0x1000),
                               (0xfdf4, 0xa000), (0xfc13, 0x3515), (0xfe13, 0x32a8), (0x2d2f, 0x3515),
                               (0x2cb4, 0xf6), (0x2c63, 0x147), (0x2b1f, 0), (0x2af5, 0), (0xa296, 168),

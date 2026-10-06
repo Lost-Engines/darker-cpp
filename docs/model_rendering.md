@@ -139,8 +139,11 @@ Full initial map fingerprints match native setup for both cities.
 `collect_city_cells` translates `26EE`'s circular row spans and heading half-map
 selection. Steep pitches scan the full circle. Candidate order is retained, with
 192 native cases covering empty cells, map edges, headings, pitch and radius.
-This is the ordinary Delphi/Halon path; underground visibility propagation is
-not implemented here.
+The original setup at `BCE3–BCFB` installs radius 15 for map modes below four
+(Delphi/Halon), and radius eight for underground modes. The application uses
+15; its initial eight-cell inspection radius was a milestone mistake, corrected
+after the short-distance pop-in was noticed. This is the ordinary Delphi/Halon
+path; underground visibility propagation is not implemented here.
 
 `place_city_cell` translates `2A1A`: linked state selection, type-relative origin,
 header height and extent, signed culling, near/direct path selection, and the
