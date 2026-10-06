@@ -16,6 +16,7 @@
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
 #include "audio/flight_sounds.h"
+#include "audio/world_sounds.h"
 #include "audio/fm_stream.h"
 #include "game/mission_combat.h"
 #include "game/city_map.h"
@@ -44,6 +45,7 @@ namespace {
 struct flight_host {
   darker::game::player_flight player{};
   darker::audio::flight_sounds sounds;
+  darker::audio::world_sounds world_audio;
   darker::game::flight_camera camera;
   darker::game::hangar_state hangar;
   darker::game::mission_combat *combat{nullptr};
@@ -368,6 +370,7 @@ auto main(int const argc, char const *const argv[])->int try {
       host.camera = {};
       host.hangar = {};
       host.sounds = {};
+      host.world_audio = {};
       host.shield_ready = false;
       if(audio_device) audio.publish({});
       cells = initial_cells;
@@ -434,7 +437,11 @@ auto main(int const argc, char const *const argv[])->int try {
     host.clock = clock;
     auto const count{render(clock, enlarged, step)};
     if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
-    if(audio_device) audio.publish(host.sounds.advance(host.player, clock, host.shield_ready, host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen));
+    if(audio_device) {
+      auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
+        host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
+      audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
+    }
     auto const status{host.briefing ? " - briefing: Space/Enter to continue"
       : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete: Enter to restart"
       : host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight"};

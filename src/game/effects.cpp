@@ -64,6 +64,21 @@ void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const p
     if(emitters.size() == 25) emitters.erase(emitters.begin());
     emitters.push_back(emitter);
   }
+  for(auto const &sound : found->sounds) {
+    if(sounds.size() == 16) sounds.erase(sounds.begin());
+    sounds.push_back({.position{position}, .definition{sound}, .deadline{static_cast<uint16_t>(clock + sound.duration)}, .identity{next_sound_identity++}});
+  }
+}
+
+void effect_system::gun_impact(std::array<uint16_t, 3> position, bool const hit, uint16_t const clock) {
+  /// 6730/6742 create a short endpoint sprite and an independently timed patch-22 sound
+  position[2] &= 0xfff8;
+  if(trails.size() == 20) trails.erase(trails.begin());
+  trails.push_back({.position{position}, .start{clock}, .flags{static_cast<uint8_t>(hit ? 3 : 6)}});
+  if(gun_sounds.size() == 16) gun_sounds.erase(gun_sounds.begin());
+  gun_sounds.push_back({.position{position}, .definition{.duration{256}, .pitch{0x203},
+    .level{static_cast<uint16_t>(hit ? 0xde30 : 0xce30)}, .patch{22}, .flags{1}},
+    .deadline{static_cast<uint16_t>(clock + 256)}, .identity{next_sound_identity++}});
 }
 
 void effect_system::trail(std::array<uint16_t, 3> const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {
@@ -77,6 +92,9 @@ void effect_system::advance(uint16_t const clock, uint16_t const step) {
   auto const expired{[&](auto const &emitter){
     return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - emitter.start)) > (emitter.flags & 127) * 64;
   }};
+  auto const sound_expired{[&](auto const &sound){ return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - sound.deadline)) >= 0; }};
+  std::erase_if(sounds, sound_expired);
+  std::erase_if(gun_sounds, sound_expired);
   std::erase_if(emitters, expired);
   std::erase_if(trails, expired);
   for(auto &emitter : emitters) advance_emitter(emitter, clock, step);

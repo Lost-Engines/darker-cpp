@@ -76,7 +76,8 @@ The application constructs the first mission's two slot-19 aircraft from
 fly in Delphi, appear as models and radar contacts, and reset with the player.
 Their close-range gun, Pinner hits, falling/death responses and objective removal
 are now connected through [first-mission combat](first_mission.md). Actor lighting,
-ramming, combat sound and general scenario callbacks remain outstanding. Original
+ramming and general scenario callbacks remain outstanding. Combat sound and gun
+endpoint effects are now connected. Original
 sprite bursts and damage trails now accompany aircraft hits and destruction.
 
 An integration comparison executes original `8823` on the original Delphi map

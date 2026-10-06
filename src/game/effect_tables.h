@@ -18,6 +18,12 @@ inline std::array<emitter_definition, 10> constexpr recipe_7014{{
   {.delay{0}, .offset{0, 0, 0}, .radius{192}, .angle{2560}, .sampling{10508}, .radius_rate{13}, .height_rate{4}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{256}, .angle{0}, .sampling{10508}, .radius_rate{15}, .height_rate{0}, .angle_rate{0}, .flags{15}},
 }};
+inline std::array<effect_sound_definition, 4> constexpr sounds_7014{{
+  {.duration{1536}, .pitch{614}, .level{26111}, .patch{15}, .flags{5}},
+  {.duration{1280}, .pitch{34944}, .level{62207}, .patch{16}, .flags{5}},
+  {.duration{1280}, .pitch{686}, .level{65535}, .patch{19}, .flags{5}},
+  {.duration{1280}, .pitch{728}, .level{61439}, .patch{19}, .flags{5}},
+}};
 inline std::array<emitter_definition, 6> constexpr recipe_7050{{
   {.delay{230}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{12}, .height_rate{5}, .angle_rate{1}, .flags{141}},
   {.delay{50}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{12810}, .radius_rate{11}, .height_rate{0}, .angle_rate{2}, .flags{8}},
@@ -25,6 +31,12 @@ inline std::array<emitter_definition, 6> constexpr recipe_7050{{
   {.delay{0}, .offset{0, 0, 0}, .radius{128}, .angle{0}, .sampling{18183}, .radius_rate{8}, .height_rate{8}, .angle_rate{7}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{192}, .angle{2560}, .sampling{10508}, .radius_rate{13}, .height_rate{4}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{256}, .angle{0}, .sampling{10508}, .radius_rate{15}, .height_rate{0}, .angle_rate{0}, .flags{15}},
+}};
+inline std::array<effect_sound_definition, 4> constexpr sounds_7050{{
+  {.duration{1536}, .pitch{614}, .level{26111}, .patch{15}, .flags{5}},
+  {.duration{1280}, .pitch{34944}, .level{62207}, .patch{16}, .flags{5}},
+  {.duration{1280}, .pitch{686}, .level{65535}, .patch{19}, .flags{5}},
+  {.duration{1280}, .pitch{728}, .level{61439}, .patch{19}, .flags{5}},
 }};
 inline std::array<emitter_definition, 10> constexpr recipe_70c3{{
   {.delay{50}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{32516}, .radius_rate{2}, .height_rate{-6}, .angle_rate{0}, .flags{15}},
@@ -38,6 +50,11 @@ inline std::array<emitter_definition, 10> constexpr recipe_70c3{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{8}, .height_rate{4}, .angle_rate{0}, .flags{9}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{2560}, .sampling{10508}, .radius_rate{10}, .height_rate{0}, .angle_rate{0}, .flags{9}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_70c3{{
+  {.duration{608}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 7> constexpr recipe_70f0{{
   {.delay{50}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{32516}, .radius_rate{2}, .height_rate{-8}, .angle_rate{0}, .flags{9}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{4}, .height_rate{-6}, .angle_rate{0}, .flags{9}},
@@ -46,6 +63,11 @@ inline std::array<emitter_definition, 7> constexpr recipe_70f0{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{4}, .height_rate{6}, .angle_rate{0}, .flags{9}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{8}, .height_rate{4}, .angle_rate{0}, .flags{9}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{2560}, .sampling{10508}, .radius_rate{10}, .height_rate{0}, .angle_rate{0}, .flags{9}},
+}};
+inline std::array<effect_sound_definition, 3> constexpr sounds_70f0{{
+  {.duration{608}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
 }};
 inline std::array<emitter_definition, 7> constexpr recipe_716c{{
   {.delay{50}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{32516}, .radius_rate{4}, .height_rate{-16}, .angle_rate{0}, .flags{15}},
@@ -56,20 +78,37 @@ inline std::array<emitter_definition, 7> constexpr recipe_716c{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{16}, .height_rate{8}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{2560}, .sampling{10508}, .radius_rate{20}, .height_rate{0}, .angle_rate{0}, .flags{15}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_716c{{
+  {.duration{608}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 4> constexpr recipe_7199{{
   {.delay{50}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{32516}, .radius_rate{4}, .height_rate{16}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{8}, .height_rate{12}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{16}, .height_rate{8}, .angle_rate{0}, .flags{15}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{2560}, .sampling{10508}, .radius_rate{20}, .height_rate{0}, .angle_rate{0}, .flags{15}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7199{{
+  {.duration{608}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 3> constexpr recipe_71e8{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{25349}, .radius_rate{8}, .height_rate{0}, .angle_rate{0}, .flags{4}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{4352}, .sampling{32516}, .radius_rate{8}, .height_rate{8}, .angle_rate{0}, .flags{5}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{6400}, .sampling{43267}, .radius_rate{4}, .height_rate{-4}, .angle_rate{4}, .flags{4}},
 }};
+inline std::array<effect_sound_definition, 1> constexpr sounds_71e8{{
+  {.duration{480}, .pitch{1836}, .level{61439}, .patch{26}, .flags{1}},
+}};
 inline std::array<emitter_definition, 2> constexpr recipe_721c{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{25861}, .radius_rate{12}, .height_rate{36}, .angle_rate{0}, .flags{4}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{10752}, .sampling{32516}, .radius_rate{16}, .height_rate{20}, .angle_rate{0}, .flags{5}},
+}};
+inline std::array<effect_sound_definition, 2> constexpr sounds_721c{{
+  {.duration{512}, .pitch{515}, .level{65535}, .patch{14}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
 }};
 inline std::array<emitter_definition, 4> constexpr recipe_7247{{
   {.delay{320}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{4}, .height_rate{24}, .angle_rate{0}, .flags{8}},
@@ -77,16 +116,29 @@ inline std::array<emitter_definition, 4> constexpr recipe_7247{{
   {.delay{100}, .offset{0, 0, 0}, .radius{0}, .angle{10752}, .sampling{21508}, .radius_rate{8}, .height_rate{16}, .angle_rate{-60}, .flags{139}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{3072}, .sampling{13577}, .radius_rate{8}, .height_rate{8}, .angle_rate{40}, .flags{141}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7247{{
+  {.duration{1088}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{1088}, .pitch{408}, .level{39167}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 4> constexpr recipe_7296{{
   {.delay{320}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{4}, .height_rate{24}, .angle_rate{0}, .flags{8}},
   {.delay{200}, .offset{0, 0, 0}, .radius{0}, .angle{10752}, .sampling{32516}, .radius_rate{8}, .height_rate{20}, .angle_rate{0}, .flags{138}},
   {.delay{100}, .offset{0, 0, 0}, .radius{0}, .angle{10752}, .sampling{21508}, .radius_rate{8}, .height_rate{16}, .angle_rate{-60}, .flags{139}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{3072}, .sampling{13577}, .radius_rate{8}, .height_rate{8}, .angle_rate{40}, .flags{141}},
 }};
+inline std::array<effect_sound_definition, 2> constexpr sounds_7296{{
+  {.duration{1088}, .pitch{433}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{43007}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 3> constexpr recipe_72df{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{18183}, .radius_rate{12}, .height_rate{0}, .angle_rate{0}, .flags{8}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{4352}, .sampling{32516}, .radius_rate{8}, .height_rate{8}, .angle_rate{0}, .flags{8}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{60928}, .sampling{32516}, .radius_rate{8}, .height_rate{-8}, .angle_rate{0}, .flags{8}},
+}};
+inline std::array<effect_sound_definition, 2> constexpr sounds_72df{{
+  {.duration{608}, .pitch{408}, .level{65535}, .patch{20}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{37119}, .patch{27}, .flags{5}},
 }};
 inline std::array<emitter_definition, 6> constexpr recipe_7319{{
   {.delay{320}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{16136}, .radius_rate{24}, .height_rate{0}, .angle_rate{15}, .flags{137}},
@@ -96,10 +148,20 @@ inline std::array<emitter_definition, 6> constexpr recipe_7319{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{2560}, .sampling{12810}, .radius_rate{12}, .height_rate{-4}, .angle_rate{0}, .flags{14}},
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{16}, .height_rate{0}, .angle_rate{0}, .flags{142}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7319{{
+  {.duration{1088}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 3> constexpr recipe_7386{{
   {.delay{0}, .offset{0, 0, 0}, .radius{0}, .angle{39936}, .sampling{16136}, .radius_rate{2}, .height_rate{4}, .angle_rate{3}, .flags{12}},
   {.delay{5}, .offset{0, 0, 0}, .radius{16}, .angle{7168}, .sampling{14083}, .radius_rate{4}, .height_rate{6}, .angle_rate{1}, .flags{6}},
   {.delay{12}, .offset{0, 0, 0}, .radius{16}, .angle{39936}, .sampling{10498}, .radius_rate{5}, .height_rate{7}, .angle_rate{1}, .flags{6}},
+}};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7386{{
+  {.duration{1088}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{62207}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
 }};
 inline std::array<emitter_definition, 11> constexpr recipe_73c6{{
   {.delay{2}, .offset{0, 0, 256}, .radius{6500}, .angle{2560}, .sampling{12810}, .radius_rate{20}, .height_rate{20}, .angle_rate{0}, .flags{15}},
@@ -114,6 +176,11 @@ inline std::array<emitter_definition, 11> constexpr recipe_73c6{{
   {.delay{220}, .offset{-60, 20, 0}, .radius{110}, .angle{21760}, .sampling{21510}, .radius_rate{3}, .height_rate{0}, .angle_rate{-1}, .flags{142}},
   {.delay{270}, .offset{40, 30, 0}, .radius{140}, .angle{768}, .sampling{16136}, .radius_rate{5}, .height_rate{2}, .angle_rate{-3}, .flags{142}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_73c6{{
+  {.duration{512}, .pitch{364}, .level{58879}, .patch{20}, .flags{5}},
+  {.duration{512}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
+}};
 inline std::array<emitter_definition, 9> constexpr recipe_747e{{
   {.delay{0}, .offset{0, 0, 0}, .radius{2000}, .angle{0}, .sampling{7696}, .radius_rate{12}, .height_rate{1}, .angle_rate{1}, .flags{143}},
   {.delay{2}, .offset{0, 0, 192}, .radius{5200}, .angle{2560}, .sampling{16136}, .radius_rate{9}, .height_rate{-1}, .angle_rate{0}, .flags{15}},
@@ -125,6 +192,11 @@ inline std::array<emitter_definition, 9> constexpr recipe_747e{{
   {.delay{14}, .offset{0, 0, 1344}, .radius{5200}, .angle{15360}, .sampling{16136}, .radius_rate{3}, .height_rate{-7}, .angle_rate{6}, .flags{15}},
   {.delay{20}, .offset{0, 0, 0}, .radius{2000}, .angle{2048}, .sampling{7696}, .radius_rate{14}, .height_rate{4}, .angle_rate{0}, .flags{143}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_747e{{
+  {.duration{512}, .pitch{364}, .level{58879}, .patch{20}, .flags{5}},
+  {.duration{512}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
+}};
 inline std::array<emitter_definition, 8> constexpr recipe_7518{{
   {.delay{0}, .offset{0, 0, 256}, .radius{64}, .angle{0}, .sampling{16136}, .radius_rate{12}, .height_rate{-1}, .angle_rate{1}, .flags{143}},
   {.delay{8}, .offset{0, 0, 512}, .radius{32}, .angle{2560}, .sampling{25861}, .radius_rate{9}, .height_rate{-2}, .angle_rate{0}, .flags{15}},
@@ -135,9 +207,19 @@ inline std::array<emitter_definition, 8> constexpr recipe_7518{{
   {.delay{48}, .offset{0, 0, 1792}, .radius{32}, .angle{15360}, .sampling{25861}, .radius_rate{3}, .height_rate{-12}, .angle_rate{0}, .flags{15}},
   {.delay{50}, .offset{0, 0, 320}, .radius{32}, .angle{2048}, .sampling{16136}, .radius_rate{10}, .height_rate{-2}, .angle_rate{0}, .flags{143}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7518{{
+  {.duration{1088}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{52223}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{45823}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 2> constexpr recipe_75a3{{
   {.delay{0}, .offset{0, 0, 0}, .radius{32}, .angle{0}, .sampling{16136}, .radius_rate{-4}, .height_rate{0}, .angle_rate{15}, .flags{138}},
   {.delay{0}, .offset{0, 0, 128}, .radius{20}, .angle{0}, .sampling{21510}, .radius_rate{-3}, .height_rate{-2}, .angle_rate{15}, .flags{138}},
+}};
+inline std::array<effect_sound_definition, 3> constexpr sounds_75a3{{
+  {.duration{1088}, .pitch{408}, .level{65535}, .patch{23}, .flags{5}},
+  {.duration{416}, .pitch{408}, .level{65535}, .patch{24}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{32767}, .patch{27}, .flags{5}},
 }};
 inline std::array<emitter_definition, 24> constexpr recipe_75d4{{
   {.delay{0}, .offset{0, 0, 60}, .radius{48}, .angle{2560}, .sampling{25861}, .radius_rate{1}, .height_rate{3}, .angle_rate{-3}, .flags{143}},
@@ -165,6 +247,10 @@ inline std::array<emitter_definition, 24> constexpr recipe_75d4{{
   {.delay{8700}, .offset{0, 0, 60}, .radius{64}, .angle{3072}, .sampling{10508}, .radius_rate{6}, .height_rate{1}, .angle_rate{-3}, .flags{11}},
   {.delay{9350}, .offset{0, 0, 60}, .radius{64}, .angle{3072}, .sampling{10508}, .radius_rate{4}, .height_rate{1}, .angle_rate{-2}, .flags{9}},
 }};
+inline std::array<effect_sound_definition, 2> constexpr sounds_75d4{{
+  {.duration{496}, .pitch{408}, .level{65535}, .patch{20}, .flags{5}},
+  {.duration{448}, .pitch{408}, .level{58879}, .patch{27}, .flags{5}},
+}};
 inline std::array<emitter_definition, 7> constexpr recipe_7749{{
   {.delay{0}, .offset{0, 0, 56}, .radius{20}, .angle{0}, .sampling{21510}, .radius_rate{2}, .height_rate{24}, .angle_rate{16}, .flags{143}},
   {.delay{10}, .offset{0, 0, 56}, .radius{20}, .angle{5376}, .sampling{21510}, .radius_rate{3}, .height_rate{20}, .angle_rate{14}, .flags{143}},
@@ -174,38 +260,52 @@ inline std::array<emitter_definition, 7> constexpr recipe_7749{{
   {.delay{38}, .offset{0, 0, 56}, .radius{0}, .angle{0}, .sampling{10508}, .radius_rate{8}, .height_rate{4}, .angle_rate{2}, .flags{143}},
   {.delay{40}, .offset{0, 0, 56}, .radius{8}, .angle{2560}, .sampling{10508}, .radius_rate{12}, .height_rate{2}, .angle_rate{1}, .flags{143}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_7749{{
+  {.duration{512}, .pitch{364}, .level{61439}, .patch{20}, .flags{5}},
+  {.duration{512}, .pitch{433}, .level{42495}, .patch{28}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
+}};
 inline std::array<emitter_definition, 3> constexpr recipe_77c5{{
   {.delay{0}, .offset{0, 0, 128}, .radius{0}, .angle{0}, .sampling{32516}, .radius_rate{8}, .height_rate{0}, .angle_rate{6}, .flags{6}},
   {.delay{2}, .offset{8, -4, 160}, .radius{0}, .angle{10752}, .sampling{32516}, .radius_rate{5}, .height_rate{3}, .angle_rate{10}, .flags{5}},
   {.delay{8}, .offset{-6, 12, 96}, .radius{0}, .angle{2048}, .sampling{32516}, .radius_rate{6}, .height_rate{-2}, .angle_rate{4}, .flags{4}},
+}};
+inline std::array<effect_sound_definition, 2> constexpr sounds_77c5{{
+  {.duration{512}, .pitch{364}, .level{61439}, .patch{20}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
 }};
 inline std::array<emitter_definition, 3> constexpr recipe_77ff{{
   {.delay{0}, .offset{0, 0, 48}, .radius{40}, .angle{0}, .sampling{10508}, .radius_rate{16}, .height_rate{2}, .angle_rate{10}, .flags{12}},
   {.delay{2}, .offset{0, 0, 56}, .radius{16}, .angle{2560}, .sampling{16136}, .radius_rate{12}, .height_rate{8}, .angle_rate{16}, .flags{10}},
   {.delay{6}, .offset{0, 0, 32}, .radius{8}, .angle{0}, .sampling{16136}, .radius_rate{4}, .height_rate{12}, .angle_rate{30}, .flags{8}},
 }};
+inline std::array<effect_sound_definition, 3> constexpr sounds_77ff{{
+  {.duration{512}, .pitch{364}, .level{61439}, .patch{20}, .flags{5}},
+  {.duration{512}, .pitch{433}, .level{58879}, .patch{23}, .flags{5}},
+  {.duration{512}, .pitch{343}, .level{65535}, .patch{17}, .flags{5}},
+}};
 inline std::array<effect_recipe, 21> constexpr original_effect_recipes{{
-  {.address{0x7014}, .emitters{recipe_7014}},
-  {.address{0x7050}, .emitters{recipe_7050}},
-  {.address{0x70c3}, .emitters{recipe_70c3}},
-  {.address{0x70f0}, .emitters{recipe_70f0}},
-  {.address{0x716c}, .emitters{recipe_716c}},
-  {.address{0x7199}, .emitters{recipe_7199}},
-  {.address{0x71e8}, .emitters{recipe_71e8}},
-  {.address{0x721c}, .emitters{recipe_721c}},
-  {.address{0x7247}, .emitters{recipe_7247}},
-  {.address{0x7296}, .emitters{recipe_7296}},
-  {.address{0x72df}, .emitters{recipe_72df}},
-  {.address{0x7319}, .emitters{recipe_7319}},
-  {.address{0x7386}, .emitters{recipe_7386}},
-  {.address{0x73c6}, .emitters{recipe_73c6}},
-  {.address{0x747e}, .emitters{recipe_747e}},
-  {.address{0x7518}, .emitters{recipe_7518}},
-  {.address{0x75a3}, .emitters{recipe_75a3}},
-  {.address{0x75d4}, .emitters{recipe_75d4}},
-  {.address{0x7749}, .emitters{recipe_7749}},
-  {.address{0x77c5}, .emitters{recipe_77c5}},
-  {.address{0x77ff}, .emitters{recipe_77ff}},
+  {.address{0x7014}, .emitters{recipe_7014}, .sounds{sounds_7014}},
+  {.address{0x7050}, .emitters{recipe_7050}, .sounds{sounds_7050}},
+  {.address{0x70c3}, .emitters{recipe_70c3}, .sounds{sounds_70c3}},
+  {.address{0x70f0}, .emitters{recipe_70f0}, .sounds{sounds_70f0}},
+  {.address{0x716c}, .emitters{recipe_716c}, .sounds{sounds_716c}},
+  {.address{0x7199}, .emitters{recipe_7199}, .sounds{sounds_7199}},
+  {.address{0x71e8}, .emitters{recipe_71e8}, .sounds{sounds_71e8}},
+  {.address{0x721c}, .emitters{recipe_721c}, .sounds{sounds_721c}},
+  {.address{0x7247}, .emitters{recipe_7247}, .sounds{sounds_7247}},
+  {.address{0x7296}, .emitters{recipe_7296}, .sounds{sounds_7296}},
+  {.address{0x72df}, .emitters{recipe_72df}, .sounds{sounds_72df}},
+  {.address{0x7319}, .emitters{recipe_7319}, .sounds{sounds_7319}},
+  {.address{0x7386}, .emitters{recipe_7386}, .sounds{sounds_7386}},
+  {.address{0x73c6}, .emitters{recipe_73c6}, .sounds{sounds_73c6}},
+  {.address{0x747e}, .emitters{recipe_747e}, .sounds{sounds_747e}},
+  {.address{0x7518}, .emitters{recipe_7518}, .sounds{sounds_7518}},
+  {.address{0x75a3}, .emitters{recipe_75a3}, .sounds{sounds_75a3}},
+  {.address{0x75d4}, .emitters{recipe_75d4}, .sounds{sounds_75d4}},
+  {.address{0x7749}, .emitters{recipe_7749}, .sounds{sounds_7749}},
+  {.address{0x77c5}, .emitters{recipe_77c5}, .sounds{sounds_77c5}},
+  {.address{0x77ff}, .emitters{recipe_77ff}, .sounds{sounds_77ff}},
 }};
 inline std::array<uint16_t, 7> constexpr building_effect_recipes{0x7199, 0x7749, 0x7518, 0x747e, 0x73c6, 0x721c, 0x77ff};
 } // namespace darker::game

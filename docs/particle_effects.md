@@ -10,7 +10,8 @@ The artwork comes directly from the current cockpit sheet in the original packs.
 No converted images, alpha fades, interpolated sprite sizes or new effects assets
 are used. `generate_effect_tables.py` retains the executable's 21 emitter recipes,
 seven building bindings, five sprite selectors, row masks and distant point colours.
-Sound layers are not yet dispatched by this component.
+Sound layers now retain their original timing and parameters and feed the live
+FM path; see [combat audio](combat_audio.md).
 
 `effect_system` owns separate pools of up to 25 recipe emitters and 20 trail sprites,
 as initialised by `1D28/1D32`. At capacity the oldest active record is replaced,
@@ -64,9 +65,10 @@ Pool-pressure behaviour therefore still needs comparison during overlapping,
 off-screen effects. Exact render-list tie ordering, single-sprite subpixel details
 and first-update scheduling need a combined native scene fixture.
 
-Enemy gun flashes, player-crash recipes, other weapon callbacks and combat sound
-layers remain to be connected. Sound must preserve the original recipe parameters,
-spatial admission and voice competition rather than substituting preview recordings.
+Enemy gun endpoints now emit the original short sprite and timed patch-22 sound.
+Player-crash recipes and other weapon callbacks remain to be connected. Combat
+audio has native spatial admission and Doppler comparisons, with remaining
+allocation and stereo limits documented separately.
 
 The user completed the preceding effects-free first mission and confirmed that
 landing was seamless. This change adds the missing aircraft-hit feedback to that

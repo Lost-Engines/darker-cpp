@@ -39,6 +39,8 @@ endif()
 add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
 target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
 add_library(darker_audio STATIC
+  src/audio/world_sounds.cpp
+  src/audio/world_sounds.h
   src/audio/flight_sounds.cpp
   src/audio/flight_sounds.h
   src/audio/fm_stream.cpp
@@ -160,6 +162,7 @@ add_library(darker_game STATIC
   src/game/actor_awareness.h
   src/game/effects.cpp
   src/game/effects.h
+  src/game/effect_sound.h
   src/game/effect_tables.h
   src/game/mission_combat.cpp
   src/game/mission_combat.h
@@ -272,6 +275,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/world_sounds_test.cpp
     tests/effects_test.cpp
     tests/aircraft_combat_test.cpp
     tests/actor_motion_test.cpp

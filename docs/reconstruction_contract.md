@@ -63,7 +63,8 @@ Pinner Direct selection/firing, aircraft gun damage, projectile collisions,
 falling/removal, the original objective message and automatic HQ docking. A
 controlled combat integration check reaches completion; 684 docking frames match
 native execution. Original hit/destruction sprite recipes and damage trails are now connected.
-Full retail presentation, ramming, combat sound and progression
+Combat sound layers and gun endpoints are connected, with native distance and Doppler comparisons.
+Full retail presentation, ramming, complete audio allocation/stereo and progression
 to the next mission remain outstanding, along with broader scenario activation.
 Preserve native update order when extending these independently checked components;
 passing their isolated fixtures does not establish a complete native playthrough.
