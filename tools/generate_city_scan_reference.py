@@ -40,8 +40,8 @@ def main():
         raise ValueError('Unsupported unpacked executable')
     random_source = random.Random(0x26ee)
     cases = []
-    for i in range(192):
-        column, row = ((0, 0), (127, 127), (0, 127), (127, 0), (64, 64), (3, 126))[i%6]
+    for i in range(768):
+        column, row = ((0, 0), (127, 127), (0, 127), (127, 0), (64, 64), (3, 126), (255, 64), (64, 255), (255, 255), (128, 64), (64, 128), (128, 128), (240, 64), (64, 240), (160, 160), (250, 3))[i%16]
         heading = (i%8)*8192 if i<96 else random_source.randrange(65536)
         pitch = (0, 8192, 16384, 24576, 32768, 40960, 49152, 57344)[(i//8)%8]
         radius = (2, 3, 8, 16, 24, 32)[(i//16)%6]

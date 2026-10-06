@@ -40,7 +40,8 @@ The exterior player currently receives full beacon strength; actor light updates
 will replace this with the original per-object field. Far actor point rendering
 is also pending, so a dropped camera still uses the mesh until extent culling.
 
-A view centre outside the 128-cell city no longer raises a host exception.
-The current span clipping is bounded to map cells; byte-wrapped camera centres
-beyond the map do not yet reproduce all of the original scanner's irregular
-wraparound spans. Keep this edge case separate from the verified in-map scans.
+City candidate scans wrap row and column arithmetic independently at 256 cells,
+then reject the empty half outside the 128-by-128 city. This lets buildings
+appear across the coordinate seam before the camera crosses it, in both Delphi
+and Halon. The native comparison now covers 768 scans, including outside-map
+centres, both seams and their corner, without changing the original view radius.

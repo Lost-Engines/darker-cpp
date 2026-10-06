@@ -96,9 +96,12 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
   auto const pitch_quadrant{(pitch_phase >> 7) & 3};
   bool const full{pitch_quadrant == 1 || pitch_quadrant == 2};
   auto const span{[&](int const y, int const left, int const right){
-    if(y < 0 || y >= 128) return;
-    for(int x{std::max(0, left)}; x <= std::min(127, right); ++x) {
-      auto const index{static_cast<std::uint16_t>(y * 128 + x)};
+    auto const wrapped_row{static_cast<std::uint8_t>(y)};
+    if(wrapped_row >= 128) return;
+    for(int x{left}; x <= right; ++x) {
+      auto const wrapped_column{static_cast<std::uint8_t>(x)};
+      if(wrapped_column >= 128) continue;
+      auto const index{static_cast<std::uint16_t>(wrapped_row * 128 + wrapped_column)};
       if(cells[index].type) output.push_back(index);
     }
   }};
