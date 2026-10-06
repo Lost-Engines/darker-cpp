@@ -52,6 +52,18 @@ void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, cr
   std::fill_n(target.pixels.begin() + top * 320, height * 320, colour);
 }
 
+void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target) {
+  /// 5575–559F restores the nonrectangular cockpit edge after the world and instruments
+  std::array<mask_row, 7> constexpr upper_instrument{{
+    {23,13}, {14,27}, {12,30}, {10,34}, {9,37}, {7,41}, {5,44},
+  }};
+  // DFB0 samples logical row 43 through the Caero +8 source row table; destination 169 is unshifted.
+  copy_mask(cache.pixels,target.pixels,{.x{72},.y{51}},{.x{48},.y{169}},upper_instrument);
+  std::fill_n(target.pixels.begin() + 8 * 320 + 122,76,152);
+  std::fill_n(target.pixels.begin() + 175 * 320 + 182,53,21);
+}
+
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft const type, std::size_t const component,
   std::uint8_t const old_state, std::uint8_t const new_state) {

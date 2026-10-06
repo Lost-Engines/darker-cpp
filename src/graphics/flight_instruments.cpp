@@ -4,6 +4,14 @@
 
 namespace darker::graphics {
 
+uint8_t caero_engine_indicator(uint8_t const previous, bool const enabled, uint16_t const speed) noexcept {
+  /// 56B2–56C5 retains dimming between the stall and recovery speed thresholds
+  auto dim{static_cast<uint8_t>(previous & 128)};
+  if(speed < 200) dim = 128;
+  if(speed >= 410) dim = 0;
+  return static_cast<uint8_t>(dim | (enabled ? 1 : 0));
+}
+
 caero_instruments measure_caero_instruments(game::caero_flight_state const &state, std::uint16_t const clock) noexcept {
   /// 56D3–573B derives damage, boost and altitude strips; charging sounds are a separate event consumer
   unsigned int impact{state.damage.damage & 255u};

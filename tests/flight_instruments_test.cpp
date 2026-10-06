@@ -1,3 +1,4 @@
+#include "reference/hud_integration_samples.h"
 #include <catch2/catch_test_macros.hpp>
 #include "graphics/flight_instruments.h"
 #include "reference/flight_instruments_samples.h"
@@ -27,5 +28,12 @@ TEST_CASE("Skimma warning and shield gauges match native startup deadlines", "[g
     CAPTURE(v);
     auto const range{darker::graphics::skimma_shield_strips(result.shield_startup)};
     CHECK(std::array<int, 6>{result.low_altitude, result.shield, result.shield_startup, deadline, range.first, range.end} == sample.output);
+  }
+}
+
+TEST_CASE("Caero engine lamp retains native stall hysteresis", "[graphics][cockpit]") {
+  /// Include both directions through the 200–409 retained-state interval
+  for(auto const &sample : darker::test_reference::engine_samples) {
+    CHECK(darker::graphics::caero_engine_indicator(sample.previous,sample.enabled,sample.speed) == sample.result);
   }
 }

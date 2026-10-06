@@ -20,6 +20,7 @@
 #include "presentation/front_end.h"
 #include "audio/fm_stream.h"
 #include "game/mission_combat.h"
+#include "game/beacon_light.h"
 #include "game/city_map.h"
 #include "game/flight_camera.h"
 #include "game/game_clock.h"
@@ -54,6 +55,7 @@ struct flight_host {
   bool briefing{false};
   darker::presentation::front_end *front{nullptr};
   bool shield_ready{false};
+  uint8_t engine_indicator{0};
   bool gouraud{true};
   bool restart_requested{false};
   std::uint16_t clock{0};
@@ -196,8 +198,9 @@ auto main(int const argc, char const *const argv[])->int try {
     std::array<std::uint8_t, 9> instruments{};
     if(auto const *state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)}) {
       auto const measured{darker::graphics::measure_caero_instruments(*state, clock)};
+      host.engine_indicator = darker::graphics::caero_engine_indicator(host.engine_indicator, host.player.engine_flags & 1, state->pose.speed);
       instruments = {measured.altitude, measured.impact, measured.damage_lights, measured.power_cells, measured.charging,
-        state->energy.incoming_display, state->energy.reserve_display, static_cast<std::uint8_t>(host.player.engine_flags & 1), 0};
+        state->energy.incoming_display, state->energy.reserve_display, host.engine_indicator, 0};
     } else {
       auto const &skimma{std::get<darker::game::skimma_flight_state>(host.player.craft)};
       auto const measured{darker::graphics::measure_skimma_instruments(pose.position[2], skimma.damage.shield_charge,
@@ -210,17 +213,19 @@ auto main(int const argc, char const *const argv[])->int try {
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
     darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{cockpit_visible && caero ? 8 : 0}}, 320, height);
+    auto const grid{darker::game::beacon_grid_coordinates({host.player.pose().position[0],host.player.pose().position[1]})};
     darker::graphics::radar_view_state const navigation{
       .player{.x{view.column}, .y{view.row}}, .heading{view.angles.heading},
-      .row{static_cast<std::uint8_t>(view.row >> 8)}, .column{static_cast<std::uint8_t>(view.column >> 8)},
+      .row{grid[1]}, .column{grid[0]},
     };
     if(cockpit_visible && caero) {
       darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{0}});
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
-      darker::graphics::draw_attitude_surround(display, 0);
+      darker::graphics::draw_attitude_surround(display, combat->primary_weapon == 0 ? 0xff19 : 0x0019);
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
+      darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, {});
@@ -404,6 +409,7 @@ auto main(int const argc, char const *const argv[])->int try {
       combat = std::make_unique<darker::game::mission_combat>(initial_actors);
       if(caero) host.combat = combat.get();
       host.primary_held = false;
+      host.engine_indicator = 0;
       host.briefing = caero;
       if(front) { front->return_to_menu(); glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL); }
       script = initial_script;

@@ -241,6 +241,7 @@ auto main(int const argc, char const *const argv[])->int try {
     std::array<std::uint8_t, 256> limits{};
     for(std::size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
     darker::game::assign_city_variants(cells, limits);
+    if(sample.gate) for(size_t row : {112u,113u,114u}) cells[row * 128 + 49].state = 128;
     std::uint64_t map{0xcbf29ce484222325};
     for(auto const cell : cells) {
       for(auto const byte : {cell.type, cell.state}) map = (map ^ byte) * 0x100000001b3;
@@ -255,6 +256,7 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::distance_shading const lighting;
     darker::graphics::model_animation animation{};
     darker::graphics::update_fountain_parameters(animation, static_cast<std::uint16_t>(sample.clock));
+    animation.parameters[0] = std::bit_cast<int16_t>(static_cast<uint16_t>(sample.gate));
     framework::render::indexed_cockpit_framebuffer frame{};
     darker::graphics::city_renderer scene;
     auto const count{scene.draw(frame, bank, cells, view, sample.slot == 30 ? 0x20 : 0x60, lighting, animation)};

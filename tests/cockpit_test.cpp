@@ -1,3 +1,5 @@
+#include "game/beacon_light.h"
+#include "reference/hud_integration_samples.h"
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
 #include <array>
@@ -83,4 +85,22 @@ TEST_CASE("Engine alternate state redraws a strip even when count is unchanged")
   REQUIRE(screen.pixels == normal.pixels);
   darker::graphics::update_instrument(cache, screen, type, 7, 1, 0);
   REQUIRE(screen.pixels == cache.pixels);
+}
+
+TEST_CASE("Caero frame-edge overlays match native blit selection", "[graphics][cockpit]") {
+  /// Coordinate-varying source pixels detect incorrect masks and viewport sampling offsets
+  framework::render::indexed_cockpit_framebuffer cache{}, target{};
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>(i * 37 + 11);
+  target.pixels.fill(99);
+  darker::graphics::draw_caero_frame_edges(cache,target);
+  uint64_t fingerprint{0xcbf29ce484222325};
+  for(auto pixel : target.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
+  CHECK(fingerprint == darker::test_reference::frame_edge_fingerprint);
+}
+
+TEST_CASE("Radar grid readout follows the native beacon lookup and paired invalidation", "[graphics][cockpit]") {
+  /// Sweep both map seams and every nearest-beacon boundary using actual position words
+  for(auto const &sample : darker::test_reference::grid_samples) {
+    CHECK(darker::game::beacon_grid_coordinates({sample.column,sample.row}) == std::array<uint8_t,2>{sample.x,sample.y});
+  }
 }

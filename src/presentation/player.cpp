@@ -86,10 +86,12 @@ void player::execute() {
       image({0,static_cast<unsigned int>(22 + byte())},320,240,0,0);
       face = resources::font_face::wide;
       break;
-    case 0x3c: byte(); break; // Input-policy byte is retained by the eventual complete presentation controller.
+    case 0x3c: input_policy = byte(); break;
     case 0x3d: background.pixels.fill(0); face = resources::font_face::compact; break;
     case 0x3e:
-      page = graphics::lay_out_text(text.subspan(text_cursor),font,face,{.x{16},.y{text_y},.colour{0xfffe}});
+      page = graphics::lay_out_text(text.subspan(text_cursor),font,face,
+        {.x{static_cast<uint16_t>(page.cursor.margin + 16)}, .y{text_y}, .colour{0xfffe},
+         .margin{page.cursor.margin}, .line_step{page.cursor.line_step}});
       text_cursor += page.consumed;
       break;
     case 0x3f: { auto const displacement{std::bit_cast<int16_t>(word())}; next = cursor + displacement; break; }
@@ -156,10 +158,16 @@ void player::draw(framework::render::cockpit_framebuffer &output) const {
     auto const channel{i->current < 161 ? 0 : 1};
     auto const index{i->current < 161 ? i->current : i->current - 161};
     if(static_cast<size_t>(index) >= animations[channel].size()) throw std::invalid_argument{"Animation reference exceeds loaded frames"};
-    for(auto const &pixel : animations[channel][index]) if(pixel.x < 320 && pixel.y < 240) frame.pixels[pixel.y * 320 + pixel.x] = pixel.colour;
+    for(auto const &pixel : animations[channel][index]) {
+      auto const y{pixel.y + image_y}; // BFD3 patches DABA: the frame Y is relative to the scene image origin.
+      if(pixel.x < 320 && y < 240) frame.pixels[y * 320 + pixel.x] = pixel.colour;
+    }
   }
   for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,face,glyph.code,glyph.position,
     {.ink{static_cast<uint8_t>(glyph.colour >> 8)},.edge{static_cast<uint8_t>(glyph.colour)}});
+  // DA48 uses glyphs in the current presentation font, not separate button bitmaps.
+  if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{.x{305},.y{226}},{.ink{255},.edge{254}});
+  if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{.x{287},.y{226}},{.ink{255},.edge{254}});
   framework::render::expand_palette(frame,colours.colours,output);
 }
 

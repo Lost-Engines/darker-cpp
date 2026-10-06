@@ -56,3 +56,21 @@ Native presentation references: BFA9 (dispatch), C003 (background/wide font),
 C07A (image/palette), D938 (presentation timing), DAA7 (animation pairs),
 DADA (frame tables), DF36 (scanline animation drawing). See the parent analysis
 repository's `docs/presentations-and-interface.md` for the wider opcode table.
+
+## Screenshot comparison corrections
+
+The second quotation page starts with a newline and inherits the first page's
+margin 8 and line step 11. DA2F reads the persistent B2BD/B2C1 formatter state;
+resetting it to margin 0/step 16 clipped the final attribution. Scene changes
+now retain those two fields while resetting the text origin and colour as the
+original wrapper does.
+
+BFD3 writes image Y into the immediate at DABA. Animation frame Y therefore
+adds the scene's image Y, including 24 for the first briefing portrait. Earlier
+standalone frame decoding correctly recovered pixels, but omitted this caller
+adjustment during composition.
+
+DA48 draws the navigation controls using glyphs 60 and 62 of the current font,
+at (287,226) and (305,226). Input-policy bits 4 and 1 select their visibility.
+The left control exits to the run menu; the right advances. Exact hover colours
+and the remaining original input policies are still outstanding.

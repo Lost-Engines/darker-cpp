@@ -26,6 +26,13 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
+std::array<uint8_t, 2> beacon_grid_coordinates(std::array<uint16_t, 2> const position) noexcept {
+  /// 5C65/573C map both player coordinates to the nearest beacon and blank the pair outside coverage
+  auto const column{lookup[position[0] >> 8]}, row{lookup[position[1] >> 8]};
+  if((column | row) & 128) return {};
+  return {static_cast<uint8_t>(column + 1), static_cast<uint8_t>(row + 1)};
+}
+
 std::uint16_t beacon_light(std::span<city_cell const, 128 * 128> const cells,
   std::array<std::uint16_t, 3> const position, std::array<std::uint8_t, 2> const fractions) {
   /// 8450 samples one lattice cell of type 1, then applies its mutable strength to fixed-point distance attenuation

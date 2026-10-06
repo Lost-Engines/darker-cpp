@@ -112,6 +112,8 @@ void front_end::click(int const x, int const y) {
     key(std::array{front_key::accept,front_key::select,front_key::erase,front_key::quit}[static_cast<size_t>((y - 152) / 16)]);
   } else if(current == screen::quit || current == screen::erase) {
     if(y >= 150 && y < 190) { confirmation = x < 160; key(front_key::accept); }
+  } else if(current == screen::briefing && y >= 225 && x >= 284 && x < 302) {
+    if(scene->input_policy & 4) key(front_key::back);
   } else if(current == screen::introduction || current == screen::title || current == screen::briefing) key(front_key::accept);
 }
 

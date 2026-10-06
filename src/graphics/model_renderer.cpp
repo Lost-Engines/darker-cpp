@@ -99,8 +99,9 @@ private:
     camera_vertex result{};
     if(path == model_path::near_clipped) {
       int const factor{interpolation >> 4};
-      result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(signed_coordinate(current.horizontal - anchor.horizontal) >> 10) * factor) >> 2));
-      result.vertical = signed_coordinate(anchor.vertical + ((signed_word(signed_coordinate(current.vertical - anchor.vertical) >> 10) * factor) >> 2));
+      // 32DC/330E read each endpoint from byte one: truncate both before subtraction.
+      result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(((current.horizontal >> 8) - (anchor.horizontal >> 8)) >> 2) * factor) >> 2));
+      result.vertical = signed_coordinate(anchor.vertical + ((signed_word(((current.vertical >> 8) - (anchor.vertical >> 8)) >> 2) * factor) >> 2));
       result.depth = signed_coordinate(anchor.depth + ((signed_word(signed_coordinate(current.depth - anchor.depth) >> 2) * factor) >> 10));
       last_depth = signed_word(result.depth >> 8);
     } else {

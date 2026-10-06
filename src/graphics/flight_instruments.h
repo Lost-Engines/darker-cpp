@@ -13,6 +13,8 @@ struct caero_instruments {
   std::uint8_t charging{0};
 };
 
+uint8_t caero_engine_indicator(uint8_t previous, bool enabled, uint16_t speed) noexcept;
+
 caero_instruments measure_caero_instruments(game::caero_flight_state const &state, std::uint16_t clock) noexcept;
 struct shield_strip_range {
   std::uint8_t first{0};

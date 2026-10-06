@@ -32,6 +32,8 @@ framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::ren
 void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, std::uint8_t state);
 void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft type, std::uint8_t colour);
+void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target);
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft type, std::size_t component,
   std::uint8_t old_state, std::uint8_t new_state);
