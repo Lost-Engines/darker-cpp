@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 #include "audio/flight_sounds.h"
 #include "audio/world_sounds.h"
+#include "presentation/front_end.h"
 #include "audio/fm_stream.h"
 #include "game/mission_combat.h"
 #include "game/city_map.h"
@@ -51,8 +52,7 @@ struct flight_host {
   darker::game::mission_combat *combat{nullptr};
   bool primary_held{false};
   bool briefing{false};
-  bool next_page{false};
-  size_t briefing_page{0};
+  darker::presentation::front_end *front{nullptr};
   bool shield_ready{false};
   bool gouraud{true};
   bool restart_requested{false};
@@ -132,17 +132,16 @@ auto main(int const argc, char const *const argv[])->int try {
   auto const &mission{scenario.records().front()};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
   auto const text{scenario.language(0, darker::resources::scenario_language::english)};
-  std::vector<darker::graphics::formatted_page> briefing;
-  size_t text_cursor{0};
-  for(unsigned int page{0}; page < 4; ++page) {
-    briefing.push_back(darker::graphics::lay_out_text(text.subspan(text_cursor), font, darker::resources::font_face::compact, {.colour{0xff00}}));
-    text_cursor += briefing.back().consumed;
+  std::unique_ptr<darker::presentation::front_end> front;
+  if(caero) {
+    front = std::make_unique<darker::presentation::front_end>(archives,font,scenario);
+    host.front = front.get();
   }
   darker::game::mission_script const initial_script{
     .continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset},
   };
   auto script{initial_script};
-  darker::game::mission_context context{.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{text_cursor}};
+  darker::game::mission_context context{.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
   std::optional<darker::game::mission_message> message;
   host.briefing = caero;
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
@@ -158,13 +157,8 @@ auto main(int const argc, char const *const argv[])->int try {
   framework::render::indexed_cockpit_framebuffer display{}, world{};
   framework::render::cockpit_framebuffer output;
   auto const render{[&](std::uint16_t const clock, bool const enlarged, std::uint16_t const frame_step = 0){
-    if(host.briefing) {
-      display.pixels.fill(0);
-      for(auto const &glyph : briefing.at(host.briefing_page).glyphs) {
-        darker::graphics::draw_glyph(display, font, darker::resources::font_face::compact, glyph.code, glyph.position,
-          {.ink{static_cast<uint8_t>(glyph.colour >> 8)}, .edge{static_cast<uint8_t>(glyph.colour)}});
-      }
-      framework::render::expand_palette(display, bitmap.palette.colours, output);
+    if(front && front->active()) {
+      front->draw(output);
       return size_t{0};
     }
     bool const cockpit_visible{host.camera.visible_mode() == darker::game::camera_mode::cockpit};
@@ -270,16 +264,37 @@ auto main(int const argc, char const *const argv[])->int try {
   if(!window) throw std::runtime_error{"cannot create the GLFW window"};
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
-  glfwSetInputMode(window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetInputMode(window.get(), GLFW_CURSOR, caero ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
   if(glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
   glfwSetWindowUserPointer(window.get(), &host);
   glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int){
     if(action == GLFW_RELEASE) return;
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
+    if(host.front && host.front->active()) {
+      using darker::presentation::front_key;
+      if(action != GLFW_PRESS && key != GLFW_KEY_BACKSPACE) return;
+      switch(key) {
+      case GLFW_KEY_ENTER: host.front->key(front_key::accept); break;
+      case GLFW_KEY_SPACE: if(!host.front->editing_name()) host.front->key(front_key::accept); break;
+      case GLFW_KEY_ESCAPE: host.front->key(front_key::back); break;
+      case GLFW_KEY_UP: host.front->key(front_key::up); break;
+      case GLFW_KEY_DOWN: host.front->key(front_key::down); break;
+      case GLFW_KEY_BACKSPACE: host.front->key(front_key::erase_character); break;
+      case GLFW_KEY_S: host.front->key(front_key::select); break;
+      case GLFW_KEY_E: host.front->key(front_key::erase); break;
+      case GLFW_KEY_Q: host.front->key(front_key::quit); break;
+      case GLFW_KEY_1: host.front->key(front_key::one); break;
+      case GLFW_KEY_2: host.front->key(front_key::two); break;
+      case GLFW_KEY_3: host.front->key(front_key::three); break;
+      case GLFW_KEY_4: host.front->key(front_key::four); break;
+      default: break;
+      }
+      return;
+    }
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
-    if(key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, GLFW_TRUE);
-    if(host.briefing) {
-      if(action == GLFW_PRESS && (key == GLFW_KEY_SPACE || key == GLFW_KEY_ENTER)) host.next_page = true;
+    if(key == GLFW_KEY_ESCAPE) {
+      if(host.front) host.restart_requested = true;
+      else glfwSetWindowShouldClose(window, GLFW_TRUE);
       return;
     }
     if(action == GLFW_PRESS && key == GLFW_KEY_ENTER && host.hangar.returning == darker::game::hangar_return_phase::complete) {
@@ -336,6 +351,18 @@ auto main(int const argc, char const *const argv[])->int try {
   });
   framework::platform::framebuffer_presenter presenter{*window};
   darker::audio::fm_stream audio{framework::platform::audio_output::sample_rate};
+  glfwSetCharCallback(window.get(), [](GLFWwindow *window, unsigned int code){
+    auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
+    if(host.front) host.front->character(code);
+  });
+  glfwSetMouseButtonCallback(window.get(), [](GLFWwindow *window, int button, int action, int){
+    auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
+    if(!host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+    int width{0},height{0}; double x{0},y{0};
+    glfwGetWindowSize(window,&width,&height); glfwGetCursorPos(window,&x,&y);
+    auto const viewport{framework::render::fit_viewport(width,height,320,240)};
+    if(viewport.width > 0 && viewport.height > 0) host.front->click(static_cast<int>((x - viewport.x) * 320 / viewport.width),static_cast<int>((y - viewport.y) * 240 / viewport.height));
+  });
   std::unique_ptr<framework::platform::audio_output> audio_device;
   if(!arguments.contains("mute")) {
     try {
@@ -346,9 +373,9 @@ auto main(int const argc, char const *const argv[])->int try {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
+  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a crash restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Enter after docking restarts." << std::endl;
+  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Enter after docking returns to the menu." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -378,10 +405,9 @@ auto main(int const argc, char const *const argv[])->int try {
       if(caero) host.combat = combat.get();
       host.primary_held = false;
       host.briefing = caero;
-      host.briefing_page = 0;
-      host.next_page = false;
+      if(front) { front->return_to_menu(); glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL); }
       script = initial_script;
-      context.text_cursor = text_cursor;
+      context.text_cursor = 0;
       context.messages.clear();
       message.reset();
       host.mouse_started = false;
@@ -394,12 +420,19 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
     if(seconds > 0 && elapsed >= seconds) break;
-    if(host.next_page) {
-      host.next_page = false;
-      if(++host.briefing_page >= briefing.size()) { host.briefing = false; host.mouse_started = false; }
+    auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
+    if(front) {
+      front->advance(static_cast<uint32_t>(interrupts - previous_interrupts));
+      if(front->quit_requested) break;
+      bool const active{front->active()};
+      if(host.briefing != active) {
+        host.briefing = active;
+        host.mouse_started = false;
+        glfwSetInputMode(window.get(),GLFW_CURSOR,active ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+        if(!active) context.text_cursor = front->consumed_text();
+      }
     }
     game_clock.running = !host.briefing && host.hangar.returning != darker::game::hangar_return_phase::complete;
-    auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
     darker::game::advance_game_clock(game_clock, interrupts - previous_interrupts);
     previous_interrupts = interrupts;
     auto const step{darker::game::consume_game_frame(game_clock)};
@@ -442,8 +475,8 @@ auto main(int const argc, char const *const argv[])->int try {
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
     }
-    auto const status{host.briefing ? " - briefing: Space/Enter to continue"
-      : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete: Enter to restart"
+    auto const status{host.briefing ? " - menu / presentation"
+      : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete: Enter for menu"
       : host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight"};
     std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
     glfwSetWindowTitle(window.get(), title.c_str());

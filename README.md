@@ -30,13 +30,13 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation. City visibility now also follows the original 256-cell coordinate wrap, including scenery approaching across either seam.
 
-The Caero begins with the first mission’s original briefing text, then starts at its **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. The first mission now connects Pinner Direct combat, both aircraft objectives, the original return message and automatic HQ docking. Aircraft hits, fatal damage and ground impacts now produce original sprite bursts and damage trails, with their FM sound layers. Enemy gun endpoints flash and sound; Pinner projectile audio follows motion and distance. Briefing artwork, remaining combat effects, world audio, object-target cameras, original death screens and subsequent campaign progression remain outstanding. See [first mission](docs/first_mission.md) for scope and evidence. Enter after a crash restores the initial state. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
+The Caero begins with the original startup/title sequence, game selection and illustrated first-mission briefing, then starts at its **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Skimma starts remain airborne checkpoints. The first mission now connects Pinner Direct combat, both aircraft objectives, the original return message and automatic HQ docking. Aircraft hits, fatal damage and ground impacts now produce original sprite bursts and damage trails, with their FM sound layers. Enemy gun endpoints flash and sound; Pinner projectile audio follows motion and distance. Remaining combat effects, world audio, object-target cameras, original death screens and subsequent campaign progression remain outstanding. See [first mission](docs/first_mission.md) for scope and evidence. Enter after a crash returns to the run menu. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
 - **Space / Enter:** advance briefing pages.
 - **1:** select Pinner Direct; **Space / left mouse:** fire on each press.
-- **Enter after docking:** restart the first mission.
+- **Enter after docking:** return to the run menu.
 - **Mouse / arrow keys:** steer; **Ctrl + arrows:** adjust control force.
 - **Enter:** Caero boost; upgraded Skimma turbo setting.
 - **Backspace:** brake.
@@ -47,13 +47,13 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 - **F5 / F6:** drop a tracking / fixed camera; **comma / period:** following-camera distance.
 - **Tab:** hold to look around; steering controls the camera while held.
 - **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
-- **Escape:** close and release the captured mouse.
+- **Escape:** return to the Caero run menu and release the mouse; close in Skimma development starts.
 
 The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. The Caero primary icon follows Pinner Direct selection.
 
 The world view now draws the original 17 sky/ground colour bands, moving with pitch and bank. Halon’s distant grey building shades blend into its grey horizon; Delphi uses its own purple night palette. The original model distance-shading tables and draw radius are unchanged.
 
-Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/frame.ppm` renders the initial frame headlessly (briefing for Caero, flight for Skimma); `--seconds` permits timed window runs. These are development options, not proposed game controls.
+Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/frame.ppm` renders the initial frame headlessly (startup presentation for Caero, flight for Skimma); `--seconds` permits timed window runs. These are development options, not proposed game controls.
 
 ## Structure
 
@@ -75,3 +75,5 @@ ctest --test-dir build --output-on-failure
 ```
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
+
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Slots currently retain names only for this session; saves, music, exact retail menu composition and campaign progression remain outstanding. See [front end](docs/front_end.md) for controls and verification.

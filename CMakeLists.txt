@@ -241,8 +241,19 @@ add_library(darker_game STATIC
 target_include_directories(darker_game PUBLIC src)
 configure_first_party(darker_game)
 
+add_library(darker_presentation STATIC
+  src/presentation/player.cpp
+  src/presentation/player.h
+  src/presentation/front_end.cpp
+  src/presentation/front_end.h
+)
+target_include_directories(darker_presentation PUBLIC src)
+target_link_libraries(darker_presentation PUBLIC darker_graphics darker_resources)
+configure_first_party(darker_presentation)
+
 add_executable(darker src/main.cpp)
 target_link_libraries(darker
+  PRIVATE darker_presentation
   PRIVATE darker_audio
   PRIVATE darker_game
   PRIVATE darker_graphics
@@ -266,12 +277,14 @@ if(BUILD_TESTING)
     tests/resource_check_main.cpp
     tests/scenario_resource_check.cpp
     tests/scenario_resource_check.h
+    tests/presentation_check.cpp
+    tests/presentation_check.h
     tests/text_resource_check.cpp
     tests/text_resource_check.h
     tests/hangar_flight_check.cpp
     tests/hangar_flight_check.h
   )
-  target_link_libraries(resource_check PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
+  target_link_libraries(resource_check PRIVATE darker_presentation PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
@@ -339,6 +352,7 @@ if(BUILD_TESTING)
     tests/resource_decoder_test.cpp
   )
   target_link_libraries(framework_tests
+    PRIVATE darker_presentation
     PRIVATE darker_audio
     PRIVATE framework_core
     PRIVATE darker_resources

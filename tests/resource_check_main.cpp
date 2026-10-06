@@ -31,6 +31,7 @@
 #include "resources/geometry_bank.h"
 #include "scenario_resource_check.h"
 #include "text_resource_check.h"
+#include "presentation_check.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes
@@ -53,6 +54,7 @@ auto main(int const argc, char const *const argv[])->int try {
   check_actor_flight(archives);
   check_scenario_resources(archives);
   check_text_resources(archives);
+  check_presentations(archives);
   std::size_t total{0};
   for(auto const &entry : darker::resources::resource_directory()) {
     auto const decoded{archives.load(entry.id)};
