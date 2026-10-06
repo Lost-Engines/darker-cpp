@@ -69,7 +69,7 @@ The independent native probe checks every definition with three model bindings a
 
 ## Projectile launch placement
 
-`place_projectile` translates the position, angle and speed results of `CB1F–CBCD`, including its two placement branches. Input position is three native coordinate words plus three fractional bytes; output retains that representation. All calculations use integer arithmetic and the original sine words, now shared by gameplay and graphics in `src/math/sine_table.h`.
+`place_projectile` translates the position, angle and speed results of `CB1F–CBCD`, including its two placement branches. Input position is three native coordinate words plus three fractional bytes; output retains that representation. All calculations use integer arithmetic and the original sine words, now shared by gameplay and graphics in `src/maths/sine_table.h`.
 
 The branch is selected by the **emitter definition's byte +8**, not the projectile's definition:
 

@@ -6,7 +6,7 @@
 #include <array>
 #include <cstdint>
 
-namespace darker::math {
+namespace darker::maths {
 
 inline std::array<std::int16_t, 1024> constexpr original_sine{
   0, 201, 402, 603, 804, 1005, 1206, 1406, 1607, 1808, 2009, 2209, 2410, 2610, 2811, 3011,
@@ -75,4 +75,4 @@ inline std::array<std::int16_t, 1024> constexpr original_sine{
   -3211, -3011, -2811, -2610, -2410, -2209, -2009, -1808, -1607, -1406, -1206, -1005, -804, -603, -402, -201,
 };
 
-} // namespace darker::math
+} // namespace darker::maths

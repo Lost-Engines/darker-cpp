@@ -95,7 +95,7 @@ add_library(darker_game STATIC
   src/game/object_list.h
   src/game/projectile_placement.cpp
   src/game/projectile_placement.h
-  src/math/sine_table.h
+  src/maths/sine_table.h
   src/game/random.cpp
   src/game/random.h
   src/game/skimma_weapons.cpp

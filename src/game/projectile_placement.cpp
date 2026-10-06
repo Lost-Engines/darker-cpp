@@ -1,6 +1,6 @@
 #include "game/projectile_placement.h"
 #include <bit>
-#include "math/sine_table.h"
+#include "maths/sine_table.h"
 
 namespace darker::game {
 namespace {
@@ -36,7 +36,7 @@ projectile_placement place_projectile(launch_emitter const &emitter) {
   unsigned int const heading{(static_cast<std::uint16_t>(0x8000 - emitter.angles[0]) >> 6) ^ 1023u};
   unsigned int const pitch{static_cast<unsigned int>(emitter.angles[1] >> 6)};
   unsigned int const roll{static_cast<unsigned int>(emitter.angles[2] >> 6) ^ 1023u};
-  auto const sine{[](unsigned int const index){ return math::original_sine[index]; }};
+  auto const sine{[](unsigned int const index){ return maths::original_sine[index]; }};
   auto const cosine{[&](unsigned int const index){ return sine((index + 256) % 1024); }};
   auto const intermediate{product(cosine(roll), sine(pitch))};
   auto const y{word(product(cosine(heading), intermediate) + product(sine(roll), sine(heading)))};

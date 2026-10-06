@@ -5,7 +5,7 @@
 #include <span>
 #include <stdexcept>
 #include "graphics/cockpit_tables.h"
-#include "math/sine_table.h"
+#include "maths/sine_table.h"
 
 namespace darker::graphics {
 namespace {
@@ -43,10 +43,10 @@ attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t 
   std::int8_t const pitch_high, bool const alternate_colour) {
   /// 5E6F scales signed table words with high-word products before constructing the endpoints
   if(pitch_index >= 1024 || roll_index >= 1024) throw std::invalid_argument{"attitude table index must be below 1024"};
-  int const pitch_sine{(math::original_sine[pitch_index] * 224) >> 16};
-  int const pitch_cosine{(math::original_sine[(pitch_index + 256) % 1024] * 224) >> 16};
-  int const roll_sine{math::original_sine[roll_index]};
-  int const roll_cosine{math::original_sine[(roll_index + 256) % 1024]};
+  int const pitch_sine{(maths::original_sine[pitch_index] * 224) >> 16};
+  int const pitch_cosine{(maths::original_sine[(pitch_index + 256) % 1024] * 224) >> 16};
+  int const roll_sine{maths::original_sine[roll_index]};
+  int const roll_cosine{maths::original_sine[(roll_index + 256) % 1024]};
   int const x{160 + ((roll_sine * pitch_sine) >> 16)};
   int const y{92 + ((roll_cosine * pitch_sine) >> 16)};
   int const dy{(roll_sine * pitch_cosine) >> 16};
