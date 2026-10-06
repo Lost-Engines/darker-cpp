@@ -293,3 +293,17 @@ The formerly projectile-specific placement record is now `object_pose`, shared
 by flight and projectile motion. Launch construction still lives in
 `projectile_placement`; there is no compatibility alias or second copy of the
 coordinate representation. Both paths use `displace_object` for fractional carry.
+
+## Angular motion shared by craft and guidance
+
+`angular_motion` now owns the response previously embedded in projectile steering.
+It also exposes the original driven-gain (`83D4`) and direct-impulse (`83DF`)
+entries, bank folding (`83A4`) and attitude normalisation (`23A0`). Guidance calls
+the same implementation; its earlier native trajectory tests remain unchanged.
+Attitude normalisation retains the pitch XOR rather than substituting negation.
+
+`tools/generate_angular_motion_reference.py WORKSPACE` records 640 gain/impulse
+responses and a compact fingerprint of both folds for every 16-bit angle.
+The existing bounded-error and projectile trajectory fixtures continue to cover
+the third response entry and its callers. No platform input scaling or complete
+craft callback is implied by these shared helpers.

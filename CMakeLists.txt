@@ -89,6 +89,8 @@ target_link_libraries(darker_graphics PUBLIC framework_core)
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
+  src/game/angular_motion.cpp
+  src/game/angular_motion.h
   src/game/flight_motion.cpp
   src/game/flight_motion.h
   src/game/beacon_light.cpp
@@ -161,6 +163,7 @@ if(BUILD_TESTING)
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/direction_test.cpp
+    tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp
     tests/beacon_energy_test.cpp
     tests/object_impact_test.cpp
