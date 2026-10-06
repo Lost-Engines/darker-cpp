@@ -141,3 +141,16 @@ The target lookup/direction calculation before `CCDB` is not yet translated here
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_steering_reference.py ..
 ```
+
+## Object target angles and complete homing trajectories
+
+`maths::object_target_direction` now translates `9250/925C/927F` and the object-homing heading adjustment at `CCD7`. It uses the original 256-byte ratio lookup at `934A`, wrapping coordinate differences, quadrant branches and signed minimum-word behaviour. Pitch uses the maximum absolute horizontal component rather than Euclidean distance; coincident positions retain the native zero-vector result.
+
+`advance_object_homing_projectile` accepts a resolved target placement and now runs direction calculation, steering and movement together. A reference to the projectile's own placement takes the original self-target branch and supplies its current angles. Map-cell targets and native-token resolution remain separate.
+
+`generate_direction_reference.py` checks 405 direction cases against `9250`, then executes complete `CC61` updates **without intercepting target-angle production** for six 64-step trajectories. Four targets move, one starts coincident with the projectile, and one is the projectile itself. C++ matches all 384 steps, including positions, fractions, angles, angular rates and speed. All 57 CTest cases pass.
+
+```sh
+python3 tools/generate_direction_table.py ../analysis/unpacked/image.bin
+PYTHONPATH=/tmp/darker-python python3 tools/generate_direction_reference.py ..
+```

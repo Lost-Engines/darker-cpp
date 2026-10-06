@@ -101,6 +101,9 @@ add_library(darker_game STATIC
   src/game/projectile_pool.h
   src/game/projectile_placement.cpp
   src/game/projectile_placement.h
+  src/maths/direction.cpp
+  src/maths/direction.h
+  src/maths/direction_table.h
   src/maths/sine_table.h
   src/game/random.cpp
   src/game/random.h
@@ -141,6 +144,7 @@ if(BUILD_TESTING)
     tests/object_definition_test.cpp
     tests/object_list_test.cpp
     tests/random_test.cpp
+    tests/direction_test.cpp
     tests/projectile_steering_test.cpp
     tests/projectile_motion_test.cpp
     tests/projectile_pool_test.cpp
