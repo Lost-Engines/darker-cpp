@@ -184,3 +184,18 @@ The update API now accepts a typed variant of no target, resolved object placeme
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_map_guidance_reference.py ..
 ```
+
+## Expiry reference repair and objective counters
+
+`expire_projectile` now translates `7A52–7A82`, including `7A92`, `7A97` and the selected-target clear at `CFCB`. It repairs active projectile targets that reference the expired record by making each one self-targeting; clears matching selected, 2449h and missile-view references; and sets flag 20h. Selecting no target also sets the ring's mutable target spread to 508.
+
+Lifecycle bit zero increments the completed byte and decrements the outstanding byte. The latter uses the native signed-byte clamp, including wraparound for unusual starting values. Upper lifecycle bits select unlink without recycling (zero), decrement by two then recycle (02h–FCh), or recycle unchanged (FEh, preserving FFh too). The next active record is returned for safe traversal. Callers supply an active pool member and must invoke expiry exactly once.
+
+The pool now exposes stable native IDs `D1A6 + 112*slot` and a bounded ID lookup. These are identity tokens, not dereferenced host addresses; resolving a slot does not by itself establish active membership. `generate_expiry_reference.py` executes the full native pool initialiser with its probe stack outside the cleared region, verifies all twelve IDs, then runs **42 full expiry cases** without stubbing target repair, counter changes or list operations.
+
+The ring state now includes the mutable target word at `5E03`. Smoothing approaches that target rather than an assumed zero. Reload leaves it intact. The expanded ring probes check **1,008 full updates**, including targets zero, 508 and FFFFh. All **60 CTest cases** pass.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_expiry_reference.py ..
+PYTHONPATH=/tmp/darker-python python3 tools/generate_weapon_reference.py ..
+```

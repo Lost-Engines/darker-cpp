@@ -19,6 +19,7 @@ struct skimma_weapon_slot {
 struct weapon_ring_state {
   std::uint16_t reload_deadline{0};
   std::uint16_t spread{0};
+  std::uint16_t target_spread{0};
 };
 
 struct skimma_recoil_frame {

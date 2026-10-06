@@ -52,16 +52,18 @@ def main():
             for spread in (0, 1, 252, 508, 32767, 32768, 65535):
                 for step in (0, 1, 32, 65535):
                     for enabled in (0, 1):
-                        native.calls = []
-                        native.write(0xcf5b, b'\0\0')
-                        for address, value in [(0xbf8, clock), (0xc51c, (clock-delta) & 65535), (0x5e00, spread), (0x7a2b, step)]:
-                            native.write(address, struct.pack('<H', value))
-                        native.write(0x4543, bytes([enabled]))
-                        native.write(0x5e10, b'\x07')
-                        native.call(0x5d56)
-                        calls = native.calls
-                        updates.append([clock, delta, spread, step, enabled, int.from_bytes(native.read(0xc51c, 2), 'little'),
-                                        int.from_bytes(native.read(0x5e00, 2), 'little'), int(bool(calls)), calls[0]['radius'] if calls else 0, calls[0]['count'] if calls else 0])
+                        for target in (0, 508, 65535):
+                            native.calls = []
+                            native.write(0xcf5b, b'\0\0')
+                            for address, value in [(0xbf8, clock), (0xc51c, (clock-delta) & 65535), (0x5e00, spread), (0x7a2b, step), (0x5e03, target)]:
+                                native.write(address, struct.pack('<H', value))
+                            native.write(0x4543, bytes([enabled]))
+                            native.write(0x5e10, b'\x07')
+                            native.cpu.ctl_remove_cache(native.BASE+0x5dff, native.BASE+0x5e0f)
+                            native.call(0x5d56)
+                            calls = native.calls
+                            updates.append([clock, delta, spread, step, enabled, int.from_bytes(native.read(0xc51c, 2), 'little'),
+                                            int.from_bytes(native.read(0x5e00, 2), 'little'), int(bool(calls)), calls[0]['radius'] if calls else 0, calls[0]['count'] if calls else 0, target])
 
     class Status(Harness):
         def hook(self, cpu, address, size, data):
@@ -92,7 +94,7 @@ def main():
              '// Image SHA-256: ' + hashlib.sha256(RAW).hexdigest(), '', '#include <array>', '', 'namespace darker::test_reference {', '']
     for name, fields, rows in [('reload', 'weapon, clock, working, reserve, next_working, next_reserve, deadline, spread', reloads),
                                 ('ring', 'delta, enabled, spread, visible, radius, remaining', rings),
-                                ('update', 'clock, delta, spread, step, enabled, deadline, next_spread, visible, radius, remaining', updates),
+                                ('update', 'clock, delta, spread, step, enabled, deadline, next_spread, visible, radius, remaining, target', updates),
                                 ('status', 'slots, selected, flags, working, reserve, target, count, display, flag0, flag1, flag2, next_working, next_reserve, deadline, spread', statuses)]:
         lines += [f'struct {name}_sample {{ int {fields}; }};', f'inline constexpr std::array<{name}_sample, {len(rows)}> {name}_samples{{{{']
         lines += ['  {' + ', '.join(map(str, row)) + '},' for row in rows]

@@ -10,6 +10,7 @@
 namespace darker::game {
 
 struct projectile {
+  std::uint16_t native_id{0};
   projectile *next{nullptr};
   projectile *previous{nullptr};
   object_parameters parameters;
@@ -46,6 +47,8 @@ public:
 
   projectile *launch(projectile_launch request);
   projectile *recycle(projectile &record);
+  projectile *unlink(projectile &record);
+  projectile *resolve(std::uint16_t native_id) noexcept;
   object_list<projectile> const &objects() const noexcept;
   std::span<projectile const> records() const noexcept;
 

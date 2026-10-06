@@ -49,7 +49,8 @@ bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring
   auto const next{static_cast<std::uint8_t>(ammunition.reserve - 1)};
   if((next & 0x80) != 0) return false;
   ammunition = {.working{working_capacity[weapon]}, .reserve{next}};
-  ring = {.reload_deadline{static_cast<std::uint16_t>(clock + 1024)}, .spread{508}};
+  ring.reload_deadline = static_cast<std::uint16_t>(clock + 1024);
+  ring.spread = 508;
   return true;
 }
 
@@ -75,9 +76,10 @@ std::optional<weapon_ring_display> update_weapon_ring(weapon_ammunition const am
   if(delta >= 0) {
     ring.reload_deadline = clock;
     auto const spread{std::bit_cast<std::int16_t>(ring.spread)};
-    // 7CDB approaches zero using wrapping arithmetic and signed comparisons.
-    auto const next{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(spread < 0 ? spread + frame_step : spread - frame_step))};
-    ring.spread = static_cast<std::uint16_t>(spread < 0 ? std::min<std::int16_t>(next, 0) : std::max<std::int16_t>(next, 0));
+    auto const target{std::bit_cast<std::int16_t>(ring.target_spread)};
+    // 7CDB approaches the mutable target using wrapping arithmetic and signed comparisons.
+    auto const next{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(spread < target ? spread + frame_step : spread - frame_step))};
+    ring.spread = static_cast<std::uint16_t>(spread < target ? std::min(next, target) : std::max(next, target));
   }
   return display;
 }

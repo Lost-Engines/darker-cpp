@@ -13,7 +13,7 @@ TEST_CASE("Skimma automatic reload matches original counters, byte signs and dea
     darker::game::weapon_ammunition ammunition{
       .working{static_cast<std::uint8_t>(sample.working)}, .reserve{static_cast<std::uint8_t>(sample.reserve)},
     };
-    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}};
+    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}, .target_spread{17}};
     bool const changed{darker::game::reload_skimma_weapon(ammunition, ring,
       static_cast<std::uint8_t>(sample.weapon), static_cast<std::uint16_t>(sample.clock))};
     CHECK(changed == (sample.next_working != sample.working));
@@ -21,6 +21,7 @@ TEST_CASE("Skimma automatic reload matches original counters, byte signs and dea
     CHECK(ammunition.reserve == sample.next_reserve);
     CHECK(ring.reload_deadline == sample.deadline);
     CHECK(ring.spread == sample.spread);
+    CHECK(ring.target_spread == 17);
   }
 }
 
@@ -58,11 +59,13 @@ TEST_CASE("Skimma ring draws before smoothing and leaves reload state unchanged 
     CAPTURE(sample.clock, sample.delta, sample.spread, sample.step, sample.enabled);
     darker::game::weapon_ring_state ring{
       .reload_deadline{static_cast<std::uint16_t>(sample.clock - sample.delta)}, .spread{static_cast<std::uint16_t>(sample.spread)},
+      .target_spread{static_cast<std::uint16_t>(sample.target)},
     };
     auto const display{darker::game::update_weapon_ring({.working{7}, .reserve{3}}, ring,
       static_cast<std::uint16_t>(sample.clock), static_cast<std::uint8_t>(sample.enabled), static_cast<std::uint16_t>(sample.step))};
     CHECK(ring.reload_deadline == sample.deadline);
     CHECK(ring.spread == sample.next_spread);
+    CHECK(ring.target_spread == sample.target);
     REQUIRE(display.has_value() == static_cast<bool>(sample.visible));
     if(display) {
       CHECK(display->radius == sample.radius);
@@ -79,7 +82,7 @@ TEST_CASE("Skimma status update reloads before reserve selection and preserves n
       slot = {.ammunition{.working{static_cast<std::uint8_t>(sample.working)}, .reserve{static_cast<std::uint8_t>(sample.reserve)}},
         .flags{static_cast<std::uint8_t>(sample.flags)}};
     }
-    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}};
+    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}, .target_spread{17}};
     auto const display{darker::game::update_skimma_weapon_status(std::span{weapons}.first(static_cast<std::size_t>(sample.slots)), ring,
       static_cast<std::uint8_t>(sample.selected), 65000, static_cast<std::int16_t>(sample.target), static_cast<std::uint16_t>(sample.count))};
     CHECK(display == sample.display);
@@ -92,6 +95,7 @@ TEST_CASE("Skimma status update reloads before reserve selection and preserves n
     }
     CHECK(ring.reload_deadline == sample.deadline);
     CHECK(ring.spread == sample.spread);
+    CHECK(ring.target_spread == 17);
   }
 }
 

@@ -65,3 +65,7 @@ All 45 CTest cases pass. These routines are ready for the game loop but are not 
 The path after `C96D` couples to the world. It rejects player flag 20h; trigger bits 4016h invoke `CD6C` with the recoil-adjusted direction, followed by a random kick. `CD6C` performs a collision/damage query, with its own random calls below `CD84`. Separately, an exactly-3 selected weapon status enters the projectile handler through `C9F5`, using definition records at `1A16 + 24*index` and trigger mask 8021h. The result byte at `7FA6` is then added to the selected working count at `C9BD`.
 
 The first and third Skimma projectile definitions use `CA55` (object-target acceptance), and the second uses `CA5A` (map-target acceptance). Successful launch proceeds through `CAC4/CB01`, which needs projectile allocation, player transforms, original random sequencing and world state. Those operations must be translated before treating shot consumption or firing cadence as complete. There is no invented timer or successful-shot stub in the current implementation.
+
+### Mutable spread target
+
+Expiry's selected-target clear (`CFCB`) writes 508 to the target operand at `5E03`. This is now explicit `weapon_ring_state::target_spread`; the post-draw update approaches it through the same signed/wrapping `7CDB` rules. Earlier zero-target descriptions above describe the initial probe configuration only. Reload changes current spread and deadline without resetting target spread. The full ring reference set now has 1,008 cases across three target values.
