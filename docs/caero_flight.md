@@ -16,10 +16,9 @@ shared object field as a universal heading rate.
 
 ## Ordering and preserved details
 
-- Startup accumulates seven times the frame step regardless of engine state,
-  caps the accumulator's high byte and exposes quantised boost reserve.
-  This follows retail observation; the isolated callback differs for engine-off
-  startup (see [the documented discrepancy](hangar_launch.md#retail-charging-correction)).
+- Startup accumulates seven times the frame step while the engine's low flag is
+  set, caps the accumulator's high byte and exposes quantised boost reserve.
+  Switching the engine off pauses charging without clearing existing charge.
   An active boost transitions to steady flight, reproducing the callback swap.
 - Bank response is integrated first. Mid-step bank feeds manual/assisted pitch,
   low-speed pitch assistance and bank-related heading change.

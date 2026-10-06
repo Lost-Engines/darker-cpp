@@ -272,7 +272,7 @@ auto main(int const argc, char const *const argv[])->int try {
     }
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts." << std::endl;
-  std::cout << (caero ? "Caero HQ launch: boost cells charge automatically; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
+  std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   std::cout << "Mission actors, weapons, world sound and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};

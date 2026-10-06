@@ -50,8 +50,6 @@ TEST_CASE("Complete Caero flight updates match native persistent-state traces", 
       static_cast<std::uint16_t>(input[0]), cells);
     auto const actual{write_state(state)};
     for(std::size_t field{0}; field < actual.size(); ++field) {
-      // Isolated 7E7F gates charging on the engine. Retail observation supersedes these two startup outputs only.
-      if(!sample.before[23] && (sample.before[15] >> 8) == 0 && !(input[3] & 1) && (field == 19 || field == 22)) continue;
       CAPTURE(field, sample.before[field]);
       REQUIRE(actual[field] == sample.after[field]);
     }
@@ -59,15 +57,24 @@ TEST_CASE("Complete Caero flight updates match native persistent-state traces", 
   }
 }
 
-TEST_CASE("Caero hangar boost cells charge with either engine state", "[game][flight][hangar]") {
-  /// Retail regression: switching off during startup must not suspend or reset charging
+TEST_CASE("Caero hangar charging pauses with the engine off and resumes without losing charge", "[game][flight][hangar]") {
+  /// Retail startup keeps accumulated energy and pips while the engine is disabled
   darker::game::city_map const cells{};
   darker::game::caero_flight_state running{}, switched{};
-  for(int tick{0}; tick < 256; ++tick) {
+  for(int tick{0}; tick < 64; ++tick) {
     darker::game::advance_caero_flight(running, {}, {.engine_flags{1}}, 16, cells);
-    darker::game::advance_caero_flight(switched, {}, {.engine_flags{static_cast<std::uint8_t>((tick / 32) & 1)}}, 16, cells);
+  }
+  switched = running;
+  REQUIRE(switched.energy.boost != 0);
+  for(int tick{0}; tick < 64; ++tick) {
+    darker::game::advance_caero_flight(switched, {}, {.engine_flags{0}}, 16, cells);
     CHECK(write_state(switched) == write_state(running));
   }
+  for(int tick{0}; tick < 192; ++tick) {
+    darker::game::advance_caero_flight(running, {}, {.engine_flags{1}}, 16, cells);
+    darker::game::advance_caero_flight(switched, {}, {.engine_flags{1}}, 16, cells);
+  }
+  CHECK(write_state(switched) == write_state(running));
   CHECK(switched.energy.boost == 0xa000);
   CHECK_FALSE(switched.flying);
   CHECK(darker::game::activate_caero_boost(switched));

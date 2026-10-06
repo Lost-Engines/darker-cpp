@@ -41,9 +41,10 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   /// 7E7F/7EB6 order startup, steering, energy spending, movement, beacon sampling and charging within one callback
   if(!state.flying) {
     if((state.active_boost >> 8) == 0) {
-      // Retail hangar charging continues with the engine switched off; see docs/hangar_launch.md.
-      state.startup_energy = static_cast<std::uint16_t>(state.startup_energy + frame_step * 7);
-      if((state.startup_energy >> 8) >= 0x50) state.startup_energy = static_cast<std::uint16_t>((state.startup_energy & 255) | 0x5000);
+      if(input.engine_flags & 1) {
+        state.startup_energy = static_cast<std::uint16_t>(state.startup_energy + frame_step * 7);
+        if((state.startup_energy >> 8) >= 0x50) state.startup_energy = static_cast<std::uint16_t>((state.startup_energy & 255) | 0x5000);
+      }
       state.energy.boost = static_cast<std::uint16_t>((state.energy.boost & 255) | (((state.startup_energy >> 8) * 2 & 0xe0) << 8));
       return;
     }

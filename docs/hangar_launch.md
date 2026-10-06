@@ -2,7 +2,7 @@
 
 The default Caero start now uses the new-game return site **7162h**, cell **(49,113)**, instead of an invented airborne checkpoint. BD34–BD98 places the ship at `(12672,29080,0)` with pitch 0A20h, no speed or stored boost, and the landed/protected flag set. The original Caero model header contributes its −104 height adjustment. The engine starts enabled, matching retail play and the outer startup initialisation at 3D5C. The earlier engine-off default incorrectly overrode that state.
 
-Boost cells charge automatically while waiting in the hangar, including with the engine switched off. Press **Enter** once to launch; no steering is required to clear the first wall. The regular flight callback takes over on the first boost. Waiting fills the starting boost cells; this is separate from airborne beacon charging.
+Boost cells charge while waiting in the hangar with the engine enabled. Switching it off pauses charging; switching it back on resumes from the stored charge. Press **Enter** once to launch; no steering is required to clear the first wall. The regular flight callback takes over on the first boost. Waiting fills the starting boost cells; this is separate from airborne beacon charging.
 
 C6D2 toggles the high state bit on the gate, neighbouring approach lights and hangar interior together. C5F9 grows the gate parameter while inside an entrance cell, derives it from distance while crossing the lights, and restores the three cells after departure. The parameter drives the existing model interpolation directly. The native negative-X distance asymmetry and the sound-level update skipped at extension saturation are preserved.
 
@@ -16,9 +16,11 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_reference.py ..
 
 The game still has no active mission actors or briefing flow. Enter after a crash restores the initial HQ state; this is a development retry, not yet the original campaign/death-screen path. Skimma starts remain airborne checkpoints.
 
-## Retail charging correction
+## Retail and demo charging
 
-The user confirmed that hangar boost charging continues regardless of engine state. The reconstruction now follows that observation. Isolated native callback 7E7F tests bit 0 of 4552 before adding charge; the surrounding retail behaviour responsible for the discrepancy remains unresolved. Native comparisons retain all other outputs, but exclude the startup accumulator and boost reserve for engine-off, pre-launch samples. A separate regression checks equal charging with the engine enabled and repeatedly toggled, full pips and boost availability. Airborne charging still uses its original engine-state gate.
+Retail callback 7E7F tests bit 0 of 4552 before adding charge. The engine starts enabled, so charging begins immediately; switching it off pauses charging. This now agrees with the user's corrected retail observation. All native startup output comparisons are enabled, including engine-off accumulator and boost reserve values. A separate regression checks pause/resume without losing accumulated charge.
+
+The user reports that the demos instead start with the engine disabled and charge in the hangar regardless of engine state. The earlier contradictory observation described those demos, not retail; it is no longer an unresolved retail discrepancy. The reconstruction follows retail behaviour.
 
 ## Hands-off launch trace
 
@@ -33,7 +35,7 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_flight_reference.py 
 ./build/resource_check --data-dir ../darker --launch-trace /tmp/darker-cpp-launch.csv
 ```
 
-This is controlled execution of the original startup (including 3D1A–3D60), boost, flight, collision and gate routines, **not a recorded DOSBox session**. Rendering, sound/effect spawning, mission actors and outer-loop input processing are omitted. Steering is explicitly zero, the engine is enabled, and the harness schedules the gate callback only while the landed flag remains set. It does not resolve the separate engine-off charging discrepancy above.
+This is controlled execution of the original startup (including 3D1A–3D60), boost, flight, collision and gate routines, **not a recorded DOSBox session**. Rendering, sound/effect spawning, mission actors and outer-loop input processing are omitted. Steering is explicitly zero, the engine is enabled, and the harness schedules the gate callback only while the landed flag remains set.
 
 ### Display pacing
 
