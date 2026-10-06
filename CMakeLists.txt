@@ -75,6 +75,8 @@ add_library(darker_graphics STATIC
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
+  src/graphics/flat_polygon.cpp
+  src/graphics/flat_polygon.h
   src/graphics/cockpit.cpp
   src/graphics/cockpit.h
   src/graphics/cockpit_tables.h
@@ -163,6 +165,7 @@ if(BUILD_TESTING)
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/direction_test.cpp
+    tests/flat_polygon_test.cpp
     tests/angular_motion_test.cpp
     tests/flight_motion_test.cpp
     tests/beacon_energy_test.cpp

@@ -7,7 +7,7 @@ This is the contract for the first C++ implementation, not the later modernised 
 - Native amd64 Linux, C++23, with the original DOS game as the reference executable in DOSBox/native-instruction probes.
 - The supplied executable edition and its five original `DARKER.00`–`.04` packs. The supported unpacked executable SHA-256 is `7599201a01aa24b7e6ad1ae4295d493821cde7c3a43b247c464522626c0380a4`.
 - First gameplay milestone: the normal Caero, Delphi, first mission (`04_000 / 0`), cheats disabled, from setup through completion, return and progression.
-- Initial game rendering target: original indexed pixels and palette at the original 320 × 200 mode. The current framework demo is RGBA and square-pixel; it is not yet a VGA/display-aspect specification.
+- Initial game rendering target: original indexed pixels and palette at the original 320 × 240 viewport (native right/bottom clipping constants 319/240). The current indexed cockpit is expanded to RGBA for square-pixel presentation; display-aspect handling remains separate.
 - Audio will preserve explicit original hardware profiles. Existing OPL effect verification is the starting reference; the five music arrangements must not be collapsed into one supposedly canonical soundtrack. Full audio integration/profile selection is a later milestone.
 
 The packed executable remains a reference, not a runtime execution dependency. Identified executable-resident data, beginning with its archive directory, can become generated, provenance-labelled C++ constants. We are not introducing converted model, map or music assets into this version.
