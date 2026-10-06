@@ -106,3 +106,24 @@ If the pool is exhausted, C++ `launch` returns null without mutation or eviction
 The typed `projectile` currently contains the fields required for creation and the retained angular-motion words. It is not yet the complete native runtime object; further movement, collision and lifecycle fields will be introduced with their consumers. Target tokens retain their native encoding until object/cell target resolution is implemented. This pool does not yet provide firing input, ammo consumption, target resolution, clock advancement or projectile movement, and the main application remains the cockpit milestone.
 
 The 160 complete native launch fixtures now include fifteen constructor metadata values as well as placement. An assembled C++ test checks all of them after recycling a record with nonzero angular state. A separate pool integration test fills all twelve slots, checks identities/order, attempts an exhausted launch and recycles/relaunches a middle record. All **51 CTest cases** pass. No new executable or inspection controls were added.
+
+## Straight-projectile motion and timed fade
+
+`advance_direct_projectile` translates `CC64/CC87/858F–8608`. Target speed is the definition's unsigned base-speed byte multiplied by 16. The native signed approach-to-target helper uses four times the frame-step word, with word wrapping. Travel uses the wrapping midpoint of old/new speeds, multiplied by a signed word formed from the step's **low byte** shifted left eight. These distinct time operands are preserved.
+
+Pitch projects vertical displacement and horizontal distance through the original sine table. Heading then projects horizontal displacement, including the native three-bit shift before subtracting from X/Y. Fraction bytes carry or borrow into their wrapping coordinate words. Angles remain unchanged. This entry implements the direct callback, not homing, collision, impact effects or a generic player flight update.
+
+`update_projectile_deadline` translates the clock/fade section `79E5–7A18`, stopping at the expiry-handling boundary `7A52`. It preserves these details:
+
+- Flags 60h select timed behaviour; otherwise the fade and deadline stay unchanged.
+- A negative signed `deadline - clock` clears the timed bits. Bit 20h requests expiry handling; a bit-40h-only transition instead sets fade to 255 and continues.
+- In the final 256 ticks, fade follows the remaining low byte (or its complement for the bit-40h mode).
+- With more time remaining, a signed altitude high byte of at least 50h shortens the deadline to `clock + 255` and enables bit 20h. Heights whose high byte has its sign bit set do not take this branch.
+
+The return value requests expiry handling; it does **not** recycle the projectile. Original expiry also clears target references, updates mission counters and applies lifecycle-specific unlink/recycle rules. Visibility gates before this section, the previous-position snapshot and callback dispatch after it, and those expiry side effects remain separate integration work. The newly represented fade byte is retained by launch, as the constructor does not write it.
+
+`tools/generate_motion_reference.py` runs the actual direct movement path and the isolated deadline section. Its 480 movement cases cover heading/pitch projection, fractional wrap, speed boundaries and low-byte/full-word step behaviour. Another 210 cases cover timed flags, signed clock wrap and altitude boundaries. All **53 CTest cases** pass. These routines still require frame-loop integration; the main application has no live projectile simulation yet.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_motion_reference.py ..
+```

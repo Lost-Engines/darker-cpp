@@ -17,6 +17,7 @@ struct projectile {
   std::array<std::uint16_t, 3> angular_motion{};
   std::uint8_t flags{0};
   std::uint8_t lifecycle{0};
+  std::uint8_t fade{0};
   std::uint16_t inherited_roll{0};
   std::uint16_t deadline{0};
   // Native target encoding pending world-object/cell target resolution.
