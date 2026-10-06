@@ -38,17 +38,25 @@ std::uint16_t direction(std::uint16_t x, std::uint16_t y) {
 
 } // namespace
 
-direction_angles object_target_direction(std::array<std::uint16_t, 3> const &position,
-  std::array<std::uint16_t, 3> const &target) {
-  /// 9250/925C and CCD7 retain word differences and the native maximum-axis pitch approximation
-  auto const x{static_cast<std::uint16_t>(target[0] - position[0])};
-  auto const y{static_cast<std::uint16_t>(target[1] - position[1])};
-  auto const z{static_cast<std::uint16_t>(std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(target[2] - position[2])) >> 3)};
+direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const &displacement) {
+  /// 925C uses a maximum-axis pitch approximation and scales altitude down by eight
+  auto const x{displacement[0]};
+  auto const y{displacement[1]};
+  auto const z{static_cast<std::uint16_t>(std::bit_cast<std::int16_t>(displacement[2]) >> 3)};
   auto const horizontal{std::max(negative(x) ? negate(x) : x, negative(y) ? negate(y) : y)};
   return {
-    .heading{static_cast<std::uint16_t>((direction(x, y) << 5) + 0x8000)},
+    .heading{static_cast<std::uint16_t>(direction(x, y) << 5)},
     .pitch{static_cast<std::uint16_t>(direction(z, horizontal) << 5)},
   };
+}
+
+direction_angles object_target_direction(std::array<std::uint16_t, 3> const &position,
+  std::array<std::uint16_t, 3> const &target) {
+  /// 9250/CCD7 subtract positions and reverse the direction routine's heading
+  auto result{direction_from_displacement({static_cast<std::uint16_t>(target[0] - position[0]),
+    static_cast<std::uint16_t>(target[1] - position[1]), static_cast<std::uint16_t>(target[2] - position[2])})};
+  result.heading = static_cast<std::uint16_t>(result.heading + 0x8000);
+  return result;
 }
 
 } // namespace darker::maths

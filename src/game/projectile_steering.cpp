@@ -69,4 +69,47 @@ void advance_object_homing_projectile(projectile &record, projectile_placement c
   advance_homing_projectile(record, angles.heading, angles.pitch, frame_step);
 }
 
+void advance_map_homing_projectile(projectile &record, map_guidance_target const target, std::uint16_t const frame_step) {
+  /// CC9C's map branch computes an aim height, then 831E banks towards its resolved position
+  if(!record.parameters.definition) throw std::invalid_argument{"map homing requires an object definition"};
+  auto const &definition{*record.parameters.definition};
+  unsigned int const shift{static_cast<unsigned int>(definition.role_data[6] & 31)};
+  auto const height_offset{shift < 16 ? target.height_extent >> shift : 0};
+  auto const height{static_cast<std::uint16_t>(target.height - height_offset)};
+  auto const &position{record.placement.position};
+  auto const x{static_cast<std::uint16_t>(position[0] - target.position[0])};
+  auto const y{static_cast<std::uint16_t>(position[1] - target.position[1])};
+  auto step{frame_step};
+  if(!(static_cast<std::uint16_t>(x + 7) < 15 && static_cast<std::uint16_t>(y + 7) < 15)) {
+    auto const direction{maths::direction_from_displacement({x, y, static_cast<std::uint16_t>(height - position[2])})};
+    auto &angles{record.placement.angles};
+    auto const heading_error{signed_word(direction.heading - angles[0])};
+    // JO after doubling rejects +4000h, but accepts -4000h.
+    if(heading_error >= -16384 && heading_error < 16384) {
+      auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(direction.pitch - angles[1]),
+        record.angular_motion[1], record.parameters.angular_response, step)};
+      angles[1] = static_cast<std::uint16_t>(angles[1] + pitch.angle_delta);
+      record.angular_motion[1] = pitch.rate;
+      auto const bank{signed_word((static_cast<std::int32_t>(heading_error) * signed_word(record.parameters.motion[0])) >> 15)};
+      int const sign{bank < 0 ? -1 : 0};
+      auto const magnitude{static_cast<std::uint16_t>((bank ^ sign) - sign)};
+      auto const bounded{std::min(magnitude, record.parameters.motion[1])};
+      auto const roll_target{signed_word(((bounded ^ sign) - sign) * 2)};
+      auto const roll{calculate_angular_response(static_cast<std::uint16_t>(roll_target - angles[2]),
+        record.angular_motion[2], record.parameters.angular_response, pitch.frame_step)};
+      record.angular_motion[2] = roll.rate;
+      angles[2] = static_cast<std::uint16_t>(angles[2] + roll.angle_delta);
+      auto const midpoint{static_cast<std::uint16_t>(angles[2] - (signed_word(roll.angle_delta) >> 1))};
+      auto const quadrant{midpoint >> 14};
+      auto const shaped{signed_word(quadrant == 0 || quadrant == 3 ? -midpoint : midpoint + 0x8000)};
+      auto const turn{signed_word((static_cast<std::int32_t>(signed_word(record.parameters.motion[2])) * shaped) >> 15)};
+      auto const time{signed_word((roll.frame_step & 255) * 257)};
+      auto const heading_delta{signed_word((static_cast<std::int32_t>(time) * turn) >> 15)};
+      angles[0] = static_cast<std::uint16_t>(angles[0] + heading_delta);
+      step = roll.frame_step;
+    }
+  }
+  advance_direct_projectile(record.placement, definition, step);
+}
+
 } // namespace darker::game

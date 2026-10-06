@@ -172,3 +172,15 @@ The native step lives in the immediate operand at `7A2B`. After patching it betw
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_update_reference.py ..
 ```
+
+## Banked map-target guidance
+
+`advance_map_homing_projectile` implements the other `CC9C` branch and `831E–8390`: adjust the resolved target height by the definition's guidance shift, steer pitch, derive a bounded bank target, steer roll, and turn heading through the original folded mid-roll calculation. It preserves the ±7-unit horizontal near-target gate and the asymmetric signed-overflow heading gate (-4000h accepted, +4000h rejected). Motion still runs when steering is skipped.
+
+The update API now accepts a typed variant of no target, resolved object placement, or `map_guidance_target`. That map structure carries the coordinates, height and height extent supplied by native `D089`; map/geometry lookup itself remains external. The angular response and all following position integration are translated, including x86 shift-count masking and wrapping intermediate products.
+
+`generate_map_guidance_reference.py` executes complete `CC61` updates, intercepting only `D089` to supply geometry lookup results. C++ matches **960 sequential updates** across heading quadrants, near-target boundaries, guidance shifts and extreme step words. The tests run through the public per-projectile dispatcher. All **59 CTest cases** pass.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_map_guidance_reference.py ..
+```
