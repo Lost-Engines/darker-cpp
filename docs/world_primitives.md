@@ -220,3 +220,29 @@ resistance/strength boundaries, damage overflow, both mode paths and existing
 expiry flags/deadlines. Random kick instructions execute uninterrupted; only the
 final effect-spawning boundary is intercepted. Tests compare angular rates,
 accumulator, damage, callback, deadline, flags, RNG state and selected effect.
+
+## Player damage, shield recharge and repair
+
+`player_damage` implements `84D0`, using the same `8568` angular-kick helper as
+object impacts. The kick consumes a random word before the damage-cheat patch.
+Caero damage carries each 68 peripheral units into a major unit; incoming bit 7
+adds two major units. The `6F45` lethal threshold is exposed separately from the
+not-yet-integrated crash transition. Skimma damage consumes only the high byte of
+its fractional shield charge. Exact depletion is lethal, as is an unshielded hit,
+even with zero damage. The cheat does not bypass those branches.
+
+The `8108..8117` recharge prefix adds twice the timestep and corrects the high
+byte at 192. It retains the original word wrap and single correction for extreme
+steps. `8514` repairs one Caero peripheral unit on phase carry, without repairing
+major damage. Its original `8523` operand is zero; no extra configurable repair
+rate is introduced.
+
+`tools/generate_player_damage_reference.py WORKSPACE` captures 1,536 player hits
+(every incoming byte for all three craft, with/without the cheat), 63 recharge
+boundaries and 90 repair boundaries. Player hit tests compare angular kick,
+damage, fractional shield charge and RNG state. The repair probe uses a mirrored
+DS separate from CS: Unicorn otherwise loses carry when `851F` writes its own
+translated block, although the real x86 MOV preserves carry. Both operand copies
+are initialised before each call, and outputs are read from DS. No arithmetic
+instructions are replaced. These are isolated routine comparisons, not full
+flight, collision or crash-sequence tests.
