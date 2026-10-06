@@ -8,9 +8,11 @@
 #include <stdexcept>
 #include <string>
 #include <boost/program_options.hpp>
+#include "graphics/camera.h"
 #include "graphics/model_renderer.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
+#include "reference/camera_samples.h"
 #include "reference/geometry_bank_samples.h"
 #include "reference/original_model_samples.h"
 
@@ -83,6 +85,23 @@ auto main(int const argc, char const *const argv[])->int try {
         sample.slot, sample.type, sample.view, fingerprint, sample.fingerprint)};
     }
   }
+  for(auto const &sample : darker::test_reference::camera_model_samples) {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
+    darker::graphics::projection_parameters const projection{
+      .axes{darker::graphics::make_camera_basis({.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}})},
+      .depth{.whole{2048}}, .origin{.x{160}, .y{110}},
+    };
+    darker::graphics::model_colours colours{.dynamic{17}};
+    for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
+    framework::render::indexed_cockpit_framebuffer frame{};
+    darker::graphics::draw_flat_model(frame, bank.model_pool(), bank.city_model_offset(30, 0, 0x20), projection, colours, sample.slot == 30 ? 168 : 180);
+    std::uint64_t fingerprint{0xcbf29ce484222325};
+    for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
+    if(fingerprint != sample.fingerprint) {
+      throw std::runtime_error{std::format("Camera/model drawing differs from native reference: bank {}, heading {}, pitch {}", sample.slot, sample.heading, sample.pitch)};
+    }
+  }
+  std::cout << std::format("{} camera/model frames match native drawing.", darker::test_reference::camera_model_samples.size()) << std::endl;
   std::cout << std::format("{} original model frames match native drawing.", darker::test_reference::original_model_samples.size()) << std::endl;
   std::cout << "All three geometry banks match native model selection for every city type/state." << std::endl;
   std::cout << std::format("Decoded {} resources: {} bytes", darker::resources::resource_directory().size(), total) << std::endl;

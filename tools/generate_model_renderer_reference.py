@@ -26,6 +26,10 @@ def models():
         bodies.append(vertices+bytes([0x16, *indices, len(face)])+face+b'\x0d')
     for threshold in (0, 1, 2, 128, 255):
         bodies.append(vertices+bytes([0x1a, threshold, len(face)])+face+b'\x0d')
+    # Gouraud-off is an original drawing mode: skip shade operands and use the face colour.
+    shaded = bytes([0x0f, 0x7c, 0, 0, 1, 255, 2, 16, 3, 27])
+    bodies += [vertices+shaded+b'\x0d', vertices+bytes([0x11, 3])+shaded[1:]+b'\x0d',
+               vertices+bytes([0x0e, 0x7c, 0, 1, 1, 2, 2, 3, 13])]
     # Coordinate reuse and cursor rewrites before drawing.
     compact = bytes([0x5a, 0x85])+word(-150)+word(-180)+bytes([0x76, 0x73, 0x76])
     bodies.append(compact+face+b'\x0d')

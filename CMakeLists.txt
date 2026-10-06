@@ -79,6 +79,8 @@ add_library(darker_graphics STATIC
   src/graphics/blit.h
   src/graphics/model_renderer.cpp
   src/graphics/model_renderer.h
+  src/graphics/camera.cpp
+  src/graphics/camera.h
   src/graphics/model_projection.cpp
   src/graphics/model_projection.h
   src/graphics/flat_polygon.cpp
@@ -172,6 +174,7 @@ if(BUILD_TESTING)
     tests/random_test.cpp
     tests/direction_test.cpp
     tests/geometry_bank_test.cpp
+    tests/camera_test.cpp
     tests/model_renderer_test.cpp
     tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp

@@ -2,10 +2,10 @@
 import struct
 
 
-def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic):
+def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic, bottom=240):
     class Renderer(Harness):
         def hook(self, cpu, address, size, data):
-            if address-self.BASE in (0xfc0e, 0xfc0f, 0xfc11, 0xfc1e, 0xfc22, 0xfc32, 0xfc35, 0xfc38, 0xfc3b):
+            if address-self.BASE in (0xfc1e, 0xfc22, 0xfc32, 0xfc35, 0xfc38, 0xfc3b):
                 raise ValueError(f'Non-flat command at {address-self.BASE:04x}')
             if address-self.BASE == 0xa583:
                 right, left, row = self.getreg('CX'), self.getreg('SI'), self.getreg('BP')//256
@@ -25,9 +25,11 @@ def render(Harness, image, pool, offset, axes, base, origin, shades, dynamic):
         native.write(address, word(value))
     for address, value in ((0xfcbf, base[1]), (0xfce4, base[3]), (0xfca8, base[5])):
         native.write(address, bytes([value]))
+    native.write(0xfc13, word(0x3515))  # Original Gouraud-off dispatch to 312A.
     native.write(0x3142, word(0x1fc0))
     native.write(0xfdec, word(0x1000))
     native.write(0xfdf4, word(0xa000))
+    native.write(0xa296, word(bottom))
     native.write(0x3385, word(0xe000))
     native.write(0x339a, bytes([dynamic]))
     native.write(0, struct.pack('<240H', *[y*256 for y in range(240)]))

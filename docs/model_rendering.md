@@ -45,25 +45,56 @@ resolves palette groups through a supplied distance shade table. Dynamic colour
 codes use the original byte wrapping and clamp. The distance branch tests the
 sign bit of a byte subtraction, including its wrap, rather than a host signed
 comparison. Unsupported commands fail explicitly; this is not yet a complete
-world renderer. Gouraud faces, lines, discs, animated coordinates, near-plane
-handling and camera/scene setup remain separate work.
+world renderer. Gouraud interpolation, lines, discs, animated coordinates, near-plane
+handling and scene traversal remain separate work. Gouraud commands are supported
+through the original flat fallback (`312A`), skipping each vertex shade operand.
 
-`tools/generate_model_renderer_reference.py WORKSPACE` captures 90 complete
+`tools/generate_model_renderer_reference.py WORKSPACE` captures 108 complete
 synthetic drawing streams with the original interpreter, projection, colour
 lookup, culling, clipping and edge walking. Only VGA planar span writes are
 replaced with contiguous index writes. Tests compare all 76,800 pixels via a
 64-bit fingerprint. No original model bytes are embedded in these fixtures.
 
-`tools/generate_original_model_reference.py WORKSPACE` additionally captures 340
+`tools/generate_original_model_reference.py WORKSPACE` additionally captures 702
 frames from actual city-bank models under two controlled coefficient matrices.
 The optional original-pack integration check loads these models from the user's
 archives and compares complete frames. It covers all three banks, including
 shared drawing subroutines and visibility branches. These matrices are test
 inputs, not a claim to have reconstructed camera setup.
 
-Four otherwise-flat candidate views execute Gouraud instructions reached only
+Four initially-flat candidate views execute Gouraud instructions reached only
 through conditional branches (bank 30 types 63, 64 and 77). The extraction
 inspector's fall-through opcode inventory cannot identify every executed command.
-The native capture therefore rejects unsupported drawing paths explicitly, and
-those four views are excluded from this flat-only comparison. They must return
-when Gouraud rendering is implemented.
+The native capture rejects unsupported drawing paths explicitly. With the
+original Gouraud-off dispatch installed, all four views now pass, alongside the
+other models containing shaded faces.
+
+
+## Camera coefficients and placement
+
+`graphics::make_camera_basis` translates `1D63–1E76`, preserving each separately
+rounded signed product, wrapping additions and the A/B swap when installing the
+model coefficients. It accepts final camera angles, applies the caller's
+fifteen-unit rounding bias and uses the original 1024-entry sine table. Camera
+tracking, inverted-pitch folding, external-view choice and stereo offsets are
+not part of this calculation.
+
+`graphics::place_model` translates `2E21–2EAA`: fractional map position, camera
+subtraction, selected model height, ordered whole/fraction products and the
+approximate sorting distance. The sorting estimate complements negative words
+(abs minus one), and uses camera altitude independently of model height. Its
+units are explicit in the public records: model column/row are 1/256 cell; the
+camera subtractors are 1/1024 cell. Nearby relative coordinates wrap as original
+words, rather than expanding the original visibility range.
+
+`tools/generate_camera_reference.py WORKSPACE` captures 256 camera bases and
+placements, including quarter turns, table-index boundaries, negative heights
+and wrapping positions. Tests compare all nine coefficients, all three whole
+and fractional coordinate pairs, and the sorting distance (4,096 assertions).
+
+The original-pack check also compares 96 complete perspective frames of the two
+models used by the application milestone, covering a full heading turn and
+three elevations. Camera coefficients come from the native setup, depth varies
+per vertex, and clipping uses the Caero/Skimma view heights of 168/180 rows.
+These checks exercise camera setup, model interpretation, projection and drawing
+together; they do not substitute for scene traversal or near-plane handling.

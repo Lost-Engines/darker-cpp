@@ -15,6 +15,6 @@ struct model_colours {
 };
 
 void draw_flat_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> pool,
-  std::size_t model_offset, projection_parameters projection, model_colours const &colours);
+  std::size_t model_offset, projection_parameters projection, model_colours const &colours, int bottom = 240);
 
 } // namespace darker::graphics

@@ -14,6 +14,7 @@ private:
   model_projection projection;
   model_colours const &colours;
   std::uint8_t distance_high;
+  int bottom;
   std::array<screen_vertex, 256> vertices{};
   std::array<bool, 256> defined{};
   std::size_t cursor{0};
@@ -69,8 +70,8 @@ private:
 
 public:
   interpreter(framework::render::indexed_cockpit_framebuffer &frame, std::span<std::byte const> const bytes,
-    projection_parameters const parameters, model_colours const &palette)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, distance_high{static_cast<std::uint8_t>(parameters.depth.whole >> 8)} {
+    projection_parameters const parameters, model_colours const &palette, int const height)
+    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, distance_high{static_cast<std::uint8_t>(parameters.depth.whole >> 8)}, bottom{height} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
@@ -123,12 +124,19 @@ public:
       case 0x01:
       case 0x02:
       case 0x03:
+      case 0x0e:
+      case 0x0f:
+      case 0x11:
         {
-          unsigned int const count{static_cast<unsigned int>(opcode == 1 ? byte(position) : opcode) + 1};
+          bool const shaded{opcode >= 0x0e};
+          unsigned int const count{static_cast<unsigned int>(opcode == 1 || opcode == 0x11 ? byte(position) : shaded ? opcode - 12 : opcode) + 1};
           auto const index{colour(byte(position))};
           std::array<screen_vertex, 256> face{};
-          for(unsigned int i{0}; i < count; ++i) face[i] = vertex(byte(position));
-          draw_flat_polygon(target, std::span{face}.first(count), index);
+          for(unsigned int i{0}; i < count; ++i) {
+            face[i] = vertex(byte(position));
+            if(shaded) byte(position);                                         // 312A's flat mode skips each Gouraud shade operand
+          }
+          draw_flat_polygon(target, std::span{face}.first(count), index, 319, bottom);
         }
         break;
       case 0x16:
@@ -156,10 +164,11 @@ public:
 } // namespace
 
 void draw_flat_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> const pool,
-  std::size_t const model_offset, projection_parameters const projection, model_colours const &colours) {
+  std::size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
-  interpreter{target, pool, projection, colours}.run(model_offset + 11);
+  if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};
+  interpreter{target, pool, projection, colours, bottom}.run(model_offset + 11);
 }
 
 } // namespace darker::graphics
