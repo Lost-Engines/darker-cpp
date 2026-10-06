@@ -77,6 +77,8 @@ add_library(darker_graphics STATIC
   src/graphics/bitmap_hud.h
   src/graphics/blit.cpp
   src/graphics/blit.h
+  src/graphics/model_renderer.cpp
+  src/graphics/model_renderer.h
   src/graphics/model_projection.cpp
   src/graphics/model_projection.h
   src/graphics/flat_polygon.cpp
@@ -154,7 +156,7 @@ set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for op
 
 if(BUILD_TESTING)
   add_executable(resource_check tests/resource_check_main.cpp)
-  target_link_libraries(resource_check PRIVATE darker_resources PRIVATE Boost::program_options)
+  target_link_libraries(resource_check PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
@@ -170,6 +172,7 @@ if(BUILD_TESTING)
     tests/random_test.cpp
     tests/direction_test.cpp
     tests/geometry_bank_test.cpp
+    tests/model_renderer_test.cpp
     tests/model_projection_test.cpp
     tests/flat_polygon_test.cpp
     tests/angular_motion_test.cpp

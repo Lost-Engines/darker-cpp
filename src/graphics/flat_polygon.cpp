@@ -79,6 +79,13 @@ void step_edge(edge_walker &edge) noexcept {
 
 } // namespace
 
+bool back_facing(screen_vertex const origin, screen_vertex const next, screen_vertex const previous) noexcept {
+  /// Preserve the signed high word of the native cross product, including word differences and subtraction wrap
+  auto const cross{static_cast<std::uint32_t>(word(next.x - origin.x) * word(previous.y - origin.y))
+    - static_cast<std::uint32_t>(word(next.y - origin.y) * word(previous.x - origin.x))};
+  return (cross & 0x80000000u) != 0;
+}
+
 void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, std::span<screen_vertex const> const vertices,
   std::uint8_t const colour, int const right, int const bottom) {
   /// Translate A1B6's convex flat-fill path to indexed pixels; VGA plane masks become contiguous spans
@@ -92,9 +99,7 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   auto const index{static_cast<std::size_t>(top - vertices.begin())};
   auto const next{vertices[(index + 1) % vertices.size()]};
   auto const previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
-  auto const cross{static_cast<std::uint32_t>(word(next.x - top->x) * word(previous.y - top->y))
-    - static_cast<std::uint32_t>(word(next.y - top->y) * word(previous.x - top->x))};
-  if(cross & 0x80000000u) return;
+  if(back_facing(*top, next, previous)) return;
 
   polygon_buffer first{};
   polygon_buffer second{};

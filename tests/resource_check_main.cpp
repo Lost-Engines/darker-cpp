@@ -8,9 +8,11 @@
 #include <stdexcept>
 #include <string>
 #include <boost/program_options.hpp>
+#include "graphics/model_renderer.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 #include "reference/geometry_bank_samples.h"
+#include "reference/original_model_samples.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes
@@ -56,6 +58,32 @@ auto main(int const argc, char const *const argv[])->int try {
     }
     if(fingerprint != sample.fingerprint) throw std::runtime_error{"City model state selection differs from the native reference"};
   }
+  for(auto const &sample : darker::test_reference::original_model_samples) {
+    darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
+    darker::graphics::projection_parameters const projection{
+      .axes{{
+        {.horizontal{static_cast<std::int16_t>(sample.view ? -16384 : 16384)}, .vertical{static_cast<std::int16_t>(sample.view ? -4096 : 4096)}},
+        {.horizontal{4096}, .vertical{static_cast<std::int16_t>(sample.view ? 4096 : -4096)}},
+        {.vertical{16384}},
+      }},
+      .horizontal{.fraction{11}}, .vertical{.fraction{19}}, .depth{.whole{1024}}, .origin{.x{160}, .y{120}},
+    };
+    darker::graphics::model_colours colours{.dynamic{17}};
+    for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
+    framework::render::indexed_cockpit_framebuffer frame{};
+    try {
+      darker::graphics::draw_flat_model(frame, bank.model_pool(), bank.city_model_offset(sample.type, 0, 0x20), projection, colours);
+    } catch(std::exception const &error) {
+      throw std::runtime_error{std::format("Bank {}, type {}, view {}: {}", sample.slot, sample.type, sample.view, error.what())};
+    }
+    std::uint64_t fingerprint{0xcbf29ce484222325};
+    for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
+    if(fingerprint != sample.fingerprint) {
+      throw std::runtime_error{std::format("Original model drawing differs from native reference: bank {}, type {}, view {} (got {:016x}, expected {:016x})",
+        sample.slot, sample.type, sample.view, fingerprint, sample.fingerprint)};
+    }
+  }
+  std::cout << std::format("{} original model frames match native drawing.", darker::test_reference::original_model_samples.size()) << std::endl;
   std::cout << "All three geometry banks match native model selection for every city type/state." << std::endl;
   std::cout << std::format("Decoded {} resources: {} bytes", darker::resources::resource_directory().size(), total) << std::endl;
   if(arguments.contains("reference")) std::cout << "All resources match reference files byte-for-byte." << std::endl;

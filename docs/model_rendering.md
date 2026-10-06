@@ -35,3 +35,35 @@ coordinate streams (768 vertices), with varied coefficient matrices, translation
 fractions and origins. Set, zero and negate operations all execute as original
 instructions. Tests compare both projected coordinates and depth after every
 operation. No drawing or visibility commands are included in these streams.
+
+## Flat drawing streams
+
+`graphics::draw_flat_model` executes original pool bytecode against the stateful
+projection cache and the original flat polygon filler. It follows relative
+calls/jumps and both visibility branches, preserves vertex cursor rewrites, and
+resolves palette groups through a supplied distance shade table. Dynamic colour
+codes use the original byte wrapping and clamp. The distance branch tests the
+sign bit of a byte subtraction, including its wrap, rather than a host signed
+comparison. Unsupported commands fail explicitly; this is not yet a complete
+world renderer. Gouraud faces, lines, discs, animated coordinates, near-plane
+handling and camera/scene setup remain separate work.
+
+`tools/generate_model_renderer_reference.py WORKSPACE` captures 90 complete
+synthetic drawing streams with the original interpreter, projection, colour
+lookup, culling, clipping and edge walking. Only VGA planar span writes are
+replaced with contiguous index writes. Tests compare all 76,800 pixels via a
+64-bit fingerprint. No original model bytes are embedded in these fixtures.
+
+`tools/generate_original_model_reference.py WORKSPACE` additionally captures 340
+frames from actual city-bank models under two controlled coefficient matrices.
+The optional original-pack integration check loads these models from the user's
+archives and compares complete frames. It covers all three banks, including
+shared drawing subroutines and visibility branches. These matrices are test
+inputs, not a claim to have reconstructed camera setup.
+
+Four otherwise-flat candidate views execute Gouraud instructions reached only
+through conditional branches (bank 30 types 63, 64 and 77). The extraction
+inspector's fall-through opcode inventory cannot identify every executed command.
+The native capture therefore rejects unsupported drawing paths explicitly, and
+those four views are excluded from this flat-only comparison. They must return
+when Gouraud rendering is implemented.
