@@ -16,6 +16,8 @@ cmake --build build --parallel
 ./build/darker --data-dir ../darker
 ```
 
+The application looks for `DARKER.00` through `DARKER.04` in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
+
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.
 
 ## Current milestone

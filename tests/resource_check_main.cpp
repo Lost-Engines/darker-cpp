@@ -13,7 +13,7 @@ auto main(int const argc, char const *const argv[])->int try {
   boost::program_options::options_description options{"Original resource verification"};
   options.add_options()
     ("help,h", "show usage")
-    ("data-dir", boost::program_options::value<std::string>()->required(), "directory containing DARKER.00 through DARKER.04")
+    ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("reference", boost::program_options::value<std::string>(), "directory of independently decoded NN_NNN.bin files");
   boost::program_options::variables_map arguments;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), arguments);

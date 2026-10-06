@@ -72,7 +72,7 @@ auto main(int const argc, char const *const argv[])->int try {
   po::options_description options{"Darker (current cockpit milestone)"};
   options.add_options()
     ("help,h", "show usage")
-    ("data-dir", po::value<std::string>()->required(), "directory containing original DARKER.00 through DARKER.04")
+    ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded")
     ("fill", po::value<unsigned int>()->default_value(50), "initial strip-count percentage, 0 to 100 (inspection only)")
     ("field", po::value<std::size_t>()->default_value(0), "zero-based instrument selection")
