@@ -22,6 +22,7 @@ struct flight_controls_input {
   bool up{false};
   bool down{false};
   bool control{false};
+  bool look_around{false};
   std::uint16_t mouse_x{0};                                                    // original accumulated mouse-motion counters
   std::uint16_t mouse_y{0};
   std::uint16_t mouse_sensitivity{12};

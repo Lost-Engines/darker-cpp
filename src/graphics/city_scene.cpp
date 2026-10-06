@@ -17,6 +17,22 @@ int magnitude(std::uint16_t const value) noexcept {
   return value & 0x8000 ? static_cast<std::uint16_t>(~value) : value;
 }
 
+std::optional<city_draw_item> classify_model(model_placement const placement, resources::model_header const header) {
+  /// Apply the shared extent cull and direct/near model-path selection
+  auto const diameter{word(header.extent * 2)};
+  auto bound{word(placement.depth.whole - 32)};
+  bool const near{bound <= diameter};
+  bool const force_flat{!near && static_cast<std::uint8_t>(static_cast<std::uint16_t>(bound) >> 8) >= header.flat_distance};
+  if(near && static_cast<std::uint16_t>(bound) >= static_cast<std::uint16_t>(diameter)) {
+    if(word(bound + diameter) < 0) return std::nullopt;
+    bound = -32;
+  }
+  bound = word(bound + word(diameter + 32));
+  if(magnitude(placement.horizontal.whole) >= bound || magnitude(placement.vertical.whole) >= bound) return std::nullopt;
+  return city_draw_item{.placement{placement},
+    .path{near ? model_path::near_clipped : model_path::direct}, .force_flat{force_flat}};
+}
+
 } // namespace
 
 std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell const cell, std::uint16_t const index,
@@ -34,18 +50,30 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
     .height{word(header.height - (background ? 0 : type.collision_marker * 256))},
   })};
   if(!background) placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + header.extent);
-  auto const diameter{word(header.extent * 2)};
-  auto bound{word(placement.depth.whole - 32)};
-  bool const near{bound <= diameter};
-  bool const force_flat{!near && static_cast<std::uint8_t>(static_cast<std::uint16_t>(bound) >> 8) >= header.flat_distance};
-  if(near && static_cast<std::uint16_t>(bound) >= static_cast<std::uint16_t>(diameter)) {
-    if(word(bound + diameter) < 0) return std::nullopt;
-    bound = -32;
+  auto item{classify_model(placement, header)};
+  if(item) {
+    item->cell = index;
+    item->model_offset = offset;
+    item->background = background;
   }
-  bound = word(bound + word(diameter + 32));
-  if(magnitude(placement.horizontal.whole) >= bound || magnitude(placement.vertical.whole) >= bound) return std::nullopt;
-  return city_draw_item{.cell{index}, .model_offset{offset}, .placement{placement},
-    .path{near ? model_path::near_clipped : model_path::direct}, .background{background}, .force_flat{force_flat}};
+  return item;
+}
+
+std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
+  camera_basis const &basis, camera_position camera) {
+  /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
+  camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions[0] >> 6));
+  camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions[1] >> 6));
+  auto placement{place_model(basis, camera, {.column{object.pose.position[0]}, .row{object.pose.position[1]}, .height{word(-object.pose.position[2])}})};
+  auto const header{bank.header_at(object.model_offset)};
+  placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + header.extent);
+  auto item{classify_model(placement, header)};
+  if(item) {
+    item->model_offset = object.model_offset;
+    item->orientation = orient_model(basis, {.heading{object.pose.angles[0]}, .pitch{object.pose.angles[1]}, .roll{object.pose.angles[2]}});
+    item->object_light = object.light;
+  }
+  return item;
 }
 
 void order_city_models(std::vector<city_draw_item> &items) {
@@ -60,7 +88,7 @@ void order_city_models(std::vector<city_draw_item> &items) {
 void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells, std::uint8_t const column, std::uint8_t const row,
   camera_angles const angles, unsigned int const radius, std::vector<std::uint16_t> &output) {
   /// 26EE traverses circular row spans, selecting the heading half unless pitch requires the full circle
-  if(column >= 128 || row >= 128 || radius < 2 || radius > 32) throw std::invalid_argument{"City scan position or radius exceeds its supported bounds"};
+  if(radius < 2 || radius > 32) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
   output.clear();
   auto const heading_phase{static_cast<std::uint16_t>(angles.heading + 15) >> 6};
   auto const pitch_phase{static_cast<std::uint16_t>(angles.pitch + 15) >> 6};
@@ -116,7 +144,7 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
 
 std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
   std::span<game::city_cell const, 128 * 128> const cells, city_view const view, std::uint8_t const damage_mask,
-  distance_shading const &lighting, model_animation animation) {
+  distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects) {
   /// Assemble and draw the ordinary city path; underground visibility propagation and dynamic objects remain separate
   auto const basis{make_camera_basis(view.angles)};
   camera_position const camera{
@@ -128,21 +156,24 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
   for(auto const index : candidates) {
     if(auto item{place_city_cell(bank, cells[index], index, damage_mask, basis, camera)}) items.push_back(*item);
   }
+  for(auto const &object : objects) {
+    if(auto item{place_scene_object(bank, object, basis, camera)}) items.push_back(*item);
+  }
   order_city_models(items);
   for(auto const &item : items) {
     projection_parameters const projection{
-      .axes{basis}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
+      .axes{item.orientation.value_or(basis)}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
       .depth{item.placement.depth}, .origin{view.origin},
     };
-    std::uint8_t light{255};
-    if(view.beacon_lighting) {
+    std::uint8_t light{item.orientation ? item.object_light : std::uint8_t{255}};
+    if(view.beacon_lighting && !item.orientation) {
       // 2D85 samples the nearest lattice cell's state without the charging routine's type check
       auto const column{((item.cell % 128 + 4) / 9) * 9};
       auto const row{((item.cell / 128 + 4) / 9) * 9};
       light = cells[row * 128 + column].state;
     }
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
-    animation.cell_state = cells[item.cell].state;
+    animation.cell_state = item.orientation ? 0 : cells[item.cell].state;
     draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation,
       view.gouraud && !item.force_flat ? model_shading::gouraud : model_shading::flat);
   }

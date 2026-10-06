@@ -24,7 +24,7 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation.
 
-This is an **airborne flight checkpoint**, not yet a complete mission. It temporarily starts above the city with a usable flight state. Original scenario/launch setup, other actors, weapons, world audio, external cameras, landing and original death screens remain to be connected. Enter after a crash restores the airborne checkpoint, including city state. Skimma shield startup/strength and low-altitude warning now drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
+This is an **airborne flight checkpoint**, not yet a complete mission. It temporarily starts above the city with a usable flight state. Original scenario/launch setup, other actors, weapons, world audio, object-target cameras, landing and original death screens remain to be connected. Enter after a crash restores the airborne checkpoint, including city state. Skimma shield startup/strength and low-altitude warning now drive their cockpit displays; Caero stall dimming and Nayas activity remain outstanding.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
@@ -34,6 +34,9 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 - **E:** Caero engine / Skimma shields.
 - **A:** Caero automatic altitude adjustment.
 - **− / =:** Skimma low/high speed settings.
+- **F1 / F2 / F3 / F4:** cockpit / following / level following / full-screen inside.
+- **F5 / F6:** drop a tracking / fixed camera; **comma / period:** following-camera distance.
+- **Tab:** hold to look around; steering controls the camera while held.
 - **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
 - **Escape:** close and release the captured mouse.
 

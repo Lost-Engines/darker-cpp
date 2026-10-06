@@ -53,8 +53,8 @@ is not yet reproduced. This checkpoint assigns engine and player effects to
 fixed channels 0–4. Original priority ordering, competing world voices,
 distance attenuation, stereo panning and Doppler remain to be connected. In
 particular, the boost currently uses its stored level through the nonspatial
-path, not the original spatial admission path. Camera-dependent engine level
-will need to follow the camera system when external views are integrated.
+path, not the original spatial admission path. The camera now selects the hidden-player level or the original exterior base
+level; exterior distance attenuation is still missing.
 Music and all five hardware arrangements are still separate work.
 
 Nuked OPL3 is LGPL-2.1-or-later. Its unmodified source and licence are available

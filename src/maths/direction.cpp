@@ -23,7 +23,9 @@ std::uint16_t first_quadrant(std::uint16_t const x, std::uint16_t const y) {
   return static_cast<std::uint16_t>(512 - direction_table[(static_cast<std::uint32_t>(y) << 8) / x]);
 }
 
-std::uint16_t direction(std::uint16_t x, std::uint16_t y) {
+} // namespace
+
+std::uint16_t direction_index(std::uint16_t x, std::uint16_t y) {
   /// 927F selects quadrants using wrapped NEG results, including the signed minimum
   if(negative(x)) {
     x = negate(x);
@@ -36,8 +38,6 @@ std::uint16_t direction(std::uint16_t x, std::uint16_t y) {
   return first_quadrant(x, y);
 }
 
-} // namespace
-
 direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const &displacement) {
   /// 925C uses a maximum-axis pitch approximation and scales altitude down by eight
   auto const x{displacement[0]};
@@ -45,8 +45,8 @@ direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const 
   auto const z{static_cast<std::uint16_t>(std::bit_cast<std::int16_t>(displacement[2]) >> 3)};
   auto const horizontal{std::max(negative(x) ? negate(x) : x, negative(y) ? negate(y) : y)};
   return {
-    .heading{static_cast<std::uint16_t>(direction(x, y) << 5)},
-    .pitch{static_cast<std::uint16_t>(direction(z, horizontal) << 5)},
+    .heading{static_cast<std::uint16_t>(direction_index(x, y) << 5)},
+    .pitch{static_cast<std::uint16_t>(direction_index(z, horizontal) << 5)},
   };
 }
 

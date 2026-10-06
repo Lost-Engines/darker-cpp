@@ -51,7 +51,13 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
     advance_player_crash(pose(), frame_step);
     return {};
   }
-  auto const steering{update_flight_controls(controls, input, frame_step)};
+  auto steering{update_flight_controls(controls, input, frame_step)};
+  look_drive = input.look_around ? steering : flight_steering{};
+  if(input.look_around) {
+    controls.bank.reference = 0;
+    controls.pitch.reference = 0;
+    steering = {};
+  }
   auto const previous{pose().position};
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
   auto const &definition{original_object_definitions[caero ? 25 : upgraded ? 27 : 26]};

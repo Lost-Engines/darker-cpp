@@ -16,6 +16,7 @@
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
 #include "game/city_map.h"
+#include "game/flight_camera.h"
 #include "game/game_clock.h"
 #include "game/player_flight.h"
 #include "graphics/bitmap_hud.h"
@@ -37,6 +38,7 @@ namespace {
 struct flight_host {
   darker::game::player_flight player{};
   darker::audio::flight_sounds sounds;
+  darker::game::flight_camera camera;
   bool shield_ready{false};
   bool gouraud{true};
   bool restart_requested{false};
@@ -59,6 +61,7 @@ struct flight_host {
     return {
       .left{down(GLFW_KEY_LEFT)}, .right{down(GLFW_KEY_RIGHT)}, .up{down(GLFW_KEY_UP)}, .down{down(GLFW_KEY_DOWN)},
       .control{down(GLFW_KEY_LEFT_CONTROL) || down(GLFW_KEY_RIGHT_CONTROL)},
+      .look_around{down(GLFW_KEY_TAB)},
       .mouse_x{static_cast<std::uint16_t>(static_cast<std::int64_t>(x - mouse_origin_x))},
       .mouse_y{static_cast<std::uint16_t>(static_cast<std::int64_t>(mouse_origin_y - y))},
     };
@@ -121,13 +124,16 @@ auto main(int const argc, char const *const argv[])->int try {
   darker::graphics::distance_shading const lighting;
   framework::render::indexed_cockpit_framebuffer display{}, world{};
   framework::render::cockpit_framebuffer output;
-  auto const render{[&](std::uint16_t const clock, bool const enlarged){
-    int const height{caero ? 168 : 180};
+  auto const render{[&](std::uint16_t const clock, bool const enlarged, std::uint16_t const frame_step = 0){
+    bool const cockpit_visible{host.camera.visible_mode() == darker::game::camera_mode::cockpit};
+    bool const external{host.camera.visible_mode() != darker::game::camera_mode::cockpit && host.camera.visible_mode() != darker::game::camera_mode::fullscreen};
+    int const height{cockpit_visible ? (caero ? 168 : 180) : 240};
     auto const &pose{host.player.pose()};
+    auto const camera{host.camera.view(pose, frame_step, (host.player.lifecycle.flags & 16) != 0)};
     darker::graphics::city_view view{
-      .column{pose.position[0]}, .row{pose.position[1]}, .column_fraction{pose.fractions[0]}, .row_fraction{pose.fractions[1]},
-      .altitude{std::bit_cast<std::int16_t>(pose.position[2])},
-      .angles{.heading{pose.angles[0]}, .pitch{pose.angles[1]}, .roll{pose.angles[2]}},
+      .column{camera.position[0]}, .row{camera.position[1]}, .column_fraction{camera.fractions[0]}, .row_fraction{camera.fractions[1]},
+      .altitude{std::bit_cast<std::int16_t>(camera.position[2])},
+      .angles{.heading{camera.angles[0]}, .pitch{camera.angles[1]}, .roll{camera.angles[2]}},
       .origin{.x{160}, .y{static_cast<std::int16_t>(height / 2)}}, .bottom{height},
     };
     view.beacon_lighting = caero;
@@ -135,7 +141,9 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::model_animation animation;
     darker::graphics::update_fountain_parameters(animation, clock);
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
-    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation)};
+    std::array<darker::graphics::scene_object, 1> const objects{{{.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}}}};
+    auto const count{scene.draw(world, bank, cells, view, caero ? 0x20 : 0x60, lighting, animation,
+      std::span<darker::graphics::scene_object const>{objects}.first(external ? 1 : 0))};
     display = cockpit;
     auto const components{darker::graphics::cockpit_components(type)};
     std::array<std::uint8_t, 9> instruments{};
@@ -154,19 +162,19 @@ auto main(int const argc, char const *const argv[])->int try {
       instruments[2] = darker::graphics::skimma_speed_instrument(pose.speed, host.player.upgraded);
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
-    darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{caero ? 8 : 0}}, 320, height);
+    darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{cockpit_visible && caero ? 8 : 0}}, 320, height);
     darker::graphics::radar_view_state const navigation{
       .player{.x{view.column}, .y{view.row}}, .heading{view.angles.heading},
       .row{static_cast<std::uint8_t>(view.row >> 8)}, .column{static_cast<std::uint8_t>(view.column >> 8)},
     };
-    if(caero) {
+    if(cockpit_visible && caero) {
       darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{0}, .secondary_weapon{0}});
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
       darker::graphics::draw_attitude_surround(display, 0);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, {});
-    } else {
+    } else if(cockpit_visible) {
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, {});
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
     }
@@ -207,6 +215,22 @@ auto main(int const argc, char const *const argv[])->int try {
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
     if(key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
+      auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
+      if(key >= GLFW_KEY_F5) {
+        if(!(host.player.lifecycle.flags & 16)) host.camera.drop(selected, host.player.pose());
+      } else {
+        if(host.camera.mode == darker::game::camera_mode::fixed) {
+          host.camera.look_heading = 0;
+          host.camera.look_pitch = 0;
+          host.camera.looking = false;
+        }
+        host.camera.mode = selected;
+      }
+      if(key == GLFW_KEY_F1 || key == GLFW_KEY_F4) host.camera.distance = 0x8000;
+    }
+    if(action == GLFW_PRESS && key == GLFW_KEY_COMMA && host.camera.distance_step > 0) --host.camera.distance_step;
+    if(action == GLFW_PRESS && key == GLFW_KEY_PERIOD && host.camera.distance_step < 5) ++host.camera.distance_step;
     if(key == GLFW_KEY_ENTER && host.player.lifecycle.crashing) {
       if(action == GLFW_PRESS) host.restart_requested = true;
       return;
@@ -248,8 +272,8 @@ auto main(int const argc, char const *const argv[])->int try {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
-  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, world sound, external cameras and original death screens are not connected yet." << std::endl;
+  std::cout << "Flight checkpoint: mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape closes; Enter after a crash restarts the checkpoint." << std::endl;
+  std::cout << "Original flight, charging and city collisions. Airborne checkpoint; missions, weapons, world sound, detached cameras and original death screens are not connected yet." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -257,6 +281,7 @@ auto main(int const argc, char const *const argv[])->int try {
     glfwPollEvents();
     if(host.restart_requested) {
       host.player = initial_player;
+      host.camera = {};
       host.sounds = {};
       host.shield_ready = false;
       if(audio_device) audio.publish({});
@@ -284,11 +309,12 @@ auto main(int const argc, char const *const argv[])->int try {
                 << "; position " << host.player.pose().position[0] << ',' << host.player.pose().position[1] << ',' << host.player.pose().position[2] << std::endl;
     }
     bool const enlarged{caero && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
+    host.camera.update_look(host.player.look_drive, glfwGetKey(window.get(), GLFW_KEY_TAB) == GLFW_PRESS, step, (host.player.lifecycle.flags & 16) != 0);
     auto const clock{game_clock.frame_ticks};
     host.clock = clock;
-    auto const count{render(clock, enlarged)};
+    auto const count{render(clock, enlarged, step)};
     if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
-    if(audio_device) audio.publish(host.sounds.advance(host.player, clock, host.shield_ready));
+    if(audio_device) audio.publish(host.sounds.advance(host.player, clock, host.shield_ready, host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen));
     std::string const title{"Darker - " + std::string{caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + (host.player.lifecycle.crashing ? " - crashed: Enter to restart" : " - flight")};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);

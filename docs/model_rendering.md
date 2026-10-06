@@ -287,8 +287,8 @@ The C++ implementation draws these spans directly into the indexed framebuffer.
 It does not emulate VGA planes or the original binary search for the first
 visible span. `tools/generate_sky_ground_reference.py` runs the native setup
 and clipping code, captures its horizontal/tilted band spans, and supplies the
-outer fills which the original performs after the band loop. **400 indexed
-background hashes** agree at both cockpit heights, including steep pitch,
+outer fills which the original performs after the band loop. **600 indexed
+background hashes** agree at both cockpit heights and the full 240-row view, including steep pitch,
 inverted views and banks close to the horizontal and vertical boundaries.
 This comparison checks resulting band pixels, not VGA write ordering or DAC
 output. Ground colours are the infinite background, not new terrain geometry.

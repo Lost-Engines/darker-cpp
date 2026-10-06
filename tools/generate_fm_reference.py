@@ -48,19 +48,19 @@ def main():
     engines = []
     for i in range(512):
         skimma = rng.randrange(2); upgraded = rng.randrange(2); speed = rng.randrange(65536)
-        clock = rng.randrange(65536); enabled = rng.randrange(2); crashed = rng.randrange(2)
+        clock = rng.randrange(65536); enabled = rng.randrange(2); crashed = rng.randrange(2); hidden = rng.randrange(2)
         slot = 25 if not skimma else 27 if upgraded else 26
         base_pitch = int.from_bytes(image[0x1926+slot*24+22:0x1926+slot*24+24], 'little')
         h.setreg('BP', 0xd986);h.setreg('DI', base_pitch);h.setreg('SI', 0xc4ff if not skimma else 0xe4ff)
-        h.cpu.mem_write(h.STACK+0xd98d, bytes([8 | (32 if crashed else 0)]))
+        h.cpu.mem_write(h.STACK+0xd98d, bytes([(8 if hidden else 0) | (32 if crashed else 0)]))
         h.cpu.mem_write(h.STACK+0xd9c4, struct.pack('<H', speed))
         h.cpu.mem_write(h.STACK+0xd9eb, bytes([0]))
         h.write(0xbf0, struct.pack('<H', clock));h.write(0x4552, bytes([enabled]));h.write(0xf003, bytes([2 if skimma else 0]))
         h.call(0x3914 if skimma else 0x3980)
         active = int(bool(h.getreg('EFLAGS') & 64))
-        engines.append(([skimma, upgraded, speed, clock, enabled, crashed], [h.getreg('DI'), h.getreg('SI'), active]))
+        engines.append(([skimma, upgraded, speed, clock, enabled, crashed, hidden], [h.getreg('DI'), h.getreg('SI'), active]))
     lines = ['#pragma once', '', '// Generated from native 3980/3914 with the cockpit-hidden player record', '#include <array>', '',
-             'namespace darker::test_reference {', 'struct engine_sound_sample { std::array<int, 6> input; std::array<int, 3> output; };',
+             'namespace darker::test_reference {', 'struct engine_sound_sample { std::array<int, 7> input; std::array<int, 3> output; };',
              f'inline constexpr std::array<engine_sound_sample, {len(engines)}> engine_sound_samples{{{{']
     lines += ['  {'+', '.join('{'+', '.join(map(str, p))+'}' for p in row)+'},' for row in engines]
     lines += ['}};', '} // namespace darker::test_reference', '']

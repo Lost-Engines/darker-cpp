@@ -15,6 +15,7 @@ enum class flight_command { engine, altitude_hold, boost, speed_low, speed_high 
 struct player_flight {
   std::variant<caero_flight_state, skimma_flight_state> craft{};
   flight_controls_state controls{};
+  flight_steering look_drive{};
   player_crash_state lifecycle{};
   std::uint16_t desired_height{0};
   std::uint16_t forward_setting{248};

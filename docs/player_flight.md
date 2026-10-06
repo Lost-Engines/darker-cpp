@@ -48,11 +48,13 @@ PIT-rate interrupt count and consumes the capped frame clock. Input-event timing
 and mouse sensitivity require interactive comparison; the complete original
 50 Hz button polling and modal input paths are not claimed here.
 
-First-person rendering follows the craft pose. Several gauges are now live;
+Cockpit, full-screen, following, level-following and dropped cameras are live.
+Tab redirects steering to look-around; released offsets return through the
+original vector reduction. Several gauges are now live;
 weapon icons are blank. Skimma shield startup/strength and the low-altitude
 warning are live; directional hit effects, Caero stall dimming and Nayas activity
 remain separate producers. Other actors,
-weapons, world sound, landing, alternate camera modes, explosions and death/retry
+weapons, world sound, landing, object/missile cameras, explosions and death/retry
 screens are not yet connected. Enter after a crash restores the temporary airborne checkpoint, including the
 initial city state and neutral steering. This is a development checkpoint retry,
 not the original campaign death/retry flow. The reconstructed deadline is retained for the future scene

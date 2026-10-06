@@ -6,6 +6,7 @@
 #include <span>
 #include <vector>
 #include "game/city_map.h"
+#include "game/object_pose.h"
 #include "graphics/camera.h"
 #include "graphics/model_lighting.h"
 #include "resources/geometry_bank.h"
@@ -19,11 +20,22 @@ struct city_draw_item {
   model_path path{model_path::direct};
   bool background{false};
   bool force_flat{false};
+  std::optional<camera_basis> orientation{};
+  std::uint8_t object_light{255};
 };
 
 std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, std::uint16_t index,
   std::uint8_t damage_mask, camera_basis const &basis, camera_position camera);
 void order_city_models(std::vector<city_draw_item> &items);
+
+struct scene_object {
+  std::size_t model_offset;
+  game::object_pose pose;
+  std::uint8_t light{255};
+};
+
+std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
+  camera_basis const &basis, camera_position camera);
 
 struct city_view {
   std::uint16_t column{0};                                                     // original 1/256-cell position words
@@ -47,7 +59,7 @@ private:
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
     std::span<game::city_cell const, 128 * 128> cells, city_view view, std::uint8_t damage_mask,
-    distance_shading const &lighting, model_animation animation);
+    distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {});
 };
 
 void collect_city_cells(std::span<game::city_cell const, 128 * 128> cells, std::uint8_t column, std::uint8_t row,

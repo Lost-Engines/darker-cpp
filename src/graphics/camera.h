@@ -33,6 +33,8 @@ struct model_placement {
 
 using camera_basis = std::array<projection_axis, 3>;                             // model components A, B and C; map column/row use B and -A
 
+camera_basis orient_model(camera_basis const &camera, camera_angles angles) noexcept;
+
 camera_basis make_camera_basis(camera_angles angles) noexcept;
 model_placement place_model(camera_basis const &basis, camera_position camera, model_origin origin) noexcept;
 

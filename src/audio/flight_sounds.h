@@ -17,7 +17,7 @@ private:
 
 public:
   void trigger(flight_sound effect, std::uint16_t clock) noexcept;
-  fm_frame advance(game::player_flight const &player, std::uint16_t clock, bool ready) noexcept;
+  fm_frame advance(game::player_flight const &player, std::uint16_t clock, bool ready, bool cockpit_hidden = true) noexcept;
 };
 
 } // namespace darker::audio

@@ -27,7 +27,7 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
   deadlines[channel] = static_cast<std::uint16_t>(clock + duration);
 }
 
-fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready) noexcept {
+fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready, bool const cockpit_hidden) noexcept {
   /// Reproduce player engine callbacks 3980/3914 and timed record deadlines; world attenuation and Doppler remain separate
   for(std::size_t i{1}; i < voices.size(); ++i) {
     if(voices[i].active && std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - deadlines[i])) >= 0) voices[i].active = false;
@@ -40,7 +40,7 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
     auto const triangle{static_cast<std::uint8_t>(phase ^ (phase & 128 ? 255 : 0))};
     pitch = static_cast<std::uint16_t>(pitch + (player.pose().speed >> 2) + ((triangle * 64) >> 10));
   }
-  voices[0] = {.pitch{pitch}, .level{0x8800}, .patch{definition.fm_patch},
+  voices[0] = {.pitch{pitch}, .level{cockpit_hidden ? std::uint16_t{0x8800} : static_cast<std::uint16_t>(definition.sound_level * 256 + 255)}, .patch{definition.fm_patch},
     .active{!player.lifecycle.crashing && (!caero || player.engine_flags == 1)}};
   if(!caero) {
     if(!(player.engine_flags & 1)) voices[4].active = false;

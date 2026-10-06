@@ -66,7 +66,7 @@ def main():
             super().hook(cpu, address, size, data)
 
     samples = []
-    for height in (168, 180):
+    for height in (168, 180, 240):
         for pitch in (0, 32, 127, 128, 384, 511, 512, 640, 896, 992):
             for roll in (0, 1, 2, 4, 16, 32, 64, 128, 255, 256, 257, 384, 480, 511, 512, 513, 640, 768, 896, 1023):
                 native = Background(image)
@@ -75,7 +75,7 @@ def main():
                 native.pixels = bytearray([28 if roll >= 512 else 127])*(320*height)
                 native.write(0x9c4a, image[0x944a:0x964a])
                 native.write(0xf003, bytes([2]))
-                for at, value in ((0xfdf4, 0xa000), (0xfccd, 160), (0xfcf1, height//2), (0xa296, height), (0xa320, 320)):
+                for at, value in ((0xfdf4, 0xa000), (0xfccd, 160), (0xfcf1, height//2), (0xa296, height), (0xa320, 319)):
                     native.write(at, struct.pack('<H', value))
                 native.setreg('BX', pitch*2)
                 native.setreg('DI', roll*2)

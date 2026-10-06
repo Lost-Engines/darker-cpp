@@ -66,6 +66,33 @@ camera_basis make_camera_basis(camera_angles const angles) noexcept {
   }};
 }
 
+camera_basis orient_model(camera_basis const &camera, camera_angles const angles) noexcept {
+  /// 1E9E composes unrounded object attitude with the current camera, preserving each intermediate fixed-point product
+  auto const heading{static_cast<std::uint16_t>(32768 - angles.heading) >> 6};
+  auto const pitch{angles.pitch >> 6};
+  auto const roll{angles.roll >> 6};
+  auto const hs{maths::original_sine[heading]}, hc{maths::original_sine[(heading + 256) % 1024]};
+  auto const ps{maths::original_sine[pitch]}, pc{maths::original_sine[(pitch + 256) % 1024]};
+  auto const rs{maths::original_sine[roll]}, rc{maths::original_sine[(roll + 256) % 1024]};
+  auto const hsrs{multiply(hs, rs)}, hcrs{multiply(hc, rs)};
+  auto const hsrc{multiply(hs, rc)}, hcrc{multiply(hc, rc)};
+  std::array<std::array<std::int16_t, 3>, 3> const axes{{
+    {multiply(hc, pc), multiply(hs, pc), ps},
+    {word(multiply(ps, hcrs) - hsrc), word(hcrc + multiply(ps, hsrs)), word(-multiply(rs, pc))},
+    {word(-word(multiply(ps, hcrc) + hsrs)), word(hcrs - multiply(ps, hsrc)), multiply(rc, pc)},
+  }};
+  camera_basis result;
+  for(std::size_t i{0}; i < axes.size(); ++i) {
+    auto const project{[&](std::int16_t projection_axis::*const member){
+      std::uint32_t sum{0};
+      for(std::size_t j{0}; j < axes[i].size(); ++j) sum += static_cast<std::uint32_t>(axes[i][j] * (camera[j].*member));
+      return word(static_cast<int>(sum >> 15));
+    }};
+    result[i] = {.horizontal{project(&projection_axis::horizontal)}, .vertical{project(&projection_axis::vertical)}, .depth{project(&projection_axis::depth)}};
+  }
+  return result;
+}
+
 model_placement place_model(camera_basis const &basis, camera_position const camera, model_origin const origin) noexcept {
   /// 2E21 transforms a cell origin while preserving word wrapping, fractional bytes and the sorting estimate
   auto const column{word(origin.column * 4 - camera.column)};

@@ -56,7 +56,7 @@ TEST_CASE("Player engine sound follows original pitch modulation and engine gate
     player.engine_flags = static_cast<std::uint8_t>(v[4]);
     player.lifecycle.crashing = v[5] != 0;
     darker::audio::flight_sounds sounds;
-    auto const voice{sounds.advance(player, static_cast<std::uint16_t>(v[3]), false)[0]};
+    auto const voice{sounds.advance(player, static_cast<std::uint16_t>(v[3]), false, v[6] != 0)[0]};
     CAPTURE(v);
     CHECK(voice.pitch == sample.output[0]);
     CHECK(voice.active == (sample.output[2] != 0));
