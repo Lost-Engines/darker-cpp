@@ -246,3 +246,28 @@ translated block, although the real x86 MOV preserves carry. Both operand copies
 are initialised before each call, and outputs are read from DS. No arithmetic
 instructions are replaced. These are isolated routine comparisons, not full
 flight, collision or crash-sequence tests.
+
+## Beacon power and Caero energy accounting
+
+`beacon_light` accepts a 128×128 expanded cell view (type and mutable state),
+position words and horizontal fractional bytes. It reproduces the original
+`0396` lookup construction and `8450` attenuation, including signed altitude
+comparison and word arithmetic. It reads only the selected lattice cell and
+requires type 1. A cell's state supplies its output strength, so dimming can
+produce partial charging. This routine does not sum nearby streetlights or
+other models; other potential light sources are outside this function's scope.
+Invalid arithmetic that would fault the original DIV is reported explicitly.
+
+`caero_energy` reproduces the engine flag gate, incoming-power display and
+`7F6C`/`8529` accounting. It retains distinct buffer, reserve and boost words,
+reserve caps and the Jason Brooke boost patch. Its timestep is the accounting
+value already transformed by the flight callback (1028 for an ordinary input
+step of 8); it does not transform the input a second time. Reserve spending and
+full flight callback ordering remain to be integrated.
+
+`tools/generate_beacon_energy_reference.py WORKSPACE` captures 768 lighting cases
+and 400 energy updates, including map boundaries, non-beacon cells, fractional
+positions, threshold strengths, engine flags, full buffers and wrap boundaries.
+No instructions within the probed functions are substituted. Native startup
+constructs the lookup used to choose each fixture's cell. The C++ lookup is
+constructed independently from the same original wrapping loop.
