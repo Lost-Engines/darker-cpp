@@ -92,6 +92,8 @@ add_library(darker_game STATIC
   src/game/object_definition.cpp
   src/game/object_definition.h
   src/game/object_definitions.h
+  src/game/object_impact.cpp
+  src/game/object_impact.h
   src/game/object_list.h
   src/game/projectile_expiry.cpp
   src/game/projectile_expiry.h
@@ -149,6 +151,7 @@ if(BUILD_TESTING)
     tests/object_list_test.cpp
     tests/random_test.cpp
     tests/direction_test.cpp
+    tests/object_impact_test.cpp
     tests/projectile_expiry_test.cpp
     tests/projectile_update_test.cpp
     tests/projectile_steering_test.cpp

@@ -199,3 +199,24 @@ The ring state now includes the mutable target word at `5E03`. Smoothing approac
 PYTHONPATH=/tmp/darker-python python3 tools/generate_expiry_reference.py ..
 PYTHONPATH=/tmp/darker-python python3 tools/generate_weapon_reference.py ..
 ```
+
+## Object impacts and delayed destruction
+
+`object_impact` translates the ordinary nonzero-resistance, active-callback branch
+of `CE26`, including `854E`/`8568` and the original random generator. It retains
+byte/word overflow, the minimum one-unit damage increment, complemented angular
+kicks, mode-2 kick scaling, saturation of the separate impact accumulator, and
+fatal-hit scheduling of callback `8DAA`. Already-expiring objects use the original
+signed deadline-difference test. The returned effect identifies the native hit
+(`72DF`) or fatal-hit (`7319`) definition; effect spawning remains the caller's job.
+
+The state is a typed projection of the fields consumed by this handler, not a new
+object pool or a substitute for collision detection. Zero resistance and inactive
+callbacks take different original effect/removal paths and are rejected before
+mutation here. Integration must dispatch those branches separately.
+
+`tools/generate_impact_reference.py WORKSPACE` records 576 native responses across
+resistance/strength boundaries, damage overflow, both mode paths and existing
+expiry flags/deadlines. Random kick instructions execute uninterrupted; only the
+final effect-spawning boundary is intercepted. Tests compare angular rates,
+accumulator, damage, callback, deadline, flags, RNG state and selected effect.
