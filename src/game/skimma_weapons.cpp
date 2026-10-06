@@ -17,6 +17,25 @@ void validate_weapon(std::uint8_t const weapon) {
 
 } // namespace
 
+skimma_recoil_frame calculate_skimma_recoil(std::int8_t const previous, std::uint16_t const frame_step) {
+  /// C950–C96A retain the packed pre-clamp word for the shot offset, then clamp sign crossings
+  auto const step{static_cast<std::uint8_t>(frame_step)};
+  auto const low{static_cast<std::uint8_t>(previous + (previous < 0 ? step : -static_cast<int>(step)))};
+  auto const packed{static_cast<std::uint16_t>((static_cast<std::uint16_t>(static_cast<std::uint8_t>(previous)) << 8) | low)};
+  auto const next{static_cast<std::int8_t>(((static_cast<std::uint8_t>(previous) ^ low) & 0x80) != 0 ? 0 : std::bit_cast<std::int8_t>(low))};
+  return {
+    .next{next},
+    .aim_offset{static_cast<std::int16_t>(next >> 2)},
+    .shot_offset{static_cast<std::int16_t>(-(std::bit_cast<std::int16_t>(packed) >> 4))},
+  };
+}
+
+std::int8_t kick_skimma_recoil(std::int8_t const current, std::uint8_t const random_byte) {
+  /// C984–C98E apply the random 64–95 impulse through C9FE, preserving byte wrapping
+  int const impulse{64 + (random_byte & 31)};
+  return std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(current + (current < 0 ? impulse : -impulse)));
+}
+
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {
   /// 5E44–5E58 refill both counters without changing the shared reload deadline
   validate_weapon(weapon);

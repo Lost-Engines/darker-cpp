@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
+#include <bit>
 #include <cstdint>
 #include <stdexcept>
 #include "game/skimma_weapons.h"
+#include "reference/recoil_samples.h"
 #include "reference/weapon_samples.h"
 
 TEST_CASE("Skimma automatic reload matches original counters, byte signs and deadline wrapping") {
@@ -90,5 +92,36 @@ TEST_CASE("Skimma status update reloads before reserve selection and preserves n
     }
     CHECK(ring.reload_deadline == sample.deadline);
     CHECK(ring.spread == sample.spread);
+  }
+}
+
+
+TEST_CASE("Skimma recoil frame offsets match every native byte state across step boundaries") {
+  for(auto const &sample : darker::test_reference::recoil_frames) {
+    CAPTURE(sample.input);
+    std::uint64_t checksum{14695981039346656037ULL};
+    auto const append{[&](std::uint8_t const value){ checksum = (checksum ^ value) * 1099511628211ULL; }};
+    for(unsigned int previous{0}; previous < 256; ++previous) {
+      auto const frame{darker::game::calculate_skimma_recoil(std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(previous)), sample.input)};
+      append(static_cast<std::uint8_t>(frame.next));
+      for(auto const value : {frame.aim_offset, frame.shot_offset}) {
+        auto const word{static_cast<std::uint16_t>(value)};
+        append(static_cast<std::uint8_t>(word));
+        append(static_cast<std::uint8_t>(word >> 8));
+      }
+    }
+    CHECK(checksum == sample.checksum);
+  }
+}
+
+TEST_CASE("Skimma random recoil kicks match every native input byte pair") {
+  for(auto const &sample : darker::test_reference::recoil_kicks) {
+    CAPTURE(sample.input);
+    std::uint64_t checksum{14695981039346656037ULL};
+    for(unsigned int previous{0}; previous < 256; ++previous) {
+      auto const next{darker::game::kick_skimma_recoil(std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(previous)), static_cast<std::uint8_t>(sample.input))};
+      checksum = (checksum ^ static_cast<std::uint8_t>(next)) * 1099511628211ULL;
+    }
+    CHECK(checksum == sample.checksum);
   }
 }

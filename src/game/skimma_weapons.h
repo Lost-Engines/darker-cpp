@@ -21,6 +21,15 @@ struct weapon_ring_state {
   std::uint16_t spread{0};
 };
 
+struct skimma_recoil_frame {
+  std::int8_t next{0};
+  std::int16_t aim_offset{0};
+  std::int16_t shot_offset{0};
+};
+
+skimma_recoil_frame calculate_skimma_recoil(std::int8_t previous, std::uint16_t frame_step);
+std::int8_t kick_skimma_recoil(std::int8_t current, std::uint8_t random_byte);
+
 struct weapon_ring_display {
   std::uint8_t radius{0};
   std::uint8_t remaining{0};

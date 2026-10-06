@@ -42,3 +42,26 @@ The stateful follow-up below now implements the post-draw update and the weapon-
 This preserves the native flag behaviour without assigning an unsupported general meaning such as “ammunition available” to bit 1. Invalid craft slot counts or unavailable selected indices are rejected before mutation. Target acquisition and the production of `5F0F`/`6FBC` remain outside this function.
 
 The reference generator now also runs the complete ring producer while intercepting only its draw call, and the complete status producer while stopping at `C950`. **336 stateful ring cases** cover both sides of the deadline, disabled weapons, signed spread boundaries, truncation and large frame-step wraparound. **480 status cases** cover both craft slot counts, every selection, reserve-triggered reload, flag preservation, targets and empty/nonempty target lists. Tests compare counters, all slot flags, reserve display, deadline, spread and draw inputs. All **43 CTest cases** pass. These are engine-state checks; no new inspection controls or executable were added, and the current application remains a fixed-state cockpit milestone.
+
+## Recoil and firing-path boundary
+
+`calculate_skimma_recoil` translates `C950–C96A` with `C9FE–CA08`. The stored recoil is a signed byte (`C9FF`). The calculation consumes only the low byte of the frame step, moves the recoil towards zero with byte wrapping, and clamps a sign crossing to zero. Two separate outputs are important:
+
+- The shot-direction offset is the negated arithmetic right shift by four of the **packed pre-clamp word**: old recoil in the high byte, wrapped new recoil in the low byte. It is not merely a multiple of the final recoil.
+- The aiming offset, stored by the original at `5D4B`, is the post-clamp signed recoil shifted right by two.
+
+`kick_skimma_recoil` translates `C984–C98E`: the supplied random byte becomes an impulse of 64–95 via `(byte & 31) + 64`, which the same byte arithmetic adds or subtracts according to the current sign. The random generator and its call ordering remain external inputs.
+
+The native probe executes these exact code ranges. It records checksums for every one of the 256 stored recoil bytes at eleven frame-step boundaries (2,816 updates), and for all 256×256 recoil/random input pairs (65,536 kicks). Runtime code uses no captured outputs. Regenerate with:
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_recoil_reference.py ..
+```
+
+All 45 CTest cases pass. These routines are ready for the game loop but are not a new firing simulation in the cockpit inspector.
+
+### Remaining firing work
+
+The path after `C96D` couples to the world. It rejects player flag 20h; trigger bits 4016h invoke `CD6C` with the recoil-adjusted direction, followed by a random kick. `CD6C` performs a collision/damage query, with its own random calls below `CD84`. Separately, an exactly-3 selected weapon status enters the projectile handler through `C9F5`, using definition records at `1A16 + 24*index` and trigger mask 8021h. The result byte at `7FA6` is then added to the selected working count at `C9BD`.
+
+The first and third Skimma projectile definitions use `CA55` (object-target acceptance), and the second uses `CA5A` (map-target acceptance). Successful launch proceeds through `CAC4/CB01`, which needs projectile allocation, player transforms, original random sequencing and world state. Those operations must be translated before treating shot consumption or firing cadence as complete. There is no invented timer or successful-shot stub in the current implementation.
