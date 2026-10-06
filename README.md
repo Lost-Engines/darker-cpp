@@ -1,6 +1,12 @@
 # Darker
 
-A faithful C++23 reconstruction using the original game's data packs. The deliverable is one executable, `darker`. Development milestones evolve inside that application; superseded demonstrations and temporary controls are removed as work progresses.
+A faithful C++23 reconstruction of the engine of the 1995 DOS game Darker by Psygnosis, using the original game's resources, building and running natively on modern platforms.
+
+Read about the reverse engineering effort at https://lostengines.com/darker and browse a 3D map viewer, model viewer, and more.
+
+## Data files
+
+The original game's data files are required to run this.  Darker is considered abandonware at this point, and images of the original media are widely available: https://archive.org/details/darker-cdrom/ or https://www.myabandonware.com/game/darker-2dn#download.
 
 ## Build and run
 
@@ -16,7 +22,7 @@ cmake --build build --parallel
 ./build/darker --data-dir ../darker
 ```
 
-The application looks for `DARKER.00` through `DARKER.04` in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
+The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.
 
