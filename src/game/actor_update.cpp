@@ -1,16 +1,12 @@
 #include "game/actor_update.h"
 #include <algorithm>
-#include <stdexcept>
 
 namespace darker::game {
 
 std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
   std::span<scenario_actor const> const active, city_map const &cells, resources::geometry_bank const &bank,
-  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire) {
+  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire, std::function<void(scenario_actor &)> const &drop) {
   /// Compose 8823's airborne navigation after its script update; report firing checks for the weapon owner
-  if(actor.parameters.update_entry != 0x8823 || actor.definition_slot == 23) {
-    throw std::invalid_argument{"Actor requires a different movement callback"};
-  }
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
   advance_actor_awareness(actor.awareness, actor.pose, player,
@@ -34,6 +30,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
     }
     course = actor_cell_course(actor, actor.selected_target, descriptor, model);
   }
+  if(actor.definition_slot == 23 && course.distance < 100 && drop) drop(actor);
   auto const firing_course{course};
   reset_actor_clearance(actor);
   for(auto const &neighbour : active) if(neighbour.category == actor_category::air) consider_actor_clearance(actor, neighbour, course);

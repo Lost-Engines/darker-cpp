@@ -5,6 +5,7 @@
 #include "game/mission_combat.h"
 #include "reference/aircraft_combat_samples.h"
 #include "reference/aircraft_fire_samples.h"
+#include "reference/aircraft_bomb_samples.h"
 
 TEST_CASE("Aircraft hit volumes match native extent sweeps", "[combat]") {
   /// Check both hit admission and native impact rounding at full altitude scale
@@ -69,8 +70,8 @@ TEST_CASE("Aircraft missile eligibility matches native firing settings and timer
     actor.last_shot = static_cast<uint16_t>(v[11]);
     auto const slot{darker::game::aircraft_projectile_definition(actor,static_cast<uint8_t>(v[10]),
       {.heading{static_cast<uint16_t>(v[6])},.pitch{static_cast<uint16_t>(v[7])}},
-      static_cast<uint8_t>(v[3]),static_cast<uint16_t>(v[12]),static_cast<uint8_t>(v[2]))};
-    CHECK((slot ? static_cast<int>(*slot) : -1) == v[13]);
+      static_cast<uint8_t>(v[3]),static_cast<uint16_t>(v[12]),static_cast<uint8_t>(v[2]),v[13] != 0)};
+    CHECK((slot ? static_cast<int>(*slot) : -1) == v[14]);
   }
 }
 
@@ -81,5 +82,29 @@ TEST_CASE("Mission firing pressure follows native clock-wrap thresholds") {
     combat.difficulty = static_cast<uint8_t>(sample[1]);
     combat.update_difficulty(sample[0]);
     CHECK(combat.difficulty == sample[2]);
+  }
+}
+
+TEST_CASE("Aircraft bomb drops match native target, cooldown and exhausted-pool decisions") {
+  /// Compare 8BE6 admission, recorded attempts and the forced launch pitch against native execution
+  for(auto const &v : darker::test_reference::aircraft_bomb_samples) {
+    CAPTURE(v);
+    darker::game::scenario_actor actor;
+    actor.parameters.definition = &darker::game::original_object_definitions[23];
+    actor.flags = static_cast<uint8_t>(v[0]);
+    actor.selected_target = static_cast<uint16_t>(v[2]);
+    actor.last_shot = static_cast<uint16_t>(v[4]);
+    darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
+    darker::game::launch_emitter const emitter{};
+    if(!v[3]) while(pool.launch({.definition{darker::game::original_object_definitions[14]},.emitter{emitter}})) {}
+    auto const *shot{darker::game::drop_aircraft_bomb(pool,actor,v[1] != 0,static_cast<uint16_t>(v[5]),0)};
+    CHECK((shot != nullptr) == (v[6] != 0));
+    CHECK(actor.last_shot == v[7]);
+    if(shot) {
+      CHECK(shot->placement.angles[1] == v[8]);
+      CHECK(shot->target_token == actor.selected_target);
+      CHECK(shot->deadline == static_cast<uint16_t>(v[5] + 28*256));
+      CHECK(shot->parameters.definition == &darker::game::original_object_definitions[14]);
+    }
   }
 }

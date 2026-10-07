@@ -48,6 +48,8 @@ struct mission_context {
   uint16_t current_cell{0};
   std::function<void(uint16_t,bool)> set_target{};
   std::function<void(uint8_t)> select_weapon{};
+  std::function<void(uint8_t)> set_building_attacks{};
+  std::function<bool()> retire_distant_actor{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

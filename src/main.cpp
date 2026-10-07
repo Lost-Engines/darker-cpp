@@ -220,6 +220,7 @@ auto main(int const argc, char const *const argv[])->int {
     else if(selection >= 4) combat->secondary_weapon = selection;
   }};
   context.select_weapon = select_weapon;
+  context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
   context.change_beacons = change_beacons;
   context.activate_reserves = activate_reserves;
   if(caero) host.combat = combat.get();
@@ -611,6 +612,7 @@ auto main(int const argc, char const *const argv[])->int {
           context.activate_reserves = activate_reserves;
           context.change_beacons = change_beacons;
           context.select_weapon = select_weapon;
+          context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           beacon_changes = {};
           message.reset();
           game_clock = {};

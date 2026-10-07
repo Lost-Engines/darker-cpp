@@ -15,6 +15,18 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
+map_guidance_target resolve_map_guidance(uint16_t const cell, city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
+  /// D089 resolves a building's variant origin and vertical aim bounds through the native linked model lookup
+  auto const column{cell & 255}, row{cell >> 8};
+  if(column >= 128 || row >= 128) throw std::out_of_range{"Guided projectile target is outside the city"};
+  auto const &object{cells[row*128+column]};
+  if(object.type == 0) throw std::invalid_argument{"Guided projectile building target is empty"};
+  auto const &type{bank.city_types()[object.type - 1]};
+  auto const model{bank.header_at(bank.city_model_offset(object.type,object.state,damage_mask))};
+  return {.position{static_cast<uint16_t>(column*256+type.column_fraction),static_cast<uint16_t>(row*256+type.row_fraction)},
+    .height{static_cast<uint16_t>(model.extent - model.height - type.collision_marker*256)},.height_extent{model.extent}};
+}
+
 void advance_mimic_projectile(projectile &record, object_pose const &player, uint16_t const remaining, uint16_t const frame_step) {
   /// CBCE copies player pitch and roll, then 8375 turns using midpoint bank and remaining-life response
   if(!record.parameters.definition) throw std::invalid_argument{"Mimic projectile requires an object definition"};

@@ -77,6 +77,17 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       }
       break;
     case 0x07: break;
+    case 0x08:
+      if(!context.retire_distant_actor) throw std::runtime_error{"Mission distance retirement has no actor consumer"};
+      if(context.retire_distant_actor()) {
+        script.stopped = true;
+        script.continuation = cursor;
+        script.deadline = now;
+        return dispatched;
+      }
+      --cursor;
+      delay(8);
+      break;
     case 0x09:
     case 0x0a:
     case 0x0b:
@@ -168,6 +179,13 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         auto const selection{byte()};
         if(!context.select_weapon) throw std::runtime_error{"Mission weapon selection has no player consumer"};
         context.select_weapon(selection);
+      }
+      break;
+    case 0x32:
+      {
+        auto const setting{byte()};
+        if(!context.set_building_attacks) throw std::runtime_error{"Mission building attack setting has no combat consumer"};
+        context.set_building_attacks(setting);
       }
       break;
     default:

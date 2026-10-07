@@ -16,7 +16,7 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 167 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and mission nineteen with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen and eighteen’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 169 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and mission nineteen with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen and eighteen’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
 A real-window check uses the ordinary menus and Level X to traverse all nineteen supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 

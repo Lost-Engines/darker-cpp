@@ -21,6 +21,7 @@ public:
   uint8_t secondary_weapon{0};
   uint8_t difficulty{2};
   bool missile_camera_enabled{false};
+  bool building_attacks{false};
   projectile *camera_projectile{nullptr};
   bool weapon_ready{false};
   bool player_fired{false};

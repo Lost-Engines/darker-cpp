@@ -5,6 +5,7 @@
 #include <optional>
 #include "game/actor_navigation.h"
 #include "game/object_impact.h"
+#include "game/projectile_pool.h"
 #include "game/scenario_actor.h"
 
 namespace darker::game {
@@ -27,7 +28,9 @@ struct gun_trace {
 };
 
 std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &actor, uint8_t target_flags,
-  actor_course course, uint8_t distance, uint16_t clock, uint8_t difficulty);
+  actor_course course, uint8_t distance, uint16_t clock, uint8_t difficulty, bool building_attacks = false);
+
+projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, bool enabled, uint16_t clock, uint16_t model_token);
 
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t player_flags,
   uint16_t player_extent, actor_course course, uint8_t distance, uint16_t clock, uint16_t changes, uint16_t &random_state);

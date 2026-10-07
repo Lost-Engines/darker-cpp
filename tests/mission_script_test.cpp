@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <stdexcept>
 #include "game/mission_script.h"
+#include "game/actor_activation.h"
+#include "reference/actor_retirement_samples.h"
 #include "reference/mission_script_samples.h"
 #include "reference/script_target_samples.h"
 
@@ -99,5 +101,29 @@ TEST_CASE("Script target assignments match native tokens flags and pacing", "[ga
     CHECK(script.deadline == v[9]);
     CHECK(script.continuation == v[10]);
     CHECK_FALSE(script.stopped);
+  }
+}
+
+TEST_CASE("Distant actor retirement matches native distance boundaries and script waits") {
+  /// Execute opcode 08 with the actual retirement consumer, including byte wrapping and delayed removal
+  for(auto const &v : darker::test_reference::actor_retirement_samples) {
+    CAPTURE(v);
+    darker::game::scenario_actor actor;
+    actor.pose.position = {static_cast<uint16_t>(v[0]*256),static_cast<uint16_t>(v[1]*256),0};
+    actor.flags = static_cast<uint8_t>(v[4]);
+    actor.parameters.update_entry = 0x8823;
+    actor.expiry = 0x1234;
+    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    constexpr std::array program{std::byte{8},std::byte{0x23}};
+    darker::game::mission_script script{.deadline{static_cast<uint16_t>(v[5])}};
+    darker::game::mission_context context{.program{program},.clock{v[5]},.time_multiplier{static_cast<uint8_t>(v[6])},
+      .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player,static_cast<uint16_t>(v[5])); }}};
+    darker::game::advance_mission_script(script,context);
+    CHECK(actor.flags == v[7]);
+    CHECK(script.stopped == (v[8] != 0));
+    CHECK(script.deadline == v[9]);
+    CHECK(actor.parameters.update_entry == v[10]);
+    CHECK(actor.expiry == v[11]);
+    if(!script.stopped) CHECK(script.continuation == 0);
   }
 }

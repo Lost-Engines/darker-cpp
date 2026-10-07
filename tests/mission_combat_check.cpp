@@ -10,12 +10,14 @@
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
+#include "game/projectile_steering.h"
 #include "game/tunnel_flight.h"
 #include "game/tunnel_navigation.h"
 #include "game/tunnel_portal.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
+#include "reference/aircraft_bomb_samples.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_flight_samples.h"
@@ -39,15 +41,27 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
   darker::resources::campaign_resources campaign{archives};
+  for(unsigned int const bank_id : {30u,31u,32u}) {
+    darker::resources::geometry_bank const geometry{archives.load({0,bank_id})};
+    darker::game::city_map target_cells{};
+    for(auto const &sample : darker::test_reference::building_guidance_samples) {
+      if(sample[0] != bank_id) continue;
+      auto const cell{static_cast<uint16_t>(sample[3])};
+      target_cells[(cell >> 8)*128 + (cell & 127)] = {static_cast<uint8_t>(sample[1]),static_cast<uint8_t>(sample[2])};
+      auto const target{darker::game::resolve_map_guidance(cell,target_cells,geometry,bank_id == 30 ? 0x20 : 0x60)};
+      if(target.position != std::array<uint16_t,2>{static_cast<uint16_t>(sample[4]),static_cast<uint16_t>(sample[5])}
+        || target.height != sample[6] || target.height_extent != sample[7]) throw std::runtime_error{"Building missile guidance differs from native model lookup"};
+    }
+  }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; };
-  constexpr std::array<combat_case,16> cases{{
+  constexpr std::array<combat_case,17> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
     {9,4,"Good job, Tolly. Return to base."}, {10,7,"Return to base for a mission update."},
     {11,2,"Mission accomplished. Return to base."}, {12,1,"Good job, Tolly. Return to base."},
     {13,2,"Return to Hemmersan, Tolly."}, {14,2,"Mission complete- come back to base."},
-    {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."},
+    {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."}, {20,5,"Return to Hemmersan."},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -69,6 +83,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const cursor{briefing.consumed_text()};
     darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
     darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    context.set_building_attacks = [&](uint8_t const setting){ combat.building_attacks = setting != 0; };
     context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
       darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return combat.remaining_objectives() == 0;

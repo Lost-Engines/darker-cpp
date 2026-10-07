@@ -6,6 +6,19 @@
 
 namespace darker::game {
 
+bool retire_distant_actor(scenario_actor &actor, object_pose const &player, uint16_t const clock) noexcept {
+  /// C30A/8432 stop and expire a scripted actor once its wrapped cell distance reaches 36 cells
+  auto const difference{[&](size_t const axis){
+    return std::bit_cast<int8_t>(static_cast<uint8_t>((player.position[axis] >> 8) - (actor.pose.position[axis] >> 8)));
+  }};
+  int const x{difference(0)}, y{difference(1)};
+  if(x*x + y*y < 0x510) return false;
+  actor.parameters.update_entry = 0xc002;
+  actor.flags |= 0x28;
+  actor.expiry = clock;
+  return true;
+}
+
 void place_air_reserve(scenario_actor &actor, object_pose const &player, std::span<scenario_actor const> const active) {
   /// C39E moves nearby reinforcements outside the player radius, then scans the active air list through C313
   auto const difference{[&](size_t const axis){

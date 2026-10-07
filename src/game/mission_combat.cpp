@@ -3,6 +3,7 @@
 #include <bit>
 #include <stdexcept>
 #include <utility>
+#include "game/actor_activation.h"
 #include "game/actor_update.h"
 #include "game/caero_weapons.h"
 #include "game/effect_tables.h"
@@ -96,17 +97,19 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       continue;
     }
     if(actor.parameters.update_entry == 0) continue;
+    auto const callback{actor.parameters.update_entry};
     if((actor.parameters.update_entry == 0x8823 || actor.parameters.update_entry == 0x8609) && !actor.script.stopped) {
       mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
         .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
         .set_target{[&](uint16_t const target, bool const flag_02){
           actor.target_token = target;
           actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
-        }}};
+        }},
+        .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
       advance_mission_script(actor.script,context);
     }
-    if(actor.parameters.update_entry == 0x8daa) advance_falling_aircraft(actor, frame_step);
-    else if(actor.parameters.update_entry == 0x8609) {
+    if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);
+    else if(callback == 0x8609) {
       if(!network) throw std::logic_error{"Underground actor update requires its route network"};
       advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
     } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
@@ -117,8 +120,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           apply_player_damage(caero.damage, 0x15, 3, false, false, random_state);
           player_hit = true;
         }
-        if(source.selected_target == 0xd986) {
-          if(auto const slot{aircraft_projectile_definition(source,player.lifecycle.flags,course,distance,clock,difficulty)}) {
+        if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
+          if(auto const slot{aircraft_projectile_definition(source,player.lifecycle.flags,course,distance,clock,difficulty,building_attacks)}) {
             // CAF0 records the attempt time even if the hostile pool is exhausted.
             source.last_shot = clock;
             auto const &definition{original_object_definitions[*slot]};
@@ -129,7 +132,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
               .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
           }
         }
-      });
+      },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); });
     if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
       effects.trail(actor.previous_position, *severity, random_state, clock);
     }
@@ -155,8 +158,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot;) {
+    projectile_target target{&player.pose()};
+    if(!(shot->flags & 8) && !(shot->target_token & 0x8000)) target = resolve_map_guidance(shot->target_token,cells,bank,damage_mask);
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot,clock)
-      : update_projectile(*shot,clock,frame_step,&player.pose()) == projectile_update_result::expired};
+      : update_projectile(*shot,clock,frame_step,target) == projectile_update_result::expired};
     if(expired) { shot = hostile_projectiles.recycle(*shot); continue; }
     shot = shot->next;
   }
