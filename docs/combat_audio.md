@@ -54,11 +54,30 @@ Player sound callbacks still produce their previously reconstructed nonspatial
 records. Listening position and velocity currently follow the player, including
 external views; native camera-dependent sound ownership remains outstanding.
 OPL output retains the existing mono-compatible presentation; flag-1 stereo
-placement is not reconstructed here. Ambient sources, enemy engine loops, music,
-player-crash recipes and other weapon callbacks also remain separate work.
+placement is not reconstructed here. Ambient sources, music and the remaining event bindings remain separate work.
 
 ```sh
 python3 tools/generate_effect_tables.py ../analysis/unpacked/image.bin
 PYTHONPATH=/tmp/darker-python python3 tools/generate_world_sound_reference.py ..
 ctest --test-dir build --output-on-failure
+```
+
+## Aircraft and vehicle engine callbacks
+
+Non-player objects now run their definition's original sound callback before
+spatial admission. Aircraft callback 391D adds speed and a clock/object-dependent
+triangle modulation whose amplitude increases with damage. 393D suppresses
+hidden or destroyed aircraft. Ground-vehicle callback 3942 changes pitch with
+inclination and halves it when stationary. Callback 3957 raises a projectile's
+pitch while its signed high-byte remaining lifetime is positive; 3969 applies
+the original fade, including its distinct flags behaviour.
+
+The native fixture covers 1,024 cases across every non-player definition,
+including wrapped clocks, speeds, damage, flags and fade values. An integration
+test checks that a moving engine retains its voice, loses level with distance,
+and becomes silent when hidden, destroyed or too distant. Live sources retain
+the existing Doppler calculation and provisional nine-channel manager above.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_object_sound_reference.py ..
 ```

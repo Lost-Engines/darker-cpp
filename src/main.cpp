@@ -820,7 +820,7 @@ auto main(int const argc, char const *const argv[])->int {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen,combat->weapon_charge)};
       audio.select_music(front ? front->music_group() : -1);
-      audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
+      audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose(),clock));
     }
     if(caero && !host.briefing && !exchange.supplementary_active && combat->script_owner) {
       // 3E93's late-frame SI is not a recovered player continuation; blackout never returns through it.
