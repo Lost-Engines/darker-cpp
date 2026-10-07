@@ -40,6 +40,11 @@ bool front_end::editing_text() const noexcept {
   return current == screen::name || current == screen::hidden_command;
 }
 
+void front_end::enable_level_skip() noexcept {
+  /// Share the process-wide cheat activation between the original hidden command and startup options
+  level_x = true;
+}
+
 bool front_end::level_skip_enabled() const noexcept {
   /// The original executable patch lasts for the process, independently of pilot selection and deaths
   return level_x;
@@ -94,7 +99,7 @@ void front_end::key(front_key const input) {
     if(input == front_key::erase_character && !draft_name.empty()) draft_name.pop_back();
     if(input == front_key::accept || input == front_key::back) {
       if(input == front_key::accept && draft_name == "Level X") {
-        level_x = true;
+        enable_level_skip();
         selection_prompt = draft_name;
       }
       draft_name.clear();

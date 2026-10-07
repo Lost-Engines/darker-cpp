@@ -41,6 +41,7 @@ public:
   bool active() const noexcept;
   bool editing_text() const noexcept;
   bool level_skip_enabled() const noexcept;
+  void enable_level_skip() noexcept;
   size_t consumed_text() const noexcept;
   uint16_t weapon_changes() const noexcept;
   int music_group() const noexcept;

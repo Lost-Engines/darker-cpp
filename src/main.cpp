@@ -110,6 +110,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
+    ("cheat-level-x", "enable the Level X cheat: press X during flight to advance the mission")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", po::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -180,6 +181,7 @@ auto main(int const argc, char const *const argv[])->int {
   }
   if(caero) {
     front = std::make_unique<darker::presentation::front_end>(archives,font,scenario,saves,arguments.contains("skip-intro"));
+    if(arguments.contains("cheat-level-x")) front->enable_level_skip();
     host.front = front.get();
   }
   darker::game::mission_script initial_script{
