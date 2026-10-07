@@ -145,8 +145,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       || !(capsule->flags & 8) || !(detonator->flags & 8) || capsule->deadline != 264 || detonator->deadline != 264
       || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
   }
-  struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
-  constexpr std::array<combat_case,43> cases{{
+  struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; bool aircraft_trails{true}; };
+  constexpr std::array<combat_case,48> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -166,6 +166,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {48,12,"Mission accomplished. Return to base.",false,9}, {49,12,"and don't waste any time.",false,9},
     {52,3,"Return to Hemmersan.",false,9}, {53,5,"Mission complete- come back to base.",false,9},
     {57,7,"we advise you come back in.",false,9}, {59,15,"Mission accomplished. Return to base.",false,9},
+    {60,6,"Return to Hemmersan, Tolly.",false,9}, {61,11,"Tolly: get back to base.",false,9},
+    {62,11,"Mission accomplished. Return to base.",false,9}, {63,8,"Good job, Tolly. Return to base.",false,9},
+    {64,9,"Mission accomplished. Return to base.",false,1,false},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -235,6 +238,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().position = target->pose.position;
         player.pose().position[1] += 200;
         player.pose().position[2] += 92;
+        if(target->category == darker::game::actor_category::ground) player.pose().position[2] += bank.header_at(target->parameters.model_token).extent;
         player.pose().angles = {};
         player.pose().speed = 496;
         if(test.stage >= 33) {
@@ -280,7 +284,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)
         + ", reserve=" + std::to_string(caero.energy.reserve)};
     }
-    if(!saw_burst || !saw_trail) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
+    if(!saw_burst || (test.aircraft_trails && !saw_trail)) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
     auto const destination{briefing.departure_destination ? briefing.departure_destination : uint16_t{0x7162}};
     player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
     player.pose().angles = {0x8000, 0, 0};
@@ -296,9 +300,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
   struct transfer_case { uint8_t stage; uint16_t origin, destination; size_t actors, messages; };
-  for(auto const test : std::array<transfer_case,7>{{
+  for(auto const test : std::array<transfer_case,9>{{
     {16,0x7162,0x3064,4,0},{18,0x3064,0x7162,4,2},{23,0x7162,0x4c64,0,0},
-    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},{56,0x0d88,0x7162,8,4},
+    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},{56,0x0d88,0x7162,8,4},{66,0x7162,0x4d62,8,0},{68,0x4d62,0x7162,10,3},
   }}) {
     auto const stage{test.stage};
     auto const &transfer{campaign.scenario(stage)};

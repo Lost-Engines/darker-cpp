@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–59 (04/0 through the first three records of 04/7), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission fifty-nine saves stage sixty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–66 (04/0 through the first two records of 04/8), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixty-six saves stage sixty-seven and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -336,3 +336,35 @@ apparent default input-mask defect that prevents the follow-up launch; this is
 preserved and documented with the limits of the evidence in
 [Caero weapons](caero_weapons.md#dual-launch-and-a-native-input-mask-anomaly).
 The working pair is verified separately in a controlled scene.
+
+## Hemmersan attacks and replacement objectives
+
+Missions 60–63 complete six, eleven, eleven and eight aircraft removals with
+Chargeable. Mission 64 clears nine ground vehicles with Pinner Direct. These
+controlled checks exercise the real actor scripts, reinforcement admissions,
+weapons, impacts, completion messages and docking.
+
+Mission 65 changes its building-objective list during play. Opcode 34 calls
+native C858: it marks the first embedded list with 40h, then selects that list
+on FE or the following unmarked list on FF. Objective advancement still checks
+one cell per frame, including a separate FE transition frame. Sixty-four native
+replacement cases and 512 subsequent objective frames cover this behaviour.
+The mixed integration check clears fourteen counted aircraft and eight office
+components, follows the completion message and docks. Brent Ground must reach
+the offices’ recessed category-zero entrances; their category-one walls resist
+shots. The test controls the approach to those entrances and uses ordinary
+acquisition, guidance and collision rather than injecting destroyed states.
+
+Mission 66 transfers from Hemmersan (7162h) to Administration (4D62h). Its
+briefing, world actors and docking are checked; the return transfer in mission
+68 is also exercised independently. Mission 67 remains outside the playable
+limit: the controlled Pinner clear stalls against moving Assassins whose
+resistance exceeds its underground strength. Aircraft contact paths remain to
+be connected. Retaining a stronger secondary weapon across entry is not an
+explanation: native startup 3D1C–3D27 clears HUD/weapon fields 4541–4553.
+Opcode 27’s write to the actor’s tunnel oscillation byte is connected to the
+already verified navigation consumer.
+
+All 188 tests pass. Windowed Level X traversal additionally checks missions
+60–66, their briefings and flight entries, save checksums and the Administration
+return-site handoff. This does not replace manual combat playtesting.

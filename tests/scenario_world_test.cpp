@@ -38,3 +38,25 @@ TEST_CASE("Mission exit extinguishes only queued energy beacons", "[game][scenar
     CHECK(cells[i].state == (i == 0 || i == 126*128+9 || i == 9*128+126 ? 0 : 255));
   }
 }
+
+TEST_CASE("Scripted building objective replacement matches native C858", "[game][scenario]") {
+  /// Replace a live cursor, preserve existing cell bits and retain FE continuation into the unmarked list
+  for(auto const &s : darker::test_reference::scripted_world_samples) {
+    CAPTURE(s);
+    darker::game::city_map cells{};
+    darker::resources::scenario_record record;
+    for(size_t i{0}; i < 4; ++i) cells[(i*2+2)*128+i*2+1].state = static_cast<uint8_t>(s[i+1]);
+    std::array<std::byte,11> const program{std::byte{1},std::byte{2},std::byte{3},std::byte{4},static_cast<std::byte>(s[0]),
+      std::byte{5},std::byte{6},std::byte{7},std::byte{8},std::byte{255},std::byte{35}};
+    darker::game::world_objectives objectives{.list{2},.cursor{17}};
+    CHECK(objectives.replace(cells,program) == s[9]);
+    for(size_t i{0}; i < 4; ++i) CHECK(cells[(i*2+2)*128+i*2+1].state == s[i+5]);
+    auto const offset{[&]{ return (objectives.list == 0 ? 0u : 5u)+objectives.cursor*2; }};
+    CHECK(offset() == s[10]);
+    for(size_t i{0}; i < 8; ++i) {
+      objectives.advance(cells,record,0x20);
+      CHECK(offset() == s[11+i*2]);
+      CHECK(objectives.complete(record) == static_cast<bool>(s[12+i*2]));
+    }
+  }
+}

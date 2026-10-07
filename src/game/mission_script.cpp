@@ -187,12 +187,20 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         cursor = static_cast<std::size_t>(target);
       }
       break;
+    case 0x27:
+      if(!context.set_tunnel_oscillation) throw std::logic_error{"Scripted tunnel direction has no actor consumer"};
+      context.set_tunnel_oscillation(byte());
+      break;
     case 0x2f:
       {
         auto const selection{byte()};
         if(!context.select_weapon) throw std::runtime_error{"Mission weapon selection has no player consumer"};
         context.select_weapon(selection);
       }
+      break;
+    case 0x34:
+      if(!context.replace_world_objectives) throw std::logic_error{"Scripted building objectives have no world consumer"};
+      cursor += context.replace_world_objectives(context.program.subspan(cursor));
       break;
     case 0x33:
       if(!context.adjust_objectives) throw std::logic_error{"Mission objective adjustment has no world consumer"};

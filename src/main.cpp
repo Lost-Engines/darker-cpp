@@ -226,6 +226,12 @@ auto main(int const argc, char const *const argv[])->int {
   context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
   context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
   context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
+  auto const replace_world_objectives{[&](std::span<std::byte const> const program){
+    auto const consumed{objectives.replace(cells,program)};
+    context.objectives_complete = objectives.complete(mission) && combat->remaining_objectives() == 0;
+    return consumed;
+  }};
+  context.replace_world_objectives = replace_world_objectives;
   context.select_weapon = select_weapon;
   context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
   context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
@@ -660,6 +666,7 @@ auto main(int const argc, char const *const argv[])->int {
           context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
           context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
           context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
+          context.replace_world_objectives = replace_world_objectives;
           context.select_weapon = select_weapon;
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };

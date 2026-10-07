@@ -186,6 +186,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         }},
         .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
       context.adjust_objectives = [&](uint8_t const operand){ adjust_objectives(operand); return remaining_objectives() == 0; };
+      context.set_tunnel_oscillation = [&](uint8_t const phase){
+        if(!actor.tunnel) throw std::logic_error{"Tunnel direction command requires an underground actor"};
+        actor.tunnel->oscillation = phase;
+      };
       context.register_owner = [&]{ return std::exchange(script_owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
       advance_mission_script(actor.script,context);
     }

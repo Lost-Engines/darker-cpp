@@ -4,11 +4,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include "game/city_collision.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/projectile_steering.h"
 #include "game/scenario_world.h"
 #include "maths/direction.h"
+#include "maths/sine_table.h"
 #include "presentation/player.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
@@ -20,9 +22,9 @@ void check_building_combat(darker::resources::archive_set const &archives) {
   darker::resources::campaign_resources campaign{archives};
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
-  struct building_case { uint8_t stage; size_t count; char const *message; };
-  for(auto const test : std::array<building_case,4>{{
-    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."},
+  struct building_case { uint8_t stage; size_t count; char const *message; unsigned int removals{0}; };
+  for(auto const test : std::array<building_case,5>{{
+    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."}, {65,8,"Tolly; we need you back at Hemmersan.",14},
   }}) {
     auto const &scenario{campaign.scenario(test.stage)};
     auto const index{darker::resources::select_campaign_stage(test.stage).record};
@@ -30,9 +32,10 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     auto cells{darker::game::make_city_map(archives.load({0,68}),true)};
     darker::game::assign_city_variants(cells,limits);
     darker::game::apply_scenario_cells(cells,record);
-    auto const &targets{record.cell_lists.at(1).cells};
-    if(targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
+    auto targets{record.cell_lists.at(1).cells};
+    if(test.stage != 65 && targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
+    combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1+record.groups[0].objects.size()),0,record.shared.offset);
     combat.secondary_weapon = 6;
     combat.difficulty = test.stage*2;
     darker::game::player_flight player;
@@ -46,28 +49,68 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     darker::game::mission_context context{.program{scenario.bytes(record.shared)},
       .text{scenario.language(index,darker::resources::scenario_language::english)},.cells{cells},
       .time_multiplier{record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+    context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
+      combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
+      return objectives.complete(record) && combat.remaining_objectives() == 0;
+    };
+    context.replace_world_objectives = [&](std::span<std::byte const> const program){
+      auto const consumed{objectives.replace(cells,program)};
+      targets = objectives.script_lists->at(0).cells;
+      context.objectives_complete = objectives.complete(record) && combat.remaining_objectives() == 0;
+      return consumed;
+    };
     darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
     bool message{false};
     unsigned int shots{0};
     uint16_t previous_target{0xffff};
-    for(uint32_t clock{8}; clock < 200000; clock += 8) {
+    for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(targets,[&](auto const cell){ return !(cells[cell.row*128+cell.column].state & 0x20); })};
-      if(target != targets.end()) {
+      auto const aircraft{std::ranges::find_if(combat.actors,[](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
+      bool const airborne{aircraft != combat.actors.end()};
+      uint8_t const weapon{static_cast<uint8_t>(airborne ? 9 : 6)};
+      if(combat.secondary_weapon != weapon) combat.target.clear();
+      combat.secondary_weapon = weapon;
+      if(airborne) {
+        auto const heading{aircraft->pose.angles[0]};
+        auto const sine{darker::maths::original_sine[heading >> 6]};
+        auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+        player.pose().position = {static_cast<uint16_t>(aircraft->pose.position[0]+((sine*200) >> 15)),
+          static_cast<uint16_t>(aircraft->pose.position[1]+((cosine*200) >> 15)),static_cast<uint16_t>(aircraft->pose.position[2]+92)};
+        player.pose().angles = {heading,0,0};
+        player.pose().speed = 496;
+        combat.targeting_basis = darker::maths::make_view_basis({.heading{heading}});
+      } else if(target != targets.end()) {
         auto const token{static_cast<uint16_t>(target->row*256+target->column)};
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
         std::array<uint16_t,3> const centre{aim.position[0],aim.position[1],static_cast<uint16_t>(aim.height-aim.height_extent/2)};
         constexpr std::array<int,4> columns{0,200,0,-200}, rows{200,0,-200,0};
         auto const approach{test.stage >= 54 ? (clock/2048)%4 : 0};
-        player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(aim.height+512)};
-        auto const direction{darker::maths::object_target_direction(player.pose().position,centre)};
-        player.pose().angles = {direction.heading,direction.pitch,0};
+        player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(test.stage == 65 ? 348 : aim.height+512)};
+        auto direction{darker::maths::object_target_direction(player.pose().position,centre)};
+        if(test.stage == 65) {
+          auto const &cell{cells[target->row*128+target->column]};
+          auto const boxes{darker::game::city_collision_boxes(bank,cell.type,cell.state,0x20,target->column,target->row)};
+          auto const door{std::ranges::find_if(boxes,[](auto const &box){ return box.category == 0; })};
+          if(door == boxes.end()) throw std::runtime_error{"Office target has no vulnerable entrance"};
+          std::array<uint16_t,3> point{};
+          for(size_t axis{0}; axis < 3; ++axis) point[axis] = static_cast<uint16_t>((door->minimum[axis]+door->maximum[axis])/2);
+          auto const along{door->maximum[0]-door->minimum[0] < door->maximum[1]-door->minimum[1] ? 1 : 0};
+          auto const nearer{point[along] > centre[along] ? door->minimum[along] : door->maximum[along]};
+          point[along] = static_cast<uint16_t>((point[along]+nearer)/2);
+          point[2] *= 8;
+          player.pose().position = point;
+          for(size_t axis{0}; axis < 2; ++axis) player.pose().position[axis] = static_cast<uint16_t>(centre[axis]+4*(int{point[axis]}-centre[axis]));
+          player.pose().position[2] += 92;
+          direction = darker::maths::object_target_direction(player.pose().position,centre);
+        }
+        player.pose().angles = {direction.heading,test.stage == 65 ? uint16_t{0} : direction.pitch,0};
         player.pose().speed = 496;
-        combat.targeting_basis = darker::maths::make_view_basis({direction.heading,direction.pitch,0});
+        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],0});
         if(token != previous_target) combat.target.clear();
         previous_target = token;
       }
       combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),false,
-        scenario.bytes(record.shared),record.time_multiplier,nullptr,target != targets.end() && clock%256 == 0);
+        scenario.bytes(record.shared),record.time_multiplier,nullptr,airborne ? clock%2048 == 8 : target != targets.end() && clock%256 == 0,airborne && clock%2048 != 0);
       shots += combat.player_fired;
       darker::game::charge_caero_energy(craft.energy,13056,1,1028,false);
       objectives.advance(cells,record,0x20);
@@ -84,7 +127,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       if(script.stopped && message && context.objectives_complete) break;
     }
     auto const destroyed{std::ranges::count_if(targets,[&](auto const cell){ return cells[cell.row*128+cell.column].state & 0x20; })};
-    if(!script.stopped || !message || !context.objectives_complete || static_cast<size_t>(destroyed) != test.count) {
+    if(!script.stopped || !message || !context.objectives_complete || static_cast<size_t>(destroyed) != test.count || combat.completed_objectives != test.removals) {
       throw std::runtime_error{"Ground mission did not complete: stage="+std::to_string(test.stage)+", destroyed="+std::to_string(destroyed)
         +", shots="+std::to_string(shots)+", lock="+std::to_string(combat.target.token)+", wanted="+std::to_string(previous_target)
         +", stopped="+std::to_string(script.stopped)+", message="+std::to_string(message)};
@@ -101,6 +144,6 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     }
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"Ground mission did not complete docking"};
     std::cout << "Mission " << unsigned{test.stage} << ": " << destroyed << " building objectives, " << shots
-      << " controlled Brent Ground launches, final message and docking verified." << std::endl;
+      << " controlled launches, " << combat.completed_objectives << " aircraft removals, final message and docking verified." << std::endl;
   }
 }

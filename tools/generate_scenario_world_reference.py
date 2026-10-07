@@ -43,6 +43,28 @@ def main():
              '#include <array>', '', 'namespace darker::test_reference {', '',
              f'inline constexpr std::array<std::array<unsigned int,29>,{len(rows)}> scenario_world_samples{{{{']
     lines += ['  {' + ','.join(map(str,row)) + '},' for row in rows]
+    lines += ['}};', '']
+    replacements = []
+    for case in range(64):
+        end = 254 + case%2
+        states = [rng.randrange(256) for _ in range(4)]
+        for i,state in enumerate(states):
+            h.cpu.mem_write(0x60000+(i*2+2)*256+(i*2+1)*2,bytes([1,state]))
+        h.write(0xf000,bytes([1,2,3,4,end,5,6,7,8,255,35]))
+        h.setreg('SI',0xf000);h.call(0xc858)
+        consumed = h.getreg('SI')-0xf000
+        updated = [h.cpu.mem_read(0x60000+(i*2+2)*256+(i*2+1)*2+1,1)[0] for i in range(4)]
+        pointer = int.from_bytes(h.read(0xc84f,2),'little')-0xf000
+        h.write(0xc841,b'\x20');h.cpu.ctl_remove_cache(h.BASE,h.BASE+65536)
+        steps=[]
+        for step in range(8):
+            h.call(0xc82f)
+            at=int.from_bytes(h.read(0xc84f,2),'little')-0xf000
+            h.call(0xc84e)
+            steps += [at,int((h.getreg('AX')&255)==0)]
+        replacements.append([end,*states,*updated,consumed,pointer,*steps])
+    lines += [f'inline constexpr std::array<std::array<unsigned int,27>,{len(replacements)}> scripted_world_samples{{{{']
+    lines += ['  {'+','.join(map(str,row))+'},' for row in replacements]
     lines += ['}};', '', '} // namespace darker::test_reference', '']
     (Path(__file__).resolve().parents[1] / 'tests/reference/scenario_world_samples.h').write_text('\n'.join(lines))
     print(f'Captured {len(rows)} scenario setups and 512 objective frames.')
