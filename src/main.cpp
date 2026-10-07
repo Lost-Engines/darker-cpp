@@ -430,6 +430,7 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_3: host.front->key(front_key::three); break;
       case GLFW_KEY_4: host.front->key(front_key::four); break;
       case GLFW_KEY_N: host.front->key(front_key::nightmare); break;
+      case GLFW_KEY_Y: host.front->key(front_key::yes); break;
       default: break;
       }
       return;

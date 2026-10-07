@@ -37,34 +37,22 @@ codec preserves both packed city streams, weapon/return-site fields, opaque
 record tails and trailer bytes. A corrupt or wrongly sized file is reported,
 never silently reset. The retail `DARKER.SAV` is not automatically read or written.
 
-Successful docking now commits the Delphi city stream, current weapon mask and
-return site, increments the saved stage and opens the next briefing. The first
-eight missions are connected, including reinforcement waves, Pinner Mimic and
-scripted airborne destinations. Completing the eighth saves stage nine and returns
-to the menu with an explicit unsupported-stage notice. Loading later stages
-preserves the record but does not launch it. Death and Escape leave the previous
-committed record intact.
-
-Each flight loads a fresh city, restores saved bits for stages after one, and
-recreates actors/scripts from its own scenario record. BB90/BBC6 packing and
-restoration match native fingerprints for both Delphi and Halon, including
-high-bit beacon templates and variant rebuilding. Stage one bypasses the whole
-BBC6 path, including variant rebuilding. Only Delphi is connected to campaign
-play at this milestone. All eight supported missions have empty beacon queues;
-queued-outage exit handling remains necessary for later missions.
+Successful docking commits the city state, weapon mask and return site, then
+advances the selected pilot into the next briefing. The connected campaign runs
+through stage 116, including Halon and its intervening presentations. Death and
+Escape retain the previous committed campaign record. Each flight restores its
+city and actors from the relevant scenario; queued beacon changes and retained
+city state are covered in `campaign_status.md`.
 
 Briefing opcode 30 now retains weapon-range toggles for the flight session;
 the first briefing grants Pinner Direct and the fifth grants Pinner Mimic. Save commits retain that runtime mask.
 
-Menu text uses original wording and fonts, but its
-composition is provisional: exact borders, score fields and retail positioning
-remain to be reproduced. Nightmare mode is not exposed yet.
-
-Original Sound Blaster [music playback](sound_images_music.md) is connected. Palette fades,
-original input-policy details, exact presentation tick/display ordering,
-later campaign records and their scripted events remain outstanding.
-The interpreter rejects unsupported opcodes rather than silently treating
-unimplemented presentations as complete. It currently selects English.
+Menu composition now follows the native row positions, palette shading, score
+formatting and original interface font. Nightmare is available through N, with
+its independent high-score erase action. Original Sound Blaster
+[music playback](sound_images_music.md) is connected. The interpreter rejects
+unsupported opcodes and currently selects English. Remaining limits include
+some input-policy details and exact presentation tick/display ordering.
 
 ## Evidence and verification
 
@@ -212,3 +200,34 @@ beacon updates and controlled removal of counted objectives: outcome 4 at tick
 cover all five exit outcomes, best-score updates and byte-for-byte preservation
 of all four pilot records. An Xvfb/Mesa run enters through N, advances into live
 flight, fires, exits with Level X and verifies the ordinary save is unchanged.
+
+## Native menu panels, title fade and credits
+
+0849/0850 place selection rows at Y=20,56,92,128,164; the selected game's run
+panel uses Y=60. The row begins with Game at X=112 and Level at X=162, followed
+by a centred pilot name. Empty slots use the original centred new-game label.
+Nightmare's two percentage scores use the formatter's tab and runtime-number
+operations, so their spacing follows the original glyph widths.
+
+08E9 copies rectangles with VGA XOR bit mask 80. The corresponding upper
+palette is reconstructed by DF1D/AFB1: copy entries 0..127, use component gains
+24/25/26 and DAC offsets 8/9/9. This produces the shaded panels seen in the
+existing unmodified DOSBox captures, rather than black rectangles or an invented
+RGB transparency effect. Run, erase, confirmation and name-entry layouts use
+the native coordinates; Y/N confirmation and Nightmare high-score erasure are
+connected. The latter changes only the score byte and save checksum.
+
+The title includes the compact-font TM overlay. AFA2 derives brightness from the
+sine table, and AFAD maps each source component into six-bit DAC values. The
+9CFE title path uses CX=0803: 1,024 ticks to full brightness, followed by a
+4,000-tick interruptible hold. The credits page then fades in over 128 ticks and
+waits for input. Its 80×17 logo comes directly from 00/28 at (120,48); its English
+text reproduces the executable's formatted block at 9D80. `--skip-intro` bypasses
+all these startup pages and still enters game selection immediately.
+
+Native fixtures cover all 512 fade phases and all 256 component values at all
+65 brightness coefficients. Windowed captures exercise the title fade, credits,
+selection, high-score erase menu, Nightmare entry and external camera controls.
+The earlier DOSBox captures confirm the selection and credits composition;
+this is not a claim that all menu pixels or display timings have been compared.
+Ordinary briefing transitions are not given an invented universal fade.

@@ -8,8 +8,8 @@ The connected campaign now reaches the final battle (115) and ending (116), incl
 
 1. **Collision/update fidelity:** audit remaining weapon-ray and collision-response edge cases. Native list ordering and player/object ramming are now connected.
 2. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
-3. **Presentation and rendering:** exact menu/score composition, remaining camera transitions, actor lighting/distant dots, palette fades and presentation ordering. Nightmare entry, score persistence and victory are now connected.
-4. **Audio fidelity:** stereo placement, external-camera listening, transient pool reuse/note-gate details and remaining event bindings. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
+3. **Presentation and rendering:** remaining camera transitions, actor lighting/distant dots and exact presentation ordering/input policies. Native menu/score layout, shaded panels, title/credits fades and Nightmare are now connected.
+4. **Audio fidelity:** transient pool reuse/note-gate details, remaining event bindings and exhaustive camera-mode listening comparisons. Stereo placement and rendered-camera listening are connected. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
 5. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
 
 Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.

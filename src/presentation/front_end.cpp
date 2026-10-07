@@ -1,4 +1,5 @@
 #include "presentation/front_end.h"
+#include <algorithm>
 #include <stdexcept>
 #include "graphics/font.h"
 
@@ -25,7 +26,32 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   : archives{archives}, font{font}, campaign{campaign}, introduction{archives.load({4,15})}, save{save} {
   /// Startup 9CBD selects record one before the 00/14 title and 00/21 game-selection background
   load_image(archives,{0,21},menu_background,menu_palette,320,240,0,0);
+  // 03F4/DF1D copy the lower palette; AFB1 supplies separate gains and DAC offsets for shaded panels.
+  for(size_t i{0}; i < 128; ++i) {
+    auto const source{menu_palette.colours[i]};
+    menu_palette.colours[i+128] = {
+      .red{static_cast<uint8_t>((8+graphics::palette_dac_component(source.red,24))*4)},
+      .green{static_cast<uint8_t>((9+graphics::palette_dac_component(source.green,25))*4)},
+      .blue{static_cast<uint8_t>((9+graphics::palette_dac_component(source.blue,26))*4)},
+    };
+  }
   load_image(archives,{0,14},title_background,title_palette,280,100,16,65);
+  std::array<std::byte,2> constexpr trademark{std::byte{'T'},std::byte{'M'}};
+  graphics::draw_text(title_background,font,resources::font_face::compact,trademark,{.x{256},.y{84}},{.ink{129},.edge{130}});
+  credits_background = menu_background;
+  auto const logo{archives.load({0,28})};
+  if(logo.size() != 80*17) throw std::invalid_argument{"Unexpected credits logo size"};
+  for(size_t y{0}; y < 17; ++y) for(size_t x{0}; x < 80; ++x)
+    credits_background.pixels[(y+48)*320+x+120] = std::to_integer<uint8_t>(logo[y*80+x]);
+  char constexpr credits[]{
+    "\6Written by Jas.C.Brooke\0\3\6Artwork by Lyndon Brooke\0\3\6Music by PC Music\0\3"
+    "\5\0\13\1\242\0\6Producer: Richard Biltcliffe.\0\3"
+    "\6Product managers: Michaela Riches, Nadia Lawlor\0\3\6Music manager: Phil Morris\0\3"
+    "\1\311\0\6Thanks to Mark & Joan Brooke and Rachel Chalmers\0\3\3"
+    "\6A Day 1 production. Copyright (C) 1995 S.I.E.E\0\0"};
+  auto const credit_page{graphics::lay_out_text(std::as_bytes(std::span{credits}),font,resources::font_face::interface,{.y{96},.colour{0x7d00}})};
+  for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{125},.edge{0}});
+
   if(skip_intro) current = screen::games;
   else scene = std::make_unique<player>(archives,font,introduction,1);
 }
@@ -151,7 +177,11 @@ void front_end::finish_briefing() {
 void front_end::key(front_key const input) {
   /// Route menu commands separately from in-flight bindings
   if(current == screen::introduction) { current = screen::title; return; }
-  if(current == screen::title) { current = screen::games; return; }
+  if(current == screen::title) {
+    if(title_ticks >= 1024) { current = screen::credits; title_ticks = 0; }
+    return;
+  }
+  if(current == screen::credits) { if(title_ticks >= 128) current = screen::games; return; }
   if(current == screen::outcome) {
     if((input == front_key::back || input == front_key::accept) && (scene->input_policy & 4)) current = screen::run;
     return;
@@ -187,12 +217,14 @@ void front_end::key(front_key const input) {
     return;
   }
   if(current == screen::erase || current == screen::quit) {
+    if(input == front_key::yes || input == front_key::nightmare) { confirmation = input == front_key::yes; key(front_key::accept); return; }
     if(input == front_key::up || input == front_key::down) confirmation = !confirmation;
     if(input == front_key::back) current = previous;
     else if(input == front_key::accept) {
       if(confirmation && current == screen::quit) quit_requested = true;
       if(confirmation && current == screen::erase) {
-        save.pilots[selected] = {};
+        if(nightmare_selected()) save.trailer[0] = std::byte{0};
+        else save.pilots[selected] = {};
         save_requested = true;
         unsupported_stage = false;
       }
@@ -220,7 +252,7 @@ void front_end::key(front_key const input) {
   } else if(current == screen::run) {
     if(input == front_key::accept) begin_briefing();
     if(input == front_key::select) current = screen::games;
-    if(input == front_key::erase && !nightmare_selected()) { previous = current; current = screen::erase; confirmation = false; }
+    if(input == front_key::erase) { previous = current; current = screen::erase; confirmation = false; }
   }
 }
 
@@ -239,20 +271,27 @@ void front_end::point(int const x, int const y) noexcept {
 
 void front_end::click(int const x, int const y) {
   /// Selection rows follow the original 36-pixel pitch; other screens expose their visible actions
-  if(current == screen::games && x >= 15 && x < 305 && y >= 48 && y < 220) {
-    selected = static_cast<unsigned int>((y - 48) / 36);
+  if(current == screen::games && x >= 48 && x < 272 && y >= 15 && y < 189 && (y-15)%36 < 30) {
+    selected = static_cast<unsigned int>((y - 15) / 36);
     choose_game();
-  } else if(current == screen::run && y >= 152 && y < 216) {
-    key(std::array{front_key::accept,front_key::select,front_key::erase,front_key::quit}[static_cast<size_t>((y - 152) / 16)]);
+  } else if(current == screen::run && x >= 70 && x < 250 && y >= 160 && y < 224) {
+    key(std::array{front_key::accept,front_key::select,front_key::erase,front_key::quit}[static_cast<size_t>((y - 160) / 16)]);
   } else if(current == screen::quit || current == screen::erase) {
-    if(y >= 150 && y < 190) { confirmation = x < 160; key(front_key::accept); }
+    int const answer_y{current == screen::erase ? 216 : 168};
+    if(y >= answer_y && y < answer_y+15) { confirmation = x < 162; key(front_key::accept); }
   } else if((current == screen::briefing || current == screen::outcome) && y >= 225 && x >= 284 && x < 302) {
     if(scene->input_policy & 4) key(front_key::back);
-  } else if(current == screen::introduction || current == screen::title || current == screen::briefing || current == screen::outcome) key(front_key::accept);
+  } else if(current == screen::introduction || current == screen::title || current == screen::credits || current == screen::briefing || current == screen::outcome) key(front_key::accept);
 }
 
 void front_end::advance(uint32_t const elapsed_ticks) {
   /// Menu pauses do not consume the flight clock; animation continues only in active presentation scenes
+  if(current == screen::title || current == screen::credits) {
+    auto const limit{current == screen::title ? uint32_t{5024} : uint32_t{128}};
+    title_ticks = static_cast<uint32_t>(std::min(uint64_t{limit},uint64_t{title_ticks}+elapsed_ticks));
+    if(current == screen::title && title_ticks == limit) { current = screen::credits; title_ticks = 0; }
+    return;
+  }
   if(current != screen::introduction && current != screen::briefing && current != screen::outcome) return;
   scene->advance(elapsed_ticks);
   if(current == screen::introduction && scene->finished()) current = screen::title;
@@ -285,44 +324,86 @@ void front_end::return_to_menu() {
 void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   /// Original menu imagery and interface font stay inside the indexed software-rendering path
   if(current == screen::introduction || current == screen::briefing || current == screen::outcome) { scene->draw(output,pointer); return; }
-  if(current == screen::title) { framework::render::expand_palette(title_background,title_palette.colours,output); return; }
+  if(current == screen::title) { framework::render::expand_palette(title_background,graphics::fade_palette(title_palette.colours,static_cast<uint16_t>(std::min(uint32_t{256},title_ticks/4))),output); return; }
+  if(current == screen::credits) {
+    framework::render::expand_palette(credits_background,graphics::fade_palette(menu_palette.colours,static_cast<uint16_t>(title_ticks*2)),output);
+    return;
+  }
   auto frame{menu_background};
   auto const text{[&](std::string const &value, int const x, int const y, uint8_t const colour = 125){
     graphics::draw_text(frame,font,resources::font_face::interface,std::as_bytes(std::span{value}),
       {.x{static_cast<int16_t>(x)},.y{static_cast<int16_t>(y)}},{.ink{colour},.edge{0}});
   }};
-  if(current == screen::games) {
-    for(unsigned int i{0}; i < 4; ++i) {
-      auto const colour{static_cast<uint8_t>(i == selected ? 126 : 125)};
-      text("Game " + std::to_string(i + 1),48,48 + static_cast<int>(i) * 36,colour);
-      text(save.pilots[i].stage == 0 ? "Start a new game" : save.pilots[i].display_name(),48,62 + static_cast<int>(i) * 36,colour);
+  auto const centred{[&](std::string const &value, int const y, uint8_t const colour){
+    unsigned int width{0};
+    for(auto const code : value) width += code == ' ' ? 4 : font.glyph(resources::font_face::interface,static_cast<uint8_t>(code)).width;
+    text(value,(320-static_cast<int>(width))/2,y,colour);
+  }};
+  auto const panel{[&](int const x, int const y, int const width, int const height){
+    // 08E9 copies the menu rectangle through VGA XOR with bit mask 80.
+    for(int row{y}; row < y+height; ++row) for(int column{x}; column < x+width; ++column)
+      frame.pixels[static_cast<size_t>(row*320+column)] ^= 128;
+  }};
+  auto const game_row{[&](unsigned int const slot, int const y, uint8_t const colour){
+    panel(48,y-5,224,30);
+    if(slot == 4) {
+      text("NIGHTMARE",112,y,colour);
+      graphics::text_cursor cursor{.x{52},.y{static_cast<uint16_t>(y+11)},.colour{static_cast<uint16_t>(colour << 8)},.runtime_number{challenge_score}};
+      for(auto const value : {"\4\4Score: \7%","\4High score: \7%"}) {
+        std::string const bytes{std::string{value}+'\0'};
+        auto const page{graphics::lay_out_text(std::as_bytes(std::span{bytes}),font,resources::font_face::interface,cursor)};
+        for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{colour},.edge{0}});
+        cursor = page.cursor;
+        cursor.runtime_number = std::to_integer<uint8_t>(save.trailer[0]);
+      }
+    } else {
+      text("Game "+std::to_string(slot+1),112,y,colour);
+      auto const &pilot{save.pilots[slot]};
+      if(pilot.stage) {
+        text("Level "+std::to_string(pilot.stage),162,y,colour);
+        centred(pilot.display_name(),y+11,colour);
+      } else centred("Start a new game",y+10,colour);
     }
-    text("NIGHTMARE",48,192,selected == 4 ? 126 : 125);
-    text(selection_prompt,48,222);
+  }};
+  if(current == screen::games) {
+    for(unsigned int i{0}; i < 5; ++i) {
+      auto const top{15+static_cast<int>(i)*36};
+      bool const hover{pointer[0] >= 48 && pointer[0] < 272 && pointer[1] >= top && pointer[1] < top+30};
+      game_row(i,top+5,hover ? 126 : 125);
+    }
+    panel(54,217,212,18);
+    centred(selection_prompt,222,125);
   } else if(editing_text()) {
     bool const hidden{current == screen::hidden_command};
-    text(hidden ? "STAR THREE" : "START NEW GAME",hidden ? 104 : 88,176);
-    text(hidden ? "What do you want?" : "Please enter your name",hidden ? 84 : 65,192);
-    text(draft_name + "_",70,208,126);
+    panel(48,hidden ? 91 : 171,224,54);
+    text(hidden ? "STAR THREE" : "START NEW GAME",hidden ? 122 : 104,hidden ? 96 : 176);
+    text(hidden ? "What do you want?" : "Please enter your name",hidden ? 102 : 88,hidden ? 112 : 192);
+    text(draft_name + "_",56,hidden ? 128 : 208,126);
   } else if(current == screen::run) {
-    if(nightmare_selected()) {
-      text("NIGHTMARE",48,64,126);
-      text("Last score " + std::to_string(challenge_score),48,88);
-      text("Best score " + std::to_string(std::to_integer<uint8_t>(save.trailer[0])),48,104);
-    } else {
-      text(save.pilots[selected].display_name(),48,64,126);
-      text("Game " + std::to_string(selected + 1) + "     Level " + std::to_string(save.pilots[selected].stage),48,88);
-    }
+    game_row(selected,60,125);
+    panel(70,155,180,70);
     if(unsupported_stage) text("This stage is not implemented yet",32,120);
-    text("ENTER: Run this game",76,160);
-    text("S: Select a different game",76,176);
-    if(!nightmare_selected()) text("E: Erase this game",76,192);
-    text("ESC: Quit to DOS",76,208);
+    auto const action{[&](std::string const &label, int const x, int const y){
+      bool const hover{pointer[0] >= 70 && pointer[0] < 250 && pointer[1] >= y && pointer[1] < y+16};
+      text(label,x,y,hover ? 126 : 125);
+    }};
+    action("ENTER: Run this game",76,160);
+    action("S: Select a different game",83,176);
+    action("E: Erase this game",83,192);
+    action("ESC: Quit to DOS",76,208);
   } else {
-    text(current == screen::erase ? "ERASE GAME" : "QUIT TO DOS",96,96);
-    text("Do you wish to proceed?",64,128);
-    text("YES",100,160,confirmation ? 126 : 125);
-    text("NO",192,160,confirmation ? 125 : 126);
+    game_row(selected,60,125);
+    if(current == screen::erase) {
+      panel(70,147,180,86);
+      centred(nightmare_selected() ? "ERASE HIGH SCORE" : "ERASE GAME",152,125);
+      centred(nightmare_selected() ? "It will be reset to 0%" : "It will be permanently lost",168,125);
+      centred("- - -",184,125);
+    } else { panel(60,83,200,102); text("QUIT TO DOS",121,136); }
+    int const question_y{current == screen::erase ? 200 : 152};
+    centred("Do you wish to proceed?",question_y,125);
+    text("YES",133,question_y+16,confirmation ? 126 : 125);
+    text("/",157,question_y+16,125);
+    text("NO",169,question_y+16,confirmation ? 125 : 126);
   }
   framework::render::expand_palette(frame,menu_palette.colours,output);
 }

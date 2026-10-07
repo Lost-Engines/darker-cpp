@@ -1,8 +1,32 @@
 #include "graphics/palette_bitmap.h"
 #include <cstdint>
 #include <stdexcept>
+#include "maths/sine_table.h"
 
 namespace darker::graphics {
+
+uint8_t palette_fade_gain(uint16_t const phase) noexcept {
+  /// AFA2 rounds the sine table's high byte into the original 0..64 brightness coefficient
+  auto const high{static_cast<uint8_t>(static_cast<uint16_t>(maths::original_sine[phase & 511]) >> 8)};
+  return static_cast<uint8_t>((high+1) >> 1);
+}
+
+uint8_t palette_dac_component(uint8_t const component, uint8_t const gain) noexcept {
+  /// AFAD builds a 256-entry component lookup using byte carry accumulation before the six-bit VGA DAC
+  return static_cast<uint8_t>((component*gain+(gain >> 1)) >> 8);
+}
+
+framework::render::colour_palette fade_palette(framework::render::colour_palette const &colours, uint16_t const phase) noexcept {
+  /// Expand the native DAC values back to framebuffer RGB; the original palette remains unchanged
+  auto result{colours};
+  auto const gain{palette_fade_gain(phase)};
+  for(auto &colour : result) {
+    colour.red = static_cast<uint8_t>(palette_dac_component(colour.red,gain)*4);
+    colour.green = static_cast<uint8_t>(palette_dac_component(colour.green,gain)*4);
+    colour.blue = static_cast<uint8_t>(palette_dac_component(colour.blue,gain)*4);
+  }
+  return result;
+}
 
 palette_update decode_palette(std::span<std::byte const> const data, palette_state previous) {
   /// Reproduce the palette skip/literal stream used by original routines 4185/4190

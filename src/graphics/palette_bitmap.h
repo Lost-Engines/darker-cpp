@@ -22,6 +22,10 @@ struct palette_bitmap {
   framework::render::indexed_framebuffer image;
 };
 
+uint8_t palette_fade_gain(uint16_t phase) noexcept;
+uint8_t palette_dac_component(uint8_t component, uint8_t gain) noexcept;
+framework::render::colour_palette fade_palette(framework::render::colour_palette const &colours, uint16_t phase) noexcept;
+
 palette_update decode_palette(std::span<std::byte const> data, palette_state previous = {});
 palette_bitmap decode_bitmap(std::span<std::byte const> data, palette_state previous = {});
 

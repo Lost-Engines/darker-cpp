@@ -8,11 +8,11 @@
 
 namespace darker::presentation {
 
-enum class front_key { accept, back, up, down, erase_character, select, erase, quit, one, two, three, four, nightmare };
+enum class front_key { accept, back, up, down, erase_character, select, erase, quit, one, two, three, four, nightmare, yes };
 
 class front_end {
 private:
-  enum class screen { introduction, title, games, name, hidden_command, run, erase, quit, briefing, outcome, flight };
+  enum class screen { introduction, title, credits, games, name, hidden_command, run, erase, quit, briefing, outcome, flight };
   resources::archive_set const &archives;
   resources::font_resource const &font;
   resources::campaign_resources &campaign;
@@ -20,19 +20,20 @@ private:
   std::unique_ptr<player> scene;
   screen current{screen::introduction};
   screen previous{screen::games};
-  framework::render::indexed_cockpit_framebuffer menu_background{}, title_background{};
+  framework::render::indexed_cockpit_framebuffer menu_background{}, title_background{}, credits_background{};
   graphics::palette_state menu_palette, title_palette;
   resources::save_file &save;
   resources::pilot_record challenge_pilot{.stage{1}};
   uint8_t challenge_score{0};
   std::string draft_name;
-  std::string selection_prompt{"Select a game: 1,2,3,4,N"};
+  std::string selection_prompt{"Select a game: 1,2,3,4 or N"};
   bool star_prefix{false};
   bool level_x{false};
   bool unsupported_stage{false};
   unsigned int selected{0};
   std::array<int,2> pointer{-1,-1};
   int retained_music{-1};
+  uint32_t title_ticks{0};
   bool confirmation{false};
   unsigned int ignored_character{0};
   void choose_game();

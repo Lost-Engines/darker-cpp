@@ -134,6 +134,9 @@ void check_presentations(darker::resources::archive_set const &archives) {
   darker::presentation::front_end commands{archives,font,campaign,command_saves};
   using darker::presentation::front_key;
   commands.key(front_key::accept);
+  commands.advance(1024);
+  commands.key(front_key::accept);
+  commands.advance(128);
   commands.key(front_key::accept);
   commands.key(front_key::one);
   commands.character('1');
@@ -186,6 +189,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     darker::presentation::front_end challenge{archives,font,campaign,challenge_save,true};
     challenge.key(front_key::nightmare);
     challenge.key(front_key::erase);
+    challenge.key(front_key::back);
     challenge.key(front_key::accept);
     for(unsigned int i{0}; challenge.active() && i < 200; ++i) { challenge.advance(32); challenge.key(front_key::accept); }
     if(challenge.active() || !challenge.nightmare_selected() || challenge.selected_record() != 0
@@ -205,6 +209,12 @@ void check_presentations(darker::resources::archive_set const &archives) {
     challenge.finish_nightmare(9,255);
     if(challenge.save_requested || challenge_save.trailer[0] != std::byte{37})
       throw std::runtime_error{"A lower Nightmare score replaced the best score"};
+    challenge.key(front_key::erase);
+    challenge.key(front_key::yes);
+    auto const erased{darker::resources::encode_save(challenge_save)};
+    if(!challenge.save_requested || challenge_save.trailer[0] != std::byte{0}
+      || !std::equal(previous.begin(),previous.begin()+6596,erased.begin()) || erased[6597] != previous[6597])
+      throw std::runtime_error{"Erasing the Nightmare high score changed unrelated save data"};
   }
   darker::resources::save_file ending_save;
   ending_save.pilots[0].stage = 116;
