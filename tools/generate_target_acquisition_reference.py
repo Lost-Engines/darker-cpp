@@ -20,14 +20,19 @@ def main():
     rng=random.Random(0x6d08)
     rows=[]
     word=lambda v:struct.pack('<H',v&65535)
-    for i in range(256):
+    for i in range(512):
         h,bank,tail=setup(30)
+        h.cpu.mem_write(0x6a004,b'\xff')
         kind=rng.choice((0,1,17,77,86))
         state=rng.choice((0,32,64))
         h.cpu.mem_write(0x60000+50*256+50*2,bytes([kind,state]));h.write(0x2e10,b'\x40')
         player=(50*256+128,54*256+128,rng.choice((400,1000,3000,6000)))
         angles=(rng.choice((0,0,0,800,64736,32768)),rng.choice((0,0,500,65036)))
         aircraft=[(player[0]+rng.randrange(-200,201),player[1]-rng.choice((300,600,1500)),player[2]+rng.randrange(-200,201)) for _ in range(2)]
+        if i >= 256:
+            kind=0;angles=(0,0)
+            h.cpu.mem_write(0x60000+50*256+50*2,b'\0\0')
+            aircraft=[(player[0]+rng.randrange(-8,9),player[1]-distance,player[2]) for distance in ((300,600) if i%2 else (600,300))]
         h.write(0x6fd8,word(0xd9f6))
         for j,position in enumerate(aircraft):
             address=0xd9f6+j*112

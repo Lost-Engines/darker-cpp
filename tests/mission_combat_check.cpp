@@ -21,6 +21,7 @@
 #include "maths/sine_table.h"
 #include "presentation/player.h"
 #include "reference/aircraft_bomb_samples.h"
+#include "reference/aircraft_contact_samples.h"
 #include "reference/aircraft_spawning_samples.h"
 #include "reference/target_acquisition_samples.h"
 #include "reference/tunnel_actor_samples.h"
@@ -40,6 +41,40 @@
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
   darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  for(auto const &s : darker::test_reference::aircraft_contact_samples) {
+    darker::game::mission_combat combat{{}};
+    combat.random_state = static_cast<uint16_t>(s[0]);
+    for(size_t i{0}; i < 3; ++i) {
+      auto const at{5+i*9};
+      darker::game::scenario_actor actor;
+      actor.index = static_cast<uint8_t>(i+1);
+      actor.definition_slot = static_cast<uint8_t>(s[at]);
+      actor.parameters.definition = &darker::game::original_object_definitions[actor.definition_slot];
+      actor.parameters.model_token = bank.special_models()[actor.definition_slot];
+      actor.parameters.update_entry = 0x8823;
+      actor.flags = static_cast<uint8_t>(s[at+1]);
+      for(size_t axis{0}; axis < 3; ++axis) {
+        actor.pose.position[axis] = static_cast<uint16_t>(s[at+2+axis]);
+        actor.previous_position[axis] = static_cast<uint16_t>(i == 0 ? s[2+axis] : s[at+2+axis]);
+      }
+      actor.attitude = {static_cast<uint16_t>(s[at+5]),static_cast<uint16_t>(s[at+6])};
+      actor.awareness = {static_cast<uint16_t>(s[at+7]),static_cast<uint16_t>(s[at+8])};
+      combat.actors.push_back(actor);
+    }
+    combat.collide_aircraft({},bank,0x20,static_cast<uint16_t>(s[1]));
+    for(size_t i{0}; i < 3; ++i) {
+      auto const &actor{combat.actors[i]};
+      std::array<unsigned int,10> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+        actor.attitude.pitch_rate,actor.attitude.bank_rate,actor.awareness.level,actor.awareness.cooldown,
+        actor.parameters.update_entry,actor.expiry,actor.flags};
+      for(size_t field{0}; field < actual.size(); ++field) {
+        if(actual[field] != s[32+i*10+field]) throw std::runtime_error{"Aircraft contact differs from native: actor="+std::to_string(i)
+          +", field="+std::to_string(field)+", seed="+std::to_string(s[0])+", actual="+std::to_string(actual[field])+", expected="+std::to_string(s[32+i*10+field])};
+      }
+    }
+    if(combat.random_state != s[62]) throw std::runtime_error{"Aircraft contact random sequence differs from native"};
+  }
+  std::cout << "All 512 ordered aircraft contacts match native clipping, paired damage and random state." << std::endl;
   for(auto const &s : darker::test_reference::target_acquisition_samples) {
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     darker::game::city_map city{};

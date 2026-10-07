@@ -42,6 +42,7 @@ public:
 
   explicit mission_combat(std::vector<scenario_actor> initial);
   void spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step);
+  void collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t damage_mask, uint16_t clock);
   void activate_reserves(actor_category category, uint8_t count, object_pose const &player, uint16_t clock);
   void adjust_objectives(uint8_t operand) noexcept;
   void update_difficulty(uint32_t clock) noexcept;

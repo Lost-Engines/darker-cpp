@@ -91,3 +91,27 @@ and active-list order, so it checks composition as well as individual routines.
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_flight_reference.py ..
 ```
+
+## Aircraft contacts
+
+The moving-aircraft collision pass is connected. Native 6DF1 skips owners with
+flag 10h, clips their segment against the city, and tests the airborne list
+without excluding dying targets. On an aircraft contact, 6E6D applies strength
+40h to the moving owner and 60h to its selected victim, using normal damage,
+angular kick, effects and retirement. Native list order selects the last
+intersecting victim. The aircraft intersection test does **not** invoke 662B’s
+hull clipping: the impact position retains the city-clipped segment endpoint,
+with altitude truncated to a multiple of eight. The standalone extent-sweep
+fixture additionally invokes 662B and therefore does not establish this caller
+behaviour on its own.
+
+The complete native pass supplies 512 comparisons covering positions, flags,
+paired damage, angular kicks, deadlines and the resulting random state. Effect
+spawning is intercepted in the native fixture. Another 256 target-acquisition
+cases place aircraft behind each other to check the same list-order rule.
+The reconstruction’s acquisition ray now remains unchanged between aircraft
+tests. Existing controlled campaign checks pass with contacts connected.
+
+This alone does not complete the Administration tunnel: its controlled Pinner
+run removes 22 of 36 objectives before stalling. Player-to-object contacts remain
+outstanding; no stronger weapon or reduced resistance has been substituted.

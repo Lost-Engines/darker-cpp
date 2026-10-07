@@ -78,6 +78,53 @@ void mission_combat::spawn_aircraft(player_flight const &player, city_map const 
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
 }
 
+void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, uint16_t const clock) {
+  /// 6DF1 clips each airborne owner against the city and its own list; 6E6D applies strengths 40h and 60h to the pair
+  std::array<uint8_t,256> owners{};
+  size_t count{0};
+  for(auto const &actor : actors) if(actor.category == actor_category::air) owners[count++] = actor.index;
+  auto const find{[&](uint8_t const index){ return std::ranges::find(actors,index,&scenario_actor::index); }};
+  auto const remove{[&](uint8_t const index){
+    auto const actor{find(index)};
+    if(actor == actors.end()) return;
+    retained_flags[index] = static_cast<uint8_t>(actor->flags | 0x20);
+    release_target(static_cast<uint16_t>(0xd986+index*112));
+    completed_objectives += actor->attributes & 1;
+    adjust_objectives(static_cast<uint8_t>(-(actor->attributes & 1)));
+    actors.erase(actor);
+  }};
+  for(auto const index : std::span{owners}.first(count)) {
+    auto const owner{find(index)};
+    if(owner == actors.end() || (owner->flags & 0x10)) continue;
+    auto end{owner->pose.position};
+    auto const contact{sweep_city(bank,cells,damage_mask,owner->previous_position,end,12,10)};
+    scenario_actor *victim{nullptr};
+    for(auto &actor : actors) {
+      if(actor.category != actor_category::air || actor.index == index) continue;
+      auto candidate{end};
+      if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,12,owner->previous_position,candidate)) victim = &actor;
+    }
+    if(victim) {
+      end[2] &= 0xfff8;
+      owner->pose.position = end;
+      auto const victim_index{victim->index};
+      auto const first{hit_actor(*owner,0x40,clock,random_state)};
+      effects.spawn(first.effect,end,clock);
+      auto const second{hit_actor(*victim,0x60,clock,random_state)};
+      effects.spawn(second.effect,second.at_actor ? victim->pose.position : end,clock);
+      if(first.remove) remove(index);
+      if(second.remove) remove(victim_index);
+    } else if(contact.contact != city_contact::none) {
+      owner->pose.position = end;
+      if(owner->flags & 8) continue;
+      effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199,end,clock);
+      owner->flags |= 0x28;
+      owner->parameters.update_entry = 0x6ed3;
+      owner->expiry = static_cast<uint16_t>(clock+256);
+    }
+  }
+}
+
 void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock) {
   /// CBE7 applies separate aircraft, ground and stationary blast passes before retiring both paired projectiles
   for(auto const category : {actor_category::air,actor_category::ground,actor_category::stationary}) {
@@ -297,16 +344,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
   }
   if(player.lifecycle.flags & 0x10) target.clear();
-  for(auto &actor : actors) {
-    if(actor.category != actor_category::air || (actor.flags & 0x18)) continue;
-    auto const contact{sweep_city(bank, cells, damage_mask, actor.previous_position, actor.pose.position, 12, 10)};
-    if(contact.contact != city_contact::none) {
-      effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);
-      actor.flags |= 0x28;
-      actor.parameters.update_entry = 0x6ed3;
-      actor.expiry = static_cast<uint16_t>(clock + 256);
-    }
-  }
+  collide_aircraft(cells,bank,damage_mask,clock);
   for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};

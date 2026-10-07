@@ -359,8 +359,8 @@ Mission 66 transfers from Hemmersan (7162h) to Administration (4D62h). Its
 briefing, world actors and docking are checked; the return transfer in mission
 68 is also exercised independently. Mission 67 remains outside the playable
 limit: the controlled Pinner clear stalls against moving Assassins whose
-resistance exceeds its underground strength. Aircraft contact paths remain to
-be connected. Retaining a stronger secondary weapon across entry is not an
+resistance exceeds its underground strength. Aircraft-to-aircraft contacts are connected, but the controlled clear still
+stalls; player-to-object contacts remain to be connected. Retaining a stronger secondary weapon across entry is not an
 explanation: native startup 3D1C–3D27 clears HUD/weapon fields 4541–4553.
 Opcode 27’s write to the actor’s tunnel oscillation byte is connected to the
 already verified navigation consumer.

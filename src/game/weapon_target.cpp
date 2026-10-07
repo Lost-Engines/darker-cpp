@@ -26,13 +26,14 @@ std::array<uint16_t, 3> target_ray_end(object_pose const &player) noexcept {
 
 uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_actor const> const actors,
   city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
-  /// 6D08 clips against the city before checking the airborne list in native order
+  /// 6D08 clips against the city, then selects the last intersecting aircraft without shortening the ray at its hull
   auto end{target_ray_end(player)};
   auto const hit{sweep_city(bank,cells,damage_mask,player.position,end,0,10)};
   uint16_t selected{hit.contact == city_contact::building ? static_cast<uint16_t>(hit.row*256+hit.column) : uint16_t{0xffff}};
   for(auto const &actor : actors) {
     if(actor.category != actor_category::air) continue;
-    if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,0,player.position,end))
+    auto candidate{end};
+    if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,0,player.position,candidate))
       selected = static_cast<uint16_t>(0xd986 + actor.index*112);
   }
   return selected;
