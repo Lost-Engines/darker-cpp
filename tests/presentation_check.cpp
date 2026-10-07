@@ -137,5 +137,22 @@ void check_presentations(darker::resources::archive_set const &archives) {
   commands.advance(60000);
   commands.key(front_key::back);
   if(!commands.level_skip_enabled()) throw std::runtime_error{"Death cleared the process-wide Level X patch"};
+  // Interstitial records must never construct a world using their FF configuration.
+  for(uint8_t const stage : std::array<uint8_t,8>{98,100,102,104,106,108,110,112}) {
+    darker::resources::save_file interstitial_saves;
+    interstitial_saves.pilots[0].stage = stage;
+    interstitial_saves.pilots[0].weapons = 0x3ff;
+    darker::presentation::front_end transition{archives,font,campaign,interstitial_saves,true};
+    transition.key(front_key::one);
+    transition.key(front_key::accept);
+    for(unsigned int frame_index{0}; transition.active() && frame_index < 10000; ++frame_index) {
+      transition.advance(32);
+      transition.key(front_key::accept);
+    }
+    if(transition.active() || interstitial_saves.pilots[0].stage != stage+1 || !transition.save_requested)
+      throw std::runtime_error{"Halon interstitial did not advance to its playable stage"};
+    if(interstitial_saves.pilots[0].weapons != 0x3ff)
+      throw std::runtime_error{"Presentation-only progression changed saved weapon state"};
+  }
   std::cout << "Startup, committal and first three mission animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
 }

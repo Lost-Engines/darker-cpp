@@ -86,10 +86,24 @@ void front_end::choose_game() {
 
 void front_end::begin_briefing() {
   /// Select the current supported campaign record for briefing
-  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 97) { unsupported_stage = true; return; }
+  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 113) { unsupported_stage = true; return; }
   retained_music = music_group();
   scene = std::make_unique<player>(archives,font,campaign.scenario(save.pilots[selected].stage),resources::select_campaign_stage(save.pilots[selected].stage).record);
   current = screen::briefing;
+}
+
+void front_end::finish_briefing() {
+  /// Presentation-only records advance the saved stage without constructing a flight world
+  auto &pilot{save.pilots[selected]};
+  auto const record{resources::select_campaign_stage(pilot.stage).record};
+  if(campaign.scenario(pilot.stage).records()[record].configuration != 0xff) {
+    current = screen::flight;
+    return;
+  }
+  ++pilot.stage;
+  save_requested = true;
+  current = screen::run;
+  begin_briefing();
 }
 
 void front_end::key(front_key const input) {
@@ -102,7 +116,7 @@ void front_end::key(front_key const input) {
   }
   if(current == screen::briefing) {
     if(input == front_key::back && (scene->input_policy & 4)) { current = screen::run; return; }
-    if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::flight;
+    if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) finish_briefing();
     return;
   }
   if(current == screen::hidden_command) {
@@ -194,7 +208,7 @@ void front_end::advance(uint32_t const elapsed_ticks) {
   if(current != screen::introduction && current != screen::briefing && current != screen::outcome) return;
   scene->advance(elapsed_ticks);
   if(current == screen::introduction && scene->finished()) current = screen::title;
-  if(current == screen::briefing && scene->finished() && scene->input_policy == 0) current = screen::flight;
+  if(current == screen::briefing && scene->finished() && scene->input_policy == 0) finish_briefing();
 }
 
 resources::pilot_record &front_end::selected_pilot() noexcept {

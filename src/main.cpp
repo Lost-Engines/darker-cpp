@@ -142,8 +142,8 @@ auto main(int const argc, char const *const argv[])->int {
   }
   auto const name{arguments["craft"].as<std::string>()};
   if(name != "caero" && name != "skimma" && name != "upgraded") return startup_failure("unknown --craft");
-  auto const type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
-  bool const caero{type == darker::graphics::craft::caero};
+  auto type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
+  bool caero{type == darker::graphics::craft::caero};
   auto const seconds{arguments["seconds"].as<double>()};
   if(!std::isfinite(seconds) || seconds < 0) return startup_failure("--seconds must be finite and non-negative");
   std::optional<darker::resources::archive_set> loaded_archives;
@@ -154,8 +154,9 @@ auto main(int const argc, char const *const argv[])->int {
   }
   auto const &archives{*loaded_archives};
   unsigned int const slot{caero ? 16u : type == darker::graphics::craft::skimma ? 17u : 18u};
-  auto const bitmap{darker::graphics::decode_bitmap(archives.load({.archive{0}, .slot{slot}}))};
-  auto const cache{darker::graphics::make_cockpit_cache(bitmap.image)};
+  auto bitmap{darker::graphics::decode_bitmap(archives.load({.archive{0}, .slot{slot}}))};
+  auto cache{darker::graphics::make_cockpit_cache(bitmap.image)};
+  uint8_t world_mode{static_cast<uint8_t>(caero ? 0 : 1)};
   auto game_palette{bitmap.palette};
   auto cockpit{cache};
   darker::resources::geometry_bank bank{archives.load({.archive{0}, .slot{caero ? 30u : 31u}})};
@@ -203,7 +204,7 @@ auto main(int const argc, char const *const argv[])->int {
   darker::game::mission_exchange exchange;
   darker::game::mission_context context{.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
   std::optional<darker::game::mission_message> message;
-  host.briefing = caero;
+  host.briefing = front != nullptr;
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
   auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
@@ -221,7 +222,11 @@ auto main(int const argc, char const *const argv[])->int {
     auto mask{std::rotl(uint16_t{0x8000},selection)};
     if(selection >= 4) mask = static_cast<uint16_t>((mask & 0xff00) | static_cast<uint8_t>(mask + 1));
     host.available_weapons = mask;
-    if(selection > 0 && selection < 4) combat->primary_weapon = selection;
+    if(!caero) {
+      darker::game::select_skimma_weapon(std::span{combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
+        combat->skimma_selection,combat->skimma_ring,selection,host.available_weapons,static_cast<uint16_t>(context.clock));
+      combat->target = {};
+    } else if(selection > 0 && selection < 4) combat->primary_weapon = selection;
     else if(selection >= 4) combat->secondary_weapon = selection;
   }};
   context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
@@ -238,7 +243,7 @@ auto main(int const argc, char const *const argv[])->int {
   context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
   context.change_beacons = change_beacons;
   context.activate_reserves = activate_reserves;
-  if(caero) host.combat = combat.get();
+  host.combat = combat.get();
   std::vector<darker::graphics::scene_object> objects;
   std::vector<darker::graphics::radar_contact> contacts;
   auto initial_player{host.player};
@@ -268,7 +273,7 @@ auto main(int const argc, char const *const argv[])->int {
     combat->targeting_basis = darker::maths::make_view_basis(view.angles);
     view.underground = host.player.tunnel.has_value();
     view.radius = view.underground ? 8 : 15;
-    view.beacon_lighting = caero && !view.underground;
+    view.beacon_lighting = world_mode == 0;
     view.gouraud = host.gouraud;
     darker::graphics::model_animation animation;
     animation.parameters[0] = std::bit_cast<std::int16_t>(host.hangar.extension);
@@ -294,7 +299,7 @@ auto main(int const argc, char const *const argv[])->int {
     }
     if(external) objects.push_back({.model_offset{bank.special_models()[host.player.tunnel ? 28 : caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
-    auto const count{scene.draw(world, bank, cells, view, caero && !host.player.tunnel ? 0x20 : 0x60, lighting, animation, objects, &particles)};
+    auto const count{scene.draw(world, bank, cells, view, world_mode == 0 ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
     auto const components{darker::graphics::cockpit_components(type)};
     std::array<std::uint8_t, 9> instruments{};
@@ -312,6 +317,7 @@ auto main(int const argc, char const *const argv[])->int {
       instruments[0] = measured.low_altitude;
       instruments[1] = measured.shield;
       instruments[2] = darker::graphics::skimma_speed_instrument(pose.speed, host.player.upgraded);
+      instruments[3] = combat->skimma_reserves;
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
     darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{cockpit_visible && caero ? 8 : 0}}, 320, height);
@@ -338,8 +344,15 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
-      darker::graphics::update_skimma_bitmaps(cache, display, type, {}, {});
-      darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim, {.x{164}, .y{90}}, 14, 14);
+      darker::graphics::skimma_bitmap_state indicators;
+      for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;
+      darker::graphics::update_skimma_bitmaps(cache, display, type, {}, indicators);
+      auto const &weapon{combat->skimma_weapons[combat->skimma_selection]};
+      if(auto const ring{darker::game::update_weapon_ring(weapon.ammunition,combat->skimma_ring,clock,weapon.flags,frame_step)}) {
+        darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma_selection,ring->radius,ring->remaining);
+      }
+      darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
+        {.x{164}, .y{static_cast<int16_t>(90 + combat->skimma_aim_offset)}}, 14, 14);
     }
     if(message) {
       darker::graphics::draw_text(display, font, darker::resources::font_face::compact,
@@ -450,7 +463,13 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_1:
       case GLFW_KEY_2:
       case GLFW_KEY_3:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << (key - GLFW_KEY_1)))) host.combat->primary_weapon = static_cast<uint8_t>(key - GLFW_KEY_1 + 1);
+        if(host.combat && action == GLFW_PRESS) {
+          auto const selection{static_cast<uint8_t>(key - GLFW_KEY_1 + 1)};
+          if(std::holds_alternative<darker::game::skimma_flight_state>(host.player.craft)) {
+            if(darker::game::select_skimma_weapon(std::span{host.combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
+              host.combat->skimma_selection,host.combat->skimma_ring,selection,host.available_weapons,host.clock)) host.combat->target = {};
+          } else if(host.available_weapons & (1u << (selection - 1))) host.combat->primary_weapon = selection;
+        }
         break;
       case GLFW_KEY_9:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 8))) host.combat->secondary_weapon = 9;
@@ -526,7 +545,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a Caero crash shows the committal sequence; Skimma restarts." << std::endl;
+  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); Enter after a campaign crash shows the committal sequence." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
@@ -553,7 +572,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(completed_mission && front) {
         auto updated{front->selected_pilot()};
         if(!host.player.tunnel) {
-          darker::game::pack_city_state(cells,bank.city_types(),updated.delphi);
+          darker::game::pack_city_state(cells,bank.city_types(),world_mode == 1 ? std::span<std::byte>{updated.halon} : std::span<std::byte>{updated.delphi});
           updated.return_site = host.hangar.return_site;
           updated.weapons = host.available_weapons;
         }
@@ -573,11 +592,11 @@ auto main(int const argc, char const *const argv[])->int {
       if(audio_device) audio.publish({});
       cells = initial_cells;
       combat = std::make_unique<darker::game::mission_combat>(initial_actors);
-      if(caero) host.combat = combat.get();
+      host.combat = combat.get();
       host.primary_held = false;
       host.secondary_held = false;
       host.engine_indicator = 0;
-      host.briefing = caero;
+      host.briefing = front != nullptr;
       if(front) {
         if(completed_mission) front->continue_campaign();
         else if(died) front->show_death(completed);
@@ -593,7 +612,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.clock = 0;
       host.exit_requested = session_exit::none;
       game_clock = {};
-      std::cout << (caero ? (completed_mission ? "Mission saved; continuing the campaign." : died ? "Showing the Kismet committal sequence." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
+      std::cout << (front ? (completed_mission ? "Mission saved; continuing the campaign." : died ? "Showing the Kismet committal sequence." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
@@ -618,9 +637,16 @@ auto main(int const argc, char const *const argv[])->int {
           auto const record{darker::resources::select_campaign_stage(pilot.stage).record};
           mission = scenario->records()[record];
           text = scenario->language(record,darker::resources::scenario_language::english);
-          bool const underground{(mission.configuration & 15) == 4};
-          bank = darker::resources::geometry_bank{archives.load({0,underground ? 32u : 30u})};
-          cells = darker::game::make_city_map(archives.load({0,underground ? 70u + (mission.configuration >> 4) : 68u}),!underground);
+          auto const configuration{static_cast<uint8_t>(mission.configuration & 15)};
+          bool const underground{configuration == 4};
+          world_mode = underground ? 2 : configuration == 2 || configuration == 3 ? 1 : 0;
+          caero = configuration == 1 || underground;
+          type = caero ? darker::graphics::craft::caero : configuration == 2 ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma;
+          bitmap = darker::graphics::decode_bitmap(archives.load({0,caero ? 16u : configuration == 2 ? 17u : 18u}));
+          cache = darker::graphics::make_cockpit_cache(bitmap.image);
+          cockpit = cache;
+          bank = darker::resources::geometry_bank{archives.load({0,30u + world_mode})};
+          cells = darker::game::make_city_map(archives.load({0,underground ? 70u + (mission.configuration >> 4) : 68u + world_mode}),world_mode == 0);
           game_palette = underground ? darker::graphics::decode_palette(archives.load({0,19}),bitmap.palette).palette : bitmap.palette;
           scene = {};
           if(underground) {
@@ -630,7 +656,7 @@ auto main(int const argc, char const *const argv[])->int {
             darker::game::assign_city_variants(cells,variant_limits);
           } else {
             tunnel_network.reset();
-            darker::game::restore_city_state(cells,bank.city_types(),pilot.delphi,pilot.stage);
+            darker::game::restore_city_state(cells,bank.city_types(),world_mode == 1 ? std::span<std::byte const>{pilot.halon} : std::span<std::byte const>{pilot.delphi},pilot.stage);
           }
           darker::game::apply_scenario_cells(cells,mission);
           objectives = {.list{mission.objective_cell_list}};
@@ -641,9 +667,18 @@ auto main(int const argc, char const *const argv[])->int {
             if(!entry) throw std::logic_error{"Underground briefing did not supply an entry site"};
             host.hangar.return_site = entry->site;
             darker::game::initialise_tunnel_entry(host.player,entry->site,entry->heading,bank.header_at(bank.special_models()[28]).height);
-          } else darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
+          } else if(caero) darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
+          else {
+            auto const entry{front->entry()};
+            auto const site{entry ? entry->site : pilot.return_site};
+            host.hangar.return_site = site;
+            host.hangar.next_return_site = site;
+            darker::game::initialise_skimma_pad(host.player,site,entry ? entry->heading : uint8_t{0},
+              bank.header_at(bank.special_models()[configuration + 24]).height,configuration != 2);
+          }
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
           darker::game::weapon_ammunition second_weapon;
+          darker::game::refill_skimma_weapon(second_weapon,1);
           auto groups{darker::game::make_scenario_actors(mission,*scenario,bank,host.player,second_weapon,0,tunnels)};
           initial_actors = std::move(groups[0]);
           initial_player = host.player;
@@ -652,7 +687,12 @@ auto main(int const argc, char const *const argv[])->int {
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
           combat->spawning = spawning;
           combat->spawning.enabled = true;
-          if(!underground) darker::game::prepare_delphi_aircraft_sites(combat->spawning,cells);
+          if(world_mode == 0) darker::game::prepare_delphi_aircraft_sites(combat->spawning,cells);
+          else {
+            combat->spawning.halon = world_mode == 1;
+            combat->spawning.sites.clear();
+          }
+          for(uint8_t i{0}; i < combat->skimma_weapons.size(); ++i) darker::game::refill_skimma_weapon(combat->skimma_weapons[i].ammunition,i);
           combat->reserves = std::move(groups[1]);
           combat->free_actors = std::move(groups[2]);
           combat->skimma_weapons[1].ammunition = second_weapon;
@@ -676,6 +716,13 @@ auto main(int const argc, char const *const argv[])->int {
           context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
           context.replace_world_objectives = replace_world_objectives;
           context.select_weapon = select_weapon;
+          context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat->skimma_weapons[combat->skimma_selection].ammunition,combat->skimma_selection); };
+          context.reset_shield = [&]{
+            auto &charge{std::get<darker::game::skimma_flight_state>(host.player.craft).damage.shield_charge};
+            charge = static_cast<uint16_t>((charge & 255) | 0xbf00);
+          };
+          context.toggle_weapons = [&](uint16_t const mask){ host.available_weapons ^= mask; };
+          context.mark_aircraft_sites = [&](std::span<std::byte const> const program){ return darker::game::prepare_halon_aircraft_sites(combat->spawning,cells,program); };
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
           beacon_changes = {};
@@ -702,15 +749,16 @@ auto main(int const argc, char const *const argv[])->int {
     bool const secondary_held{glfwGetKey(window.get(),GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window.get(),GLFW_KEY_RIGHT_ALT) == GLFW_PRESS
       || glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
     if(step != 0) {
-      if(caero) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
+      if(front) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
         contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
-          step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr);
+          step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr,
+          {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
       } else {
         darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
         if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = context.objectives_complete ? session_exit::completed : session_exit::menu;
       }
-      if(caero) {
+      if(front) {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
@@ -718,7 +766,7 @@ auto main(int const argc, char const *const argv[])->int {
           step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
-        objectives.advance(cells,mission,host.player.tunnel ? 0x60 : 0x20);
+        objectives.advance(cells,mission,world_mode == 0 ? 0x20 : 0x60);
         context.objectives_complete = objectives.complete(mission) && combat->remaining_objectives() == 0;
         context.object_counter = static_cast<uint8_t>(combat->completed_objectives);
         context.counter = combat->world_damage_counter;
@@ -729,10 +777,16 @@ auto main(int const argc, char const *const argv[])->int {
         for(auto const &event : context.messages) message = event;
         if(message && std::bit_cast<int16_t>(static_cast<uint16_t>(game_clock.frame_ticks - message->expiry)) >= 0) message.reset();
         if(host.player.tunnel) darker::game::update_tunnel_portal(host.player,cells,host.hangar,step);
-        else {
+        else if(caero) {
           darker::game::begin_hangar_return(host.player, cells, host.hangar, context.objectives_complete);
           darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+        } else if(world_mode == 1 && darker::game::begin_supply_approach(host.player,cells,host.player.supply)) {
+          host.hangar.return_site = host.player.supply.site;
+          host.hangar.next_return_site = host.player.supply.site;
+          for(auto &weapon : combat->skimma_weapons) weapon.flags &= 0xfe;
+          exchange.enter_supply(script,context);
         }
+        if(context.progress) host.exit_requested = session_exit::completed;
       }
     }
     host.primary_held = primary_held;

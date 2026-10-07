@@ -34,6 +34,7 @@ private:
   unsigned int ignored_character{0};
   void choose_game();
   void begin_briefing();
+  void finish_briefing();
 
 public:
   bool quit_requested{false};

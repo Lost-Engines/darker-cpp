@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–97 (04/0 through the first record of 04/12), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground, Forbes Diffuser and the Caero Weapon, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission ninety-seven saves stage ninety-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The connected campaign now reaches stage 113, including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. The final Delphi return and ending remain the next boundary. Explicit `--craft` starts remain development free-flight checkpoints.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -478,3 +478,23 @@ requirements for every playthrough.
 Stage 98 is a presentation-only transition into Halon. It and the connected
 Skimma campaign remain the next boundary; free-flight Skimma starts still do
 not constitute that campaign.
+
+
+### Halon campaign connection, 98–113
+
+Presentation-only records advance the saved stage without loading an FF
+configuration as a flight world. The executable switches between the normal
+and upgraded Skimma, restores/saves Halon's separate packed city state and
+uses the original embedded entry setup. Both weapon classes, targeting
+rings, reserve indicators, enemy spawn lists and supply scripts are connected.
+See [supply pads](supply_pads.md) for movement and replenishment comparisons.
+
+Later films also use three independent timed counted-caption slots alongside
+formatted pages. Their left/centre/right positions and lifetime operands now
+reach the presentation renderer; their text shares the original language cursor.
+The film backing-strip compositing still needs a native framebuffer comparison.
+
+Verification includes all eight Halon presentation transitions and real window
+launch/weapon/Level-X/save progression. This is not a claim that every Halon
+objective has been completed interactively. Mission-bearing guidance and final
+stage 115 remain follow-up work.

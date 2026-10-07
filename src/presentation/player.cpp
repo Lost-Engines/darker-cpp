@@ -86,6 +86,29 @@ void player::execute() {
     auto const op{byte()};
     if(op >= 128) { selected = op & 127; if(selected >= pairs.size()) throw std::invalid_argument{"Invalid animation pair"}; continue; }
     switch(op) {
+    case 0x0c:
+    case 0x0d:
+    case 0x0e: {
+      auto const duration{byte()}, delay{byte()};
+      if(text_cursor >= text.size()) throw std::invalid_argument{"Presentation caption exceeds its language section"};
+      auto const width{std::to_integer<uint8_t>(text[text_cursor++])};
+      if(!width) break;
+      if(text_cursor >= text.size()) throw std::invalid_argument{"Presentation caption has no length"};
+      auto const length{std::to_integer<uint8_t>(text[text_cursor++])};
+      if(length > text.size()-text_cursor) throw std::invalid_argument{"Presentation caption is truncated"};
+      auto const x{op == 0x0d ? 12 : op == 0x0e ? 308-width : (321-width-(width < caption_width_extension ? 256 : 0))/2};
+      captions[op-0x0c] = {text.subspan(text_cursor,length),ticks+duration*interval,static_cast<int16_t>(x)};
+      text_cursor += length;
+      deadline += delay*interval;
+      break;
+    }
+    case 0x0f: caption_width_extension = byte(); break;
+    case 0x10:
+      caption_y = byte();
+      caption_colours = word();
+      caption_width_extension = 0;
+      captions = {};
+      break;
     case 0x1a: checkpoint = cursor; break;
     case 0x1f:
       if(byte() > object_counter) {
@@ -161,7 +184,7 @@ void player::execute() {
       if(repeat_delay) { cursor -= 2; deadline += duration * interval; }
       break;
     }
-    default: throw std::invalid_argument{std::format("Unsupported presentation opcode {:02x}",op)};
+    default: throw std::invalid_argument{std::format("Unsupported presentation opcode {:02x} at shared offset {:04x}",op,cursor-1)};
     }
   }
 }
@@ -215,6 +238,11 @@ void player::draw(framework::render::cockpit_framebuffer &output) const {
   }
   for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,face,glyph.code,glyph.position,
     {.ink{static_cast<uint8_t>(glyph.colour >> 8)},.edge{static_cast<uint8_t>(glyph.colour)}});
+  // D8E6 places the three independent counted-message slots at row E5 for film subtitles.
+  for(auto const &caption : captions) if(ticks < caption.expiry) {
+    graphics::draw_text(frame,font,face,caption.text,{.x{caption.x},.y{caption_y}},
+      {.ink{static_cast<uint8_t>(caption_colours >> 8)},.edge{static_cast<uint8_t>(caption_colours)}});
+  }
   // DA48 uses glyphs in the current presentation font, not separate button bitmaps.
   if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{.x{305},.y{226}},{.ink{255},.edge{254}});
   if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{.x{287},.y{226}},{.ink{255},.edge{254}});
