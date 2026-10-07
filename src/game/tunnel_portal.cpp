@@ -12,6 +12,9 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
   auto const fraction{offsets[heading >> 6]};
   player = {};
   player.tunnel.emplace();
+  player.tunnel->lookahead = 60;
+  player.tunnel->resistance = 0x0d00;
+  player.tunnel->off_route_time = 0x0200;
   player.tunnel->connection.cell = static_cast<uint16_t>((site & 0xff00) | ((site & 255) >> 1));
   player.lifecycle.flags = 0x10;
   player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data[4]*8);

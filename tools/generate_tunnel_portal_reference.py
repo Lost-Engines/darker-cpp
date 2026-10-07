@@ -41,9 +41,11 @@ def main():
         for heading in (0,64,128,192):
             h.cpu.mem_write(0x60000,bytes(cells));h.write(0x6fd0,bytes(6))
             h.write(0xc81e,word(site));h.write(0xbd56,bytes([heading]))
-            h.setreg('DS',0x1000);h.cpu.ctl_remove_cache(h.BASE,h.BASE+65536);h.call(0xbd06)
+            h.setreg('DS',0x1000)
+            h.cpu.emu_start(h.BASE+0x3c17,h.BASE+0x3c2f,count=1000)
+            h.cpu.ctl_remove_cache(h.BASE,h.BASE+65536);h.call(0xbd06)
             entries.append([map_slot,site,heading,height,*[get(at) for at in (8,10,12,0x2a,0x2c)],
-                            h.cpu.mem_read(h.STACK+0xd98d,1)[0],value(0x7f20),value(0x7fa6),value(0x8540),get(0x62)])
+                            h.cpu.mem_read(h.STACK+0xd98d,1)[0],value(0x7f20),value(0x7fa6),value(0x8540),get(0x62),value(0xd27c),value(0xd805),value(0xd72a)])
         for column_delta in (-1,0,1):
             for row_delta in (-1,0,1,2,3):
                 for route in (0,64,128,192):

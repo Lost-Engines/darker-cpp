@@ -65,6 +65,11 @@ uint16_t front_end::departure_destination() const noexcept {
   return scene ? scene->departure_destination : 0;
 }
 
+std::optional<landing_entry> front_end::entry() const noexcept {
+  /// C23B supplies the scenario's initial landing site and heading independently of the saved previous site
+  return scene ? scene->entry : std::nullopt;
+}
+
 int front_end::music_group() const noexcept {
   /// Presentation scripts select music groups; flight stops music and menus select group zero
   if(current == screen::flight) return -1;
@@ -81,7 +86,7 @@ void front_end::choose_game() {
 
 void front_end::begin_briefing() {
   /// Select the current supported campaign record for briefing
-  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 16) { unsupported_stage = true; return; }
+  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 17) { unsupported_stage = true; return; }
   retained_music = music_group();
   scene = std::make_unique<player>(archives,font,campaign.scenario(save.pilots[selected].stage),resources::select_campaign_stage(save.pilots[selected].stage).record);
   current = screen::briefing;

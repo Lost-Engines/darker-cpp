@@ -1,12 +1,12 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–16 (04/0 and 04/1), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct and Mimic, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixteen saves stage seventeen and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–17 (04/0, 04/1 and the first record of 04/2), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct and Mimic, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission seventeen saves stage eighteen and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
 ## Next integration priorities
 
-1. **Scenario transitions and world state:** connect the underground-entry presentation and first underground mission, connect supplementary-script activation and remaining actor/player script operations with their native ordering.
+1. **Scenario transitions and world state:** connect the surface return after the first underground mission, supplementary-script activation and remaining actor/player script operations with their native ordering.
 2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
 3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
 4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
@@ -44,7 +44,7 @@ Both player and airborne scripts now receive the completed-object counter used b
 
 ## Wrecker routes and effects
 
-Raised movement, door damage, cutting sparks/bursts and timed route removal now match native route fixtures. An original-pack integration check follows all six door-state changes in the first underground section. The tunnel renderer and campaign transition still need connecting; see [vehicle routes](vehicle_routes.md).
+Raised movement, door damage, cutting sparks/bursts and timed route removal now match native route fixtures. An original-pack integration check follows all six door-state changes in the first underground section. The first tunnel renderer and campaign transition are connected; see [vehicle routes](vehicle_routes.md).
 
 ## Transfer to the tunnel-entry hangar
 
@@ -69,4 +69,32 @@ case. Explicit nonzero scripted destinations now take precedence correctly.
 
 ## Underground foundations
 
-The native [visibility scan](underground_visibility.md) and [route geometry/placement](tunnel_navigation.md) are implemented. Visibility compares against 384 native frames, and all 158 shipped underground moving-object starts now match the actual BEE7 helper. Underground actor steering and movement additionally match 2,528 native route choices and 1,536 actor updates. Player route recovery matches 5,214 native cases, and tunnel player flight matches 2,048 updates. Connecting these callbacks to world setup and the campaign transition remains outstanding.
+The native [visibility scan](underground_visibility.md) and [route geometry/placement](tunnel_navigation.md) are implemented. Visibility compares against 384 native frames, and all 158 shipped underground moving-object starts now match the actual BEE7 helper. Underground actor steering and movement additionally match 2,528 native route choices and 1,536 actor updates. Player route recovery matches 5,214 native cases, and tunnel player flight matches 2,048 updates. These callbacks are connected to world setup and the first underground campaign transition.
+
+## First underground mission
+
+Mission seventeen now loads bank 32, map 70 and the underground palette, enters
+at the briefing's opcode-28 site, and uses definition 28 with native tunnel
+flight, route assistance, visibility propagation and the two-step damage mask.
+Aircraft retain underground route placement when activated as reinforcements.
+The player script selects Pinner Direct and waits for the Wrecker's door changes
+before admitting the next waves. Returning through the entrance uses the native
+portal speed/lookahead changes and automatic docking. Successful tunnel exits
+advance the stage without replacing saved Delphi damage, weapons or return site.
+
+The integration check runs the Wrecker, all thirteen reinforcements and sixteen
+counted removals with controlled Pinner aiming and replenished weapon energy,
+then captures and completes portal return. This is not an uncontrolled mission
+playthrough. A real-window check covers briefing, flight entry, Level X exit,
+save checksum and preservation of surface state.
+
+Native entry fixtures include the startup resistance, lookahead and off-route
+timer, rather than relying on their executable-image defaults. A thousand
+consecutive hands-off updates at timestep eight match native movement,
+collision, energy and portal state. At timestep ten the original itself hits
+the entrance geometry at tick 2080; the reconstruction matches all 208 updates,
+including the crash. Replaying a variable-timestep window trace in the native
+executable also reproduced its entrance collision. Hands-off survival here is
+therefore sensitive to frame timing; it is not used as a universal acceptance
+criterion. Briefing resource loading is excluded from elapsed flight time, and
+cursor capture is processed before establishing the flight mouse origin.

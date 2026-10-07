@@ -18,6 +18,7 @@ public:
   effect_system effects;
   uint16_t random_state{0};
   uint8_t primary_weapon{0};
+  uint8_t secondary_weapon{0};
   uint8_t difficulty{2};
   bool missile_camera_enabled{false};
   projectile *camera_projectile{nullptr};

@@ -19,6 +19,7 @@
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_flight_samples.h"
+#include "reference/tunnel_launch_samples.h"
 #include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
 #include "reference/tunnel_portal_samples.h"
@@ -335,9 +336,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       darker::game::player_flight player;
       darker::game::initialise_tunnel_entry(player,static_cast<uint16_t>(sample[1]),static_cast<uint8_t>(sample[2]),static_cast<int16_t>(sample[3]));
       auto const &craft{std::get<darker::game::caero_flight_state>(player.craft)};
-      std::array<int,10> const actual{player.pose().position[0],player.pose().position[1],player.pose().position[2],
+      std::array<int,13> const actual{player.pose().position[0],player.pose().position[1],player.pose().position[2],
         player.pose().angles[0],player.pose().angles[1],player.lifecycle.flags,player.forward_setting,
-        craft.energy.reserve,craft.energy.boost,player.tunnel->connection.cell};
+        craft.energy.reserve,craft.energy.boost,player.tunnel->connection.cell,
+        player.tunnel->lookahead,player.tunnel->resistance,player.tunnel->off_route_time};
       if(!std::equal(actual.begin(),actual.end(),sample.begin()+4)) throw std::runtime_error{"Underground entry differs from native placement"};
     }
     for(auto const &sample : darker::test_reference::tunnel_portal_samples) {
@@ -378,6 +380,34 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         for(size_t field{0}; field < actual.size(); ++field) if(actual[field] != expected[field+1]) {
           throw std::runtime_error{"Tunnel return differs from native: clock=" + std::to_string(expected[0])
             + ", field=" + std::to_string(field) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(expected[field+1])};
+        }
+      }
+    }
+    for(uint16_t const step : {8,10}) {
+      std::span<std::array<uint16_t,30> const> const samples{step == 8
+        ? std::span<std::array<uint16_t,30> const>{darker::test_reference::tunnel_launch_8_samples}
+        : std::span<std::array<uint16_t,30> const>{darker::test_reference::tunnel_launch_10_samples}};
+      darker::game::player_flight player;
+      darker::game::initialise_tunnel_entry(player,0x3064,128,underground_bank.header_at(underground_bank.special_models()[28]).height);
+      auto city{*maps[0]};
+      darker::game::hangar_state portal{.return_site{0x3064},.next_return_site{0x3064}};
+      uint16_t clock{0};
+      for(auto const &expected : samples) {
+        clock += step;
+        player.advance({},false,step,clock,underground_bank,city,&network);
+        darker::game::update_tunnel_portal(player,city,portal,step);
+        auto const &craft{std::get<darker::game::caero_flight_state>(player.craft)};
+        auto const &flight{*player.tunnel};
+        std::array<uint16_t,30> const actual{player.pose().position[0],player.pose().position[1],player.pose().position[2],
+          player.pose().fractions[0],player.pose().fractions[1],player.pose().fractions[2],
+          player.pose().angles[0],player.pose().angles[1],player.pose().angles[2],player.pose().speed,
+          craft.horizontal_velocity,craft.vertical_velocity,flight.heading_rate,craft.damage.rotation.pitch,craft.damage.rotation.turn,
+          flight.connection.cell,flight.progress,flight.connection.route,flight.filtered_pitch,flight.filtered_bank,
+          flight.off_route_time,flight.resistance,flight.lookahead,player.forward_setting,player.lifecycle.flags,
+          static_cast<uint16_t>(player.lifecycle.crashing),craft.energy.reserve,craft.energy.boost,craft.energy.incoming_display,craft.energy.reserve_display};
+        for(size_t field{0}; field < actual.size(); ++field) if(actual[field] != expected[field]) {
+          throw std::runtime_error{"Tunnel launch differs from native: clock=" + std::to_string(clock)
+            + ", field=" + std::to_string(field) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(expected[field])};
         }
       }
     }
@@ -478,6 +508,80 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           }
         }
       }
+    }
+    {
+      auto city{darker::game::make_city_map(archives.load({0,70}),false)};
+      darker::game::mission_combat combat{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,
+        underground_record.shared.offset,darker::game::tunnel_setup{network,city})};
+      combat.reserves = darker::game::make_scenario_group(underground_record.groups[1],underground_bank,5,2,
+        underground_record.shared.offset,darker::game::tunnel_setup{network,city});
+      darker::resources::font_resource const fonts{archives.load({0,29})};
+      darker::presentation::player briefing{archives,fonts,campaign.scenario(17),0};
+      do { briefing.advance(4000); } while(briefing.continue_page());
+      if(!briefing.entry || briefing.entry->site != 0x3064 || briefing.entry->heading != 128) throw std::runtime_error{"Tunnel briefing lost its entry placement"};
+      darker::game::player_flight player;
+      darker::game::initialise_tunnel_entry(player,briefing.entry->site,briefing.entry->heading,underground_bank.header_at(underground_bank.special_models()[28]).height);
+      player.lifecycle.flags = 0;
+      auto &craft{std::get<darker::game::caero_flight_state>(player.craft)};
+      auto const &scenario{campaign.scenario(17)};
+      darker::game::mission_context context{.program{scenario.bytes(underground_record.shared)},
+        .text{scenario.language(0,darker::resources::scenario_language::english)},.cells{city},
+        .time_multiplier{underground_record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+      context.select_weapon = [&](uint8_t const selection){ combat.primary_weapon = selection; };
+      unsigned int admitted{0};
+      context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
+        auto const before{combat.reserves};
+        darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
+        for(auto const &actor : combat.actors) {
+          auto const original{std::ranges::find_if(before,[&](auto const &item){ return item.index == actor.index; })};
+          if(original != before.end() && (actor.pose.position != original->pose.position || actor.tunnel->route != original->tunnel->route)) {
+            throw std::runtime_error{"Underground reserves were moved away from their routes"};
+          }
+        }
+        admitted += count;
+        return combat.remaining_objectives() == 0;
+      };
+      darker::game::mission_script script{.continuation{*underground_record.player_program - underground_record.shared.offset}};
+      unsigned int shots{0};
+      uint32_t clock{0};
+      for(clock = 8; clock < 300000; clock += 8) {
+        auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
+        bool const fire{target != combat.actors.end() && clock % 128 == 0};
+        if(target != combat.actors.end()) {
+          player.pose().position = target->pose.position;
+          player.pose().position[1] += 100;
+          player.pose().position[2] += 92;
+          player.pose().angles = {};
+          player.pose().speed = 496;
+        }
+        craft.energy.reserve = 0xcfff;
+        combat.advance(player,city,underground_bank,clock,8,static_cast<uint16_t>(clock ^ (clock-8)),fire,
+          scenario.bytes(underground_record.shared),underground_record.time_multiplier,&network);
+        shots += combat.player_fired;
+        context.clock = clock;
+        context.objectives_complete = combat.remaining_objectives() == 0;
+        context.object_counter = static_cast<uint8_t>(combat.completed_objectives);
+        darker::game::advance_mission_script(script,context);
+        if(script.stopped && combat.remaining_objectives() == 0) break;
+      }
+      if(clock >= 300000 || admitted != 13 || combat.completed_objectives != 16 || player.lifecycle.crashing) {
+        throw std::runtime_error{"First tunnel combat did not complete: time=" + std::to_string(clock) + ", admitted=" + std::to_string(admitted)
+          + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives())
+          + ", shots=" + std::to_string(shots)};
+      }
+      player.pose() = {.position{12928,12530,800}};
+      player.tunnel->connection.route = 128;
+      player.forward_setting = 130;
+      craft.damage.rotation = {};
+      darker::game::hangar_state portal{.return_site{0x3064}};
+      darker::game::update_tunnel_portal(player,city,portal,8);
+      for(unsigned int frame{0}; frame < 2000 && portal.returning != darker::game::hangar_return_phase::complete; ++frame) {
+        clock += 8;
+        darker::game::advance_hangar_return(player,portal,8,static_cast<uint16_t>(clock));
+      }
+      if(portal.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"Completed first tunnel refused portal return"};
+      std::cout << "Mission seventeen: Wrecker door changes, all 13 reinforcements, 16 objective removals and portal return verified ("
+        << shots << " controlled shots)." << std::endl;
     }
     auto actors{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,
       underground_record.shared.offset,darker::game::tunnel_setup{network,*maps[0]})};

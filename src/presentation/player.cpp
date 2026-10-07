@@ -95,7 +95,19 @@ void player::execute() {
       break;
     case 0x22: deadline += byte() * interval; break;
     case 0x23: stopped = true; break;
+    case 0x28: {
+      auto const heading{byte()};
+      auto const site{word()};
+      entry = landing_entry{site,heading};
+      departure_destination = site;
+      break;
+    }
     case 0x29: departure_destination = word(); break;
+    case 0x2c:
+      // C2DD takes the initial-briefing branch past the language section's outcome displacement.
+      if(text_cursor + 2 > text.size()) throw std::invalid_argument{"Presentation message branch exceeds its language section"};
+      text_cursor += 2;
+      break;
     case 0x30: {
       auto const range{byte()};
       auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};

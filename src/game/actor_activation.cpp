@@ -48,7 +48,7 @@ void activate_scenario_reserves(std::vector<scenario_actor> &active, std::vector
     reserves.erase(next);
     if(actor.route) actor.route->origin = static_cast<uint16_t>(clock - 4096);
     else actor.script.deadline = clock;
-    if(category == actor_category::air) place_air_reserve(actor,player,active);
+    if(category == actor_category::air && !actor.tunnel) place_air_reserve(actor,player,active);
     auto const head{std::ranges::find_if(active,[&](auto const &other){ return other.category >= category; })};
     active.insert(head,std::move(actor));
   }

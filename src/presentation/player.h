@@ -10,6 +10,8 @@
 
 namespace darker::presentation {
 
+struct landing_entry { uint16_t site; uint8_t heading; };
+
 struct animation_pixel { uint16_t x; uint16_t y; uint8_t colour; };
 using animation_frame = std::vector<animation_pixel>;
 std::vector<animation_frame> decode_animation(std::span<std::byte const> data);
@@ -47,6 +49,7 @@ private:
 public:
   uint16_t weapon_toggles{0};
   uint16_t departure_destination{0};
+  std::optional<landing_entry> entry;
   std::optional<uint8_t> music;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,

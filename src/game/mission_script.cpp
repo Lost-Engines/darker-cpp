@@ -163,6 +163,13 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         cursor = static_cast<std::size_t>(target);
       }
       break;
+    case 0x2f:
+      {
+        auto const selection{byte()};
+        if(!context.select_weapon) throw std::runtime_error{"Mission weapon selection has no player consumer"};
+        context.select_weapon(selection);
+      }
+      break;
     default:
       throw std::runtime_error{std::format("Mission opcode {:02x} at {:04x} is not connected yet", opcode, offset)};
     }
