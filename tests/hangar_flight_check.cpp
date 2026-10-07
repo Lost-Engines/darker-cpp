@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include "game/hangar.h"
+#include "game/mission_combat.h"
 #include "reference/hangar_flight_samples.h"
 #include "reference/hangar_return_samples.h"
 #include "resources/archive_set.h"
@@ -56,16 +57,21 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
       }
     }
   }};
+  darker::game::mission_combat combat{{}};
+  auto const advance{[&](uint16_t const tick){
+    auto const previous{player.pose().position};
+    player.advance_motion({},false,8,bank,cells);
+    combat.advance(player,cells,bank,tick,8,0,false,{},50,nullptr,false,false,previous);
+    darker::game::advance_hangar_departure(player,cells,hangar,8);
+  }};
   compare(-3000, darker::test_reference::hangar_flight_initial);
   for(std::uint16_t tick{8}; tick <= 3000; tick += 8) {
-    player.advance({}, false, 8, tick, bank, cells);
-    darker::game::advance_hangar_departure(player, cells, hangar, 8);
+    advance(tick);
   }
   compare(0, darker::test_reference::hangar_flight_charged);
   player.command(darker::game::flight_command::boost);
   for(auto const &sample : darker::test_reference::hangar_flight_samples) {
-    player.advance({}, false, 8, static_cast<std::uint16_t>(3000 + sample.tick), bank, cells);
-    darker::game::advance_hangar_departure(player, cells, hangar, 8);
+    advance(static_cast<uint16_t>(3000+sample.tick));
     compare(sample.tick, sample.state);
   }
   if(!first_mismatch.empty()) throw std::runtime_error{first_mismatch};

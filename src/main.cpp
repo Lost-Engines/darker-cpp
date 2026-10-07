@@ -77,6 +77,7 @@ struct flight_host {
   uint16_t available_weapons{0};
   bool primary_held{false};
   bool secondary_held{false};
+  bool weapon_selection_blocked{false};
   bool briefing{false};
   darker::presentation::front_end *front{nullptr};
   bool shield_ready{false};
@@ -472,28 +473,23 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_1:
       case GLFW_KEY_2:
       case GLFW_KEY_3:
-        if(host.combat && action == GLFW_PRESS) {
-          auto const selection{static_cast<uint8_t>(key - GLFW_KEY_1 + 1)};
-          if(std::holds_alternative<darker::game::skimma_flight_state>(host.player.craft)) {
-            if(darker::game::select_skimma_weapon(std::span{host.combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
-              host.combat->skimma_selection,host.combat->skimma_ring,selection,host.available_weapons,host.clock)) host.combat->target = {};
-          } else if(host.available_weapons & (1u << (selection - 1))) host.combat->primary_weapon = selection;
-        }
-        break;
-      case GLFW_KEY_9:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 8))) host.combat->secondary_weapon = 9;
-        break;
-      case GLFW_KEY_0:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 9))) host.combat->secondary_weapon = 10;
-        break;
       case GLFW_KEY_5:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 4))) host.combat->secondary_weapon = 5;
-        break;
-      case GLFW_KEY_8:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 7))) host.combat->secondary_weapon = 8;
-        break;
       case GLFW_KEY_6:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 5))) host.combat->secondary_weapon = 6;
+      case GLFW_KEY_8:
+      case GLFW_KEY_9:
+      case GLFW_KEY_0:
+        if(host.combat && action == GLFW_PRESS && !host.weapon_selection_blocked) {
+          auto const selection{static_cast<uint8_t>(key == GLFW_KEY_0 ? 10 : key-GLFW_KEY_0)};
+          if(!(host.available_weapons & (1u << (selection-1)))) break;
+          bool const skimma{std::holds_alternative<darker::game::skimma_flight_state>(host.player.craft)};
+          if(skimma && selection < 4) {
+            if(!darker::game::select_skimma_weapon(std::span{host.combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
+              host.combat->skimma_selection,host.combat->skimma_ring,selection,host.available_weapons,host.clock)) break;
+            host.combat->target = {};
+          } else if(selection < 4) host.combat->primary_weapon = selection;
+          else host.combat->secondary_weapon = selection;
+          host.sounds.trigger(skimma ? flight_sound::skimma_switch : flight_sound::caero_switch,host.clock);
+        }
         break;
       case GLFW_KEY_CAPS_LOCK:
         if(host.combat && action == GLFW_PRESS) host.combat->target.clear();
@@ -566,6 +562,7 @@ auto main(int const argc, char const *const argv[])->int {
     std::chrono::duration<double>{800.0 * 527.0 / 25'175'000.0})};
   auto next_frame{std::chrono::steady_clock::now()};
   while(!glfwWindowShouldClose(window.get())) {
+    host.weapon_selection_blocked = exchange.supplementary_active;
     glfwPollEvents();
     auto const frame_time{std::chrono::steady_clock::now()};
     if(frame_time < next_frame) {
@@ -758,13 +755,19 @@ auto main(int const argc, char const *const argv[])->int {
     auto const *caero_state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     darker::game::city_collision_result contact;
+    std::optional<std::array<uint16_t,3>> player_start;
     bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
     bool const secondary_held{glfwGetKey(window.get(),GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window.get(),GLFW_KEY_RIGHT_ALT) == GLFW_PRESS
       || glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
     if(step != 0) {
       if(front) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
-        contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
+        if(front) {
+          player_start = host.player.pose().position;
+          host.player.advance_motion(host.input(*window),glfwGetKey(window.get(),GLFW_KEY_BACKSPACE) == GLFW_PRESS,
+            step,bank,cells,tunnel_network ? &*tunnel_network : nullptr,
+            {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
+        } else contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
           step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr,
           {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
       } else {
@@ -776,7 +779,8 @@ auto main(int const argc, char const *const argv[])->int {
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held);
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held,player_start);
+        contact = combat->player_contact;
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         objectives.advance(cells,mission,world_mode == 0 ? 0x20 : 0x60);

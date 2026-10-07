@@ -6,7 +6,7 @@ The connected campaign now reaches the final battle (115) and ending (116), incl
 
 ## Next integration priorities
 
-1. **Collision/update fidelity:** player/object ramming, native collision-list ordering and response ordering where city and actor contacts overlap.
+1. **Collision/update fidelity:** audit remaining weapon-ray and collision-response edge cases. Native list ordering and player/object ramming are now connected.
 2. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
 3. **Presentation and rendering:** Nightmare entry, score/debrief fidelity, remaining camera transitions, actor lighting/distant dots, palette fades and presentation ordering.
 4. **Audio fidelity:** native voice allocation, stereo placement, external-camera listening and remaining event bindings. Aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
@@ -589,5 +589,5 @@ and the Skimma primary gun. Hostile projectile acceptance likewise preserves
 its retained endpoint. Five hundred and twelve native mixed-list cases compare
 selected identity and endpoint using original model extents; 140 intersect an
 object. Existing paired-aircraft damage fixtures and the controlled campaign
-checks remain active. Player ramming and complete player/city/object response
-ordering are the next integration work.
+checks remain active. Player ramming now uses the same ordered scan before applying a city response;
+see [player flight](player_flight.md) for its native cases and frame integration.

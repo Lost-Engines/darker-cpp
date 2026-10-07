@@ -25,6 +25,7 @@
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_contact_samples.h"
 #include "reference/aircraft_spawning_samples.h"
+#include "reference/player_ramming_samples.h"
 #include "reference/target_acquisition_samples.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
@@ -43,6 +44,48 @@
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
   darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  for(auto const &v : darker::test_reference::player_ramming_samples) {
+    using namespace darker::game;
+    player_flight player;
+    if(v[0] != 25) player.craft = skimma_flight_state{};
+    player.upgraded = v[0] == 27;
+    if(v[25]) player.tunnel.emplace();
+    player.lifecycle.flags = static_cast<uint8_t>(v[3]);
+    auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
+    damage.shield_enabled = v[4] != 0;
+    damage.shield_charge = static_cast<uint16_t>(v[5]);
+    damage.damage = static_cast<uint16_t>(v[6]);
+    damage.rotation = {static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8])};
+    std::array<uint16_t,3> start{};
+    scenario_actor actor;
+    actor.index = 1;
+    actor.category = static_cast<actor_category>(v[24]);
+    actor.parameters.definition = &original_object_definitions[v[15]];
+    actor.parameters.model_token = bank.special_models()[v[15]];
+    actor.parameters.update_entry = 0x8823;
+    actor.flags = static_cast<uint8_t>(v[16]);
+    actor.attitude = {static_cast<uint16_t>(v[20]),static_cast<uint16_t>(v[21])};
+    actor.awareness = {static_cast<uint16_t>(v[22]),static_cast<uint16_t>(v[23])};
+    for(size_t axis{0}; axis < 3; ++axis) {
+      start[axis] = static_cast<uint16_t>(v[9+axis]);
+      player.pose().position[axis] = static_cast<uint16_t>(v[12+axis]);
+      actor.pose.position[axis] = static_cast<uint16_t>(v[17+axis]);
+    }
+    mission_combat combat{{actor}};
+    combat.random_state = static_cast<uint16_t>(v[1]);
+    city_map cells{};
+    combat.collide_player(player,start,cells,bank,static_cast<uint16_t>(v[2]));
+    auto const &after{combat.actors.front()};
+    std::array<int,16> const result{player.pose().position[0],player.pose().position[1],player.pose().position[2],
+      damage.rotation.pitch,damage.rotation.turn,damage.damage,damage.shield_charge,combat.random_state,
+      after.attitude.pitch_rate,after.attitude.bank_rate,after.awareness.level,after.awareness.cooldown,
+      after.parameters.update_entry,after.expiry,after.flags,combat.player_hit};
+    for(size_t field{0}; field < result.size(); ++field) if(result[field] != v[26+field]) {
+      throw std::runtime_error{"Player ramming differs from native: field="+std::to_string(field)+", seed="+std::to_string(v[1])
+        +", actual="+std::to_string(result[field])+", expected="+std::to_string(v[26+field])};
+    }
+  }
+  std::cout << "All 512 player ramming sweeps match native admission, paired damage and random state." << std::endl;
   for(auto const &sample : darker::test_reference::actor_sweep_samples) {
     using namespace darker::game;
     std::array<scenario_actor,6> actors;

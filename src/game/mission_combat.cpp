@@ -84,6 +84,38 @@ void mission_combat::spawn_aircraft(player_flight const &player, city_map const 
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
 }
 
+void mission_combat::collide_player(player_flight &player, std::array<uint16_t,3> const &start,
+  city_map &cells, resources::geometry_bank const &bank, uint16_t const clock) {
+  /// 6F0F scans the player before other collision owners; 6ED4 damages the victim before the player
+  player_contact = {};
+  if(player.lifecycle.flags & 0x20) return;
+  auto end{player.pose().position};
+  auto const contact{sweep_city(bank,cells,player.world_damage_mask(),start,end,12,10)};
+  auto *victim{sweep_actor_groups(actors,bank,start,end,12,actor_collision_groups)};
+  if(!victim && contact.contact == city_contact::none) return;
+  end[2] &= 0xfff8;
+  player.pose().position = end;
+  if(!victim) {
+    player_contact = contact;
+    player.apply_city_contact(contact,clock,bank,cells);
+    return;
+  }
+  auto const reaction{hit_actor(*victim,0x5c,clock,random_state,player.tunnel.has_value())};
+  effects.spawn(reaction.effect,reaction.at_actor ? victim->pose.position : end,clock);
+  auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
+  auto const amount{static_cast<uint8_t>(next_random(random_state) | 0x80)};
+  apply_player_damage(damage,amount,0x3c,std::holds_alternative<skimma_flight_state>(player.craft),false,random_state);
+  effects.spawn(0x70f0,end,clock);
+  player_hit = true;
+  if(reaction.remove) {
+    retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
+    release_target(static_cast<uint16_t>(0xd986+victim->index*112));
+    completed_objectives += victim->attributes & 1;
+    adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
+    actors.erase(actors.begin()+(victim-actors.data()));
+  }
+}
+
 void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, uint16_t const clock, bool const underground) {
   /// 6DF1 clips each airborne owner against the city and its own list; 6E6D applies strengths 40h and 60h to the pair
   std::array<uint8_t,256> owners{};
@@ -208,13 +240,14 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held) {
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held, std::optional<std::array<uint16_t,3>> const player_start) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
   player_fired = false;
   if(player.lifecycle.crashing) weapon_charge = 0;
   player_hit = false;
+  player_contact = {};
   auto *caero{std::get_if<caero_flight_state>(&player.craft)};
   auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
   auto const player_definition{player.definition_slot()};
@@ -418,6 +451,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   if(player.lifecycle.flags & 0x10) target.clear();
   if(!caero) skimma_ring.target_spread = target.spread;
+  if(player_start) collide_player(player,*player_start,cells,bank,clock);
   collide_aircraft(cells,bank,damage_mask,clock,player.tunnel.has_value());
   for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;

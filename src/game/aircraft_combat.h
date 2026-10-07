@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include "game/actor_navigation.h"
 #include "game/object_impact.h"
 #include "game/projectile_pool.h"

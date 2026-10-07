@@ -55,13 +55,13 @@ void player_flight::command(flight_command const command) noexcept {
   }
 }
 
-city_collision_result player_flight::advance(flight_controls_input const input, bool const brake, std::uint16_t const frame_step,
-  std::uint16_t const clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *const network, supply_control const supply_input) {
-  /// Compose native steering, the current craft callback and city collision without advancing unrelated actor or mission systems
-  if(frame_step == 0) return {};
+void player_flight::advance_motion(flight_controls_input const input, bool const brake, uint16_t const frame_step,
+  resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *const network, supply_control const supply_input) {
+  /// Advance controls and craft motion before the campaign's common collision phase
+  if(frame_step == 0) return;
   if(lifecycle.crashing) {
-    advance_player_crash(pose(), frame_step);
-    return {};
+    advance_player_crash(pose(),frame_step);
+    return;
   }
   auto steering{update_flight_controls(controls, input, frame_step)};
   look_drive = input.look_around ? steering : flight_steering{};
@@ -70,7 +70,6 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
     controls.pitch.reference = 0;
     steering = {};
   }
-  auto const previous{pose().position};
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
   auto const &definition{original_object_definitions[definition_slot()]};
   auto const gain{static_cast<std::uint16_t>(definition.angular_seed * 8)};
@@ -97,8 +96,12 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
     advance_skimma_flight(std::get<skimma_flight_state>(craft), {.angular_response{gain}, .vertical_bias{bias}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .forward_setting{forward_setting}, .brake{brake}}, frame_step);
   }
+}
+
+void player_flight::apply_city_contact(city_collision_result const contact, uint16_t const clock,
+  resources::geometry_bank const &bank, city_map &cells) {
+  /// Apply 6EEC/6F84 only after object contacts have had their native chance to supersede the city hit
   auto const mask{world_damage_mask()};
-  auto const contact{sweep_city(bank, cells, mask, previous, pose().position)};
   bool const protected_terrain{contact.contact == city_contact::terrain && (lifecycle.flags & 0x10)};
   if(contact.contact != city_contact::none && !protected_terrain && !(lifecycle.flags & 0x20)) {
     if(contact.contact == city_contact::building && contact.category == 2) {
@@ -109,6 +112,18 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
     }
     if(start_player_crash(pose(), lifecycle, clock)) engine_flags = 0;
   }
+}
+
+city_collision_result player_flight::advance(flight_controls_input const input, bool const brake, uint16_t const frame_step,
+  uint16_t const clock, resources::geometry_bank const &bank, city_map &cells,
+  tunnel_network const *const network, supply_control const supply_input) {
+  /// Compose standalone flight and city collision for callers without a mission actor simulation
+  bool const collidable{frame_step != 0 && !lifecycle.crashing};
+  auto const previous{pose().position};
+  advance_motion(input,brake,frame_step,bank,cells,network,supply_input);
+  if(!collidable) return {};
+  auto const contact{sweep_city(bank,cells,world_damage_mask(),previous,pose().position)};
+  apply_city_contact(contact,clock,bank,cells);
   return contact;
 }
 

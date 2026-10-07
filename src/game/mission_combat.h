@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <vector>
 #include "game/aircraft_combat.h"
 #include "game/aircraft_spawning.h"
@@ -46,11 +47,14 @@ public:
   maths::view_basis targeting_basis{maths::make_view_basis({})};
   bool player_fired{false};
   bool player_hit{false};
+  city_collision_result player_contact{};
   unsigned int completed_objectives{0};
   uint8_t world_damage_counter{0};
 
   explicit mission_combat(std::vector<scenario_actor> initial);
   void spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step);
+  void collide_player(player_flight &player, std::array<uint16_t,3> const &start,
+    city_map &cells, resources::geometry_bank const &bank, uint16_t clock);
   void collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t damage_mask, uint16_t clock, bool underground = false);
   void activate_reserves(actor_category category, uint8_t count, object_pose const &player, uint16_t clock);
   void adjust_objectives(uint8_t operand) noexcept;
@@ -58,7 +62,7 @@ public:
   unsigned int remaining_objectives() const noexcept;
   std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false, bool secondary_held = false);
+    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false, bool secondary_held = false, std::optional<std::array<uint16_t,3>> player_start = std::nullopt);
 
 private:
   std::array<uint8_t,256> retained_flags{};

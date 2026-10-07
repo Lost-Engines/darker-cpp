@@ -5,8 +5,9 @@ engine/altitude/speed settings and crash lifecycle. It consumes explicit input,
 frame step and clock values with no GLFW or rendering dependency. Original
 object definitions supply each craft's response gain and vertical/drive terms.
 
-The update preserves the previous position, advances the craft callback, then
-performs the city/terrain sweep. An admitted building hit crashes the player;
+The standalone update preserves the previous position, advances the craft callback,
+then performs the city/terrain sweep. Campaign flight separates `advance_motion`
+from the common collision phase, after other moving-object callbacks. An admitted building hit crashes the player;
 category 2 advances the cell's damage state when its current model has a damage
 link. Terrain contacts respect player flag `10`. Crash transition `6F4F` retains
 unrelated flags, sets `08|20`, stops speed, sets pitch `0205` and records the
@@ -36,11 +37,12 @@ messages and external crash-camera actions remain separate event consumers.
 
 ## Current application boundary
 
-The single executable now uses this flight composition instead of its free
-camera. It starts from an explicitly temporary airborne checkpoint above each
-city; those coordinates, initial speed and reserves are not represented as the
-original new-game setup. The next integration must replace them with scenario
-initialisation and its landing/gate state.
+Campaign flight uses the scenario's original craft profile and launch/pad setup.
+Explicit free-flight checkpoints retain the composed `advance` operation;
+campaign frames call `advance_motion` and pass the saved starting position into
+`mission_combat::advance`. The common collision phase resolves the player before
+aircraft and both projectile lists. It applies a city response only after the
+ordered object lists have had their chance to supersede that contact.
 
 The host captures relative mouse movement (raw where supported), forwards
 arrow/Ctrl state and flight key events, converts elapsed time into the recovered
@@ -59,3 +61,28 @@ screens are not yet connected. Enter after a crash restores the temporary airbor
 initial city state and neutral steering. This is a development checkpoint retry,
 not the original campaign death/retry flow. The reconstructed deadline is retained for the future scene
 transition; no automatic retry policy has been invented.
+
+## Player ramming
+
+`6ED4` first applies strength 5C to the other object, including the separate
+zero-resistance vehicle path. It then consumes a random byte, sets its high bit
+and applies player damage with kick amplitude 3C. Caero damage and Skimma shield
+responses share their existing native arithmetic. Recipe 70F0 appears at the
+retained player endpoint. The ordinary lethal-damage gate runs after the other
+collision passes, as in 6F45. A player carrying flag 20 is excluded from this
+collision-owner pass; target flags are not a universal collision exclusion.
+
+512 native cases execute the full player admission/response pass, with original
+model extents and visual effect spawning intercepted. 171 produce ramming
+responses. They cover all three ordinary player craft, shield states, varied
+initial damage, actor flags, aircraft and zero-resistance vehicles, underground
+damage response and clock wrapping. Both objects' resulting damage/motion fields
+and the final random state agree. The 500-frame native hands-off hangar launch
+now also runs through the separated campaign motion/collision phases.
+
+Number-key weapon selection now shares the native C8A0 supplementary-context
+gate and triggers B903's craft-specific confirmation sound on accepted input.
+Automatic script selections remain independent of that keyboard gate. The
+windowed Halon transition check passes all eight flight entries and saves
+through stage 114 after the collision-phase change; this uses Level X and does
+not replace the normal objective fixtures or manual combat testing.
