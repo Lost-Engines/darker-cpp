@@ -15,7 +15,7 @@ void apply_impact_rotation(impact_rotation &rotation, std::uint8_t const amplitu
 }
 
 impact_effect apply_object_impact(object_impact_state &state, std::uint8_t const strength, std::uint8_t const resistance,
-  bool const skimma_mode, std::uint16_t const clock, std::uint16_t &random_state) {
+  bool const underground, std::uint16_t const clock, std::uint16_t &random_state) {
   /// Apply CE38's ordinary object hit; zero resistance and inactive callbacks have separate effect/removal paths
   if(resistance == 0 || state.update_entry == 0) {
     throw std::invalid_argument{"Object impact requires nonzero resistance and an active callback"};
@@ -26,7 +26,7 @@ impact_effect apply_object_impact(object_impact_state &state, std::uint8_t const
     scale = difference >= resistance ? 65535 : ((difference * 256 + resistance) / resistance) * 257;
   }
   auto kick{scale >> 2};
-  if(skimma_mode) {
+  if(underground) {
     if((kick >> 8) < 15) kick = (kick & 255) | (((state.impact_accumulator >> 10) + 24) << 8);
     kick >>= 1;
   }

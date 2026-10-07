@@ -18,7 +18,7 @@ struct actor_impact_result {
   bool remove{false};
 };
 
-actor_impact_result hit_actor(scenario_actor &actor, uint8_t strength, uint16_t clock, uint16_t &random_state);
+actor_impact_result hit_actor(scenario_actor &actor, uint8_t strength, uint16_t clock, uint16_t &random_state, bool underground = false);
 void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexcept;
 
 struct gun_trace {

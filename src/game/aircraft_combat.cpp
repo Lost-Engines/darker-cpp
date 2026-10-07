@@ -30,7 +30,7 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
   return true;
 }
 
-actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state) {
+actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state, bool const underground) {
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
   if(actor.parameters.update_entry == 0) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
   if(actor.parameters.definition->impact_strength == 0) {
@@ -44,7 +44,7 @@ actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uin
     .impact_accumulator{actor.awareness.level}, .damage{actor.awareness.cooldown},
     .update_entry{actor.parameters.update_entry}, .deadline{actor.expiry}, .flags{actor.flags},
   };
-  auto const result{apply_object_impact(state, strength, actor.parameters.definition->impact_strength, false, clock, random_state)};
+  auto const result{apply_object_impact(state, strength, actor.parameters.definition->impact_strength, underground, clock, random_state)};
   actor.attitude = {state.rotation.pitch, state.rotation.turn};
   actor.awareness = {state.impact_accumulator, state.damage};
   actor.parameters.update_entry = state.update_entry;

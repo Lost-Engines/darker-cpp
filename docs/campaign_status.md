@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–66 (04/0 through the first two records of 04/8), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixty-six saves stage sixty-seven and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–68 (04/0 through the first four records of 04/8), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixty-eight saves stage sixty-nine and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -357,14 +357,35 @@ acquisition, guidance and collision rather than injecting destroyed states.
 
 Mission 66 transfers from Hemmersan (7162h) to Administration (4D62h). Its
 briefing, world actors and docking are checked; the return transfer in mission
-68 is also exercised independently. Mission 67 remains outside the playable
-limit: the controlled Pinner clear stalls against moving Assassins whose
-resistance exceeds its underground strength. Aircraft-to-aircraft contacts are connected, but the controlled clear still
-stalls; player-to-object contacts remain to be connected. Retaining a stronger secondary weapon across entry is not an
-explanation: native startup 3D1C–3D27 clears HUD/weapon fields 4541–4553.
+68 is also exercised independently. Mission 67 now completes too; its earlier stalled check exposed a missing
+underground-specific angular kick, described below. Native startup 3D1C–3D27
+clears HUD/weapon fields 4541–4553, so retaining a stronger secondary weapon
+across entry was not an explanation.
 Opcode 27’s write to the actor’s tunnel oscillation byte is connected to the
 already verified navigation consumer.
 
 All 188 tests pass. Windowed Level X traversal additionally checks missions
 60–66, their briefings and flight entries, save checksums and the Administration
 return-site handoff. This does not replace manual combat playtesting.
+
+## Underground hit reactions and Administration return
+
+Native 854E tests world mode 2 (underground), not Skimma mode. It halves the
+ordinary impact kick and supplies an awareness-dependent minimum for weak
+hits. The primitive was already tested against native execution, but the live
+actor-impact caller always requested the surface path. Projectile, paired-blast
+and aircraft-contact consumers now pass the correct world mode; the misleading
+parameter name has been corrected too. The full aircraft-contact comparisons
+now cover surface and underground modes.
+
+That connection resolves the Administration tunnel’s stalled Pinner test:
+mission 67 admits 24 reinforcements, removes all 36 counted targets and completes
+portal return, with 1,101 controlled launches. The five earlier tunnel missions
+also pass with their changed impact trajectories. Mission 68 completes the
+return transfer from Administration to Hemmersan. Player-to-object collision
+remains separate outstanding work; neither enemy resistance nor Pinner strength
+has been weakened to achieve these results.
+
+All 188 tests pass with the corrected underground response. Windowed Level X
+checks cover mission 67’s underground entry, mission 68’s return briefing and
+flight, both saved transitions and the final Hemmersan return site.

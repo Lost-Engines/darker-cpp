@@ -112,6 +112,8 @@ cases place aircraft behind each other to check the same list-order rule.
 The reconstruction’s acquisition ray now remains unchanged between aircraft
 tests. Existing controlled campaign checks pass with contacts connected.
 
-This alone does not complete the Administration tunnel: its controlled Pinner
-run removes 22 of 36 objectives before stalling. Player-to-object contacts remain
-outstanding; no stronger weapon or reduced resistance has been substituted.
+The initial contact-only run still stalled in the Administration tunnel. The
+subsequent fix connected native 854E’s **underground** angular-kick branch to
+live actor impacts; see [campaign status](campaign_status.md#underground-hit-reactions-and-administration-return).
+With that branch active, the complete tunnel check passes. The contact fixture
+now covers both world modes. Player-to-object contacts remain outstanding.

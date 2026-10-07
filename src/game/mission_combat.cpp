@@ -78,7 +78,7 @@ void mission_combat::spawn_aircraft(player_flight const &player, city_map const 
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
 }
 
-void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, uint16_t const clock) {
+void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, uint16_t const clock, bool const underground) {
   /// 6DF1 clips each airborne owner against the city and its own list; 6E6D applies strengths 40h and 60h to the pair
   std::array<uint8_t,256> owners{};
   size_t count{0};
@@ -108,9 +108,9 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
       end[2] &= 0xfff8;
       owner->pose.position = end;
       auto const victim_index{victim->index};
-      auto const first{hit_actor(*owner,0x40,clock,random_state)};
+      auto const first{hit_actor(*owner,0x40,clock,random_state,underground)};
       effects.spawn(first.effect,end,clock);
-      auto const second{hit_actor(*victim,0x60,clock,random_state)};
+      auto const second{hit_actor(*victim,0x60,clock,random_state,underground)};
       effects.spawn(second.effect,second.at_actor ? victim->pose.position : end,clock);
       if(first.remove) remove(index);
       if(second.remove) remove(victim_index);
@@ -125,13 +125,13 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
   }
 }
 
-void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock) {
+void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock, bool const underground) {
   /// CBE7 applies separate aircraft, ground and stationary blast passes before retiring both paired projectiles
   for(auto const category : {actor_category::air,actor_category::ground,actor_category::stationary}) {
     for(auto actor{actors.begin()}; actor != actors.end();) {
       auto const strength{actor->category == category ? dual_launch_impact(shot.placement,actor->pose,category == actor_category::air) : std::nullopt};
       if(!strength) { ++actor; continue; }
-      auto const reaction{hit_actor(*actor,*strength,clock,random_state)};
+      auto const reaction{hit_actor(*actor,*strength,clock,random_state,underground)};
       effects.spawn(reaction.effect,actor->pose.position,clock);
       if(!reaction.remove) { ++actor; continue; }
       retained_flags[actor->index] = static_cast<uint8_t>(actor->flags | 0x20);
@@ -317,7 +317,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       shot = projectiles.recycle(*shot);
       continue;
     }
-    if(result == projectile_update_result::detonated) detonate_dual_launch(*shot,clock);
+    if(result == projectile_update_result::detonated) detonate_dual_launch(*shot,clock,player.tunnel.has_value());
     else if(separation) dual_launch_pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(*separation,0xcd)) >> 2);
     shot = shot->next;
   }
@@ -344,7 +344,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
   }
   if(player.lifecycle.flags & 0x10) target.clear();
-  collide_aircraft(cells,bank,damage_mask,clock);
+  collide_aircraft(cells,bank,damage_mask,clock,player.tunnel.has_value());
   for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
@@ -364,7 +364,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition == &original_object_definitions[0]
         ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
-      auto const reaction{hit_actor(*victim, *strength, clock, random_state)};
+      auto const reaction{hit_actor(*victim, *strength, clock, random_state,player.tunnel.has_value())};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);

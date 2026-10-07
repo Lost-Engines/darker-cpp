@@ -61,7 +61,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       actor.awareness = {static_cast<uint16_t>(s[at+7]),static_cast<uint16_t>(s[at+8])};
       combat.actors.push_back(actor);
     }
-    combat.collide_aircraft({},bank,0x20,static_cast<uint16_t>(s[1]));
+    combat.collide_aircraft({},bank,0x20,static_cast<uint16_t>(s[1]),s[64] != 0);
     for(size_t i{0}; i < 3; ++i) {
       auto const &actor{combat.actors[i]};
       std::array<unsigned int,10> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
@@ -788,7 +788,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,5>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23}}}) {
+    for(auto const test : std::array<tunnel_case,6>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23},{67,0x4362,24,36}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};

@@ -25,6 +25,6 @@ enum class impact_effect : std::uint16_t {
 
 void apply_impact_rotation(impact_rotation &rotation, std::uint8_t amplitude, std::uint16_t &random_state) noexcept;
 impact_effect apply_object_impact(object_impact_state &state, std::uint8_t strength, std::uint8_t resistance,
-  bool skimma_mode, std::uint16_t clock, std::uint16_t &random_state);
+  bool underground, std::uint16_t clock, std::uint16_t &random_state);
 
 } // namespace darker::game
