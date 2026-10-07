@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <utility>
 #include "game/mission_combat.h"
+#include "game/mission_exchange.h"
+#include <bit>
 #include "game/object_definitions.h"
 #include "game/scenario_world.h"
 #include "maths/sine_table.h"
@@ -44,6 +46,21 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
   auto const &scenario{campaign.scenario(103)};
   auto const &record{scenario.records()[6]};
   auto cells{darker::game::make_city_map(archives.load({0,69}),false)};
+  unsigned int pads{0};
+  for(size_t cell{0}; cell < cells.size(); ++cell) {
+    darker::game::player_flight candidate;
+    candidate.craft = darker::game::skimma_flight_state{.pose{.position{static_cast<uint16_t>((cell%128)*256+128),
+      static_cast<uint16_t>((cell/128)*256+255),512}},.horizontal_velocity{100},.vertical_velocity{0xffff}};
+    candidate.engine_flags = 0;
+    bool const accepted{darker::game::begin_supply_approach(candidate,cells,candidate.supply)};
+    if(accepted != (cells[cell].type == 3)) throw std::runtime_error{"Supply entry differs from the native all-cell Halon map check"};
+    if(accepted) {
+      ++pads;
+      if(candidate.supply.site != (cell/128)*256+(cell%128)*2 || candidate.supply.offset != 0x8080)
+        throw std::runtime_error{"Supply target does not match the original map cell"};
+    }
+  }
+  if(pads != 8) throw std::runtime_error{"Halon map no longer contains the eight original supply pads"};
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells,limits);
@@ -104,6 +121,64 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     auto const &damage{std::get<darker::game::skimma_flight_state>(victim.craft).damage};
     if(!incoming.player_hit || victim.lifecycle.crashing == shield || (shield && damage.shield_charge >= 0xbfff))
       throw std::runtime_error{"Skimma projectile impact did not honour its enabled shield"};
+  }
+
+  for(size_t const record_index : {5u,6u}) {
+    auto const &source{campaign.supplementary()};
+    auto const &record{source.records()[record_index]};
+    darker::game::player_flight pilot;
+    pilot.craft = darker::game::skimma_flight_state{.pose{.position{0x1000,0x2000,400}},.damage{.shield_charge{0x4000}}};
+    pilot.upgraded = record_index == 6;
+    std::array<darker::game::skimma_weapon_slot,3> weapons{};
+    darker::game::weapon_ring_state ring;
+    uint8_t selected{0};
+    uint16_t available{0};
+    std::array<std::byte,1> const primary{std::byte{0x23}};
+    darker::game::mission_script script;
+    darker::game::mission_context context{.program{primary},.time_multiplier{50},.text_cursor{1}};
+    context.transition_output = 0;
+    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{source.bytes(record.shared),
+      source.language(record_index,darker::resources::scenario_language::english),record.entry_offset-record.shared.offset}}};
+    context.select_weapon = [&](uint8_t const selection){
+      available = std::rotl(uint16_t{0x8000},selection);
+      darker::game::select_skimma_weapon(std::span{weapons}.first(pilot.upgraded ? 3 : 2),selected,ring,selection,available,static_cast<uint16_t>(context.clock));
+    };
+    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(weapons[selected].ammunition,selected); };
+    context.reset_shield = [&]{ auto &charge{std::get<darker::game::skimma_flight_state>(pilot.craft).damage.shield_charge}; charge = static_cast<uint16_t>((charge & 255) | 0xbf00); };
+    context.toggle_weapons = [&](uint16_t const mask){ available ^= mask; };
+    context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
+    for(unsigned int visit{0}; visit < 2; ++visit) {
+      pilot.pose() = {.position{0x1000,0x2000,400}};
+      pilot.lifecycle.flags = 0x10;
+      pilot.supply = {.phase{darker::game::supply_phase::approach},.site{0x2020},.offset{0x1080}};
+      std::get<darker::game::skimma_flight_state>(pilot.craft).horizontal_velocity = 0;
+      context.clock = 0;
+      context.transition_output = 0;
+      exchange.enter_supply(script,context);
+      unsigned int messages{0};
+      uint32_t tick{0};
+      for(; tick < 100000; tick += 16) {
+        darker::game::advance_supply_motion(pilot,pilot.supply,context.transition_output,exchange.supplementary_active,
+          exchange.supplementary_active ? 0 : 0x0c00,16);
+        if(pilot.supply.phase == darker::game::supply_phase::flight) break;
+        context.clock = tick;
+        context.messages.clear();
+        darker::game::advance_mission_script(script,context);
+        messages += static_cast<unsigned int>(context.messages.size());
+      }
+      if(tick != (record_index == 5 ? 22176u : 26416u) || messages != (record_index == 5 ? 0u : 21u)
+        || exchange.supplementary_active || context.text_cursor != 1)
+        throw std::runtime_error{"Supply script/movement cycle differs from the original: record="+std::to_string(record_index)
+          +", visit="+std::to_string(visit)+", tick="+std::to_string(tick)+", messages="+std::to_string(messages)};
+      for(size_t i{0}; i < (pilot.upgraded ? 3u : 2u); ++i) {
+        darker::game::weapon_ammunition expected;
+        darker::game::refill_skimma_weapon(expected,static_cast<uint8_t>(i));
+        if(weapons[i].ammunition.working != expected.working || weapons[i].ammunition.reserve != expected.reserve)
+          throw std::runtime_error{"Supply cycle did not refill an available weapon"};
+      }
+      if(std::get<darker::game::skimma_flight_state>(pilot.craft).damage.shield_charge != 0xbf00)
+        throw std::runtime_error{"Supply cycle did not restore the shield"};
+    }
   }
 
 }

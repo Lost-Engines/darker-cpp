@@ -48,3 +48,28 @@ TEST_CASE("Consecutive mission exchanges resume immediately with the original me
     CHECK(context.messages.front().expiry == s[8]);
   }
 }
+
+TEST_CASE("Supply visits preserve a stopped primary script and reset their message cursor", "[game][missions]") {
+  /// Native C776/C77E retain the executable-resident C50F stop target across return and repeat entry
+  std::array const primary{std::byte{0x23}};
+  std::array const supply{std::byte{0x26},std::byte{0x25},std::byte{0xfd}};
+  for(uint16_t const clock : {uint16_t{0},uint16_t{1000},uint16_t{32768},uint16_t{65535}}) {
+    darker::game::mission_script script;
+    darker::game::mission_context context{.program{primary},.clock{clock},.text_cursor{7}};
+    script.deadline = clock;
+    darker::game::advance_mission_script(script,context);
+    REQUIRE(script.stopped);
+    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{supply,{},0,19}}};
+    context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
+    for(unsigned int visit{0}; visit < 3; ++visit) {
+      exchange.enter_supply(script,context);
+      CHECK_FALSE(script.stopped);
+      CHECK(context.text_cursor == 0);
+      darker::game::advance_mission_script(script,context);
+      CHECK(script.stopped);
+      CHECK_FALSE(exchange.supplementary_active);
+      CHECK(context.program.data() == primary.data());
+      CHECK(context.text_cursor == 7);
+    }
+  }
+}

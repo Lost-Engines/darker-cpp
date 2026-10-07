@@ -204,6 +204,7 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       if(!context.exchange_context) throw std::logic_error{"Mission context exchange has no saved context"};
       script.continuation = cursor;
       context.exchange_context(script);
+      if(script.stopped) return dispatched;
       cursor = script.continuation;
       break;
     case 0x25:

@@ -8,6 +8,7 @@
 #include "game/player_crash.h"
 #include "game/skimma_flight.h"
 #include "game/tunnel_flight.h"
+#include "game/supply_pad.h"
 
 namespace darker::game {
 
@@ -24,12 +25,13 @@ struct player_flight {
   std::uint8_t engine_flags{1};
   bool altitude_hold{false};
   bool upgraded{false};
+  supply_pad_state supply{};
 
   object_pose &pose() noexcept;
   object_pose const &pose() const noexcept;
   void command(flight_command command) noexcept;
   city_collision_result advance(flight_controls_input input, bool brake, std::uint16_t frame_step,
-    std::uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr);
+    std::uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
 };
 
 } // namespace darker::game

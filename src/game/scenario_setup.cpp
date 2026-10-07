@@ -22,7 +22,7 @@ scenario_setup_kind identify_scenario_setup(std::span<std::byte const> const cod
 }
 
 void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &player,
-  int16_t const model_height, weapon_ammunition &first_weapon) {
+  int16_t const model_height, weapon_ammunition &second_weapon) {
   /// C79D sets energy and boost before C7C8 applies the model-dependent height and approach angles
   auto &pose{player.pose()};
   uint16_t height{0}, energy{0};
@@ -48,7 +48,8 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     std::visit([](auto &craft){ craft.horizontal_velocity = 600; },player.craft);
     player.lifecycle.flags &= 0xef;
     pose.angles[1] = 0xfe00;
-    first_weapon = {};
+    // 5E59 clears 5E11/5E14: the zero-based slot one, displayed as weapon 2.
+    second_weapon = {};
     height = 4096;
     break;
   case scenario_setup_kind::nightmare_player:
@@ -94,7 +95,7 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
 
 std::array<std::vector<scenario_actor>,3> make_scenario_actors(resources::scenario_record const &record,
   resources::scenario_resource const &resource, resources::geometry_bank const &bank, player_flight &player,
-  weapon_ammunition &first_weapon, uint16_t const clock, std::optional<tunnel_setup> const tunnel) {
+  weapon_ammunition &second_weapon, uint16_t const clock, std::optional<tunnel_setup> const tunnel) {
   /// Preserve allocation order and translate the inline player, placement and actor mutations between groups
   auto const configuration{record.configuration & 15};
   uint8_t const world{static_cast<uint8_t>(configuration == 4 ? 2 : configuration <= 1 ? 0 : 1)};
@@ -106,7 +107,7 @@ std::array<std::vector<scenario_actor>,3> make_scenario_actors(resources::scenar
     for(auto const &block : group.native_setup) {
       if(block.current_object != 0) continue;
       auto const kind{identify_scenario_setup(resource.bytes(block.source))};
-      apply_player_scenario_setup(kind,player,bank.header_at(player_model).height,first_weapon);
+      apply_player_scenario_setup(kind,player,bank.header_at(player_model).height,second_weapon);
       if(kind == scenario_setup_kind::anchor_escorts) {
         if(group.objects.size() < 2) throw std::invalid_argument{"Escort setup requires two following actors"};
         for(size_t j{0}; j < 2; ++j) for(size_t axis{0}; axis < 2; ++axis)

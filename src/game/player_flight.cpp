@@ -45,7 +45,7 @@ void player_flight::command(flight_command const command) noexcept {
 }
 
 city_collision_result player_flight::advance(flight_controls_input const input, bool const brake, std::uint16_t const frame_step,
-  std::uint16_t const clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *const network) {
+  std::uint16_t const clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *const network, supply_control const supply_input) {
   /// Compose native steering, the current craft callback and city collision without advancing unrelated actor or mission systems
   if(frame_step == 0) return {};
   if(lifecycle.crashing) {
@@ -80,6 +80,8 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
         .vertical_bias{bias}, .desired_height{desired_height}, .height_reference{controls.pitch.reference}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold}, .brake{brake}},
       frame_step, cells);
+  } else if(supply.phase != supply_phase::flight) {
+    advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,steering.pitch,frame_step);
   } else {
     advance_skimma_flight(std::get<skimma_flight_state>(craft), {.angular_response{gain}, .vertical_bias{bias}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .forward_setting{forward_setting}, .brake{brake}}, frame_step);

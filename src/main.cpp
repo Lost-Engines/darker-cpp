@@ -643,8 +643,8 @@ auto main(int const argc, char const *const argv[])->int {
             darker::game::initialise_tunnel_entry(host.player,entry->site,entry->heading,bank.header_at(bank.special_models()[28]).height);
           } else darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
-          darker::game::weapon_ammunition first_weapon;
-          auto groups{darker::game::make_scenario_actors(mission,*scenario,bank,host.player,first_weapon,0,tunnels)};
+          darker::game::weapon_ammunition second_weapon;
+          auto groups{darker::game::make_scenario_actors(mission,*scenario,bank,host.player,second_weapon,0,tunnels)};
           initial_actors = std::move(groups[0]);
           initial_player = host.player;
           initial_cells = cells;
@@ -655,7 +655,7 @@ auto main(int const argc, char const *const argv[])->int {
           if(!underground) darker::game::prepare_delphi_aircraft_sites(combat->spawning,cells);
           combat->reserves = std::move(groups[1]);
           combat->free_actors = std::move(groups[2]);
-          combat->skimma_weapons[0].ammunition = first_weapon;
+          combat->skimma_weapons[1].ammunition = second_weapon;
           combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
