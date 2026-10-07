@@ -34,14 +34,16 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
       break;
   }
   voices[channel] = {.pitch{pitch}, .level{level}, .generation{static_cast<std::uint16_t>(voices[channel].generation + 1)}, .patch{patch}, .active{true}};
+  submitted[channel] = false;
   deadlines[channel] = static_cast<std::uint16_t>(clock + duration);
 }
 
-fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready, bool const cockpit_hidden, uint16_t const weapon_charge) noexcept {
+fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready, bool const cockpit_hidden, uint16_t const weapon_charge, uint16_t const playing_mask) noexcept {
   /// Reproduce player engine callbacks 3980/3914 and timed record deadlines; world attenuation and Doppler remain separate
   for(std::size_t i{1}; i < voices.size(); ++i) {
     if(i == 5) continue;
-    if(voices[i].active && std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - deadlines[i])) >= 0) voices[i].active = false;
+    if(voices[i].active && (std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - deadlines[i])) >= 0
+      || (submitted[i] && !(playing_mask & (1u << i))))) voices[i].active = false;
   }
   bool const caero{std::holds_alternative<game::caero_flight_state>(player.craft)};
   auto const &definition{game::original_object_definitions[player.definition_slot()]};
@@ -54,7 +56,7 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
   voices[0] = {.pitch{pitch}, .level{cockpit_hidden ? std::uint16_t{0x8800} : static_cast<std::uint16_t>(definition.sound_level * 256 + 255)}, .patch{definition.fm_patch},
     .active{!player.lifecycle.crashing && (!caero || player.engine_flags == 1)}};
   if(!caero) {
-    if(!(player.engine_flags & 1)) voices[4].active = false;
+    if(player.engine_flags != 1) voices[4].active = false;
     else if(ready && !shield_ready) trigger(flight_sound::shield_ready, clock);
   }
   auto const charge_pitch{chargeable_sound_pitch(weapon_charge,clock)};
@@ -63,6 +65,7 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
   voices[5].level = 0xd200;
   voices[5].patch = 0;
   voices[5].active = charge_pitch.has_value();
+  for(size_t i{0}; i < voices.size(); ++i) submitted[i] = voices[i].active;
   return voices;
 }
 

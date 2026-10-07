@@ -17,10 +17,11 @@ private:
   fm_frame voices{};
   std::array<std::uint16_t, 9> deadlines{};
   bool shield_ready{false};
+  std::array<bool,9> submitted{};
 
 public:
   void trigger(flight_sound effect, std::uint16_t clock) noexcept;
-  fm_frame advance(game::player_flight const &player, std::uint16_t clock, bool ready, bool cockpit_hidden = true, uint16_t weapon_charge = 0) noexcept;
+  fm_frame advance(game::player_flight const &player, std::uint16_t clock, bool ready, bool cockpit_hidden = true, uint16_t weapon_charge = 0, uint16_t playing_mask = 0x1ff) noexcept;
 };
 
 } // namespace darker::audio

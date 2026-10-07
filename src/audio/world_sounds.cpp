@@ -185,6 +185,13 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
   return voices.allocate(candidates);
 }
 
+uint16_t world_sounds::audible_player() const noexcept {
+  /// 3599 requires an already-started fixed player record to retain its previous physical voice
+  uint16_t result{0};
+  for(auto const owner : voices.identities()) if((owner >> 32) == 1) result |= static_cast<uint16_t>(1u << ((owner >> 16) & 65535));
+  return result;
+}
+
 uint16_t world_sounds::audible_ambient() const noexcept {
   /// Return fixed-record ownership for the following frame's native continuation checks
   uint16_t result{0};

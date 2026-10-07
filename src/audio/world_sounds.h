@@ -34,6 +34,7 @@ private:
 public:
   fm_frame mix(fm_frame const &player, game::mission_combat &combat, game::object_pose const &listener, uint16_t clock = 0, std::span<game::effect_sound const> ambient = {}, game::object_pose const *listener_motion = nullptr, game::object_pose const *player_source = nullptr);
   uint16_t audible_ambient() const noexcept;
+  uint16_t audible_player() const noexcept;
 };
 
 } // namespace darker::audio

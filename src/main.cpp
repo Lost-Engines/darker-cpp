@@ -857,7 +857,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
     if(audio_device) {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
-        host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen,combat->weapon_charge)};
+        host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen,combat->weapon_charge,host.world_audio.audible_player())};
       audio.select_music(front ? front->music_group() : -1);
       auto const pose{host.audio_listener};
       auto const ambient{host.ambient_audio.advance({.listener{pose.position[0],pose.position[1]},.clock{clock},

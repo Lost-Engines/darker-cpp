@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
+#include "audio/flight_sounds.h"
 #include "audio/world_sounds.h"
 #include "game/object_definitions.h"
 #include "reference/object_sound_samples.h"
@@ -217,4 +218,27 @@ TEST_CASE("Stereo carrier levels produce independent PCM without altering centre
   // Nuked OPL retains the chip's inter-channel sample timing; compare accumulated energy within that skew.
   CHECK(std::abs(centre[0]-centre[1]) < centre[0]*0.001);
   CHECK(centre[0] > 0);
+}
+
+TEST_CASE("Timed player records require retained voices while continuous records retry", "[audio]") {
+  /// Native 3599 abandons a displaced notification until another explicit trigger
+  darker::audio::flight_sounds sounds;
+  darker::game::player_flight player;
+  sounds.trigger(darker::audio::flight_sound::charged,0);
+  auto const first{sounds.advance(player,0,false,true,1024,0)};
+  REQUIRE(first[2].active);
+  REQUIRE(first[5].active);
+  auto const lost{sounds.advance(player,8,false,true,1024,0)};
+  CHECK_FALSE(lost[2].active);
+  CHECK(lost[5].active);
+  auto const free_again{sounds.advance(player,16,false,true,1024,0x1ff)};
+  CHECK_FALSE(free_again[2].active);
+  sounds.trigger(darker::audio::flight_sound::charged,24);
+  auto const retriggered{sounds.advance(player,24,false,true,1024,0)};
+  CHECK(retriggered[2].active);
+  CHECK(retriggered[2].generation != first[2].generation);
+  darker::game::mission_combat combat{{}};
+  darker::audio::world_sounds mixer;
+  mixer.mix(retriggered,combat,{});
+  CHECK((mixer.audible_player() & (1u << 2)) != 0);
 }

@@ -170,3 +170,14 @@ transient pool reuse and remaining event bindings still warrant review.
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_stereo_reference.py ..
 ```
+
+## Timed player-record retention
+
+The 3599 previous-voice rule also applies to timed player records, not just world
+ambience. The mixer now returns their ownership mask to `flight_sounds`. A new
+boost, charged-cell, switch, message or shield trigger gets its first admission
+attempt; once submitted, losing its channel cancels it until another trigger.
+Continuous engine/weapon-charging records remain eligible to retry. The shield
+callback also follows 390E's exact engine-state comparison with one. Tests cover
+first admission, eviction, a later free channel, explicit retriggering and the
+continuous charging exception.
