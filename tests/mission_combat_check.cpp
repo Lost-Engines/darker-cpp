@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <utility>
 #include "game/actor_activation.h"
+#include "game/beacon_changes.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
@@ -209,6 +210,32 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   for(size_t i{0}; i < cells.size(); ++i) {
     if(cells[i].type != before[i].type || cells[i].state != before[i].state) throw std::runtime_error{"Flatbed movement changed the city"};
+  }
+  {
+    darker::resources::scenario_resource const supplementary{archives.load({4,15})};
+    auto const &record{supplementary.records()[7]};
+    auto blackout_cells{darker::game::make_city_map(archives.load({0,68}),true)};
+    for(auto &cell : blackout_cells) if(cell.type == 1) cell.state = 255;
+    darker::game::beacon_changes fade;
+    darker::game::mission_script script{.continuation{record.entry_offset - record.shared.offset}};
+    darker::game::mission_context context{.program{supplementary.bytes(record.shared)},
+      .text{supplementary.language(7,darker::resources::scenario_language::english)},.cells{blackout_cells},.time_multiplier{record.time_multiplier}};
+    context.change_beacons = [&](uint8_t op, uint8_t origin, uint8_t count){ fade.command(op,origin,count,static_cast<uint16_t>(context.clock),{}); };
+    unsigned int messages{0}, last_change{0};
+    for(uint32_t clock{0}; clock <= 40000; clock += 16) {
+      auto const previous{blackout_cells};
+      context.clock = clock;
+      fade.advance(blackout_cells,static_cast<uint16_t>(clock));
+      for(size_t i{0}; i < blackout_cells.size(); ++i) if(previous[i].state != blackout_cells[i].state) last_change = clock;
+      context.messages.clear();
+      darker::game::advance_mission_script(script,context);
+      messages += static_cast<unsigned int>(context.messages.size());
+    }
+    auto const dark{std::ranges::count_if(blackout_cells,[](auto cell){ return cell.type == 1 && cell.state == 0; })};
+    if(dark != 224 || blackout_cells[126*128+72].state != 255 || last_change != 12512 || messages != 9) {
+      throw std::runtime_error{"Shared blackout differs from its native 224-tower, nine-message timeline"};
+    }
+    std::cout << "Shared blackout: 224 towers fade, nine messages and final change at tick 12512 match native execution." << std::endl;
   }
   std::cout << "Fourth-mission flatbed traversed its original route and removed itself after 155,650 ticks at 50-tick sampling." << std::endl;
 

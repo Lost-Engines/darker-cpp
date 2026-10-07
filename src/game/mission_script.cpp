@@ -104,6 +104,18 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         delay(interval);
       }
       break;
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x14:
+      {
+        uint8_t origin{0}, count{0};
+        if(opcode == 0x12 || opcode == 0x13) { origin = byte(); count = byte(); }
+        if(!context.change_beacons) throw std::runtime_error{"Mission beacon change has no world consumer"};
+        context.change_beacons(opcode,origin,count);
+        if(opcode != 0x14) delay(6);
+      }
+      break;
     case 0x1a:
       script.checkpoint = cursor;
       script.checkpoint_clock = static_cast<std::uint16_t>((context.clock >> 8) + ((context.clock >> 7) & 1));

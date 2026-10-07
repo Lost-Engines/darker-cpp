@@ -44,6 +44,7 @@ struct mission_context {
   std::vector<mission_message> messages{};
   // The world admits reserves and returns the new objective-completion condition before script execution resumes.
   std::function<bool(uint8_t,uint8_t)> activate_reserves{};
+  std::function<void(uint8_t,uint8_t,uint8_t)> change_beacons{};
   uint16_t current_cell{0};
   std::function<void(uint16_t,bool)> set_target{};
 };

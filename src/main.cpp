@@ -21,6 +21,7 @@
 #include "audio/fm_stream.h"
 #include "audio/world_sounds.h"
 #include "game/actor_activation.h"
+#include "game/beacon_changes.h"
 #include "game/beacon_light.h"
 #include "game/city_map.h"
 #include "game/city_persistence.h"
@@ -28,8 +29,8 @@
 #include "game/game_clock.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
-#include "game/scenario_world.h"
 #include "game/player_flight.h"
+#include "game/scenario_world.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/city_scene.h"
 #include "graphics/cockpit.h"
@@ -169,6 +170,7 @@ auto main(int const argc, char const *const argv[])->int {
   darker::resources::campaign_resources campaign{archives};
   auto const *scenario{&campaign.scenario(1)};
   auto mission{scenario->records().front()};
+  darker::game::beacon_changes beacon_changes;
   darker::game::world_objectives objectives{.list{mission.objective_cell_list}};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
   auto text{scenario->language(0, darker::resources::scenario_language::english)};
@@ -203,6 +205,10 @@ auto main(int const argc, char const *const argv[])->int {
       count,host.player.pose(),static_cast<uint16_t>(context.clock));
     return objectives.complete(mission) && combat->remaining_objectives() == 0;
   }};
+  auto const change_beacons{[&](uint8_t const opcode, uint8_t const origin, uint8_t const count){
+    beacon_changes.command(opcode,origin,count,static_cast<uint16_t>(context.clock),scenario->bytes(mission.beacon_sequence));
+  }};
+  context.change_beacons = change_beacons;
   context.activate_reserves = activate_reserves;
   if(caero) host.combat = combat.get();
   std::vector<darker::graphics::scene_object> objects;
@@ -569,6 +575,8 @@ auto main(int const argc, char const *const argv[])->int {
           script = initial_script;
           context = {.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
           context.activate_reserves = activate_reserves;
+          context.change_beacons = change_beacons;
+          beacon_changes = {};
           message.reset();
           game_clock = {};
           host.clock = 0;
@@ -594,6 +602,7 @@ auto main(int const argc, char const *const argv[])->int {
       }
       if(caero) {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
+        beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
           step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier);
