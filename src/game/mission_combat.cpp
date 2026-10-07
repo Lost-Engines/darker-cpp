@@ -22,6 +22,9 @@
 namespace darker::game {
 namespace {
 
+constexpr std::array actor_collision_groups{actor_category::ground,actor_category::stationary,actor_category::air};
+constexpr std::array aircraft_collision_group{actor_category::air};
+
 void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const height,
   city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint8_t &counter) {
   /// 67BF adds a damage stage, carries the resulting high bit into C221 and emits the type's effect at its origin
@@ -101,12 +104,7 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
     if(owner == actors.end() || (owner->flags & 0x10)) continue;
     auto end{owner->pose.position};
     auto const contact{sweep_city(bank,cells,damage_mask,owner->previous_position,end,12,10)};
-    scenario_actor *victim{nullptr};
-    for(auto &actor : actors) {
-      if(actor.category != actor_category::air || actor.index == index) continue;
-      auto candidate{end};
-      if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,12,owner->previous_position,candidate)) victim = &actor;
-    }
+    auto *victim{sweep_actor_groups(actors,bank,owner->previous_position,end,12,aircraft_collision_group,index)};
     if(victim) {
       end[2] &= 0xfff8;
       owner->pose.position = end;
@@ -189,16 +187,9 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
   if(!pressed || (player.lifecycle.flags & 0x20)) return;
   auto end{skimma_gun_endpoint(player.pose(),recoil.shot_offset,random_state)};
   sweep_city(bank,cells,player.world_damage_mask(),player.pose().position,end,0,10);
-  scenario_actor *victim{nullptr};
+  auto *victim{sweep_actor_groups(actors,bank,player.pose().position,end,0,aircraft_collision_group)};
   auto impact{end};
-  for(auto &actor : actors) {
-    if(actor.category != actor_category::air) continue;
-    auto candidate{end};
-    if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,0,player.pose().position,candidate)) {
-      victim = &actor;
-      impact = candidate;
-    }
-  }
+  impact[2] &= 0xfff8;
   bool const hit{victim != nullptr};
   if(victim) {
     auto const reaction{hit_actor(*victim,0x32,clock,random_state)};
@@ -432,15 +423,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
     auto const contact{sweep_city(bank, cells, damage_mask, shot->previous_position, end, 2, 10)};
-    scenario_actor *victim{nullptr};
+    auto *victim{sweep_actor_groups(actors,bank,shot->previous_position,end,2,actor_collision_groups)};
     auto impact{end};
-    for(auto &actor : actors) {
-      auto candidate{end};
-      if(sweep_aircraft(actor.pose, bank.header_at(actor.parameters.model_token).extent, 2, shot->previous_position, candidate)) {
-        victim = &actor;
-        impact = candidate;
-      }
-    }
+    impact[2] &= 0xfff8;
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
     auto const strength{shot->parameters.definition == &original_object_definitions[8]
@@ -480,8 +465,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
     auto const contact{sweep_city(bank,cells,damage_mask,shot->previous_position,end,2,10)};
-    bool const hit{!(player.lifecycle.flags & 0x20) && sweep_aircraft(player.pose(),player_extent,2,shot->previous_position,end)};
+    auto candidate{end};
+    bool const hit{!(player.lifecycle.flags & 0x20) && sweep_aircraft(player.pose(),player_extent,2,shot->previous_position,candidate)};
     if(!hit && contact.contact == city_contact::none) continue;
+    end[2] &= 0xfff8;
     shot->placement.position = end;
     if(hit) {
       // 6E95 halves definition strength and derives the angular kick from that amount.

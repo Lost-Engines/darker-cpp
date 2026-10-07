@@ -21,6 +21,7 @@
 #include "maths/sine_table.h"
 #include "presentation/player.h"
 #include "reference/actor_admission_samples.h"
+#include "reference/actor_sweep_samples.h"
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_contact_samples.h"
 #include "reference/aircraft_spawning_samples.h"
@@ -42,6 +43,30 @@
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
   darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  for(auto const &sample : darker::test_reference::actor_sweep_samples) {
+    using namespace darker::game;
+    std::array<scenario_actor,6> actors;
+    for(size_t i{0}; i < actors.size(); ++i) {
+      auto const at{7+i*6};
+      auto &actor{actors[i]};
+      actor.category = static_cast<actor_category>(sample[at]);
+      actor.parameters.model_token = bank.special_models()[sample[at+1]];
+      actor.flags = static_cast<uint8_t>(sample[at+2]);
+      actor.index = static_cast<uint8_t>(i);
+      for(size_t axis{0}; axis < 3; ++axis) actor.pose.position[axis] = static_cast<uint16_t>(sample[at+3+axis]);
+    }
+    std::array<uint16_t,3> start{},end{};
+    for(size_t axis{0}; axis < 3; ++axis) {
+      start[axis] = static_cast<uint16_t>(sample[1+axis]);
+      end[axis] = static_cast<uint16_t>(sample[4+axis]);
+    }
+    constexpr std::array groups{actor_category::ground,actor_category::stationary,actor_category::air};
+    auto const *victim{sweep_actor_groups(actors,bank,start,end,static_cast<uint16_t>(sample[0]),groups)};
+    if((victim ? victim->index : -1) != sample[43]) throw std::runtime_error{"Mixed actor collision-list selection differs from native"};
+    end[2] &= 0xfff8;
+    for(size_t axis{0}; axis < 3; ++axis) if(end[axis] != sample[44+axis]) throw std::runtime_error{"Native actor sweep unexpectedly shortened its endpoint"};
+  }
+  std::cout << "All 512 mixed collision-list sweeps match native selection and endpoints." << std::endl;
   for(auto const &sample : darker::test_reference::actor_admission_samples) {
     darker::game::scenario_actor source;
     source.index = 1;

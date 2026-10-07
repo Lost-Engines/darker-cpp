@@ -575,3 +575,19 @@ Nonempty flight messages trigger original effect 38BE (patch 31, pitch 13056,
 level C000, 160 ticks). Voice allocation is still provisional as noted in the
 audio backlog; this restores the notification event without claiming the
 entire original sound scheduler has been reproduced.
+
+## Ordered object collision sweeps
+
+Native list 7008 visits ground vehicles, stationary objects and aircraft in
+that order. 6D60 keeps the last intersecting object, without filtering target
+flags or shortening the city-clipped ray to the hull intersection. The original
+6705 impact position consequently remains the end of that retained sweep, with
+altitude quantised to eight units. This differs from choosing the nearest hull.
+
+A shared actor-group sweep now supplies player projectiles, airborne contacts
+and the Skimma primary gun. Hostile projectile acceptance likewise preserves
+its retained endpoint. Five hundred and twelve native mixed-list cases compare
+selected identity and endpoint using original model extents; 140 intersect an
+object. Existing paired-aircraft damage fixtures and the controlled campaign
+checks remain active. Player ramming and complete player/city/object response
+ordering are the next integration work.

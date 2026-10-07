@@ -12,6 +12,9 @@ namespace darker::game {
 
 bool sweep_aircraft(object_pose const &target, uint16_t extent, uint16_t expansion,
   std::array<uint16_t, 3> const &start, std::array<uint16_t, 3> &end) noexcept;
+scenario_actor *sweep_actor_groups(std::span<scenario_actor> actors, resources::geometry_bank const &bank,
+  std::array<uint16_t,3> const &start, std::array<uint16_t,3> const &end, uint16_t expansion,
+  std::span<actor_category const> categories, std::optional<uint8_t> excluded = std::nullopt);
 struct actor_impact_result {
   uint16_t effect;
   bool at_actor{false};

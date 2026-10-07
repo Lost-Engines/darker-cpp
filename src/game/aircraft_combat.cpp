@@ -29,6 +29,21 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
   return true;
 }
 
+scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resources::geometry_bank const &bank,
+  std::array<uint16_t,3> const &start, std::array<uint16_t,3> const &end, uint16_t const expansion,
+  std::span<actor_category const> const categories, std::optional<uint8_t> const excluded) {
+  /// 6D60 retains the last intersecting object in list order without shortening the city-clipped sweep
+  scenario_actor *result{nullptr};
+  for(auto const category : categories) {
+    for(auto &actor : actors) {
+      if(actor.category != category || (excluded && actor.index == *excluded)) continue;
+      auto candidate{end};
+      if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,expansion,start,candidate)) result = &actor;
+    }
+  }
+  return result;
+}
+
 actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state, bool const underground) {
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
   if(actor.parameters.update_entry == 0) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
