@@ -71,6 +71,18 @@ void check_presentations(darker::resources::archive_set const &archives) {
     } while(next.continue_page());
     if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active"};
   }
+  darker::presentation::player launch_clip{archives,font,mission,1};
+  launch_clip.advance(3000);
+  auto const briefing_cursor{launch_clip.consumed_text()};
+  if(!launch_clip.continue_page()) throw std::runtime_error{"Second mission has no launch clip continuation"};
+  launch_clip.draw(frame);
+  auto const blank{frame.pixels.front()};
+  for(auto const pixel : frame.pixels) {
+    if(pixel.red != blank.red || pixel.green != blank.green || pixel.blue != blank.blue) {
+      throw std::runtime_error{"Second-mission clear-screen transition retained briefing text"};
+    }
+  }
+  if(launch_clip.consumed_text() != briefing_cursor) throw std::runtime_error{"Clearing presentation text consumed mission messages"};
   darker::resources::scenario_resource const startup{archives.load({4,15})};
   darker::presentation::player intro{archives,font,startup,1};
   for(unsigned int tick{0}; tick < 2000; ++tick) { intro.advance(1); intro.draw(frame); }

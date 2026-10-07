@@ -95,11 +95,12 @@ void player::execute() {
       if(image_height) { image_width = word(); image_y = byte(); image_x = word(); }
       break;
     case 0x3b:
+      page.glyphs.clear(); // BFE4 clears DA30 even when the background resource is already selected.
       image({0,static_cast<unsigned int>(22 + byte())},320,240,0,0);
       face = resources::font_face::wide;
       break;
     case 0x3c: input_policy = byte(); break;
-    case 0x3d: background.pixels.fill(0); face = resources::font_face::compact; break;
+    case 0x3d: page.glyphs.clear(); background.pixels.fill(0); face = resources::font_face::compact; break;
     case 0x3e:
       page = graphics::lay_out_text(text.subspan(text_cursor),font,face,
         {.x{static_cast<uint16_t>(page.cursor.margin + 16)}, .y{text_y}, .colour{0xfffe},

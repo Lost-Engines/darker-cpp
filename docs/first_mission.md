@@ -39,9 +39,14 @@ current completion overlay stops the simulation; Enter restarts this mission.
 ## Evidence
 
 `generate_aircraft_combat_reference.py` produces 512 native hull sweeps, 512
-falling updates and 512 gun cases. The gun fixture admits 73 shots with 17 hits;
-it compares eligibility, hit results and random state while intercepting damage
-and effect spawning. Damage accounting has separate native comparisons.
+falling updates and 1,024 gun cases. The gun fixture compares eligibility, hit
+results and random state while intercepting damage, effects and the separate
+projectile allocation branch. It includes mission two's nonzero firing setting
+and distances through 13. Native 8C28 doubles the distance byte before 8B7C
+checks it against 16, so the ray gun applies below distance 8. Behaviour byte 50
+does not disable this gun: it additionally enables the later missile branch,
+which is not yet connected in the live combat loop. The earlier first-mission-only
+assertion incorrectly terminated mission two when its aircraft attempted to fire. Damage accounting has separate native comparisons.
 
 The resource integration check uses the original map, models and first-mission
 placements. It positions and recharges the player deliberately to isolate combat

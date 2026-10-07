@@ -38,6 +38,7 @@ TEST_CASE("First mission gun checks match original aim, timing and hit decisions
     CAPTURE(v);
     darker::game::scenario_actor actor;
     actor.definition_slot = 19;
+    actor.behaviour[0] = static_cast<uint8_t>(v[16]);
     actor.selected_target = 0xd986;
     actor.parameters.definition = &darker::game::original_object_definitions[19];
     actor.pose.position = {10000, 10000, 3000};

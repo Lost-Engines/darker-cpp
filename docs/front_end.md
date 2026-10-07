@@ -176,3 +176,12 @@ Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
 and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
 copied destination are checked. The existing unsupported-stage gate remains in
 place for mission four.
+
+## Background transitions and text lifetime
+
+Both background opcode 3B and clear-screen opcode 3D call BFE4, which clears the
+rendered-text pointer DA30. The player now clears its glyph list at those commands
+while retaining text cursor and paragraph layout state. This prevents mission
+two's briefing from remaining over its subsequent launch clip. The regression
+check observes the original 3D/22 initial blank interval and confirms no briefing
+pixels remain and no in-flight message text is consumed.

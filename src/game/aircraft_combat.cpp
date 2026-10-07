@@ -1,6 +1,5 @@
 #include "game/aircraft_combat.h"
 #include <bit>
-#include <stdexcept>
 #include "game/angular_motion.h"
 #include "game/collision_sweep.h"
 #include "game/object_impact.h"
@@ -66,7 +65,8 @@ void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexce
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t const player_flags,
   uint16_t const player_extent, actor_course const course, uint8_t const distance, uint16_t const clock, uint16_t const changes, uint16_t &random_state) {
   /// 8B65's slot-19 close-range gun tests the original DX aim bounds and timer bits, then traces a randomised ray
-  if(actor.definition_slot != 19 || actor.behaviour[0] != 0 || distance > 6) throw std::invalid_argument{"Skimma gun requires the first-mission firing branch"};
+  // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch.
+  if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;
   if(actor.selected_target != 0xd986 || (player_flags & 0x30)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
   auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles[1]) >> 8) + speed)};
