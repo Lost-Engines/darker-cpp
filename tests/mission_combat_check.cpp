@@ -39,7 +39,18 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
   darker::resources::campaign_resources campaign{archives};
-  for(size_t mission{0}; mission < 15; ++mission) {
+  struct combat_case { uint8_t stage; unsigned int removals; char const *message; };
+  constexpr std::array<combat_case,16> cases{{
+    combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
+    {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
+    {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
+    {9,4,"Good job, Tolly. Return to base."}, {10,7,"Return to base for a mission update."},
+    {11,2,"Mission accomplished. Return to base."}, {12,1,"Good job, Tolly. Return to base."},
+    {13,2,"Return to Hemmersan, Tolly."}, {14,2,"Mission complete- come back to base."},
+    {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."},
+  }};
+  for(auto const &test : cases) {
+    auto const mission{test.stage - 1};
     auto const &scenario{campaign.scenario(static_cast<uint8_t>(mission + 1))};
     auto const record_index{darker::resources::select_campaign_stage(static_cast<uint8_t>(mission + 1)).record};
     auto const &record{scenario.records()[record_index]};
@@ -90,14 +101,11 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(mission < 3 && !context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
         std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
         if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
-        constexpr std::array final_messages{"Well done- you can return to base.","Mission accomplished. Return to base.",
-          "Good job, Tolly. Return to base.","all targets are clear.","Mission complete- come back to base.",
-          "Well done- you can return to base.","Return to Hemmersan.","Mission complete- come back to base.","Good job, Tolly. Return to base.","Return to base for a mission update.","Mission accomplished. Return to base.","Good job, Tolly. Return to base.","Return to Hemmersan, Tolly.","Mission complete- come back to base.","Return to base immediately, Tolly."};
-        message |= actual == final_messages[mission];
+        message |= actual == test.message;
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u,8u,4u,7u,2u,1u,2u,2u,1u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+    if(!message || !script.stopped || combat.completed_objectives != test.removals || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
       throw std::runtime_error{"Campaign controlled combat did not complete: mission=" + std::to_string(mission + 1) + ", shots=" + std::to_string(shots)
         + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", reserves=" + std::to_string(combat.reserves.size())
         + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)
@@ -117,43 +125,51 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
-  {
-    auto const &transfer{campaign.scenario(16)};
-    auto const &record{transfer.records()[7]};
+  for(uint8_t const stage : std::array<uint8_t,2>{16,18}) {
+    auto const &transfer{campaign.scenario(stage)};
+    auto const record_index{darker::resources::select_campaign_stage(stage).record};
+    auto const &record{transfer.records()[record_index]};
+    uint16_t const origin{stage == 16 ? uint16_t{0x7162} : uint16_t{0x3064}};
+    uint16_t const destination{stage == 16 ? uint16_t{0x3064} : uint16_t{0x7162}};
     darker::resources::font_resource const fonts{archives.load({0,29})};
-    darker::presentation::player briefing{archives,fonts,transfer,7};
+    darker::presentation::player briefing{archives,fonts,transfer,record_index};
     do { briefing.advance(4000); } while(briefing.continue_page());
     darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
-    if(briefing.departure_destination != 0x3064 || traffic.actors.size() != 4 || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
-      throw std::runtime_error{"Mission sixteen did not select the original transfer destination"};
+    if(briefing.departure_destination != destination || traffic.actors.size() != 4 || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
+      throw std::runtime_error{"Transfer mission did not select the original destination"};
     }
     auto transfer_cells{darker::game::make_city_map(archives.load({0,68}),true)};
     darker::game::player_flight player;
-    darker::game::hangar_state hangar{.next_return_site{briefing.departure_destination}};
+    darker::game::hangar_state hangar{.return_site{origin},.next_return_site{briefing.departure_destination}};
     darker::game::initialise_caero_hangar(player,transfer_cells,hangar,bank.header_at(bank.special_models()[25]).height);
     for(uint32_t clock{8}; clock <= 4000; clock += 8) traffic.advance(player,transfer_cells,bank,clock,8,0,false,transfer.bytes(record.shared));
     // Isolate the departure boundary and destination handoff from manual navigation.
     player.pose().position[1] -= 768;
     darker::game::advance_hangar_departure(player,transfer_cells,hangar,8);
-    if(hangar.return_site != 0x3064 || (player.lifecycle.flags & 16)
-      || transfer_cells[113*128+49].state != 0 || transfer_cells[48*128+50].state != 0) {
+    if(hangar.return_site != destination || (player.lifecycle.flags & 16)
+      || transfer_cells[origin/2].state != 0 || transfer_cells[destination/2].state != 0) {
       throw std::runtime_error{"Hangar departure did not close the old site before changing destination"};
     }
     darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
-    darker::game::mission_context context{.program{transfer.bytes(record.shared)},.cells{transfer_cells},.objectives_complete{true}};
-    darker::game::advance_mission_script(script,context);
-    if(!script.stopped) throw std::runtime_error{"Transfer mission script did not reach its native stop"};
-    player.pose().position = {50*256+128,48*256+152-700,500};
+    darker::game::mission_context context{.program{transfer.bytes(record.shared)},
+      .text{transfer.language(record_index,darker::resources::scenario_language::english)},.cells{transfer_cells},
+      .time_multiplier{record.time_multiplier},.objectives_complete{true},.text_cursor{briefing.consumed_text()}};
+    for(uint32_t clock{0}; clock < 30000 && !script.stopped; clock += 8) {
+      context.clock = clock;
+      darker::game::advance_mission_script(script,context);
+    }
+    if(!script.stopped || context.messages.size() != (stage == 18 ? 2u : 0u)) throw std::runtime_error{"Transfer mission omitted its timed messages or stop"};
+    player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
     player.pose().angles = {0x8000,0,0};
-    if(!darker::game::begin_hangar_return(player,transfer_cells,hangar,true)) throw std::runtime_error{"Mission sixteen refused its destination hangar"};
+    if(!darker::game::begin_hangar_return(player,transfer_cells,hangar,true)) throw std::runtime_error{"Transfer mission refused its destination hangar"};
     for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {
       darker::game::advance_hangar_return(player,hangar,8,static_cast<uint16_t>(frame*8));
       darker::game::advance_hangar_departure(player,transfer_cells,hangar,8);
     }
-    if(hangar.returning != darker::game::hangar_return_phase::complete || hangar.return_site != 0x3064) {
+    if(hangar.returning != darker::game::hangar_return_phase::complete || hangar.return_site != destination) {
       throw std::runtime_error{"Transfer mission did not complete at the destination hangar"};
     }
-    std::cout << "Mission sixteen: briefing destination, departure handoff and docking at cell (50,48) verified." << std::endl;
+    std::cout << "Mission " << static_cast<unsigned int>(stage) << ": briefing destination, timed messages, departure handoff and docking verified." << std::endl;
   }
   // Mission two's aircraft are distant from HQ: word projection alone used to show phantom nearby ships.
   {
@@ -383,7 +399,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         }
       }
     }
-    for(uint16_t const step : {8,10}) {
+    for(uint16_t const step : std::array<uint16_t,2>{8,10}) {
       std::span<std::array<uint16_t,30> const> const samples{step == 8
         ? std::span<std::array<uint16_t,30> const>{darker::test_reference::tunnel_launch_8_samples}
         : std::span<std::array<uint16_t,30> const>{darker::test_reference::tunnel_launch_10_samples}};
