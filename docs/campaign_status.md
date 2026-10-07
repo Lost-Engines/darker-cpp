@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–20 (04/0, 04/1 and the first four records of 04/2), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct and Mimic, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty saves stage twenty-one and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–22 (04/0, 04/1 and the first six records of 04/2), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-two saves stage twenty-three and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 170 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen and twenty with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen and eighteen’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 172 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen and eighteen’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all twenty supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all twenty-two supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all twenty supported briefings and flight entries, including both
+covers all twenty-two supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -123,3 +123,13 @@ reinforcements and warehouse aircraft. The controlled combat check verifies five
 counted removals, its return message and docking with spawning enabled. The
 windowed campaign check traverses stages 1–20 using Level X and verifies the
 stage-21 save; that is a transition check, not twenty manual combat playthroughs.
+
+## Hunter introduction and mission twenty-two
+
+Mission 21 now introduces and unlocks Brent Hunter through the original briefing.
+Object acquisition, lock retention/markers, secondary fire, homing impacts and
+reference repair are connected; see [Caero weapons](caero_weapons.md). Its
+controlled combat check uses Hunters for all eight counted removals and completes
+docking. Mission 22 completes seven removals and its timed messages while its
+opcode-31 instructions disable and re-enable warehouse admission. The windowed
+Level X check covers both entries and verifies the saved Hunter unlock.

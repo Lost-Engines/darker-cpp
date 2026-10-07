@@ -5,14 +5,11 @@
 #include <cstdint>
 #include "graphics/flat_polygon.h"
 #include "graphics/near_clip.h"
+#include "maths/view_basis.h"
 
 namespace darker::graphics {
 
-struct projection_axis {
-  std::int16_t horizontal{0};
-  std::int16_t vertical{0};
-  std::int16_t depth{0};
-};
+using projection_axis = maths::view_axis;
 
 struct projection_term {
   std::uint16_t whole{0};

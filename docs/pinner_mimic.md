@@ -6,14 +6,14 @@ CBCE copies the player's pitch and bank each update. The roll difference determi
 
 M toggles the original missile camera request. A shot launched while this is enabled becomes the watched projectile (CACD–CAE7). F1/F2 follow it, F3 uses a level following view, and F4 looks from its nose. F5/F6 retain the shared dropped-camera controls. The view stays with the impact record until that record is removed, then returns to the player; no pointer survives recycling. The live missile and impact effect have different following-distance tables. F4 follows the effect after impact rather than remaining at its centre.
 
-The first eight missions are now enabled. The fifth introduces Mimic, the sixth tests it in another reinforcement mission, and the seventh uses two timed reinforcement waves. Its coarse waits are 14h and 28h units of 2,048 ticks, separate from the short scaled-delay opcode. Mission eight also runs its [scripted aircraft navigation](actor_scripts.md), Stalker and flatbed routes.
+The initial Mimic milestone enabled the first eight missions. The fifth introduces Mimic, the sixth tests it in another reinforcement mission, and the seventh uses two timed reinforcement waves. Its coarse waits are 14h and 28h units of 2,048 ticks, separate from the short scaled-delay opcode. Mission eight also runs its [scripted aircraft navigation](actor_scripts.md), Stalker and flatbed routes.
 
 ## Verification
 
 - 2,048 complete native CBCE calls match pitch, bank, heading, speed, position, fractions and response, including wrapped angles and arithmetic boundaries.
-- 360 native C9C2/CAC0 cases cover both definitions, energy boundaries, trigger state, blocked player states and pool availability.
+- The firing fixture now covers 1,640 native cases across Pinner and Brent definitions, including underground costs; see [Caero weapons](caero_weapons.md).
 - 1,024 native 2409 camera cases cover all four attached missile modes, live/impact states, distance settings and smoothing, fractional coordinates and ground adjustment. Existing player-camera comparisons remain unchanged.
-- Controlled original-pack combat completes missions one through seven, with Mimic used for five through seven. Mission seven removes eight counted aircraft across all its waves. Every mission reaches its final return message and docks. This controls player aim/position and charging; it is not a retail playthrough comparison.
+- The initial controlled combat check completed missions one through seven, with Mimic used for five through seven. The current broader campaign check uses Direct independently of Mimic steering, and Hunter for mission 21. Mission seven removes eight counted aircraft across all its waves. Every mission reaches its final return message and docks. This controls player aim/position and charging; it is not a retail playthrough comparison.
 - A runtime launch/expiry check ensures the watched projectile is registered and cleared before recycling.
 
 F7 object selection, complete camera-mode transition timing and explosion-camera behaviour remain separate work. Existing camera limitations concerning exterior lighting and far actor dots still apply.

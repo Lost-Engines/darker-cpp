@@ -50,6 +50,16 @@ mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std
   std::stable_sort(actors.begin(),actors.end(),[](auto const &a, auto const &b){ return a.category < b.category; });
 }
 
+void mission_combat::release_target(uint16_t const token) noexcept {
+  /// 7A52 makes missiles targeting a removed record self-guiding and releases its selected lock
+  for(auto *pool : {&projectiles,&hostile_projectiles}) {
+    for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+      if(shot->target_token == token) shot->target_token = shot->native_id;
+    }
+  }
+  if(target.token == token) target.clear();
+}
+
 void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t const clock, uint16_t const frame_step) {
   /// 3E02 visits occupied warehouses before the player and other moving-object callbacks
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
@@ -69,7 +79,7 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network) {
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
@@ -81,6 +91,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto &actor){
     if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;
+    release_target(static_cast<uint16_t>(0xd986 + actor.index*112));
     if(actor.attributes & 1) ++completed_objectives;
     auto const lifetime{static_cast<uint8_t>(actor.attributes & 0xfe)};
     actor.flags |= 0x20;
@@ -154,15 +165,36 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
   if(primary_weapon == 1 || primary_weapon == 2) {
-    auto const result{fire_pinner(projectiles, caero.energy, emitter, primary_weapon, player.lifecycle.flags, trigger_pressed, bank.special_models()[primary_weapon - 1], clock)};
+    auto const result{fire_caero_weapon(projectiles, caero.energy, emitter, primary_weapon, player.lifecycle.flags, trigger_pressed, bank.special_models()[primary_weapon - 1], clock, 0xffff, player.tunnel.has_value())};
     weapon_ready = result.ready;
     player_fired = result.shot != nullptr;
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
+  secondary_ready = false;
+  if(secondary_weapon == 6 || secondary_weapon == 10) {
+    auto const result{fire_caero_weapon(projectiles,caero.energy,emitter,secondary_weapon,player.lifecycle.flags,
+      secondary_pressed,bank.special_models()[secondary_weapon - 1],clock,target.token,player.tunnel.has_value())};
+    secondary_ready = result.ready;
+    player_fired |= result.shot != nullptr;
+    if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
+  }
+  auto const resolve_target{[&](projectile &shot)->projectile_target {
+    if(shot.parameters.update_entry == 0xcbce) return &player.pose();
+    if(shot.parameters.update_entry != 0xcc61) return {};
+    if(shot.target_token == 0xd986) return &player.pose();
+    if(!(shot.target_token & 0x8000)) return resolve_map_guidance(shot.target_token,cells,bank,damage_mask);
+    if(shot.target_token == shot.native_id) return &shot.placement;
+    auto const actor{std::ranges::find_if(actors,[&](auto const &candidate){ return 0xd986 + candidate.index*112 == shot.target_token; })};
+    if(actor != actors.end()) return &actor->pose;
+    if(auto const *other{projectiles.resolve(shot.target_token)}) return &other->placement;
+    if(auto const *other{hostile_projectiles.resolve(shot.target_token)}) return &other->placement;
+    throw std::logic_error{"Guided projectile target has no active object record"};
+  }};
   for(auto *shot{projectiles.objects().head}; shot;) {
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot, clock)
-      : update_projectile(*shot, clock, frame_step, &player.pose()) == projectile_update_result::expired};
+      : update_projectile(*shot, clock, frame_step, resolve_target(*shot)) == projectile_update_result::expired};
     if(expired) {
+      release_target(shot->native_id);
       if(camera_projectile == shot) camera_projectile = nullptr;
       shot = projectiles.recycle(*shot);
       continue;
@@ -170,13 +202,28 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot;) {
-    projectile_target target{&player.pose()};
-    if(!(shot->flags & 8) && !(shot->target_token & 0x8000)) target = resolve_map_guidance(shot->target_token,cells,bank,damage_mask);
+
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot,clock)
-      : update_projectile(*shot,clock,frame_step,target) == projectile_update_result::expired};
-    if(expired) { shot = hostile_projectiles.recycle(*shot); continue; }
+      : update_projectile(*shot,clock,frame_step,resolve_target(*shot)) == projectile_update_result::expired};
+    if(expired) { release_target(shot->native_id); shot = hostile_projectiles.recycle(*shot); continue; }
     shot = shot->next;
   }
+  if(!secondary_weapon) target.clear();
+  else {
+    if(target.token == 0xffff) target.token = acquire_caero_target(player.pose(),actors,cells,bank,damage_mask);
+    if(target.token != 0xffff) {
+      if(target.token & 0x8000) {
+        auto const found{std::ranges::find_if(actors,[&](auto const &actor){ return 0xd986 + actor.index*112 == target.token; })};
+        if(found == actors.end()) target.clear();
+        else project_caero_target(target,pose.position,found->pose.position,bank.header_at(found->parameters.model_token).extent,targeting_basis,secondary_weapon);
+      } else {
+        auto const aim{resolve_map_guidance(target.token,cells,bank,damage_mask)};
+        auto const cell{cells[(target.token >> 8)*128+(target.token & 127)]};
+        project_caero_target(target,pose.position,{aim.position[0],aim.position[1],aim.height},aim.height_extent,targeting_basis,secondary_weapon,cell.type,cell.state);
+      }
+    }
+  }
+  if(player.lifecycle.flags & 0x10) target.clear();
   for(auto &actor : actors) {
     if((actor.flags & 0x18) || actor.parameters.update_entry == 0x8f3b) continue;
     auto const contact{sweep_city(bank, cells, damage_mask, actor.previous_position, actor.pose.position, 12, 10)};
@@ -206,6 +253,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       auto const reaction{hit_actor(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
+        release_target(static_cast<uint16_t>(0xd986 + victim->index*112));
         if(victim->attributes & 1) ++completed_objectives;
         actors.erase(actors.begin() + (victim - actors.data()));
       }

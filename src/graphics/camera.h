@@ -6,11 +6,7 @@
 
 namespace darker::graphics {
 
-struct camera_angles {
-  std::uint16_t heading{0};
-  std::uint16_t pitch{0};
-  std::uint16_t roll{0};
-};
+using camera_angles = maths::view_angles;
 
 struct camera_position {
   std::uint16_t column{0};                                                      // 1/1024 cell, matching the patched origin subtractors
@@ -31,7 +27,7 @@ struct model_placement {
   std::uint16_t sorting_distance{0};
 };
 
-using camera_basis = std::array<projection_axis, 3>;                             // model components A, B and C; map column/row use B and -A
+using camera_basis = maths::view_basis;                             // model components A, B and C; map column/row use B and -A
 
 camera_basis orient_model(camera_basis const &camera, camera_angles angles) noexcept;
 

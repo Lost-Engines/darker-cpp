@@ -7,6 +7,7 @@
 #include "game/effects.h"
 #include "game/player_flight.h"
 #include "game/projectile_pool.h"
+#include "game/weapon_target.h"
 
 namespace darker::game {
 
@@ -27,6 +28,9 @@ public:
   bool building_attacks{false};
   projectile *camera_projectile{nullptr};
   bool weapon_ready{false};
+  bool secondary_ready{false};
+  weapon_target target;
+  maths::view_basis targeting_basis{maths::make_view_basis({})};
   bool player_fired{false};
   bool player_hit{false};
   unsigned int completed_objectives{0};
@@ -37,7 +41,10 @@ public:
   void update_difficulty(uint32_t clock) noexcept;
   unsigned int remaining_objectives() const noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr);
+    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false);
+
+private:
+  void release_target(uint16_t token) noexcept;
 };
 
 } // namespace darker::game

@@ -71,6 +71,7 @@ struct flight_host {
   darker::game::mission_combat *combat{nullptr};
   uint16_t available_weapons{0};
   bool primary_held{false};
+  bool secondary_held{false};
   bool briefing{false};
   darker::presentation::front_end *front{nullptr};
   bool shield_ready{false};
@@ -251,6 +252,7 @@ auto main(int const argc, char const *const argv[])->int {
       .angles{.heading{camera.angles[0]}, .pitch{camera.angles[1]}, .roll{camera.angles[2]}},
       .origin{.x{160}, .y{static_cast<std::int16_t>(height / 2)}}, .bottom{height},
     };
+    combat->targeting_basis = darker::maths::make_view_basis(view.angles);
     view.underground = host.player.tunnel.has_value();
     view.radius = view.underground ? 8 : 15;
     view.beacon_lighting = caero && !view.underground;
@@ -310,7 +312,14 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
-      darker::graphics::draw_attitude_surround(display, combat->primary_weapon == 0 ? 0xff19 : 0x0019);
+      darker::graphics::draw_attitude_surround(display, combat->weapon_ready ? 0x0019 : 0xff19);
+      if(combat->target.token != 0xffff) {
+        bool const centred{combat->target.distance < 2};
+        uint16_t const colours{static_cast<uint16_t>((combat->secondary_ready ? 0xe9f3 : 0x030c) + (centred ? 0x0606 : 0))};
+        darker::graphics::draw_target_marker(display,centred ? darker::graphics::target_marker::small : darker::graphics::target_marker::large,
+          {.x{static_cast<int16_t>(160 + combat->target.horizontal)},.y{static_cast<int16_t>(92 + combat->target.vertical)}},
+          static_cast<uint8_t>(colours),static_cast<uint8_t>(colours >> 8));
+      }
       if(!host.player.tunnel) darker::graphics::draw_radar_beacons(display,cells,navigation.player,navigation.heading,coverage);
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
       darker::graphics::draw_caero_frame_edges(cache, display);
@@ -429,6 +438,15 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_2:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << (key - GLFW_KEY_1)))) host.combat->primary_weapon = static_cast<uint8_t>(key - GLFW_KEY_1 + 1);
         break;
+      case GLFW_KEY_0:
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 9))) host.combat->secondary_weapon = 10;
+        break;
+      case GLFW_KEY_6:
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 5))) host.combat->secondary_weapon = 6;
+        break;
+      case GLFW_KEY_CAPS_LOCK:
+        if(host.combat && action == GLFW_PRESS) host.combat->target.clear();
+        break;
       case GLFW_KEY_M:
         if(host.combat && action == GLFW_PRESS) {
           host.combat->missile_camera_enabled = !host.combat->missile_camera_enabled;
@@ -534,6 +552,7 @@ auto main(int const argc, char const *const argv[])->int {
       combat = std::make_unique<darker::game::mission_combat>(initial_actors);
       if(caero) host.combat = combat.get();
       host.primary_held = false;
+      host.secondary_held = false;
       host.engine_indicator = 0;
       host.briefing = caero;
       if(front) {
@@ -628,6 +647,7 @@ auto main(int const argc, char const *const argv[])->int {
           game_clock = {};
           host.clock = 0;
           host.primary_held = false;
+          host.secondary_held = false;
           // Poll the cursor-capture warp before establishing the flight mouse origin; asset loading is not flight time.
           auto const loaded_at{std::chrono::steady_clock::now()};
           previous_interrupts = static_cast<uint64_t>(std::chrono::duration<double>{loaded_at - start}.count() * (1193180.0 / 2386));
@@ -643,6 +663,8 @@ auto main(int const argc, char const *const argv[])->int {
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     darker::game::city_collision_result contact;
     bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
+    bool const secondary_held{glfwGetKey(window.get(),GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window.get(),GLFW_KEY_RIGHT_ALT) == GLFW_PRESS
+      || glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
     if(step != 0) {
       if(caero) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
@@ -657,7 +679,7 @@ auto main(int const argc, char const *const argv[])->int {
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr);
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         objectives.advance(cells,mission,host.player.tunnel ? 0x60 : 0x20);
@@ -677,6 +699,7 @@ auto main(int const argc, char const *const argv[])->int {
       }
     }
     host.primary_held = primary_held;
+    host.secondary_held = secondary_held;
     if(contact.contact != darker::game::city_contact::none
       && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")

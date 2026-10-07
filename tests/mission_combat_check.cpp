@@ -20,6 +20,7 @@
 #include "presentation/player.h"
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_spawning_samples.h"
+#include "reference/target_acquisition_samples.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_flight_samples.h"
@@ -37,6 +38,21 @@
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
   darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  for(auto const &s : darker::test_reference::target_acquisition_samples) {
+    auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
+    darker::game::city_map city{};
+    city[50*128+50] = {static_cast<uint8_t>(s[0]),static_cast<uint8_t>(s[1])};
+    darker::game::object_pose const player{.position{word(s[2]),word(s[3]),word(s[4])},.angles{word(s[5]),word(s[6]),0}};
+    std::array<darker::game::scenario_actor,2> actors;
+    for(size_t i{0}; i < actors.size(); ++i) {
+      actors[i].index = static_cast<uint8_t>(i+1);
+      actors[i].parameters.model_token = bank.special_models()[19];
+      actors[i].pose.position = {word(s[7+i*3]),word(s[8+i*3]),word(s[9+i*3])};
+    }
+    auto const token{darker::game::acquire_caero_target(player,actors,city,bank,0x20)};
+    if(token != s[13]) throw std::runtime_error{"Target acquisition differs from native: actual=" + std::to_string(token)
+      + ", expected=" + std::to_string(s[13]) + ", building=" + std::to_string(s[0]) + ", height=" + std::to_string(s[4])};
+  }
   auto cells{darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true)};
   std::array<uint8_t, 256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
@@ -103,7 +119,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; };
-  constexpr std::array<combat_case,17> cases{{
+  constexpr std::array<combat_case,19> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -111,6 +127,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {11,2,"Mission accomplished. Return to base."}, {12,1,"Good job, Tolly. Return to base."},
     {13,2,"Return to Hemmersan, Tolly."}, {14,2,"Mission complete- come back to base."},
     {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."}, {20,5,"Return to Hemmersan."},
+    {21,8,"all targets are clear."}, {22,7,"Return to Hemmersan."},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -129,7 +146,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
     caero.energy.reserve = 0xcfff;
-    combat.primary_weapon = 1;
+    combat.primary_weapon = test.stage == 21 ? 0 : 1;
+    combat.secondary_weapon = test.stage == 21 ? 10 : 0;
     combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
     auto const text{scenario.language(record_index, darker::resources::scenario_language::english)};
@@ -138,6 +156,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const cursor{briefing.consumed_text()};
     darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
     darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    context.set_aircraft_spawning = [&](uint8_t const setting){ combat.spawning.enabled = setting != 0; };
     context.set_building_attacks = [&](uint8_t const setting){ combat.building_attacks = setting != 0; };
     context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
       darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
@@ -157,7 +176,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().speed = 496;
       }
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire, scenario.bytes(record.shared));
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.stage == 21 ? false : fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,test.stage == 21 && fire);
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -292,6 +311,25 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(renderer.draw(frame,bank,empty_city,{.column{12672}, .row{28928}, .altitude{500}},0x20,lighting,{},objects) == 0) {
       throw std::runtime_error{"Nearby mission-two aircraft disappeared with the distant-object rejection"};
     }
+  }
+  {
+    // Retiring a reusable aircraft must break missile references before that identity can launch again.
+    auto actor{darker::game::make_scenario_group(scenario.records()[0].groups[0],bank,1,0,scenario.records()[0].shared.offset).front()};
+    actor.flags = 0x28;
+    actor.expiry = 0;
+    actor.attributes = 0xfe;
+    darker::game::mission_combat combat{{actor}};
+    darker::game::player_flight player;
+    player.pose().position = {10000,10000,10000};
+    darker::game::city_map city{};
+    auto const token{static_cast<uint16_t>(0xd986 + actor.index*112)};
+    darker::game::launch_emitter const emitter{.position{10000,12000,10000},.definition_strength{40}};
+    auto *shot{combat.projectiles.launch({.definition{darker::game::original_object_definitions[9]},.emitter{emitter},
+      .model_token{bank.special_models()[9]},.lifetime{2000},.target_token{token}})};
+    combat.target.token = token;
+    combat.advance(player,city,bank,8,8,0,false);
+    if(shot->target_token != shot->native_id || !combat.actors.empty() || combat.free_actors.size() != 1 || combat.target.token != 0xffff)
+      throw std::runtime_error{"Retired aircraft retained a Hunter or selected-target reference"};
   }
   // Exercise mission two's missile branch through the real pool, homing callback, collision and damage response.
   auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset).front()};

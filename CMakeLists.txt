@@ -106,6 +106,13 @@ add_library(darker_resources STATIC
 target_include_directories(darker_resources PUBLIC src)
 configure_first_party(darker_resources)
 
+add_library(darker_maths STATIC
+  src/maths/view_basis.cpp
+  src/maths/view_basis.h
+)
+target_include_directories(darker_maths PUBLIC src)
+configure_first_party(darker_maths)
+
 add_library(darker_graphics STATIC
   src/graphics/formatted_text.cpp
   src/graphics/formatted_text.h
@@ -152,7 +159,7 @@ add_library(darker_graphics STATIC
   src/graphics/palette_bitmap.cpp
   src/graphics/palette_bitmap.h
 )
-target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resources)
+target_link_libraries(darker_graphics PUBLIC framework_core PUBLIC darker_resources PUBLIC darker_maths)
 configure_first_party(darker_graphics)
 
 add_library(darker_game STATIC
@@ -214,6 +221,8 @@ add_library(darker_game STATIC
   src/game/beacon_changes.h
   src/game/beacon_light.cpp
   src/game/beacon_light.h
+  src/game/weapon_target.cpp
+  src/game/weapon_target.h
   src/game/caero_weapons.cpp
   src/game/caero_weapons.h
   src/game/caero_energy.cpp
@@ -272,6 +281,7 @@ add_library(darker_game STATIC
   src/game/skimma_weapons.cpp
   src/game/skimma_weapons.h
 )
+target_link_libraries(darker_game PUBLIC darker_maths)
 target_include_directories(darker_game PUBLIC src)
 configure_first_party(darker_game)
 
@@ -379,6 +389,7 @@ if(BUILD_TESTING)
     tests/game_clock_test.cpp
     tests/skimma_flight_test.cpp
     tests/mimic_test.cpp
+    tests/weapon_target_test.cpp
     tests/caero_weapons_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_changes_test.cpp
