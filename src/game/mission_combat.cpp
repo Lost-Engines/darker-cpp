@@ -257,7 +257,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   if(player.lifecycle.flags & 0x10) target.clear();
   for(auto &actor : actors) {
-    if((actor.flags & 0x18) || actor.parameters.update_entry == 0x8f3b) continue;
+    if(actor.category != actor_category::air || (actor.flags & 0x18)) continue;
     auto const contact{sweep_city(bank, cells, damage_mask, actor.previous_position, actor.pose.position, 12, 10)};
     if(contact.contact != city_contact::none) {
       effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);

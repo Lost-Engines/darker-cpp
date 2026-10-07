@@ -18,6 +18,7 @@
 #include "game/tunnel_portal.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
+#include "maths/sine_table.h"
 #include "presentation/player.h"
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_spawning_samples.h"
@@ -119,8 +120,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         || target.height != sample[6] || target.height_extent != sample[7]) throw std::runtime_error{"Building missile guidance differs from native model lookup"};
     }
   }
-  struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; };
-  constexpr std::array<combat_case,27> cases{{
+  struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
+  constexpr std::array<combat_case,33> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -128,10 +129,13 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {11,2,"Mission accomplished. Return to base."}, {12,1,"Good job, Tolly. Return to base."},
     {13,2,"Return to Hemmersan, Tolly."}, {14,2,"Mission complete- come back to base."},
     {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."}, {20,5,"Return to Hemmersan."},
-    {21,8,"all targets are clear."}, {22,7,"Return to Hemmersan."},
+    {21,8,"all targets are clear.",false,10}, {22,7,"Return to Hemmersan."},
     {25,7,"Good job, Tolly. Return to base."}, {26,12,"Mission accomplished. Return to base."},
     {27,6,"Return to base for a mission update."}, {28,6,"You've done all you can.",true}, {29,9,"and return to base."},
-    {30,12,"they could be approaching!"}, {31,11,"Mission complete- come back to base."}, {32,6,"Well done- you can return to base."},
+    {30,12,"they could be approaching!",false,9}, {31,11,"Mission complete- come back to base."}, {32,6,"Well done- you can return to base."},
+    {33,4,"You can return to Hemmersan.",false,9}, {34,2,"Return to Hemmersan.",false,9},
+    {35,1,nullptr,false,9}, {38,8,"Tolly: get back to base.",false,9},
+    {39,4,"Return to base for a mission update.",false,9}, {40,6,"all targets are clear.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -150,8 +154,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
     caero.energy.reserve = 0xcfff;
-    combat.primary_weapon = test.stage == 21 || test.stage == 30 ? 0 : 1;
-    combat.secondary_weapon = test.stage == 21 ? 10 : test.stage == 30 ? 9 : 0;
+    combat.primary_weapon = test.weapon <= 3 ? test.weapon : 0;
+    combat.secondary_weapon = test.weapon > 3 ? test.weapon : 0;
     combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
     auto const text{scenario.language(record_index, darker::resources::scenario_language::english)};
@@ -168,7 +172,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       return combat.remaining_objectives() == 0;
     };
     unsigned int shots{0};
-    bool message{false};
+    bool message{test.message == nullptr};
     bool saw_burst{false}, saw_trail{false};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
@@ -179,9 +183,19 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().position[2] += 92;
         player.pose().angles = {};
         player.pose().speed = 496;
+        if(test.stage >= 33) {
+          // Follow behind the target rather than launching across an Assassin's lateral motion.
+          auto const heading{target->pose.angles[0]};
+          auto const sine{darker::maths::original_sine[heading >> 6]};
+          auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+          player.pose().position[0] = static_cast<uint16_t>(target->pose.position[0] + ((sine*200) >> 15));
+          player.pose().position[1] = static_cast<uint16_t>(target->pose.position[1] + ((cosine*200) >> 15));
+          player.pose().angles[0] = heading;
+          combat.targeting_basis = darker::maths::make_view_basis({.heading{heading}});
+        }
       }
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.stage == 21 || test.stage == 30 ? false : fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(test.stage == 21 && fire) || (test.stage == 30 && clock % 2048 == 8),test.stage == 30 && clock % 2048 != 0);
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(test.weapon == 10 && fire) || (test.weapon == 9 && clock % 2048 == 8),test.weapon == 9 && clock % 2048 != 0);
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -197,9 +211,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(mission < 3 && !context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
         std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
         if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
-        message |= actual == test.message;
+        message |= test.message && actual == test.message;
       }
-      if(message && script.stopped) break;
+      if(message && script.stopped && combat.remaining_objectives() == 0) break;
     }
     auto const live_objectives{static_cast<unsigned>(std::ranges::count_if(combat.actors,[](auto const &actor){ return actor.attributes & 1; }))};
     bool const correct_removals{test.permits_survivors
@@ -212,10 +226,11 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         + ", reserve=" + std::to_string(caero.energy.reserve)};
     }
     if(!saw_burst || !saw_trail) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
-    player.pose().position = {12672, 28380, 500};
+    auto const destination{briefing.departure_destination ? briefing.departure_destination : uint16_t{0x7162}};
+    player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
     player.pose().angles = {0x8000, 0, 0};
     caero.damage.rotation = {};
-    darker::game::hangar_state hangar;
+    darker::game::hangar_state hangar{.return_site{destination}};
     if(!darker::game::begin_hangar_return(player, cells, hangar, combat.remaining_objectives() == 0)) throw std::runtime_error{"Completed mission refused HQ return"};
     for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {
       context.clock += 8;
@@ -225,17 +240,17 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
-  for(uint8_t const stage : std::array<uint8_t,3>{16,18,23}) {
+  for(uint8_t const stage : std::array<uint8_t,4>{16,18,23,37}) {
     auto const &transfer{campaign.scenario(stage)};
     auto const record_index{darker::resources::select_campaign_stage(stage).record};
     auto const &record{transfer.records()[record_index]};
-    uint16_t const origin{stage != 18 ? uint16_t{0x7162} : uint16_t{0x3064}};
-    uint16_t const destination{stage == 16 ? uint16_t{0x3064} : stage == 18 ? uint16_t{0x7162} : uint16_t{0x4c64}};
+    uint16_t const origin{stage == 37 ? uint16_t{0x3060} : stage != 18 ? uint16_t{0x7162} : uint16_t{0x3064}};
+    uint16_t const destination{stage == 16 ? uint16_t{0x3064} : (stage == 18 || stage == 37) ? uint16_t{0x7162} : uint16_t{0x4c64}};
     darker::resources::font_resource const fonts{archives.load({0,29})};
     darker::presentation::player briefing{archives,fonts,transfer,record_index};
     do { briefing.advance(4000); } while(briefing.continue_page());
     darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
-    if(briefing.departure_destination != destination || traffic.actors.size() != (stage == 23 ? 0u : 4u) || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
+    if(briefing.departure_destination != destination || traffic.actors.size() != (stage == 23 || stage == 37 ? 0u : 4u) || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
       throw std::runtime_error{"Transfer mission did not select the original destination"};
     }
     auto transfer_cells{darker::game::make_city_map(archives.load({0,68}),true)};
@@ -675,7 +690,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,2>{{{17,0x3064,13,16},{24,0x3f64,14,20}}}) {
+    for(auto const test : std::array<tunnel_case,3>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};
@@ -702,13 +717,29 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
         for(auto const &actor : combat.actors) {
           auto const original{std::ranges::find_if(before,[&](auto const &item){ return item.index == actor.index; })};
-          if(original != before.end() && (actor.pose.position != original->pose.position || actor.tunnel->route != original->tunnel->route)) {
+          if(original != before.end() && (actor.pose.position != original->pose.position || actor.tunnel.has_value() != original->tunnel.has_value()
+            || (actor.tunnel && actor.tunnel->route != original->tunnel->route))) {
             throw std::runtime_error{"Underground reserves were moved away from their routes"};
           }
         }
         admitted += count;
         return combat.remaining_objectives() == 0;
       };
+      if(test.stage == 36) {
+        std::vector<darker::game::scenario_actor> stationary;
+        for(auto const &actor : combat.reserves) if(actor.category == darker::game::actor_category::stationary) stationary.push_back(actor);
+        if(stationary.size() != 2) throw std::runtime_error{"Communications tunnel lost its two stationary aircraft"};
+        // Force a terrain intersection: static records are targets, never moving collision owners in 6F0F.
+        stationary.front().pose.position = {};
+        stationary.front().previous_position = {};
+        darker::game::mission_combat idle{stationary};
+        for(uint32_t time{8}; time < 1024; time += 8) idle.advance(player,city,underground_bank,time,8,0,false,{},50,&network);
+        if(idle.actors.size() != stationary.size() || idle.completed_objectives != 0) throw std::runtime_error{"Stationary tunnel objects expired without an impact"};
+        for(size_t i{0}; i < stationary.size(); ++i) {
+          if(idle.actors[i].pose.position != stationary[i].pose.position || idle.actors[i].flags != stationary[i].flags
+            || idle.actors[i].parameters.update_entry != 0) throw std::runtime_error{"Stationary aircraft entered the moving-object collision pass"};
+        }
+      }
       darker::game::mission_script script{.continuation{*underground_record.player_program - underground_record.shared.offset}};
       unsigned int shots{0};
       uint32_t clock{0};
