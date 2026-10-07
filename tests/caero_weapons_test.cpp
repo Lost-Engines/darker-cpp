@@ -75,3 +75,10 @@ TEST_CASE("Chargeable sound follows the native charge and timer modulation", "[a
     if(pitch) CHECK(*pitch == sample[3]);
   }
 }
+
+TEST_CASE("Pinner Direct strength follows native world setup", "[game][weapons]") {
+  /// Compare Delphi and underground definition patches executed by BCA4
+  for(auto const &sample : darker::test_reference::pinner_world_strength_samples) {
+    CHECK(darker::game::pinner_direct_strength(sample[0] == 2) == sample[1]);
+  }
+}

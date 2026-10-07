@@ -1650,4 +1650,10 @@ inline constexpr std::array<std::array<int, 11>, 1640> caero_weapon_samples{{
   {65535, 16, 1, 1, 65535, 0, 0, 0, 10, 32767, 2},
 }};
 
+// Native BCA4 world setup patches Pinner Direct strength at 192E.
+inline constexpr std::array<std::array<int,2>,2> pinner_world_strength_samples{{
+  {0,52},
+  {2,59},
+}};
+
 } // namespace darker::test_reference

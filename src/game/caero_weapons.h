@@ -25,6 +25,8 @@ struct caero_fire_request {
   bool underground{false};
 };
 
+uint8_t pinner_direct_strength(bool underground) noexcept;
+
 std::optional<uint8_t> chargeable_impact_strength(uint16_t deadline, uint16_t clock) noexcept;
 
 caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &energy, uint16_t &charge, caero_fire_request request);

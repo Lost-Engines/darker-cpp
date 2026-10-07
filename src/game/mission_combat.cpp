@@ -285,7 +285,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
     auto const strength{shot->parameters.definition == &original_object_definitions[8]
-      ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition->impact_strength}};
+      ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition == &original_object_definitions[0]
+        ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
       auto const reaction{hit_actor(*victim, *strength, clock, random_state)};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);

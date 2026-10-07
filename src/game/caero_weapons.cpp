@@ -5,6 +5,11 @@
 
 namespace darker::game {
 
+uint8_t pinner_direct_strength(bool const underground) noexcept {
+  /// BCBF patches definition zero from world profile BDEC: 34h in Delphi and 3Bh underground
+  return underground ? 0x3b : 0x34;
+}
+
 std::optional<uint8_t> chargeable_impact_strength(uint16_t const deadline, uint16_t const clock) noexcept {
   /// CF37 ignores expired and last-page impacts; otherwise AH after the wrapped shift supplies strength
   auto const remaining{static_cast<uint16_t>(deadline - clock)};

@@ -270,9 +270,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
   struct transfer_case { uint8_t stage; uint16_t origin, destination; size_t actors, messages; };
-  for(auto const test : std::array<transfer_case,6>{{
+  for(auto const test : std::array<transfer_case,7>{{
     {16,0x7162,0x3064,4,0},{18,0x3064,0x7162,4,2},{23,0x7162,0x4c64,0,0},
-    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},
+    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},{56,0x0d88,0x7162,8,4},
   }}) {
     auto const stage{test.stage};
     auto const &transfer{campaign.scenario(stage)};
@@ -723,7 +723,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,4>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14}}}) {
+    for(auto const test : std::array<tunnel_case,5>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};

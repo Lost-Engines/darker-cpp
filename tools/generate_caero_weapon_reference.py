@@ -52,6 +52,18 @@ def main():
              '// Image SHA-256: ' + IMAGE_SHA256, '', '#include <array>', '', 'namespace darker::test_reference {', '',
              f'inline constexpr std::array<std::array<int, 11>, {len(rows)}> caero_weapon_samples{{{{']
     lines += ['  {' + ', '.join(map(str, row)) + '},' for row in rows]
+    lines += ['}};', '', '// Native BCA4 world setup patches Pinner Direct strength at 192E.',
+              'inline constexpr std::array<std::array<int,2>,2> pinner_world_strength_samples{{']
+    for mode in (0,2):
+        h = Harness(image)
+        h.write(0x6202,bytes([mode]))
+        def stop_setup(cpu,address,size,data):
+            if address == h.BASE+0xbccb:
+                h.setreg('IP',h.RETURN)
+        h.cpu.hook_add(UC_HOOK_CODE,stop_setup)
+        h.call(0xbca4)
+        assert h.getreg('IP') == h.RETURN
+        lines.append('  {'+str(mode)+','+str(h.read(0x192e)[0])+'},')
     lines += ['}};', '', '} // namespace darker::test_reference', '']
     (Path(__file__).resolve().parents[1] / 'tests/reference/caero_weapon_samples.h').write_text('\n'.join(lines))
     print(f'Captured {len(rows)} original Caero firing cases.')
