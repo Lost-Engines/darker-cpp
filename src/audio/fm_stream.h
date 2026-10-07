@@ -15,6 +15,7 @@ struct fm_note {
   std::uint16_t generation{0};
   std::uint8_t patch{0};
   bool active{false};
+  std::array<uint8_t,2> attenuation{255,255};
 };
 
 using fm_frame = std::array<fm_note, 9>;

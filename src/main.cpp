@@ -73,6 +73,7 @@ struct flight_host {
   darker::audio::ambient_sounds ambient_audio;
   darker::game::flight_camera camera;
   darker::game::hangar_state hangar;
+  darker::game::object_pose audio_listener, audio_motion;
   darker::game::mission_combat *combat{nullptr};
   uint16_t available_weapons{0};
   uint8_t score_base{0};
@@ -268,6 +269,8 @@ auto main(int const argc, char const *const argv[])->int {
     auto const &pose{host.player.pose()};
     auto const subject{!watched ? darker::game::camera_subject::player : (watched->flags & 8) ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile};
     auto const camera{host.camera.view(watched ? watched->placement : pose,frame_step,(host.player.lifecycle.flags & 16) != 0,subject)};
+    host.audio_listener = camera;
+    host.audio_motion = watched ? watched->placement : pose;
     darker::graphics::city_view view{
       .column{camera.position[0]}, .row{camera.position[1]}, .column_fraction{camera.fractions[0]}, .row_fraction{camera.fractions[1]},
       .altitude{std::bit_cast<std::int16_t>(camera.position[2])},
@@ -855,11 +858,11 @@ auto main(int const argc, char const *const argv[])->int {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen,combat->weapon_charge)};
       audio.select_music(front ? front->music_group() : -1);
-      auto const pose{host.player.pose()};
+      auto const pose{host.audio_listener};
       auto const ambient{host.ambient_audio.advance({.listener{pose.position[0],pose.position[1]},.clock{clock},
         .changes{game_clock.frame_changes},.gate_site{host.hangar.return_site},.gate_active{host.hangar.sound_level != 0},
         .supplementary{exchange.supplementary_active}},cells,host.world_audio.audible_ambient(),world_mode)};
-      audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds,*combat,pose,clock,ambient));
+      audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds,*combat,pose,clock,ambient,&host.audio_motion,&host.player.pose()));
     }
     if(caero && !host.briefing && !exchange.supplementary_active && combat->script_owner) {
       // 3E93's late-frame SI is not a recovered player continuation; blackout never returns through it.

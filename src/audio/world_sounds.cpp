@@ -35,7 +35,7 @@ uint16_t doppler_factor(game::object_pose const *const motion, uint16_t const he
 }
 
 uint16_t spatial_pitch(uint16_t const pitch, std::array<uint16_t, 3> const source, game::object_pose const &listener,
-  game::object_pose const *const source_motion) noexcept {
+  game::object_pose const *const source_motion, game::object_pose const *const listener_motion) noexcept {
   /// 39BA scales both horizontal differences by eight before 925C, then divides listener/source velocity factors
   auto const x{static_cast<uint16_t>((source[0] - listener.position[0]) * 8)};
   auto const y{static_cast<uint16_t>((source[1] - listener.position[1]) * 8)};
@@ -43,8 +43,27 @@ uint16_t spatial_pitch(uint16_t const pitch, std::array<uint16_t, 3> const sourc
   auto const magnitude{[](uint16_t const value){ return value & 0x8000 ? static_cast<uint16_t>(-value) : value; }};
   auto const heading{static_cast<uint16_t>(maths::direction_index(x, y) << 5)};
   auto const elevation{static_cast<uint16_t>(maths::direction_index(z, std::max(magnitude(x), magnitude(y))) << 5)};
-  return static_cast<uint16_t>((static_cast<uint32_t>(doppler_factor(&listener, heading, elevation)) * pitch)
+  return static_cast<uint16_t>((static_cast<uint32_t>(doppler_factor(listener_motion ? listener_motion : &listener, heading, elevation)) * pitch)
     / doppler_factor(source_motion, heading, elevation));
+}
+
+std::array<uint8_t,2> stereo_attenuation(std::array<uint16_t,3> const delta, maths::view_basis const &basis, uint16_t const level) noexcept {
+  /// 3A2A transforms source bearing, shapes two sine-table gains and converts them to OPL carrier attenuation
+  auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>(delta[0]*8))};
+  auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>(delta[1]*8))};
+  auto const z{std::bit_cast<int16_t>(delta[2])};
+  auto const depth{static_cast<uint16_t>(((x*basis[1].depth) >> 16)+((z*basis[2].depth) >> 16)-((y*basis[0].depth) >> 16))};
+  auto const side{static_cast<uint16_t>(((y*basis[0].horizontal) >> 16)-((x*basis[1].horizontal) >> 16)-((z*basis[2].horizontal) >> 16))};
+  auto const phase{maths::direction_index(depth,side) >> 2};
+  auto const gain{[](int16_t const sine){
+    auto const harmonic{maths::original_sine[static_cast<uint16_t>(sine) >> 6] >> 2};
+    auto const sum{static_cast<uint16_t>(sine+harmonic+(harmonic >> 2))};
+    return static_cast<uint16_t>((sum*2) ^ (sum & 0x8000 ? 65535 : 0));
+  }};
+  auto const amplitude{std::min(65535u,unsigned{level}+(level >> 4)) >> 4};
+  auto const left{gain(maths::original_sine[256+((-phase)&511)])};
+  auto const right{gain(maths::original_sine[phase])};
+  return {static_cast<uint8_t>(63^((left*amplitude) >> 22)),static_cast<uint8_t>(63^((right*amplitude) >> 22))};
 }
 
 fm_note object_sound(game::object_definition const &definition, game::object_pose const &pose,
@@ -85,16 +104,20 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
   return result;
 }
 
-fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient) {
+fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient, game::object_pose const *const listener_motion, game::object_pose const *const player_source) {
   /// Visit the original source groups before native candidate admission and physical channel allocation
   std::vector<sound_candidate> candidates;
+  auto const basis{maths::make_view_basis({listener.angles[0],listener.angles[1],listener.angles[2]})};
   auto const append{[&](game::effect_sound const &sound, game::object_pose const *const motion, uint64_t const identity){
     auto const &definition{sound.definition};
     auto const level{audible_level(sound.position, listener.position, definition.level, definition.flags)};
     if(!level) return;
-    auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion)};
+    auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion, listener_motion)};
     candidates.push_back({identity, {.pitch{pitch}, .level{*level},
       .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : 0)},.patch{definition.patch}, .active{true}}});
+    if(definition.flags & 1) candidates.back().note.attenuation = stereo_attenuation({
+      static_cast<uint16_t>(sound.position[0]-listener.position[0]),static_cast<uint16_t>(sound.position[1]-listener.position[1]),
+      static_cast<uint16_t>(sound.position[2]-listener.position[2])},basis,*level);
   }};
   auto const append_actors{[&](game::actor_category const category){
     for(auto const &actor : combat.actors) {
@@ -105,7 +128,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
           .fade{actor.fade},.deadline{actor.expiry}},clock)};
       if(!note.active) continue;
       game::effect_sound const sound{.position{actor.pose.position},.definition{
-        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0}}};
+        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0x29}}};
       append(sound,&actor.pose,0x300000000ULL+actor.index);
     }
   }};
@@ -117,7 +140,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       if(!note.active) continue;
       if(&definition == &game::original_object_definitions[6]) note.pitch = combat.dual_launch_pitch;
       game::effect_sound const sound{.position{shot->placement.position},.definition{
-        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0}}};
+        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0x29}}};
       // Object voices retain their native pool identity across updates.
       auto const identity{0x200000000ULL+shot->native_id};
       append(sound,&shot->placement,identity);
@@ -127,16 +150,27 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
   auto const append_player{[&](size_t const i){
     if(player[i].active) candidates.push_back({0x100000000ULL+i*65536,player[i]});
   }};
-  append_player(0);
+  if(player_source && player[0].active) {
+    game::effect_sound const engine{.position{player_source->position},.definition{.duration{0},.pitch{player[0].pitch},
+      .level{player[0].level},.patch{player[0].patch},.flags{0x29}}};
+    append(engine,player_source,0x100000000ULL);
+  } else append_player(0);
   append_actors(game::actor_category::air);
   // Fixed records are visited in address order: boost, beacons, charge, messages, ambient, switches, shield.
-  append_player(1);
+  if(player_source && player[1].active) {
+    game::effect_sound const boost{.position{player_source->position},.definition{.duration{0},.pitch{player[1].pitch},
+      .level{player[1].level},.patch{player[1].patch},.flags{1}}};
+    auto const before{candidates.size()};
+    append(boost,player_source,0x100010000ULL);
+    if(candidates.size() != before) candidates.back().note.generation = player[1].generation;
+  } else append_player(1);
   for(auto const &sound : ambient) if((sound.identity >> 16) < 2) append(sound,nullptr,0x400000000ULL+(sound.identity & 0xffff0000u));
   append_player(2);
   append_player(5);
-  append_player(6);
   for(auto const &sound : ambient) if((sound.identity >> 16) >= 2) append(sound,nullptr,0x400000000ULL+(sound.identity & 0xffff0000u));
-  append_player(3);
+  if(player[3].patch == 4) append_player(3);
+  append_player(6);
+  if(player[3].patch != 4) append_player(3);
   append_player(4);
   for(auto *pool : {&combat.effects.sounds,&combat.effects.gun_sounds}) {
     // 363C retires a previously submitted transient when its voice was rejected or stolen.

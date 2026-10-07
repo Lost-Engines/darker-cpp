@@ -49,11 +49,10 @@ to complete with these effects active.
 
 The channel manager now follows native candidate admission and persistent
 active/free-list allocation; details and the consecutive-frame fixture are below.
-Player sound callbacks still produce their previously reconstructed nonspatial
-records. Listening position and velocity currently follow the player, including
-external views; native camera-dependent sound ownership remains outstanding.
-OPL output retains the existing mono-compatible presentation; flag-1 stereo
-placement is not reconstructed here. Music uses the separate original sequencer; remaining event bindings still need auditing.
+Player engine and boost sounds now follow their world-space source. Other cockpit
+notifications retain their nonspatial flags. Camera-dependent listening and
+flag-1 stereo placement are described below. Music uses the separate original
+sequencer; remaining event bindings still need auditing.
 
 ```sh
 python3 tools/generate_effect_tables.py ../analysis/unpacked/image.bin
@@ -107,8 +106,7 @@ A further 1,024 native cases execute the original callbacks **and** timer/voice
 checks, substituting only the final spatial-admission call. Comparisons cover
 all updated coordinates, pitch, volume, flags, deadlines and admission results.
 Integration tests check note retention, bell retriggering, world exclusion and
-several cycles through the real OPL PCM renderer. Listener coordinates still
-follow the player rather than the external camera, as noted above.
+several cycles through the real OPL PCM renderer. Listener coordinates now follow the rendered camera.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_ambient_sound_reference.py ..
@@ -136,9 +134,39 @@ restarting later if a channel becomes available.
 Fixed records retain their identity when retriggered; note generation is tracked
 separately from physical ownership. The host uses wider source identities instead
 of native byte-sized pool identities. This preserves retention within their
-lifetimes but does not establish identical transient pool reuse or all note-gate flags. External-camera listening, stereo
-placement, low-level gate behaviour and remaining event coverage are still open.
+lifetimes but does not establish identical transient pool reuse or all note-gate flags. Low-level gate behaviour and remaining event coverage are still open.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_voice_allocation_reference.py ..
+```
+
+## Stereo and camera-dependent listening
+
+3A2A projects wrapped source displacement through the native camera basis. The
+bearing feeds two sine-table curves, with separate signed intermediate rounding,
+before producing left/right OPL carrier attenuation. The second curve uses the
+native half-table wrap, rather than substituting a mathematically equivalent
+cosine: signed rounding makes a one-step difference in some cases. All 512 native
+reference cases match, including arbitrary basis coefficients and saturation.
+
+The stream now runs two synchronised OPL2 paths. Patch, pitch and gate writes
+are shared; only the final carrier-level write differs between ears. This
+reproduces independent FM attenuation, rather than panning a mixed PCM signal.
+Music continues to receive identical writes on both paths. PCM checks exercise
+hard-left, hard-right and centred notes; the existing synthesis checks remain.
+
+The host retains the rendered camera pose for distance admission, ambient proxy
+selection and stereo orientation, without advancing the camera a second time.
+Doppler separately retains the watched object's motion, following 264F's source
+pointer. The player's engine and boost are positioned at the player rather than
+at the listener. Stationary recipe/gun effects and moving actors/projectiles use
+their original spatial flags. Fixed-record visitation now places the message
+notification at 38BE, after the Caero switch at 38AA and before Skimma switches.
+
+This does not claim hardware-identical analogue output or exhaustive validation
+of every dropped-camera/missile-camera combination. Low-level note-gate flags,
+transient pool reuse and remaining event bindings still warrant review.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_stereo_reference.py ..
 ```

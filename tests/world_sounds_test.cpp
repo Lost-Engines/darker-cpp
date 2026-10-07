@@ -4,6 +4,7 @@
 #include "audio/world_sounds.h"
 #include "game/object_definitions.h"
 #include "reference/object_sound_samples.h"
+#include "reference/stereo_samples.h"
 #include "reference/voice_allocation_samples.h"
 #include "reference/world_sound_samples.h"
 
@@ -180,4 +181,40 @@ TEST_CASE("A repeated fixed sound retriggers without changing physical ownership
   CHECK(allocator.identities() == owners);
   for(size_t i{0}; i < first.size(); ++i) if(first[i].active)
     CHECK(repeated[i].generation == first[i].generation+(owners[i] == 1 ? 1 : 0));
+}
+
+TEST_CASE("Stereo attenuation matches the native camera transform and gain curves", "[audio]") {
+  /// Cover wrapping products, signed bearings, saturation and the original non-linear pan law
+  for(auto const &v : darker::test_reference::stereo_samples) {
+    darker::maths::view_basis const basis{{
+      {.horizontal{static_cast<int16_t>(v[4])},.depth{static_cast<int16_t>(v[7])}},
+      {.horizontal{static_cast<int16_t>(v[3])},.depth{static_cast<int16_t>(v[6])}},
+      {.horizontal{static_cast<int16_t>(v[5])},.depth{static_cast<int16_t>(v[8])}},
+    }};
+    CHECK(darker::audio::stereo_attenuation({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},basis,
+      static_cast<uint16_t>(v[9])) == std::array<uint8_t,2>{static_cast<uint8_t>(v[10]),static_cast<uint8_t>(v[11])});
+  }
+}
+
+TEST_CASE("Stereo carrier levels produce independent PCM without altering centred sound", "[audio]") {
+  /// Exercise actual chip output rather than only the pan arithmetic
+  auto const energy{[](std::array<uint8_t,2> const attenuation){
+    darker::audio::fm_stream stream{48000};
+    darker::audio::fm_frame frame{};
+    frame[0] = {.pitch{686},.level{0xb000},.generation{1},.patch{2},.active{true},.attenuation{attenuation}};
+    REQUIRE(stream.publish(frame));
+    std::array<float,2048> pcm{};
+    std::array<double,2> result{};
+    for(unsigned int block{0}; block < 20; ++block) {
+      stream.render(pcm);
+      for(size_t i{0}; i < pcm.size(); ++i) result[i%2] += pcm[i]*pcm[i];
+    }
+    return result;
+  }};
+  auto const left{energy({0,63})}, right{energy({63,0})}, centre{energy({255,255})};
+  CHECK(left[0] > left[1]*100);
+  CHECK(right[1] > right[0]*100);
+  // Nuked OPL retains the chip's inter-channel sample timing; compare accumulated energy within that skew.
+  CHECK(std::abs(centre[0]-centre[1]) < centre[0]*0.001);
+  CHECK(centre[0] > 0);
 }
