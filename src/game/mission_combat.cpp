@@ -12,6 +12,7 @@
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
 #include "game/tunnel_navigation.h"
+#include "game/vehicle_combat.h"
 
 namespace darker::game {
 namespace {
@@ -134,6 +135,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
       actor.previous_position = actor.pose.position;
       auto const event{advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height,random_state)};
+      if(event.firing_direction) fire_vehicle_missile(hostile_projectiles,actor,player.pose(),cells,bank.city_types(),
+        *event.firing_direction,clock,difficulty,bank.special_models()[18]);
       if(event.damage_cell) {
         damage_world_cell(static_cast<uint8_t>(*event.damage_cell),static_cast<uint8_t>(*event.damage_cell >> 8),0xe0,cells,bank,effects,clock,world_damage_counter);
       }

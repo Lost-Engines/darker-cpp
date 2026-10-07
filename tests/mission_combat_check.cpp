@@ -121,7 +121,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
-  constexpr std::array<combat_case,37> cases{{
+  constexpr std::array<combat_case,39> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -138,6 +138,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {39,4,"Return to base for a mission update.",false,9}, {40,6,"all targets are clear.",false,9},
     {41,7,"Return to Hemmersan.",false,9}, {42,6,"Return to base immediately, Tolly.",false,9},
     {43,8,"Return to Hemmersan, Tolly.",false,9}, {44,12,"Good job, Tolly. Return to base.",false,9},
+    {48,12,"Mission accomplished. Return to base.",false,9}, {49,12,"and don't waste any time.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -159,6 +160,26 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     combat.primary_weapon = test.weapon <= 3 ? test.weapon : 0;
     combat.secondary_weapon = test.weapon > 3 ? test.weapon : 0;
     combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
+    if(test.stage == 48) {
+      auto launchers{combat.actors};
+      std::erase_if(launchers,[](auto const &actor){ return actor.definition_slot != 32; });
+      if(launchers.size() != 6) throw std::runtime_error{"Mission 48 lost its six mobile launchers"};
+      darker::game::mission_combat ground{std::move(launchers)};
+      ground.difficulty = combat.difficulty;
+      darker::game::player_flight target_player;
+      bool fired{false};
+      for(uint32_t clock{8}; clock < 100000 && !fired && !ground.actors.empty(); clock += 8) {
+        auto const &launcher{ground.actors.front()};
+        auto const heading{launcher.pose.angles[0]};
+        auto const sine{darker::maths::original_sine[heading >> 6]};
+        auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+        target_player.pose().position = {static_cast<uint16_t>(launcher.pose.position[0] + ((sine*700) >> 15)),
+          static_cast<uint16_t>(launcher.pose.position[1] + ((cosine*700) >> 15)),1600};
+        ground.advance(target_player,cells,bank,clock,8,0,false,scenario.bytes(record.shared),record.time_multiplier);
+        fired = std::ranges::any_of(ground.hostile_projectiles.records(),[](auto const &shot){ return shot.parameters.definition == &darker::game::original_object_definitions[18]; });
+      }
+      if(!fired) throw std::runtime_error{"Mission 48 launcher routes never invoked their missile branch"};
+    }
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
     auto const text{scenario.language(record_index, darker::resources::scenario_language::english)};
     darker::presentation::player briefing{archives,fonts,scenario,record_index};

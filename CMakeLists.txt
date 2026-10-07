@@ -175,6 +175,7 @@ add_library(darker_game STATIC
   src/game/aircraft_combat.h
   src/game/actor_update.cpp
   src/game/actor_update.h
+  src/game/vehicle_combat.cpp
   src/game/vehicle_route.cpp
   src/game/vehicle_route.h
   src/game/actor_navigation.cpp
@@ -345,6 +346,7 @@ if(BUILD_TESTING)
     tests/aircraft_combat_test.cpp
     tests/actor_activation_test.cpp
     tests/actor_motion_test.cpp
+    tests/vehicle_combat_test.cpp
     tests/vehicle_route_test.cpp
     tests/actor_navigation_test.cpp
     tests/tunnel_network_test.cpp

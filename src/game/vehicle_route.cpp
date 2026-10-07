@@ -166,6 +166,8 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
   default:
     throw std::invalid_argument{"Unknown vehicle route action"};
   }
+  auto const action{route.command & 15};
+  if(action == 0 || action == 1 || action == 6 || action == 7) result.firing_direction = static_cast<uint8_t>(direction);
   constexpr std::array<uint16_t,5> reflection{0xffff,0xffff,0,0,0xffff};
   along ^= reflection[direction / 2];
   across ^= reflection[direction / 2 + 1];

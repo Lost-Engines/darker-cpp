@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–47 (04/0 through 04/4 and seven records of 04/5), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter and Chargeable, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission forty-seven saves stage forty-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–49 (04/0 through 04/5 and the first record of 04/6), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter and Chargeable, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission forty-nine saves stage fifty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 179 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five and forty-seven’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 181 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five and forty-seven’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all forty-seven supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all forty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all forty-seven supported briefings and flight entries, including both
+covers all forty-nine supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -255,6 +255,28 @@ removals and portal return; mission 47 transfers back to Hemmersan. Windowed
 checks traverse these seven entries and verify both return-site handoffs, the
 weapon mask and stage-48 save boundary.
 
-Next is the mobile missile launcher's optional route-combat callback 9185,
-introduced by mission 48. Its movement already uses the native route decoder,
-but that alone does not provide its paired missile attacks.
+Mission 48's mobile missile launcher now uses optional route-combat callback
+9185. The next integration is mission 50's Brent Ground introduction and marked
+building objectives.
+
+## Mobile missile launchers
+
+The compact-route callback invokes 9185 after actions 0, 1, 6 and 7, but not while
+turning, climbing or expiring. Definition flag 01h enables the firing path.
+The launcher checks player distance/height and a narrow rearward cone, followed
+by two cells behind its travel direction. Type zero and collision marker FFh
+are clear. Native 9210 also returns clear outside the map: its TEST clears carry
+before returning, and the caller tests carry. That edge behaviour is preserved.
+
+An admitted attempt complements byte +50 and records the shot time even if the
+hostile projectile pool is full. The pair alternates a difficulty-dependent long
+delay with a three-page delay. It launches definition 18 at the player through
+the ordinary homing pipeline; zero-resistance emitter placement reverses the
+vehicle heading and supplies pitch 0ABEh.
+
+The guards/allocation accounting match 4,096 native cases, including 112 launches;
+160 native route samples establish the call/no-call decision and cardinal
+argument. A real-resource check runs mission 48's six launchers with a controlled
+rearward player position until the route pipeline emits a missile. Missions 48
+and 49 complete twelve counted removals each. Windowed Level X checks verify
+both entries, saves and the stage-50 boundary.

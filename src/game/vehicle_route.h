@@ -24,6 +24,7 @@ struct vehicle_route_effect {
 };
 
 struct vehicle_route_result {
+  std::optional<uint8_t> firing_direction;
   std::optional<uint16_t> damage_cell;
   std::optional<uint16_t> deadline;
   std::optional<vehicle_route_effect> effect;
