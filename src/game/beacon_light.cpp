@@ -26,6 +26,11 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
+std::array<uint8_t, 2> beacon_grid_cell(std::array<uint16_t, 2> const position) noexcept {
+  /// Share the original nine-cell lookup with charging, coordinates and tower radar sampling
+  return {lookup[position[0] >> 8],lookup[position[1] >> 8]};
+}
+
 std::array<uint8_t, 2> beacon_grid_coordinates(std::array<uint16_t, 2> const position) noexcept {
   /// 5C65/573C map both player coordinates to the nearest beacon and blank the pair outside coverage
   auto const column{lookup[position[0] >> 8]}, row{lookup[position[1] >> 8]};

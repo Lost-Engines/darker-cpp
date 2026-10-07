@@ -190,6 +190,10 @@ add_library(darker_game STATIC
   src/game/flight_controls.cpp
   src/game/flight_controls.h
   src/game/flight_motion.h
+  src/game/radar_coverage.cpp
+  src/game/radar_coverage.h
+  src/graphics/radar_beacons.cpp
+  src/graphics/radar_beacons.h
   src/game/beacon_light.cpp
   src/game/beacon_light.h
   src/game/caero_weapons.cpp
@@ -322,6 +326,7 @@ if(BUILD_TESTING)
     tests/fm_driver_test.cpp
     tests/framebuffer_test.cpp
     tests/procedural_hud_test.cpp
+    tests/radar_beacons_test.cpp
     tests/navigation_hud_test.cpp
     tests/skimma_weapons_test.cpp
     tests/object_definition_test.cpp

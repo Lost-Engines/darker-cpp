@@ -38,6 +38,7 @@
 #include "graphics/navigation_hud.h"
 #include "graphics/palette_bitmap.h"
 #include "graphics/procedural_hud.h"
+#include "graphics/radar_beacons.h"
 #include "graphics/sky_ground.h"
 #include "maths/sine_table.h"
 #include "platform/audio_output.h"
@@ -231,10 +232,15 @@ auto main(int const argc, char const *const argv[])->int {
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
     objects.clear();
     contacts.clear();
+    auto const coverage{darker::game::make_radar_coverage(cells,{pose.position[0],pose.position[1]})};
     for(auto const &actor : combat->actors) {
       if(actor.flags & 8) continue;
       objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
-      contacts.push_back({.position{actor.pose.position[0], actor.pose.position[1]}, .group{darker::graphics::radar_group::b}});
+      if(actor.category != darker::game::actor_category::stationary) {
+        contacts.push_back({.position{actor.pose.position[0],actor.pose.position[1]},
+          .group{actor.category == darker::game::actor_category::air ? darker::graphics::radar_group::a : darker::graphics::radar_group::b},
+          .covered{coverage.contains(static_cast<uint8_t>(actor.pose.position[0] >> 8),static_cast<uint8_t>(actor.pose.position[1] >> 8))}});
+      }
     }
     for(auto const *pool : {&combat->projectiles,&combat->hostile_projectiles}) {
       for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
@@ -275,6 +281,7 @@ auto main(int const argc, char const *const argv[])->int {
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
       darker::graphics::draw_attitude_surround(display, combat->primary_weapon == 0 ? 0xff19 : 0x0019);
+      darker::graphics::draw_radar_beacons(display,cells,navigation.player,navigation.heading,coverage);
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
       darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
