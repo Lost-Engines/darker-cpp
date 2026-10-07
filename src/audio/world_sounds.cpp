@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <bit>
 #include <vector>
+#include "game/object_definitions.h"
 #include "maths/direction.h"
 #include "maths/sine_table.h"
 
@@ -68,7 +69,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &c
       auto level{static_cast<uint16_t>(definition.sound_level * 256 + 255)};
       if(shot->flags & 0x20) level = static_cast<uint16_t>((static_cast<uint32_t>(level) * (shot->fade * 257)) >> 16);
       game::effect_sound const sound{.position{shot->placement.position}, .definition{
-        .duration{0}, .pitch{definition.sound_pitch}, .level{level}, .patch{definition.fm_patch}, .flags{0}}};
+        .duration{0}, .pitch{&definition == &game::original_object_definitions[6] ? combat.dual_launch_pitch : definition.sound_pitch}, .level{level}, .patch{definition.fm_patch}, .flags{0}}};
       // Native IDs distinguish the two fixed pools; expiry distinguishes successive launches in a reused slot.
       auto const identity{0x200000000ULL + static_cast<uint64_t>(shot->deadline) * 65536 + static_cast<uint64_t>(shot->native_id)};
       append(sound, &shot->placement, identity);

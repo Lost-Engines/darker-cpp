@@ -1,7 +1,7 @@
 # Caero weapon firing and targeting
 
 `fire_caero_weapon` composes native C9C2 with the CB01 projectile allocator for
-Pinner Direct, Pinner Mimic, Brent Ground and Brent Hunter. Surface cost is the
+Pinner Direct, Pinner Mimic, Dual Launch, Brent Ground, Chargeable and Brent Hunter. Surface cost is the
 definition's first role byte times 256, plus 255: Direct costs 6,399 units and
 Mimic 7,423. Underground mode overrides that cost with **80FFh (33,023)**.
 Lifetime is the next definition byte times 256. Boost and engine buffer are
@@ -10,7 +10,7 @@ separate from this weapon reserve.
 The guards reject protected/crashing players, exhausted projectile pools and
 insufficient reserve. Brent Hunter requires a negative object token other than
 FFFF; Brent Ground requires a map-cell token. A valid weapon remains ready
-without a trigger edge. Holding the button does not generate repeated launches.
+without a trigger edge. Ordinary trigger-edge weapons do not repeat while held; the Dual Launch follow-up has the separate mask condition described below.
 Primary and secondary readiness now drive their original cockpit colours.
 
 ## Acquisition and retention
@@ -58,3 +58,44 @@ campaign gate. Remaining weapon handlers are still outstanding.
 These comparisons do not establish an uncontrolled retail-equivalent playthrough
 or exact camera/input ordering in every exterior view. The live synchronised
 DOSBox comparison tool remains deferred.
+
+## Dual Launch and a native input-mask anomaly
+
+Mission 57 unlocks selection 3 (number key 3) and its automatic selection 7.
+CA4A launches the primary capsule and changes primary selection to 7. CA99
+requires the **oldest active player projectile** to have definition 1956h;
+an absent or different oldest projectile returns selection to 3. A successful
+follow-up substitutes that capsule as its target and returns selection to 3.
+
+There is an important qualification to that description. The complete native
+C8E9 dispatcher supplies DX from the configured primary action mask at C97A,
+whose unpacked default is 4016h. CA99 tests **DX & 0080h**, rather than the
+pressed-input mask. Consequently the default does not launch the follow-up,
+regardless of pressed/released input, even with enough reserve and a valid
+capsule. An action mask containing 0080h instead admits it without requiring a
+new trigger edge. The reconstruction preserves this condition. Internal firing
+requests retain the mask as an explicit argument; this does not add a control
+option to the application.
+
+This is evidence from executing the native dispatcher, not a confirmed retail
+playthrough diagnosis. Command-line action-mask handlers can alter that value;
+no later runtime patch has been established. Earlier isolated CA99 probes used
+DX=0080h and therefore demonstrated the eligible path without discovering the
+default-mask problem. Do not describe this as an ordinary second-click weapon
+until the complete retail input path has been checked interactively.
+
+When admitted, CBE7 homes on the capsule, with separation-dependent speed and
+shared sound pitch. At a separation metric below 20 it makes three blast passes:
+aircraft use a larger horizontal window and squared-distance threshold than
+ground and stationary records. CD13 supplies distance-dependent strength to
+the ordinary object-impact handler. Both projectiles enter the native 256-tick
+retirement path, and recipe 71E8h appears at the capsule. A removed target causes
+self-guided straight flight through the existing target-release path.
+
+Native comparison covers 1,024 full-dispatch firing cases (including default
+and alternative masks), 1,024 separation cases, 2,048 category/strength cases
+and 2,048 complete movement updates. Separation preserves the unsigned
+vertical ordering and horizontal one's-complement quirk. A controlled scene
+also exercises the three blast categories, retained distant object, counted
+removals, effects and both projectile deadlines. It constructs the pair directly
+to test the admitted path independently of the default-mask anomaly.

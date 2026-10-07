@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–56 (04/0 through 04/6), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission fifty-six saves stage fifty-seven and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–59 (04/0 through the first three records of 04/7), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission fifty-nine saves stage sixty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 183 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine and fifty-two through fifty-three with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five, forty-seven and fifty-six’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 187 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine and fifty-two through fifty-three with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five, forty-seven and fifty-six’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all fifty-six supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all fifty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all fifty-six supported briefings and flight entries, including both
+covers all fifty-nine supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -257,7 +257,7 @@ weapon mask and stage-48 save boundary.
 
 Mission 48's mobile missile launcher now uses optional route-combat callback
 9185. Brent Ground building objectives are now connected; the next integration is the
-Dual Launch introduction.
+later generator defence and mixed building/aircraft objectives.
 
 ## Mobile missile launchers
 
@@ -320,3 +320,19 @@ callback-zero impact dispatch removes them directly. Their ordinary airborne
 resistance is therefore not the applicable damage path. Mission 56 supplies
 four warning messages and sends the player back to Hemmersan. Both stages
 pass controlled integration and windowed briefing/Level X save checks.
+
+## Dual Launch introduction and the north-east missions
+
+Mission 57 unlocks the two Dual Launch selections and completes seven aircraft
+objectives. Mission 58 completes five marked tank objectives. Mission 59
+admits its reinforcement waves and completes fifteen removals. Aircraft checks
+use the already available Chargeable; building checks use Brent Ground. These
+are controlled combat/script/docking checks, supplemented by real-window
+briefing/flight/Level X traversal and saved weapon-mask checks (0367h).
+
+The original Dual Launch firing, paired homing, blast-category passes, effects,
+retirement and sound pitch are connected. The native dispatcher exposes an
+apparent default input-mask defect that prevents the follow-up launch; this is
+preserved and documented with the limits of the evidence in
+[Caero weapons](caero_weapons.md#dual-launch-and-a-native-input-mask-anomaly).
+The working pair is verified separately in a controlled scene.

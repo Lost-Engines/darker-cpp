@@ -269,6 +269,7 @@ add_library(darker_game STATIC
   src/game/projectile_expiry.h
   src/game/projectile_update.cpp
   src/game/projectile_update.h
+  src/game/dual_launch.cpp
   src/game/projectile_steering.cpp
   src/game/projectile_steering.h
   src/game/projectile_motion.cpp
@@ -401,6 +402,7 @@ if(BUILD_TESTING)
     tests/mimic_test.cpp
     tests/weapon_target_test.cpp
     tests/building_impact_test.cpp
+    tests/dual_launch_test.cpp
     tests/caero_weapons_test.cpp
     tests/chargeable_test.cpp
     tests/caero_flight_test.cpp

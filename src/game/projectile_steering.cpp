@@ -92,6 +92,13 @@ void advance_object_homing_projectile(projectile &record, object_pose const &tar
   advance_homing_projectile(record, angles.heading, angles.pitch, frame_step);
 }
 
+void advance_dual_projectile(projectile &record, object_pose const &target, uint16_t const separation, uint16_t const frame_step) {
+  /// CC4F steers towards the capsule and adds capped separation to the requested forward speed
+  auto const angles{maths::object_target_direction(record.placement.position,target.position)};
+  auto const step{steer_homing_projectile(record,angles.heading,angles.pitch,frame_step)};
+  advance_direct_projectile(record.placement,*record.parameters.definition,step,std::min<uint16_t>(separation,0xcd));
+}
+
 void advance_map_homing_projectile(projectile &record, map_guidance_target const target, std::uint16_t const frame_step) {
   /// CC9C's map branch computes an aim height, then 831E banks towards its resolved position
   if(!record.parameters.definition) throw std::invalid_argument{"map homing requires an object definition"};

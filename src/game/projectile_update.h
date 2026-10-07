@@ -8,7 +8,7 @@ namespace darker::game {
 
 using projectile_target = std::variant<std::monostate, object_pose const *, map_guidance_target>;
 
-enum class projectile_update_result { advanced, expired };
+enum class projectile_update_result { advanced, expired, detonated };
 
 // Called after visibility/update eligibility, with any object target already resolved.
 projectile_update_result update_projectile(projectile &record, std::uint16_t clock, std::uint16_t frame_step,

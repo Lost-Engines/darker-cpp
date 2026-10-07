@@ -21,8 +21,8 @@ void check_building_combat(darker::resources::archive_set const &archives) {
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   struct building_case { uint8_t stage; size_t count; char const *message; };
-  for(auto const test : std::array<building_case,3>{{
-    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."},
+  for(auto const test : std::array<building_case,4>{{
+    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."},
   }}) {
     auto const &scenario{campaign.scenario(test.stage)};
     auto const index{darker::resources::select_campaign_stage(test.stage).record};
@@ -57,7 +57,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
         std::array<uint16_t,3> const centre{aim.position[0],aim.position[1],static_cast<uint16_t>(aim.height-aim.height_extent/2)};
         constexpr std::array<int,4> columns{0,200,0,-200}, rows{200,0,-200,0};
-        auto const approach{test.stage == 54 ? (clock/2048)%4 : 0};
+        auto const approach{test.stage >= 54 ? (clock/2048)%4 : 0};
         player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(aim.height+512)};
         auto const direction{darker::maths::object_target_direction(player.pose().position,centre)};
         player.pose().angles = {direction.heading,direction.pitch,0};

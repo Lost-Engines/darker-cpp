@@ -10,6 +10,7 @@ namespace darker::game {
 struct caero_fire_result {
   projectile *shot{nullptr};
   bool ready{false};
+  uint8_t next_selection{0};
 };
 
 struct caero_fire_request {
@@ -23,6 +24,7 @@ struct caero_fire_request {
   uint16_t frame_step{0};
   uint16_t target{0xffff};
   bool underground{false};
+  uint16_t trigger_mask{0x4016};
 };
 
 uint8_t pinner_direct_strength(bool underground) noexcept;

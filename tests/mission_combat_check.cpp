@@ -120,8 +120,33 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         || target.height != sample[6] || target.height_extent != sample[7]) throw std::runtime_error{"Building missile guidance differs from native model lookup"};
     }
   }
+  {
+    // Isolate the three blast-category passes from navigation and projectile-to-surface collisions.
+    std::vector<darker::game::scenario_actor> targets(4);
+    for(size_t i{0}; i < targets.size(); ++i) {
+      auto &actor{targets[i]};
+      actor.index = static_cast<uint8_t>(i+1);
+      actor.category = i == 0 ? darker::game::actor_category::air : i == 1 ? darker::game::actor_category::ground : darker::game::actor_category::stationary;
+      actor.attributes = 1;
+      darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[21],bank.special_models()[21]);
+      actor.parameters.update_entry = 0;
+      actor.pose.position = {static_cast<uint16_t>(i == 3 ? 13000 : 10100),10000,10000};
+      actor.previous_position = actor.pose.position;
+    }
+    darker::game::mission_combat blast{targets};
+    darker::game::launch_emitter const emitter{.position{10000,10000,10000},.definition_strength{40}};
+    auto *capsule{blast.projectiles.launch({.definition{darker::game::original_object_definitions[2]},.emitter{emitter},.model_token{bank.special_models()[2]},.lifetime{2560}})};
+    auto *detonator{blast.projectiles.launch({.definition{darker::game::original_object_definitions[6]},.emitter{emitter},.model_token{bank.special_models()[6]},.lifetime{2560},.target_token{capsule->native_id}})};
+    darker::game::city_map empty{};
+    darker::game::player_flight observer;
+    observer.pose().position = {15000,15000,10000};
+    blast.advance(observer,empty,bank,8,8,0,false);
+    if(blast.completed_objectives != 3 || blast.remaining_objectives() != 1 || blast.actors.size() != 1 || blast.actors.front().index != 4
+      || !(capsule->flags & 8) || !(detonator->flags & 8) || capsule->deadline != 264 || detonator->deadline != 264
+      || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
+  }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
-  constexpr std::array<combat_case,41> cases{{
+  constexpr std::array<combat_case,43> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -140,6 +165,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {43,8,"Return to Hemmersan, Tolly.",false,9}, {44,12,"Good job, Tolly. Return to base.",false,9},
     {48,12,"Mission accomplished. Return to base.",false,9}, {49,12,"and don't waste any time.",false,9},
     {52,3,"Return to Hemmersan.",false,9}, {53,5,"Mission complete- come back to base.",false,9},
+    {57,7,"we advise you come back in.",false,9}, {59,15,"Mission accomplished. Return to base.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};

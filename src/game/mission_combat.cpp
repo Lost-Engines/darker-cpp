@@ -6,6 +6,7 @@
 #include "game/actor_update.h"
 #include "game/building_impact.h"
 #include "game/caero_weapons.h"
+#include "game/dual_launch.h"
 #include "game/effect_tables.h"
 #include "game/object_deadline.h"
 #include "game/object_definitions.h"
@@ -75,6 +76,32 @@ void mission_combat::release_target(uint16_t const token) noexcept {
 void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t const clock, uint16_t const frame_step) {
   /// 3E02 visits occupied warehouses before the player and other moving-object callbacks
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
+}
+
+void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock) {
+  /// CBE7 applies separate aircraft, ground and stationary blast passes before retiring both paired projectiles
+  for(auto const category : {actor_category::air,actor_category::ground,actor_category::stationary}) {
+    for(auto actor{actors.begin()}; actor != actors.end();) {
+      auto const strength{actor->category == category ? dual_launch_impact(shot.placement,actor->pose,category == actor_category::air) : std::nullopt};
+      if(!strength) { ++actor; continue; }
+      auto const reaction{hit_actor(*actor,*strength,clock,random_state)};
+      effects.spawn(reaction.effect,actor->pose.position,clock);
+      if(!reaction.remove) { ++actor; continue; }
+      retained_flags[actor->index] = static_cast<uint8_t>(actor->flags | 0x20);
+      release_target(static_cast<uint16_t>(0xd986+actor->index*112));
+      completed_objectives += actor->attributes & 1;
+      adjust_objectives(static_cast<uint8_t>(-(actor->attributes & 1)));
+      actor = actors.erase(actor);
+    }
+  }
+  auto *capsule{projectiles.resolve(shot.target_token)};
+  if(!capsule) throw std::logic_error{"Dual Launch detonation lost its paired capsule"};
+  effects.spawn(0x71e8,capsule->placement.position,clock);
+  for(auto *part : {&shot,capsule}) {
+    part->parameters.update_entry = 0x6ed3;
+    part->flags |= 0x28;
+    part->deadline = static_cast<uint16_t>(clock+256);
+  }
 }
 
 void mission_combat::activate_reserves(actor_category const category, uint8_t const count, object_pose const &player, uint16_t const clock) {
@@ -196,11 +223,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
-  if(primary_weapon == 1 || primary_weapon == 2) {
+  if(primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7) {
     auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{trigger_pressed},.model{bank.special_models()[primary_weapon - 1]},
       .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()}})};
     weapon_ready = result.ready;
+    if(result.next_selection) primary_weapon = result.next_selection;
     player_fired = result.shot != nullptr;
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
@@ -215,7 +243,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   auto const resolve_target{[&](projectile &shot)->projectile_target {
     if(shot.parameters.update_entry == 0xcbce) return &player.pose();
-    if(shot.parameters.update_entry != 0xcc61 && shot.parameters.update_entry != 0xcc68) return {};
+    if(shot.parameters.update_entry != 0xcc61 && shot.parameters.update_entry != 0xcc68 && shot.parameters.update_entry != 0xcbe7) return {};
     if(shot.target_token == 0xd986) return &player.pose();
     if(!(shot.target_token & 0x8000)) return resolve_map_guidance(shot.target_token,cells,bank,damage_mask);
     if(shot.target_token == shot.native_id) return &shot.placement;
@@ -226,14 +254,20 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     throw std::logic_error{"Guided projectile target has no active object record"};
   }};
   for(auto *shot{projectiles.objects().head}; shot;) {
-    bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot, clock)
-      : update_projectile(*shot, clock, frame_step, resolve_target(*shot)) == projectile_update_result::expired};
-    if(expired) {
+    auto const destination{resolve_target(*shot)};
+    auto const *paired{std::get_if<object_pose const *>(&destination)};
+    auto const separation{shot->parameters.update_entry == 0xcbe7 && paired && *paired && *paired != &shot->placement
+      ? std::optional<uint16_t>{dual_launch_separation(shot->placement,**paired)} : std::nullopt};
+    auto const result{(shot->flags & 8) ? (update_projectile_deadline(*shot,clock) ? projectile_update_result::expired : projectile_update_result::advanced)
+      : update_projectile(*shot,clock,frame_step,destination)};
+    if(result == projectile_update_result::expired) {
       release_target(shot->native_id);
       if(camera_projectile == shot) camera_projectile = nullptr;
       shot = projectiles.recycle(*shot);
       continue;
     }
+    if(result == projectile_update_result::detonated) detonate_dual_launch(*shot,clock);
+    else if(separation) dual_launch_pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(*separation,0xcd)) >> 2);
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot;) {

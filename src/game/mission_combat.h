@@ -24,6 +24,7 @@ public:
   uint16_t random_state{0};
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
+  uint16_t dual_launch_pitch{614};
   uint8_t primary_weapon{0};
   uint8_t secondary_weapon{0};
   uint8_t difficulty{2};
@@ -53,6 +54,7 @@ private:
   std::array<uint8_t,256> retained_flags{};
   uint8_t outstanding_objectives{0};
   void release_target(uint16_t token) noexcept;
+  void detonate_dual_launch(projectile &shot, uint16_t clock);
 };
 
 } // namespace darker::game

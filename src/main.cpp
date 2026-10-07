@@ -442,6 +442,7 @@ auto main(int const argc, char const *const argv[])->int {
     switch(key) {
       case GLFW_KEY_1:
       case GLFW_KEY_2:
+      case GLFW_KEY_3:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << (key - GLFW_KEY_1)))) host.combat->primary_weapon = static_cast<uint8_t>(key - GLFW_KEY_1 + 1);
         break;
       case GLFW_KEY_9:
