@@ -226,6 +226,7 @@ add_library(darker_game STATIC
   src/game/beacon_light.h
   src/game/weapon_target.cpp
   src/game/weapon_target.h
+  src/game/building_impact.cpp
   src/game/caero_weapons.cpp
   src/game/caero_weapons.h
   src/game/caero_energy.cpp
@@ -322,6 +323,8 @@ if(BUILD_TESTING)
     tests/music_check.h
     tests/city_persistence_check.cpp
     tests/city_persistence_check.h
+    tests/building_combat_check.cpp
+    tests/building_combat_check.h
     tests/mission_combat_check.cpp
     tests/mission_combat_check.h
     tests/actor_flight_check.cpp
@@ -397,6 +400,7 @@ if(BUILD_TESTING)
     tests/skimma_flight_test.cpp
     tests/mimic_test.cpp
     tests/weapon_target_test.cpp
+    tests/building_impact_test.cpp
     tests/caero_weapons_test.cpp
     tests/chargeable_test.cpp
     tests/caero_flight_test.cpp

@@ -121,7 +121,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
-  constexpr std::array<combat_case,39> cases{{
+  constexpr std::array<combat_case,41> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -139,6 +139,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {41,7,"Return to Hemmersan.",false,9}, {42,6,"Return to base immediately, Tolly.",false,9},
     {43,8,"Return to Hemmersan, Tolly.",false,9}, {44,12,"Good job, Tolly. Return to base.",false,9},
     {48,12,"Mission accomplished. Return to base.",false,9}, {49,12,"and don't waste any time.",false,9},
+    {52,3,"Return to Hemmersan.",false,9}, {53,5,"Mission complete- come back to base.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};

@@ -18,6 +18,7 @@
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
 #include "hangar_flight_check.h"
+#include "building_combat_check.h"
 #include "mission_combat_check.h"
 #include "music_check.h"
 #include "reference/camera_samples.h"
@@ -53,6 +54,7 @@ auto main(int const argc, char const *const argv[])->int try {
   darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
   check_hangar_flight(archives, arguments.contains("launch-trace") ? arguments["launch-trace"].as<std::string>() : std::string{});
   check_mission_combat(archives);
+  check_building_combat(archives);
   check_actor_flight(archives);
   check_scenario_resources(archives);
   check_text_resources(archives);

@@ -4,6 +4,7 @@
 #include <utility>
 #include "game/actor_activation.h"
 #include "game/actor_update.h"
+#include "game/building_impact.h"
 #include "game/caero_weapons.h"
 #include "game/effect_tables.h"
 #include "game/object_deadline.h"
@@ -29,20 +30,19 @@ void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const h
     {static_cast<uint16_t>(column*256 + type.column_fraction), static_cast<uint16_t>(row*256 + type.row_fraction),height},clock);
 }
 
-void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact,
+void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact, object_definition const &definition,
   city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter, uint8_t const damage_mask) {
-  /// Share the reconstructed building damage path while preserving each projectile list's terrain recipe
-  if(contact.contact == city_contact::building && contact.category == 2) {
-    auto &cell{cells[contact.row * 128 + contact.column]};
-    auto const model{bank.city_model_offset(cell.type, cell.state, damage_mask)};
-    auto const bytes{bank.model_pool()};
-    if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
-      damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,counter);
-    } else effects.spawn(0x7386, impact, clock);
-  }
-  if(!(contact.contact == city_contact::building && contact.category == 2)) {
-    effects.spawn(contact.contact == city_contact::building ? 0x7386 : terrain_recipe, impact, clock);
-  }
+  /// CDB9 distinguishes marked player targets, hostile bombing and universal category-two breakable components
+  if(contact.contact != city_contact::building) { effects.spawn(terrain_recipe,impact,clock); return; }
+  auto const &cell{cells[contact.row*128+contact.column]};
+  auto const model{bank.city_model_offset(cell.type,cell.state,damage_mask)};
+  auto const bytes{bank.model_pool()};
+  bool const linked{bytes[model] != std::byte{0} || bytes[model+1] != std::byte{0}};
+  auto const found{std::ranges::find_if(original_object_definitions,[&](auto const &original){ return &original == &definition; })};
+  auto const slot{static_cast<size_t>(found-original_object_definitions.begin())};
+  if(projectile_damages_building(slot,contact.category,cell.state,linked)) {
+    damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,counter);
+  } else effects.spawn(0x7386,impact,clock);
 }
 
 } // namespace
@@ -297,7 +297,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         actors.erase(actors.begin() + (victim - actors.data()));
       }
     }
-    else if(!victim) impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter,damage_mask);
+    else if(!victim) impact_projectile_world(contact,impact,*shot->parameters.definition,cells,bank,effects,clock,player.tunnel ? 0x7386 : 0x721c,world_damage_counter,damage_mask);
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;
     shot->deadline = static_cast<uint16_t>(clock + 256);
@@ -316,7 +316,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       effects.spawn(0x70c3,end,clock);
       player_hit = true;
     } else {
-      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199,world_damage_counter,damage_mask);
+      impact_projectile_world(contact,end,*shot->parameters.definition,cells,bank,effects,clock,0x7199,world_damage_counter,damage_mask);
     }
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;
