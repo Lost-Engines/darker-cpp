@@ -586,7 +586,8 @@ auto main(int const argc, char const *const argv[])->int {
       if(caero) {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
-        combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held, scenario.bytes(mission.shared));
+        combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario.bytes(mission.shared),mission.time_multiplier);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         context.objectives_complete = combat->remaining_objectives() == 0;

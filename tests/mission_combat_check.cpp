@@ -20,7 +20,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  for(size_t mission{0}; mission < 7; ++mission) {
+  for(size_t mission{0}; mission < 8; ++mission) {
     auto const &record{scenario.records()[mission]};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1 + record.groups[0].objects.size()),0,record.shared.offset);
@@ -54,7 +54,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().angles = {};
         player.pose().speed = 496;
       }
-      combat.advance(player, cells, bank, static_cast<uint16_t>(clock), 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire, scenario.bytes(record.shared));
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire, scenario.bytes(record.shared));
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -70,12 +70,12 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
         constexpr std::array final_messages{"Well done- you can return to base.","Mission accomplished. Return to base.",
           "Good job, Tolly. Return to base.","all targets are clear.","Mission complete- come back to base.",
-          "Well done- you can return to base.","Return to Hemmersan."};
+          "Well done- you can return to base.","Return to Hemmersan.","Mission complete- come back to base."};
         message |= actual == final_messages[mission];
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u,8u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
       throw std::runtime_error{"Campaign controlled combat did not complete: mission=" + std::to_string(mission + 1) + ", shots=" + std::to_string(shots)
         + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", reserves=" + std::to_string(combat.reserves.size())
         + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)

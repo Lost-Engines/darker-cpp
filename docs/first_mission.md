@@ -76,10 +76,9 @@ ctest --test-dir build --output-on-failure
 This is a first-mission gameplay milestone, not finished retail presentation.
 Briefing artwork, original music and the committal death sequence are connected.
 Remaining work includes complete spatial voice allocation/stereo, Nayas activity,
-aircraft lighting, aircraft/player ramming, later debrief screens and mission-four
-reinforcement activation. The flatbed route callback now has native comparisons;
+aircraft lighting, aircraft/player ramming, later debrief screens and the remaining mission-specific operations. Reinforcement activation, enemy missiles, Mimic and missile cameras are now connected. The flatbed route callback now has native comparisons;
 raised traversal, vehicle weapons and damage callbacks remain separate work.
-The first three missions now advance automatically, committing city state after docking. Player city
+The first eight missions now advance automatically, committing city state after docking. Player city
 collision still occurs inside its flight update; the complete original global
 collision dispatch order has not yet been reconstructed. Other scenario actor
 callbacks, weapons and campaign setup blocks must not be inferred to work from

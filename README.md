@@ -84,10 +84,12 @@ ctest --test-dir build --output-on-failure
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
 
-The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. Enter after a crash plays the original looping Kismet committal presentation. The first seven missions now advance automatically after docking, saving city state, weapon availability and the return site. Stage eight and later gameplay and exact retail menu composition remain outstanding. See [front end](docs/front_end.md) for controls and verification.
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. Enter after a crash plays the original looping Kismet committal presentation. The first eight missions now advance automatically after docking, saving city state, weapon availability and the return site. Stage nine and later gameplay and exact retail menu composition remain outstanding. See [front end](docs/front_end.md) for controls and verification.
 
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
 
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
+
+See [campaign status and remaining work](docs/campaign_status.md) for the current playable boundary and next integration priorities.

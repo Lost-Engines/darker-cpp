@@ -1,6 +1,6 @@
 # Mission reserves and reinforcement placement
 
-Mission four now admits its two pairs of reinforcement Skimmas through player-script opcode 09. The initial aircraft, both subsequent waves, the original message sequence and the flatbed route run through the same runtime as missions one to three. Successful docking saves and advances to stage five, whose gameplay remains gated.
+Mission four now admits its two pairs of reinforcement Skimmas through player-script opcode 09. The initial aircraft, both subsequent waves, the original message sequence and the flatbed route run through the same runtime as missions one to three. Successful docking saves and advances to stage five. The campaign now continues through mission eight; see [scripted aircraft destinations](actor_scripts.md).
 
 Scenario category follows BE44–BE7F: static placement header bit 6, otherwise ground for definition slots above 28, air for the remaining slots. Initial traversal and reserve selection preserve reverse source order within each category. C33E admission repeatedly pops the reserve head and prepends it to the corresponding active category, reversing each admitted batch. Objective counts include newly admitted objects immediately, before the script continues. Ground route origins receive the original clock minus 4,096; other script deadlines receive the current clock. A malformed request exceeding the reserve list is rejected before mutation; the original has no exhaustion guard.
 

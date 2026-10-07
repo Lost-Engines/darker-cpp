@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include "game/mission_script.h"
 #include "reference/mission_script_samples.h"
+#include "reference/script_target_samples.h"
 
 TEST_CASE("Mission deadlines, checkpoint retries and message scheduling match native handlers", "[game][mission]") {
   /// Compare the scheduler with original code, including half-range clocks and overdue catch-up
@@ -74,4 +75,29 @@ TEST_CASE("Mission scripts diagnose unsupported commands and zero-time loops", "
   darker::game::mission_script script;
   darker::game::mission_context context{.program{loop}};
   CHECK_THROWS_AS(darker::game::advance_mission_script(script, context), std::runtime_error);
+}
+
+TEST_CASE("Script target assignments match native tokens flags and pacing", "[game][mission]") {
+  /// Every targeting opcode yields for ten scenario intervals while preserving unrelated object flags
+  for(auto const &v : darker::test_reference::script_target_samples) {
+    std::vector<std::byte> program{static_cast<std::byte>(v[0])};
+    if(v[0] < 4) program.push_back(static_cast<std::byte>(v[5] & 255));
+    if(v[0] < 2) program.push_back(static_cast<std::byte>(v[5] >> 8));
+    program.push_back(std::byte{0x23});
+    auto token{static_cast<uint16_t>(v[4])};
+    auto flags{static_cast<uint8_t>(v[2])};
+    darker::game::mission_script script{.deadline{static_cast<uint16_t>(v[1])}};
+    darker::game::mission_context context{.program{program},.clock{v[1]},.time_multiplier{static_cast<uint8_t>(v[6])},
+      .current_cell{static_cast<uint16_t>(v[3])},.set_target{[&](uint16_t const target, bool const flag_02){
+        token = target;
+        flags = static_cast<uint8_t>((flags & 0xfd) | (flag_02 ? 2 : 0));
+      }}};
+    darker::game::advance_mission_script(script,context);
+    CAPTURE(v);
+    CHECK(token == v[7]);
+    CHECK(flags == v[8]);
+    CHECK(script.deadline == v[9]);
+    CHECK(script.continuation == v[10]);
+    CHECK_FALSE(script.stopped);
+  }
 }

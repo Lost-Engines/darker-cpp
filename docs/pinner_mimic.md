@@ -6,7 +6,7 @@ CBCE copies the player's pitch and bank each update. The roll difference determi
 
 M toggles the original missile camera request. A shot launched while this is enabled becomes the watched projectile (CACD–CAE7). F1/F2 follow it, F3 uses a level following view, and F4 looks from its nose. F5/F6 retain the shared dropped-camera controls. The view stays with the impact record until that record is removed, then returns to the player; no pointer survives recycling. The live missile and impact effect have different following-distance tables. F4 follows the effect after impact rather than remaining at its centre.
 
-The first seven missions are now enabled. The fifth introduces Mimic, the sixth tests it in another reinforcement mission, and the seventh uses two timed reinforcement waves. Its coarse waits are 14h and 28h units of 2,048 ticks, separate from the short scaled-delay opcode. Mission eight remains gated because its scripted actor navigation, additional actor roles and subsequent combat interactions need integration.
+The first eight missions are now enabled. The fifth introduces Mimic, the sixth tests it in another reinforcement mission, and the seventh uses two timed reinforcement waves. Its coarse waits are 14h and 28h units of 2,048 ticks, separate from the short scaled-delay opcode. Mission eight also runs its [scripted aircraft navigation](actor_scripts.md), Stalker and flatbed routes.
 
 ## Verification
 

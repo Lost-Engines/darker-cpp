@@ -53,8 +53,9 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint16_t const clock, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes) {
-  /// Follow air callbacks, player firing, projectile movement and collision/removal phases for the first Delphi mission
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier) {
+  /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
+  auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
   player_fired = false;
   player_hit = false;
@@ -66,7 +67,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     return expired;
   });
   for(auto &actor : actors) {
-    if(actor.flags & 8) continue;
+    if(actor.parameters.update_entry == 0x6ed3) continue;
     if(actor.parameters.update_entry == 0x8f3b) {
       if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
       actor.previous_position = actor.pose.position;
@@ -74,6 +75,15 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       continue;
     }
     if(actor.parameters.update_entry == 0) continue;
+    if(actor.parameters.update_entry == 0x8823 && !actor.script.stopped) {
+      mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier},
+        .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
+        .set_target{[&](uint16_t const target, bool const flag_02){
+          actor.target_token = target;
+          actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
+        }}};
+      advance_mission_script(actor.script,context);
+    }
     if(actor.parameters.update_entry == 0x8daa) advance_falling_aircraft(actor, frame_step);
     else advance_surface_actor(actor, player.pose(), actors, cells, bank, 0x20, frame_step,
       [&](scenario_actor &source, actor_course const course, uint8_t const distance){

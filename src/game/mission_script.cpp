@@ -57,6 +57,25 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       continue;
     }
     switch(opcode) {
+    case 0x00:
+    case 0x01:
+    case 0x02:
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+      {
+        uint16_t target{context.current_cell};
+        if(opcode < 2) {
+          auto const column{byte()};
+          target = static_cast<uint16_t>(column | byte()*256);
+        } else if(opcode < 4) target = static_cast<uint16_t>(0xd986 + byte()*112);
+        else if(opcode == 6) target = 0xd986;
+        if(!context.set_target) throw std::runtime_error{"Mission target change has no object consumer"};
+        context.set_target(target,(opcode & 1) != 0);
+        delay(10);
+      }
+      break;
     case 0x07: break;
     case 0x09:
     case 0x0a:

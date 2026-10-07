@@ -44,6 +44,8 @@ struct mission_context {
   std::vector<mission_message> messages{};
   // The world admits reserves and returns the new objective-completion condition before script execution resumes.
   std::function<bool(uint8_t,uint8_t)> activate_reserves{};
+  uint16_t current_cell{0};
+  std::function<void(uint16_t,bool)> set_target{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

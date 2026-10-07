@@ -2,7 +2,7 @@
 
 The default Caero launch now passes through the original startup animation,
 title image, game selection, pilot-name entry and first-mission briefing before
-entering the hangar. The first seven campaign missions now run consecutively. All images, animation frames and fonts are read directly
+entering the hangar. The first eight campaign missions now run consecutively. All images, animation frames and fonts are read directly
 from the original packs. Skimma development starts still enter flight directly.
 
 `presentation::player` interprets the presentation portion of the scenario
@@ -39,21 +39,22 @@ never silently reset. The retail `DARKER.SAV` is not automatically read or writt
 
 Successful docking now commits the Delphi city stream, current weapon mask and
 return site, increments the saved stage and opens the next briefing. The first
-three missions are connected. Completing the third saves stage four and returns
-to the menu with an explicit unsupported-stage notice; the next mission needs
-ground-vehicle logic. Loading stages beyond three preserves the record but
-does not launch it. Death and Escape leave the previous committed record intact.
+eight missions are connected, including reinforcement waves, Pinner Mimic and
+scripted airborne destinations. Completing the eighth saves stage nine and returns
+to the menu with an explicit unsupported-stage notice. Loading later stages
+preserves the record but does not launch it. Death and Escape leave the previous
+committed record intact.
 
 Each flight loads a fresh city, restores saved bits for stages after one, and
 recreates actors/scripts from its own scenario record. BB90/BBC6 packing and
 restoration match native fingerprints for both Delphi and Halon, including
 high-bit beacon templates and variant rebuilding. Stage one bypasses the whole
 BBC6 path, including variant rebuilding. Only Delphi is connected to campaign
-play at this milestone. All three supported missions have empty beacon queues;
+play at this milestone. All eight supported missions have empty beacon queues;
 queued-outage exit handling remains necessary for later missions.
 
 Briefing opcode 30 now retains weapon-range toggles for the flight session;
-the first briefing grants Pinner Direct. Save commits retain that runtime mask.
+the first briefing grants Pinner Direct and the fifth grants Pinner Mimic. Save commits retain that runtime mask.
 
 Menu text uses original wording and fonts, but its
 composition is provisional: exact borders, score fields and retail positioning
@@ -165,7 +166,7 @@ into the C81E return site and request outcome 1. The existing successful exit
 commits city state and weapons, advances the selected pilot, writes the save and
 opens the next supported briefing. This deliberately does not mark remaining
 actors destroyed or run docking. `hangar_state::next_return_site` names C610;
-the first four supported mission scripts leave it at its initial zero value.
+the first eight supported mission scripts leave it at its initial zero value.
 Future scripted destination changes and Skimma supply-pad landings must update
 both destination fields as C23B/C764 do. Existing zero-site setup currently uses
 the supported Caero HQ start; later return-site setup is not established here.
@@ -174,7 +175,7 @@ The resource integration check covers exact matching, ordinary-name isolation,
 unchanged save bytes and persistence through death. A window test uses actual
 Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
 and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
-copied destination are checked. The unsupported-stage gate now begins at mission eight; mission four includes its original reinforcement waves.
+copied destination are checked. The unsupported-stage gate now begins at mission nine; mission four includes its original reinforcement waves.
 
 ## Background transitions and text lifetime
 
