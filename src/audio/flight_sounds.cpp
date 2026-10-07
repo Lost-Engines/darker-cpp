@@ -14,7 +14,7 @@ std::optional<uint16_t> chargeable_sound_pitch(uint16_t const charge, uint16_t c
 }
 
 void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock) noexcept {
-  /// Supply original player-effect records; channel assignments remain provisional until world voice allocation is connected
+  /// Supply original player-effect records in logical slots for the world voice allocator
   std::uint8_t channel{0};
   std::uint8_t patch{0};
   std::uint16_t pitch{0}, level{0}, duration{0};

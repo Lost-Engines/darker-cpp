@@ -43,6 +43,8 @@ add_library(darker_audio STATIC
   src/audio/ambient_sounds.h
   src/audio/sound_images.cpp
   src/audio/sound_images.h
+  src/audio/voice_allocation.cpp
+  src/audio/voice_allocation.h
   src/audio/world_sounds.cpp
   src/audio/world_sounds.h
   src/audio/flight_sounds.cpp

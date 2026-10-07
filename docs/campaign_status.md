@@ -8,8 +8,8 @@ The connected campaign now reaches the final battle (115) and ending (116), incl
 
 1. **Collision/update fidelity:** audit remaining weapon-ray and collision-response edge cases. Native list ordering and player/object ramming are now connected.
 2. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
-3. **Presentation and rendering:** Nightmare entry, score/debrief fidelity, remaining camera transitions, actor lighting/distant dots, palette fades and presentation ordering.
-4. **Audio fidelity:** native voice allocation, stereo placement, external-camera listening and remaining event bindings. Aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
+3. **Presentation and rendering:** exact menu/score composition, remaining camera transitions, actor lighting/distant dots, palette fades and presentation ordering. Nightmare entry, score persistence and victory are now connected.
+4. **Audio fidelity:** stereo placement, external-camera listening, transient pool reuse/note-gate details and remaining event bindings. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
 5. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
 
 Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.
@@ -591,3 +591,15 @@ selected identity and endpoint using original model extents; 140 intersect an
 object. Existing paired-aircraft damage fixtures and the controlled campaign
 checks remain active. Player ramming now uses the same ordered scan before applying a city response;
 see [player flight](player_flight.md) for its native cases and frame integration.
+
+## Nightmare, presentation navigation and audio allocation
+
+Nightmare now has its original N selection, independent score/best-score state,
+airborne launch, difficulty/score/altitude script operations and dedicated victory
+presentation. The complete controlled script reaches outcome 4 and score 100;
+normal pilot saves remain untouched. See `front_end.md` for verification scope.
+
+Presentation navigation restores the original hover palette pair and boundaries.
+Physical sound-channel allocation now matches 256 consecutive native frames,
+including saturation, ties and free-list reuse; transient effects retire when
+their voice is lost. Remaining audio limits are explicit in `combat_audio.md`.

@@ -4,27 +4,27 @@
 #include "audio/world_sounds.h"
 #include "game/object_definitions.h"
 #include "reference/object_sound_samples.h"
+#include "reference/voice_allocation_samples.h"
 #include "reference/world_sound_samples.h"
 
 TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]") {
   /// Check wrapping positions, rejected distances and the original directional speed factors
-  using namespace darker;
-  for(auto const &v : test_reference::sound_admission) {
+  for(auto const &v : darker::test_reference::sound_admission) {
     CAPTURE(v);
-    auto const level{audio::audible_level({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},
+    auto const level{darker::audio::audible_level({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},
       {static_cast<uint16_t>(v[3]),static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5])}, static_cast<uint16_t>(v[6]), static_cast<uint8_t>(v[7]))};
     CHECK((level ? static_cast<int>(*level) : -1) == v[8]);
   }
-  for(auto const &v : test_reference::sound_velocity) {
+  for(auto const &v : darker::test_reference::sound_velocity) {
     CAPTURE(v);
-    game::object_pose const pose{.angles{static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),0}, .speed{static_cast<uint16_t>(v[2])}};
-    CHECK(audio::doppler_factor(&pose, static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])) == v[5]);
+    darker::game::object_pose const pose{.angles{static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),0}, .speed{static_cast<uint16_t>(v[2])}};
+    CHECK(darker::audio::doppler_factor(&pose, static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])) == v[5]);
   }
-  for(auto const &v : test_reference::sound_pitch) {
+  for(auto const &v : darker::test_reference::sound_pitch) {
     CAPTURE(v);
-    game::object_pose const source{.angles{static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5]),0}, .speed{static_cast<uint16_t>(v[6])}};
-    game::object_pose const listener{.angles{static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8]),0}, .speed{static_cast<uint16_t>(v[9])}};
-    CHECK(audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
+    darker::game::object_pose const source{.angles{static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5]),0}, .speed{static_cast<uint16_t>(v[6])}};
+    darker::game::object_pose const listener{.angles{static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8]),0}, .speed{static_cast<uint16_t>(v[9])}};
+    CHECK(darker::audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
   }
 }
 
@@ -114,10 +114,9 @@ TEST_CASE("Object sound callbacks match native engines, lifetime pitch and fadin
 
 TEST_CASE("Aircraft engines follow source admission without restarting moving voices", "[audio]") {
   /// Exercise the live actor path, including hidden and destroyed aircraft and distance rejection
-  using namespace darker;
-  game::scenario_actor actor{.parameters{.definition{&game::original_object_definitions[19]}},.index{3}};
-  game::mission_combat combat{{actor}};
-  audio::world_sounds mixer;
+  darker::game::scenario_actor actor{.parameters{.definition{&darker::game::original_object_definitions[19]}},.index{3}};
+  darker::game::mission_combat combat{{actor}};
+  darker::audio::world_sounds mixer;
   auto const first{mixer.mix({},combat,{},0)};
   REQUIRE(std::ranges::count_if(first, [](auto const &note){ return note.active; }) == 1);
   auto const voice{std::ranges::find_if(first, [](auto const &note){ return note.active; })};
@@ -136,4 +135,49 @@ TEST_CASE("Aircraft engines follow source admission without restarting moving vo
   combat.actors.front().pose.position[0] = 8192;
   auto const distant{mixer.mix({},combat,{},24)};
   CHECK(std::ranges::none_of(distant, [](auto const &note){ return note.active; }));
+}
+
+TEST_CASE("Physical sound channels match consecutive native allocation frames", "[audio]") {
+  /// Compare persistent ownership with 3488/33F1, including equal levels and channel recycling
+  darker::audio::voice_allocation allocator;
+  for(auto const &sample : darker::test_reference::voice_allocation) {
+    std::vector<darker::audio::sound_candidate> candidates;
+    for(size_t i{0}; i < sample[0]; ++i) candidates.push_back({sample[1+i*2],
+      {.pitch{400},.level{static_cast<uint16_t>(sample[2+i*2])},.active{true}}});
+    auto const frame{allocator.allocate(candidates)};
+    for(size_t i{0}; i < frame.size(); ++i) {
+      CHECK(allocator.identities()[i] == sample[49+i]);
+      CHECK(frame[i].active == (sample[49+i] != 0));
+    }
+  }
+}
+
+TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audio]") {
+  /// Native 363C requires an already submitted explosion to retain its physical voice
+  darker::game::mission_combat combat{{}};
+  combat.effects.spawn(0x7319,{0,0,0},0);
+  darker::audio::world_sounds mixer;
+  std::array<darker::game::effect_sound,9> louder{};
+  for(size_t i{0}; i < louder.size(); ++i) louder[i] = {.definition{.duration{0},.pitch{400},.level{65535},.patch{0},.flags{2}},.identity{static_cast<uint32_t>(i*65536+1)}};
+  mixer.mix({},combat,{},0,louder);
+  REQUIRE_FALSE(combat.effects.sounds.empty());
+  auto const frame{mixer.mix({},combat,{})};
+  CHECK(combat.effects.sounds.empty());
+  CHECK(std::ranges::none_of(frame,[](auto const &note){ return note.active; }));
+}
+
+TEST_CASE("A repeated fixed sound retriggers without changing physical ownership", "[audio]") {
+  /// Fixed record identity survives a new note onset even when free-list order has changed
+  darker::audio::voice_allocation allocator;
+  std::array<darker::audio::sound_candidate,2> sources{{
+    {1,{.pitch{400},.level{300},.active{true}}},
+    {2,{.pitch{600},.level{100},.active{true}}},
+  }};
+  auto const first{allocator.allocate(sources)};
+  auto const owners{allocator.identities()};
+  ++sources[0].note.generation;
+  auto const repeated{allocator.allocate(sources)};
+  CHECK(allocator.identities() == owners);
+  for(size_t i{0}; i < first.size(); ++i) if(first[i].active)
+    CHECK(repeated[i].generation == first[i].generation+(owners[i] == 1 ? 1 : 0));
 }

@@ -85,33 +85,30 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
   return result;
 }
 
-fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient) {
-  /// Admit spatial effects and preserve assigned channels while selecting the nine strongest active sources
-  struct candidate { uint64_t identity; fm_note note; };
-  std::vector<candidate> candidates;
-  for(size_t i{0}; i < player.size(); ++i) {
-    if(player[i].active) candidates.push_back({0x100000000ULL + i * 65536 + player[i].generation, player[i]});
-  }
+fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient) {
+  /// Visit the original source groups before native candidate admission and physical channel allocation
+  std::vector<sound_candidate> candidates;
   auto const append{[&](game::effect_sound const &sound, game::object_pose const *const motion, uint64_t const identity){
     auto const &definition{sound.definition};
     auto const level{audible_level(sound.position, listener.position, definition.level, definition.flags)};
     if(!level) return;
     auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion)};
-    candidates.push_back({identity, {.pitch{pitch}, .level{*level}, .patch{definition.patch}, .active{true}}});
+    candidates.push_back({identity, {.pitch{pitch}, .level{*level},
+      .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : 0)},.patch{definition.patch}, .active{true}}});
   }};
-  for(auto const &sound : ambient) append(sound,nullptr,0x400000000ULL+sound.identity);
-  for(auto i{combat.effects.sounds.rbegin()}; i != combat.effects.sounds.rend(); ++i) append(*i, nullptr, i->identity);
-  for(auto i{combat.effects.gun_sounds.rbegin()}; i != combat.effects.gun_sounds.rend(); ++i) append(*i, nullptr, i->identity);
-  for(auto const &actor : combat.actors) {
-    if(!actor.parameters.definition) continue;
-    auto const note{object_sound(*actor.parameters.definition,actor.pose,
-      {.identity{static_cast<uint16_t>(0xd986+actor.index*112)},.flags{actor.flags},.damage{actor.awareness.cooldown},
-        .fade{actor.fade},.deadline{actor.expiry}},clock)};
-    if(!note.active) continue;
-    game::effect_sound const sound{.position{actor.pose.position},.definition{
-      .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0}}};
-    append(sound,&actor.pose,0x300000000ULL+actor.index);
-  }
+  auto const append_actors{[&](game::actor_category const category){
+    for(auto const &actor : combat.actors) {
+      if(actor.category != category) continue;
+      if(!actor.parameters.definition) continue;
+      auto const note{object_sound(*actor.parameters.definition,actor.pose,
+        {.identity{static_cast<uint16_t>(0xd986+actor.index*112)},.flags{actor.flags},.damage{actor.awareness.cooldown},
+          .fade{actor.fade},.deadline{actor.expiry}},clock)};
+      if(!note.active) continue;
+      game::effect_sound const sound{.position{actor.pose.position},.definition{
+        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0}}};
+      append(sound,&actor.pose,0x300000000ULL+actor.index);
+    }
+  }};
   for(auto const *pool : {&combat.projectiles,&combat.hostile_projectiles}) {
     for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
       auto const &definition{*shot->parameters.definition};
@@ -121,40 +118,43 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &c
       if(&definition == &game::original_object_definitions[6]) note.pitch = combat.dual_launch_pitch;
       game::effect_sound const sound{.position{shot->placement.position},.definition{
         .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0}}};
-      // Native IDs distinguish the two fixed pools; expiry distinguishes successive launches in a reused slot.
-      auto const identity{0x200000000ULL+static_cast<uint64_t>(shot->deadline)*65536+shot->native_id};
+      // Object voices retain their native pool identity across updates.
+      auto const identity{0x200000000ULL+shot->native_id};
       append(sound,&shot->placement,identity);
     }
   }
-  std::stable_sort(candidates.begin(), candidates.end(), [](auto const &a, auto const &b){ return a.note.level > b.note.level; });
-  if(candidates.size() > 9) candidates.resize(9);
-  fm_frame frame{};
-  std::array<bool, 9> assigned{};
-  for(auto const &candidate : candidates) {
-    auto found{std::ranges::find(owners, candidate.identity)};
-    if(found == owners.end()) continue;
-    size_t const channel{static_cast<size_t>(found - owners.begin())};
-    frame[channel] = candidate.note;
-    frame[channel].generation = generations[channel];
-    assigned[channel] = true;
+  append_actors(game::actor_category::ground);
+  auto const append_player{[&](size_t const i){
+    if(player[i].active) candidates.push_back({0x100000000ULL+i*65536,player[i]});
+  }};
+  append_player(0);
+  append_actors(game::actor_category::air);
+  // Fixed records are visited in address order: boost, beacons, charge, messages, ambient, switches, shield.
+  append_player(1);
+  for(auto const &sound : ambient) if((sound.identity >> 16) < 2) append(sound,nullptr,0x400000000ULL+(sound.identity & 0xffff0000u));
+  append_player(2);
+  append_player(5);
+  append_player(6);
+  for(auto const &sound : ambient) if((sound.identity >> 16) >= 2) append(sound,nullptr,0x400000000ULL+(sound.identity & 0xffff0000u));
+  append_player(3);
+  append_player(4);
+  for(auto *pool : {&combat.effects.sounds,&combat.effects.gun_sounds}) {
+    // 363C retires a previously submitted transient when its voice was rejected or stolen.
+    std::erase_if(*pool,[&](auto const &sound){
+      return (sound.definition.flags & 0x20) && std::ranges::find(voices.identities(),sound.identity) == voices.identities().end();
+    });
+    for(auto i{pool->rbegin()}; i != pool->rend(); ++i) {
+      append(*i,nullptr,i->identity);
+      i->definition.flags |= 0x28;
+    }
   }
-  for(auto const &candidate : candidates) {
-    if(std::ranges::find(owners, candidate.identity) != owners.end()) continue;
-    auto const free{std::ranges::find(assigned, false)};
-    size_t const channel{static_cast<size_t>(free - assigned.begin())};
-    owners[channel] = candidate.identity;
-    frame[channel] = candidate.note;
-    frame[channel].generation = ++generations[channel];
-    assigned[channel] = true;
-  }
-  for(size_t i{0}; i < owners.size(); ++i) if(!assigned[i]) owners[i] = 0;
-  return frame;
+  return voices.allocate(candidates);
 }
 
 uint16_t world_sounds::audible_ambient() const noexcept {
   /// Return fixed-record ownership for the following frame's native continuation checks
   uint16_t result{0};
-  for(auto const owner : owners) if((owner >> 32) == 4) result |= static_cast<uint16_t>(1u << ((owner >> 16) & 65535));
+  for(auto const owner : voices.identities()) if((owner >> 32) == 4) result |= static_cast<uint16_t>(1u << ((owner >> 16) & 65535));
   return result;
 }
 

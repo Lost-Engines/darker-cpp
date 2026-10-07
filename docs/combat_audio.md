@@ -47,9 +47,8 @@ voice selection and actual PCM synthesis, checks finite non-clipping output and
 verifies that all timed voices expire. The original-pack first mission continues
 to complete with these effects active.
 
-The current channel manager selects up to nine strongest sources and preserves
-continuing assignments. This is a deliberate integration step, **not yet an exact
-translation of the entire native voice allocator and its tie/priority rules**.
+The channel manager now follows native candidate admission and persistent
+active/free-list allocation; details and the consecutive-frame fixture are below.
 Player sound callbacks still produce their previously reconstructed nonspatial
 records. Listening position and velocity currently follow the player, including
 external views; native camera-dependent sound ownership remains outstanding.
@@ -76,7 +75,7 @@ The native fixture covers 1,024 cases across every non-player definition,
 including wrapped clocks, speeds, damage, flags and fade values. An integration
 test checks that a moving engine retains its voice, loses level with distance,
 and becomes silent when hidden, destroyed or too distant. Live sources retain
-the existing Doppler calculation and provisional nine-channel manager above.
+the existing Doppler calculation and native channel manager below.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_object_sound_reference.py ..
@@ -88,8 +87,7 @@ The live mixer now receives the ten fixed ambient records selected by Delphi's
 BDEC range. Halon and underground ranges exclude these sources. 3599 executes
 each callback before checking its timer and previous-frame voice ownership;
 rejection resets the deadline to the current clock. The reproduction feeds back
-its actual channel assignments, while retaining the provisional strongest-nine
-allocation policy described above.
+its actual channel assignments from the native allocation policy below.
 
 * 37A6 selects the radio-beacon lattice and rejects state bits E0. Clock-change
   bit 0200 starts its 112-tick beep; there is one selected source, not sixteen.
@@ -114,4 +112,33 @@ follow the player rather than the external camera, as noted above.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_ambient_sound_reference.py ..
+```
+
+## Persistent physical voice allocation
+
+3488 inserts candidates weakest first, before equal levels. With nine candidates,
+a new level no stronger than the weakest is rejected; a stronger insertion drops
+the weakest. 33F1 then traverses the previous active list, retains matching source
+identities, and prepends released channels to the free list. Remaining candidates
+consume that free list weakest first. Both active and free list order persist
+between frames. This differs from sorting strongest first and finding the first
+unused channel, especially for equal-volume effects and competing sources.
+
+`voice_allocation` reproduces these rules. A fixture executes native 3488/33F1
+for 256 consecutive frames with ties, empty frames and more than nine candidates,
+substituting only hardware note writes. Every physical channel owner matches.
+The world mixer visits player projectiles, hostile projectiles, ground vehicles,
+player engine, aircraft, ordered fixed records, effects and gun sounds. Stationary
+objects are excluded by the native list range. Transient effect pools now follow
+363C: a previously submitted sound that lost its voice is retired rather than
+restarting later if a channel becomes available.
+
+Fixed records retain their identity when retriggered; note generation is tracked
+separately from physical ownership. The host uses wider source identities instead
+of native byte-sized pool identities. This preserves retention within their
+lifetimes but does not establish identical transient pool reuse or all note-gate flags. External-camera listening, stereo
+placement, low-level gate behaviour and remaining event coverage are still open.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_voice_allocation_reference.py ..
 ```
