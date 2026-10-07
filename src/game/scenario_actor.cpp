@@ -13,6 +13,8 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   bool const moving{placement.form == resources::placement_form::moving};
   if(moving && world_mode == 2) throw std::invalid_argument{"Underground actor creation requires route initialisation"};
   scenario_actor actor{
+    .category{placement.form == resources::placement_form::absolute_static ? actor_category::stationary
+      : placement.definition_slot > 28 ? actor_category::ground : actor_category::air},
     .index{index},
     .definition_slot{placement.definition_slot},
     .attributes{static_cast<std::uint8_t>((moving ? placement.attributes * 2 : 0) | static_cast<unsigned int>(placement.counted))},

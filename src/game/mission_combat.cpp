@@ -35,7 +35,8 @@ void impact_projectile_world(city_collision_result const &contact, std::array<ui
 } // namespace
 
 mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std::move(initial)} {
-  /// Keep stable scenario identities while active traversal follows the source list's reverse order
+  /// Keep stable native identities and reverse source order within the original air/ground/static category traversal
+  std::stable_sort(actors.begin(),actors.end(),[](auto const &a, auto const &b){ return a.category < b.category; });
 }
 
 void mission_combat::update_difficulty(uint32_t const clock) noexcept {

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <span>
 #include <vector>
 #include "game/city_map.h"
@@ -41,6 +42,8 @@ struct mission_context {
   std::uint8_t animation_parameter{0};
   std::size_t text_cursor{0};
   std::vector<mission_message> messages{};
+  // The world admits reserves and returns the new objective-completion condition before script execution resumes.
+  std::function<bool(uint8_t,uint8_t)> activate_reserves{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

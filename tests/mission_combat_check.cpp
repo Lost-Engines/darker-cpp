@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include "game/actor_activation.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
@@ -19,9 +20,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  for(size_t mission{0}; mission < 3; ++mission) {
+  for(size_t mission{0}; mission < 4; ++mission) {
     auto const &record{scenario.records()[mission]};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+    combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1 + record.groups[0].objects.size()),0,record.shared.offset);
     darker::game::player_flight player;
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
@@ -34,11 +36,15 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const cursor{briefing.consumed_text()};
     darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
     darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
+      darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
+      return combat.remaining_objectives() == 0;
+    };
     unsigned int shots{0};
     bool message{false};
     bool saw_burst{false}, saw_trail{false};
-    for(uint16_t clock{8}; clock < 30000; clock += 8) {
-      auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return !(actor.flags & 0x20); })};
+    for(uint32_t clock{8}; clock < 120000; clock += 8) {
+      auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
       bool const fire{target != combat.actors.end() && clock % 128 == 0};
       if(target != combat.actors.end()) {
         player.pose().position = target->pose.position;
@@ -47,7 +53,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().angles = {};
         player.pose().speed = 496;
       }
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire);
+      combat.advance(player, cells, bank, static_cast<uint16_t>(clock), 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire, scenario.bytes(record.shared));
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -58,15 +64,15 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       context.messages.clear();
       darker::game::advance_mission_script(script, context);
       for(auto const &event : context.messages) {
-        if(!context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
+        if(mission < 3 && !context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
         std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
-        if(actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
-        message = true;
+        if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
+        message |= mission < 3 || actual == "all targets are clear.";
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != (mission == 2 ? 3u : 2u) || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
-      throw std::runtime_error{"First mission controlled combat did not complete: shots=" + std::to_string(shots)
+    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+      throw std::runtime_error{"Campaign controlled combat did not complete: shots=" + std::to_string(shots)
         + ", removed=" + std::to_string(combat.completed_objectives) + ", reserve=" + std::to_string(caero.energy.reserve)};
     }
     if(!saw_burst || !saw_trail) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};

@@ -16,7 +16,10 @@
 
 namespace darker::game {
 
+enum class actor_category { air, ground, stationary };
+
 struct scenario_actor {
+  actor_category category{actor_category::air};
   object_parameters parameters{};
   object_pose pose{};
   actor_attitude attitude{};

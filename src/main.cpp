@@ -20,6 +20,7 @@
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
 #include "audio/world_sounds.h"
+#include "game/actor_activation.h"
 #include "game/beacon_light.h"
 #include "game/city_map.h"
 #include "game/city_persistence.h"
@@ -190,6 +191,13 @@ auto main(int const argc, char const *const argv[])->int {
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
   auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
+  if(caero) combat->reserves = darker::game::make_scenario_group(mission.groups[1],bank,static_cast<uint8_t>(1 + mission.groups[0].objects.size()),0,mission.shared.offset);
+  auto const activate_reserves{[&](uint8_t const opcode, uint8_t const count){
+    darker::game::activate_scenario_reserves(combat->actors,combat->reserves,static_cast<darker::game::actor_category>(opcode - 9),
+      count,host.player.pose(),static_cast<uint16_t>(context.clock));
+    return combat->remaining_objectives() == 0;
+  }};
+  context.activate_reserves = activate_reserves;
   if(caero) host.combat = combat.get();
   std::vector<darker::graphics::scene_object> objects;
   std::vector<darker::graphics::radar_contact> contacts;
@@ -435,7 +443,7 @@ auto main(int const argc, char const *const argv[])->int {
   }
   std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a Caero crash shows the committal sequence; Skimma restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Clear both aircraft, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
+  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
@@ -529,11 +537,13 @@ auto main(int const argc, char const *const argv[])->int {
           initial_cells = cells;
           initial_actors = darker::game::make_scenario_group(mission.groups[0],bank,1,0,mission.shared.offset);
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+          combat->reserves = darker::game::make_scenario_group(mission.groups[1],bank,static_cast<uint8_t>(1 + mission.groups[0].objects.size()),0,mission.shared.offset);
           combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
           script = initial_script;
           context = {.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
+          context.activate_reserves = activate_reserves;
           message.reset();
           game_clock = {};
           host.clock = 0;

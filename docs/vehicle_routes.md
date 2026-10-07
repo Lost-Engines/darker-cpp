@@ -28,6 +28,4 @@ playthrough.
 
 Raised traversal, map damage, stationary effects, timed visibility flags and
 vehicle firing are not connected yet. Unsupported route actions fail explicitly.
-Mission four remains gated pending its reinforcement activation and placement
-callbacks; later missions must not be considered supported merely because their
-route bytes can be decoded.
+Mission four now runs with its reinforcement waves; see [reserve activation](reserve_activation.md). Later missions must not be considered supported merely because their route bytes can be decoded.

@@ -12,6 +12,7 @@ namespace darker::game {
 class mission_combat {
 public:
   std::vector<scenario_actor> actors;
+  std::vector<scenario_actor> reserves;
   projectile_pool projectiles;
   projectile_pool hostile_projectiles{projectile_list::hostile};
   effect_system effects;

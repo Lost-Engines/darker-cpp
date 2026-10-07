@@ -154,6 +154,8 @@ configure_first_party(darker_graphics)
 add_library(darker_game STATIC
   src/game/city_persistence.cpp
   src/game/city_persistence.h
+  src/game/actor_activation.cpp
+  src/game/actor_activation.h
   src/game/actor_motion.cpp
   src/game/actor_motion.h
   src/game/aircraft_combat.cpp
@@ -304,6 +306,7 @@ if(BUILD_TESTING)
     tests/world_sounds_test.cpp
     tests/effects_test.cpp
     tests/aircraft_combat_test.cpp
+    tests/actor_activation_test.cpp
     tests/actor_motion_test.cpp
     tests/vehicle_route_test.cpp
     tests/actor_navigation_test.cpp

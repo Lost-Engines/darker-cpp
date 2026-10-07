@@ -58,6 +58,15 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
     }
     switch(opcode) {
     case 0x07: break;
+    case 0x09:
+    case 0x0a:
+    case 0x0b:
+      {
+        auto const count{byte()};
+        if(!context.activate_reserves) throw std::runtime_error{"Mission reserve activation has no world consumer"};
+        context.objectives_complete = context.activate_reserves(opcode,count);
+      }
+      break;
     case 0x0c:
     case 0x0d:
     case 0x0e:

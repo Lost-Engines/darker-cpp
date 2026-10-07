@@ -36,7 +36,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   }
   auto const firing_course{course};
   reset_actor_clearance(actor);
-  for(auto const &neighbour : active) consider_actor_clearance(actor, neighbour, course);
+  for(auto const &neighbour : active) if(neighbour.category == actor_category::air) consider_actor_clearance(actor, neighbour, course);
   adjust_actor_clearance(actor, course, actor_city_clearance(actor.pose, cells, bank, damage_mask));
   auto const manoeuvre{choose_actor_manoeuvre(actor, course)};
   if(manoeuvre.firing_distance && fire) fire(actor, firing_course, *manoeuvre.firing_distance);

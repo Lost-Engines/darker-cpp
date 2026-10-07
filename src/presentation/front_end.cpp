@@ -71,7 +71,7 @@ void front_end::choose_game() {
 
 void front_end::begin_briefing() {
   /// Select the current supported campaign record for briefing
-  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 3) { unsupported_stage = true; return; }
+  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 4) { unsupported_stage = true; return; }
   retained_music = music_group();
   scene = std::make_unique<player>(archives,font,mission,save.pilots[selected].stage - 1);
   current = screen::briefing;

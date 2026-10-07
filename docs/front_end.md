@@ -2,7 +2,7 @@
 
 The default Caero launch now passes through the original startup animation,
 title image, game selection, pilot-name entry and first-mission briefing before
-entering the hangar. The first three campaign missions now run consecutively. All images, animation frames and fonts are read directly
+entering the hangar. The first four campaign missions now run consecutively. All images, animation frames and fonts are read directly
 from the original packs. Skimma development starts still enter flight directly.
 
 `presentation::player` interprets the presentation portion of the scenario
@@ -165,7 +165,7 @@ into the C81E return site and request outcome 1. The existing successful exit
 commits city state and weapons, advances the selected pilot, writes the save and
 opens the next supported briefing. This deliberately does not mark remaining
 actors destroyed or run docking. `hangar_state::next_return_site` names C610;
-the first three supported mission scripts leave it at its initial zero value.
+the first four supported mission scripts leave it at its initial zero value.
 Future scripted destination changes and Skimma supply-pad landings must update
 both destination fields as C23B/C764 do. Existing zero-site setup currently uses
 the supported Caero HQ start; later return-site setup is not established here.
@@ -174,8 +174,7 @@ The resource integration check covers exact matching, ordinary-name isolation,
 unchanged save bytes and persistence through death. A window test uses actual
 Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
 and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
-copied destination are checked. The existing unsupported-stage gate remains in
-place for mission four.
+copied destination are checked. The unsupported-stage gate now begins at mission five; mission four includes its original reinforcement waves.
 
 ## Background transitions and text lifetime
 
