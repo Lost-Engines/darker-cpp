@@ -69,4 +69,4 @@ case. Explicit nonzero scripted destinations now take precedence correctly.
 
 ## Underground foundations
 
-The native [visibility scan](underground_visibility.md) and [route geometry/placement](tunnel_navigation.md) are implemented. Visibility compares against 384 native frames, and all 158 shipped underground moving-object starts now match the actual BEE7 helper. Underground actor steering and movement additionally match 2,528 native route choices and 1,536 actor updates. Player flight and the connected transition remain outstanding.
+The native [visibility scan](underground_visibility.md) and [route geometry/placement](tunnel_navigation.md) are implemented. Visibility compares against 384 native frames, and all 158 shipped underground moving-object starts now match the actual BEE7 helper. Underground actor steering and movement additionally match 2,528 native route choices and 1,536 actor updates. Player route recovery matches 5,214 native cases, and tunnel player flight matches 2,048 updates. Connecting these callbacks to world setup and the campaign transition remains outstanding.

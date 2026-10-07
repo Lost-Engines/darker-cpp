@@ -10,6 +10,7 @@
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
+#include "game/tunnel_flight.h"
 #include "game/tunnel_navigation.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
@@ -18,6 +19,7 @@
 #include "resources/campaign.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
+#include "reference/tunnel_flight_samples.h"
 #include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
 #include "reference/tunnel_reacquisition_samples.h"
@@ -324,6 +326,53 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + ", actual=" + std::to_string(actor.current_cell) + "/" + std::to_string(actor.tunnel->route) + "/" + std::to_string(actor.tunnel->oscillation)
           + "/" + std::to_string(actor.tunnel->progress) + "/" + std::to_string(preferred)};
       }
+    }
+    unsigned int flight_sample{0};
+    for(auto const &sample : darker::test_reference::tunnel_flight_samples) {
+      auto const &before{sample.before};
+      darker::game::tunnel_flight_state flight;
+      darker::game::caero_flight_state craft;
+      craft.pose.position = {before[0],before[1],before[2]};
+      craft.pose.angles = {before[3],before[4],before[5]};
+      craft.pose.speed = before[6];
+      flight.heading_rate = before[7];
+      craft.damage.rotation = {before[8],before[9]};
+      craft.horizontal_velocity = before[10];
+      craft.vertical_velocity = before[11];
+      flight.connection = {before[12],static_cast<uint8_t>(before[14])};
+      flight.progress = before[13];
+      craft.pose.fractions = {static_cast<uint8_t>(before[15]),static_cast<uint8_t>(before[16]),static_cast<uint8_t>(before[17])};
+      flight.filtered_pitch = before[18];
+      flight.filtered_bank = before[19];
+      flight.off_route_time = before[20];
+      flight.resistance = before[21];
+      craft.energy.boost = before[22];
+      craft.energy.incoming_display = static_cast<uint8_t>(before[23]);
+      flight.aiming = before[24] != 0;
+      flight.aim_heading = before[25];
+      flight.aim_pitch = before[26];
+      flight.aim_heading_rate = before[27];
+      flight.aim_pitch_rate = before[28];
+      craft.energy.reserve = before[29];
+      craft.energy.reserve_display = static_cast<uint8_t>(before[30]);
+      craft.repair_phase = before[31];
+      craft.damage.damage = before[32];
+      auto const &input{sample.input};
+      auto const advance{input[8] ? darker::game::advance_tunnel_flight : darker::game::advance_tunnel_motion};
+      advance(craft,flight,{.pitch_reference{input[1]},.bank_reference{input[2]},.pitch_drive{input[7]},.forward_setting{input[3]},
+        .angular_response{input[4]},.cell_collision_marker{static_cast<uint8_t>(input[9])},.engine{input[5] != 0},.brake{input[6] != 0}},input[0],*maps[0],network);
+      std::array<uint16_t,33> const actual{craft.pose.position[0],craft.pose.position[1],craft.pose.position[2],
+        craft.pose.angles[0],craft.pose.angles[1],craft.pose.angles[2],craft.pose.speed,flight.heading_rate,
+        craft.damage.rotation.pitch,craft.damage.rotation.turn,craft.horizontal_velocity,craft.vertical_velocity,
+        flight.connection.cell,flight.progress,flight.connection.route,craft.pose.fractions[0],craft.pose.fractions[1],craft.pose.fractions[2],
+        flight.filtered_pitch,flight.filtered_bank,flight.off_route_time,flight.resistance,craft.energy.boost,craft.energy.incoming_display,
+        static_cast<uint16_t>(flight.aiming),flight.aim_heading,flight.aim_pitch,flight.aim_heading_rate,flight.aim_pitch_rate,
+        craft.energy.reserve,craft.energy.reserve_display,craft.repair_phase,craft.damage.damage};
+      for(unsigned int field{0}; field < actual.size(); ++field) if(actual[field] != sample.after[field]) {
+        throw std::runtime_error{"Tunnel player flight differs from native: sample=" + std::to_string(flight_sample)
+          + ", field=" + std::to_string(field) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(sample.after[field])};
+      }
+      ++flight_sample;
     }
     auto const &underground_record{campaign.scenario(17).records()[0]};
     auto actors{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,

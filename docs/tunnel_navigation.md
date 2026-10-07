@@ -27,7 +27,7 @@ Evidence:
   and the appropriate original map. This replaces the earlier analysis harness
   that substituted the underground placement helper.
 
-The player’s D510 flight callback and campaign integration remain separate work. Correct actor movement does not yet establish a playable underground mission.
+The player’s D510 flight callback is reconstructed below; campaign integration remains separate work. Correct callbacks do not yet establish a playable underground mission.
 
 ## Connections and lookahead
 
@@ -81,5 +81,29 @@ line search.
 with displaced positions, three heights and both retained and unrelated current
 cells. The native fixture initialises the extended sine table as the game does;
 raw executable bytes beyond the base table are not valid runtime sine values.
-This helper supplies the player's off-route recovery path; D510 integration is
-still required.
+This helper supplies the player’s off-route recovery path in D510.
+
+## Player flight
+
+`game/tunnel_flight` reconstructs D510/D5C9. Tunnel flight uses smoothed control
+references, route alignment and a resistance-dependent speed penalty. If route
+tracking is lost, it changes to free steering and gravity, attempts reacquisition,
+and eventually sets the original prolonged off-route flags. Low-speed aiming
+uses a separate heading/pitch state layered over the route-following attitude.
+Connected flight replenishes the original energy fields directly; it does not
+sample the surface beacon grid.
+
+The original-pack check compares 2,048 updates: 1,024 entering D5C9 directly and
+1,024 entering the complete D510 callback. It checks 33 retained fields, including
+fractional coordinates, auxiliary aiming state, damage/repair and recharge. Inputs
+exercise engine-off movement, braking, steering and leaving low-speed aiming.
+The repair helper executes the original instructions with mirrored data memory to
+avoid Unicorn losing carry during self-modification, as in the Caero fixture.
+
+A native quirk is retained: leaving aiming calls D8B8, whose D24B geometry lookup
+replaces CL with the cell type’s collision marker before the movement callback.
+This changes that update’s timestep low byte. The fixture loads the real bank-32
+city-type directory, rather than treating the overwritten register as zero.
+
+The callbacks still need connecting to world setup, transitions, player collision
+and campaign progression before the first tunnel is advertised as playable.
