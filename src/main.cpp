@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -41,6 +42,7 @@
 #include "platform/audio_output.h"
 #include "platform/framebuffer_presenter.h"
 #include "presentation/front_end.h"
+#include "render/framebuffer.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 #include "resources/save_file.h"
@@ -100,6 +102,7 @@ auto main(int const argc, char const *const argv[])->int try {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
+    ("scale", po::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
     ("seconds", po::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
     ("output", po::value<std::string>(), "write RGB PPM without opening a window");
@@ -110,6 +113,12 @@ auto main(int const argc, char const *const argv[])->int try {
     return EXIT_SUCCESS;
   }
   po::notify(arguments);
+  auto const scale{arguments["scale"].as<int>()};
+  constexpr int display_width{framework::render::cockpit_framebuffer::width};
+  constexpr int display_height{framework::render::cockpit_framebuffer::height};
+  if(scale < 1 || scale > std::numeric_limits<int>::max() / std::max(display_width,display_height)) {
+    throw std::invalid_argument{"--scale must be a positive integer whose window dimensions fit in an int"};
+  }
   auto const name{arguments["craft"].as<std::string>()};
   if(name != "caero" && name != "skimma" && name != "upgraded") throw std::invalid_argument{"unknown --craft"};
   auto const type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
@@ -273,7 +282,7 @@ auto main(int const argc, char const *const argv[])->int try {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> const window{
-    glfwCreateWindow(960, 720, "Darker", nullptr, nullptr), glfwDestroyWindow,
+    glfwCreateWindow(display_width * scale, display_height * scale, "Darker", nullptr, nullptr), glfwDestroyWindow,
   };
   if(!window) throw std::runtime_error{"cannot create the GLFW window"};
   glfwMakeContextCurrent(window.get());
