@@ -299,11 +299,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   secondary_ready = false;
-  if(secondary_weapon == 6 || secondary_weapon == 9 || secondary_weapon == 10) {
+  if(secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 9 || secondary_weapon == 10) {
     auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.held{secondary_held},.model{bank.special_models()[secondary_weapon - 1]},
       .clock{clock},.frame_step{frame_step},.target{target.token},.underground{player.tunnel.has_value()}})};
     secondary_ready = result.ready;
+    if(result.next_selection) secondary_weapon = result.next_selection;
     player_fired |= result.shot != nullptr;
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
@@ -388,6 +389,18 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
         actors.erase(actors.begin() + (victim - actors.data()));
       }
+    }
+    else if(!victim && contact.contact == city_contact::building
+      && (shot->parameters.definition == &original_object_definitions[3] || shot->parameters.definition == &original_object_definitions[4])) {
+      auto const &cell{cells[contact.row*128 + contact.column]};
+      auto const result{diffuser.hit(shot->parameters.definition == &original_object_definitions[4],contact.category,cell.state,
+        static_cast<uint16_t>(contact.row*256 + contact.column),clock)};
+      if(result == diffuser_impact::destroyed) damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,world_damage_counter);
+      else if(result == diffuser_impact::gas) {
+        auto const &type{bank.city_types()[cell.type - 1]};
+        effects.spawn(0x75d4,{static_cast<uint16_t>(contact.column*256 + type.column_fraction),
+          static_cast<uint16_t>(contact.row*256 + type.row_fraction),impact[2]},clock);
+      } else effects.spawn(0x75a3,impact,clock);
     }
     else if(!victim) impact_projectile_world(contact,impact,*shot->parameters.definition,cells,bank,effects,clock,player.tunnel ? 0x7386 : 0x721c,world_damage_counter,damage_mask);
     shot->flags |= 0x28;

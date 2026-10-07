@@ -457,6 +457,9 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_0:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 9))) host.combat->secondary_weapon = 10;
         break;
+      case GLFW_KEY_5:
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 4))) host.combat->secondary_weapon = 5;
+        break;
       case GLFW_KEY_6:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 5))) host.combat->secondary_weapon = 6;
         break;

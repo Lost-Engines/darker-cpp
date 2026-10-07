@@ -5,6 +5,7 @@
 #include <vector>
 #include "game/aircraft_combat.h"
 #include "game/aircraft_spawning.h"
+#include "game/caero_weapons.h"
 #include "game/effects.h"
 #include "game/player_flight.h"
 #include "game/projectile_pool.h"
@@ -25,6 +26,7 @@ public:
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
   uint16_t dual_launch_pitch{614};
+  diffuser_state diffuser;
   uint8_t primary_weapon{0};
   uint8_t secondary_weapon{0};
   uint8_t difficulty{2};

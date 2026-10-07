@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–79 (04/0 through the first seven records of 04/9), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission seventy-nine saves stage eighty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–80 (04/0 through 04/9), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground and Forbes Diffuser, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission eighty saves stage eighty-one and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -422,3 +422,12 @@ scheduling rule independently of the mission test.
 
 All 188 tests pass. Windowed Level X traversal covers all eleven new briefings
 and flight entries, saved weapon masks/checksums and the stage-80 boundary.
+
+### Forbes Diffuser and mission 80
+
+The final record of 04/9 is connected. The original presentation unlocks both
+Diffuser stages; key 5 selects gas, and secondary fire alternates gas/trigger.
+Native firing and timing checks cover 1,792 cases. The real-map combat check
+clears all four building objectives, observes the final return message and
+completes docking. See [weapon behaviour](caero_weapons.md#forbes-diffuser)
+for timing, shared-target limitations and the remaining sound-scheduler scope.

@@ -27,6 +27,16 @@ struct caero_fire_request {
   uint16_t trigger_mask{0x4016};
 };
 
+enum class diffuser_impact { rejected, gas, destroyed };
+
+struct diffuser_state {
+  uint16_t cell{0};
+  uint16_t deadline{0};
+  uint16_t sound_deadline{0};
+
+  diffuser_impact hit(bool gas, uint8_t category, uint8_t state, uint16_t target, uint16_t clock) noexcept;
+};
+
 uint8_t pinner_direct_strength(bool underground) noexcept;
 
 std::optional<uint8_t> chargeable_impact_strength(uint16_t deadline, uint16_t clock) noexcept;

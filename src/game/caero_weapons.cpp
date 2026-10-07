@@ -5,6 +5,20 @@
 
 namespace darker::game {
 
+diffuser_impact diffuser_state::hit(bool const gas, uint8_t const category, uint8_t const state, uint16_t const target, uint16_t const clock) noexcept {
+  /// CE84 shares one gas target and accepts its trigger only in the final 1000h ticks before the 2800h deadline
+  if(category != 3 || !(state & 0x40)) return diffuser_impact::rejected;
+  if(gas) {
+    cell = target;
+    deadline = static_cast<uint16_t>(clock + 0x2800);
+    return diffuser_impact::gas;
+  }
+  if(target != cell || static_cast<uint16_t>(clock - deadline) < 0xf000) return diffuser_impact::rejected;
+  sound_deadline = clock;
+  deadline = clock;
+  return diffuser_impact::destroyed;
+}
+
 uint8_t pinner_direct_strength(bool const underground) noexcept {
   /// BCBF patches definition zero from world profile BDEC: 34h in Delphi and 3Bh underground
   return underground ? 0x3b : 0x34;
@@ -20,7 +34,7 @@ std::optional<uint8_t> chargeable_impact_strength(uint16_t const deadline, uint1
 caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &energy, uint16_t &charge, caero_fire_request const request) {
   /// C9C2 gates shots; CA7D accumulates Chargeable energy while held and releases it as projectile lifetime
   auto const selection{request.selection};
-  if(selection != 1 && selection != 2 && selection != 3 && selection != 6 && selection != 7 && selection != 9 && selection != 10) throw std::invalid_argument{"Caero firing branch is not implemented"};
+  if(selection != 1 && selection != 2 && selection != 3 && selection != 4 && selection != 5 && selection != 6 && selection != 7 && selection != 9 && selection != 10) throw std::invalid_argument{"Caero firing branch is not implemented"};
   auto const &definition{original_object_definitions[selection - 1]};
   auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data[0]) * 256 + 255)};
   if((request.player_flags & 0x30) || !pool.objects().free) return {};
@@ -46,6 +60,11 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
     lifetime = charge >> 4;
     charge = 0;
     if(!lifetime || !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {.ready{true}};
+  } else if(selection == 4 || selection == 5) {
+    if(energy.reserve < cost || (request.target & 0x8000)) return {.next_selection{request.pressed ? uint8_t{5} : uint8_t{0}}};
+    if(!request.pressed) return {.ready{true}};
+    energy.reserve -= cost;
+    next_selection = selection ^ 1;
   } else {
     if(energy.reserve < cost) return {};
     if(selection == 7) {
