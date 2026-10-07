@@ -7,7 +7,7 @@ The playable campaign currently covers missions 1â€“15 (04/0 and 04/1 records 0â
 ## Next integration priorities
 
 1. **Scenario transitions and world state:** connect the first tunnel-entry presentation and subsequent underground mission, connect supplementary-script activation and remaining actor/player script operations with their native ordering.
-2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, vehicle destruction/raised-route events, Wrecker door destruction, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
+2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
 3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
 4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
 5. **Remaining presentation and fidelity:** exact menus and score/debrief screens, Nightmare entry, Nayas activity, radar interference, remaining camera transitions, actor lighting/distant dots, complete audio voice allocation/stereo, palette fades and presentation ordering.
@@ -41,3 +41,7 @@ Seventy-two native reference cases cover these branches, existing expiry flags a
 `campaign_resources` lazily retains each normal archive-04 scenario at a stable address. Briefing and flight use the same owner; selecting another resource leaves earlier borrowed byte spans valid. The saved stage selects `(stage - 1) >> 3` and `(stage - 1) & 7`, matching `BB12`. Actual record counts are checked before use. The campaign gate remains explicit while later worlds are incomplete.
 
 Both player and airborne scripts now receive the completed-object counter used by opcode `1F`. Missions nine through fifteen run their original reinforcement, timed-message and patrol scripts. The controlled combat fixture uses Pinner Direct throughout, independently of Mimic steering, and checks counted removals, the final message and docking for each mission. Longer briefing tests include opcode `41`'s palette/image preload and opcode `43`'s cached-image blit; `42` remains the combined load-and-display operation.
+
+## Wrecker routes and effects
+
+Raised movement, door damage, cutting sparks/bursts and timed route removal now match native route fixtures. An original-pack integration check follows all six door-state changes in the first underground section. The tunnel renderer and campaign transition still need connecting; see [vehicle routes](vehicle_routes.md).

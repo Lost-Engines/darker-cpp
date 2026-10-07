@@ -55,6 +55,7 @@ public:
   std::vector<effect_sound> sounds;
   std::vector<effect_sound> gun_sounds;
 
+  void spark(std::array<uint16_t,3> position, uint8_t phase, uint16_t sound_level, uint16_t clock);
   void gun_impact(std::array<uint16_t, 3> position, bool hit, uint16_t clock);
   void spawn(uint16_t recipe, std::array<uint16_t, 3> position, uint16_t clock);
   void trail(std::array<uint16_t, 3> position, uint8_t severity, uint16_t &random, uint16_t clock);

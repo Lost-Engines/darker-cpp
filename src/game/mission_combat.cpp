@@ -13,18 +13,27 @@
 namespace darker::game {
 namespace {
 
+void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const height,
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint8_t &counter) {
+  /// 67BF adds a damage stage, carries the resulting high bit into C221 and emits the type's effect at its origin
+  auto &cell{cells.at(row*128 + column)};
+  cell.state = static_cast<uint8_t>(cell.state + 32);
+  counter = static_cast<uint8_t>(counter + ((cell.state & 128) != 0));
+  if(cell.type == 0) return;
+  auto const &type{bank.city_types()[cell.type - 1]};
+  effects.spawn(building_effect_recipes.at(type.unknown_5),
+    {static_cast<uint16_t>(column*256 + type.column_fraction), static_cast<uint16_t>(row*256 + type.row_fraction),height},clock);
+}
+
 void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact,
-  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe) {
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter) {
   /// Share the reconstructed building damage path while preserving each projectile list's terrain recipe
   if(contact.contact == city_contact::building && contact.category == 2) {
     auto &cell{cells[contact.row * 128 + contact.column]};
     auto const model{bank.city_model_offset(cell.type, cell.state, 0x20)};
     auto const bytes{bank.model_pool()};
     if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
-      cell.state = static_cast<uint8_t>(cell.state + 32);
-      auto const &type{bank.city_types()[cell.type - 1]};
-      effects.spawn(building_effect_recipes.at(type.unknown_5),
-        {static_cast<uint16_t>(contact.column * 256 + type.column_fraction), static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact[2]}, clock);
+      damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,counter);
     } else effects.spawn(0x7386, impact, clock);
   }
   if(!(contact.contact == city_contact::building && contact.category == 2)) {
@@ -62,7 +71,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto &caero{std::get<caero_flight_state>(player.craft)};
   auto const player_extent{bank.header_at(bank.special_models()[25]).extent};
   std::erase_if(actors, [&](auto const &actor){
-    bool const expired{(actor.flags & 0x20) && std::bit_cast<int16_t>(static_cast<uint16_t>(actor.expiry - clock)) < 0};
+    bool const expired{(actor.flags & 0x60) && std::bit_cast<int16_t>(static_cast<uint16_t>(actor.expiry - clock)) < 0};
     if(expired && (actor.attributes & 1)) ++completed_objectives;
     return expired;
   });
@@ -71,7 +80,16 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(actor.parameters.update_entry == 0x8f3b) {
       if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
       actor.previous_position = actor.pose.position;
-      advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height);
+      auto const event{advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height,random_state)};
+      if(event.damage_cell) {
+        damage_world_cell(static_cast<uint8_t>(*event.damage_cell),static_cast<uint8_t>(*event.damage_cell >> 8),0xe0,cells,bank,effects,clock,world_damage_counter);
+      }
+      if(event.deadline) actor.expiry = *event.deadline;
+      if(event.effect) {
+        auto const &effect{*event.effect};
+        if(effect.recipe) effects.spawn(effect.recipe,effect.position,clock);
+        else effects.spark(effect.position,effect.phase,effect.sound_level,clock);
+      }
       continue;
     }
     if(actor.parameters.update_entry == 0) continue;
@@ -110,11 +128,6 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       effects.trail(actor.previous_position, *severity, random_state, clock);
     }
   }
-  std::erase_if(actors,[&](auto const &actor){
-    if(!actor.route || !actor.route->removed) return false;
-    if(actor.attributes & 1) ++completed_objectives;
-    return true;
-  });
   auto const &pose{player.pose()};
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[25].impact_strength}};
@@ -174,7 +187,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         actors.erase(actors.begin() + (victim - actors.data()));
       }
     }
-    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c);
+    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter);
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;
     shot->deadline = static_cast<uint16_t>(clock + 256);
@@ -193,7 +206,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       effects.spawn(0x70c3,end,clock);
       player_hit = true;
     } else {
-      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199);
+      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199,world_damage_counter);
     }
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;

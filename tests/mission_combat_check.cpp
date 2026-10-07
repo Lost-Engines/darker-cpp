@@ -163,6 +163,38 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   guided.primary_weapon = 0;
   for(uint16_t clock{108}; clock < 2200; clock += 8) guided.advance(gunner,empty_city,bank,clock,8,0,false);
   if(guided.camera_projectile) throw std::runtime_error{"Expired projectile retained the missile camera"};
+  {
+    darker::resources::geometry_bank const tunnel_bank{archives.load({0,32})};
+    darker::resources::scenario_resource const tunnel_scenario{archives.load({4,2})};
+    auto const &record{tunnel_scenario.records()[0]};
+    auto const placement{std::ranges::find(record.groups[0].objects,29,&darker::resources::scenario_placement::definition_slot)};
+    if(placement == record.groups[0].objects.end()) throw std::runtime_error{"First tunnel has no Wrecker"};
+    auto const model{tunnel_bank.special_models()[29]};
+    auto const wrecker{darker::game::make_scenario_actor(*placement,darker::game::original_object_definitions[29],model,tunnel_bank.header_at(model).height,4,2,record.shared.offset)};
+    darker::game::mission_combat tunnel{{wrecker}};
+    darker::game::player_flight observer;
+    auto tunnel_cells{darker::game::make_city_map(archives.load({0,70}),false)};
+    std::array<size_t,3> const doors{56*128+61,49*128+65,41*128+62};
+    std::array<uint32_t,6> const times{57344,73728,155648,172032,253952,270336};
+    size_t events{0};
+    bool sparks{false}, bursts{false};
+    for(uint32_t clock{0}; clock <= 280000; clock += 512) {
+      std::array<uint8_t,3> const previous{tunnel_cells[doors[0]].state,tunnel_cells[doors[1]].state,tunnel_cells[doors[2]].state};
+      tunnel.advance(observer,tunnel_cells,tunnel_bank,clock,512,0,false,tunnel_scenario.bytes(record.shared));
+      sparks |= !tunnel.effects.trails.empty();
+      bursts |= !tunnel.effects.emitters.empty();
+      for(size_t door{0}; door < doors.size(); ++door) {
+        if(tunnel_cells[doors[door]].state == previous[door]) continue;
+        if(events >= times.size() || clock != times[events] || door != events/2
+          || tunnel_cells[doors[door]].state != ((events & 1) ? 0x40 : 0x20)) {
+          throw std::runtime_error{"Wrecker door destruction differs from native route events"};
+        }
+        ++events;
+      }
+    }
+    if(events != times.size() || !sparks || !bursts) throw std::runtime_error{"Wrecker route omitted door damage or cutting effects"};
+    std::cout << "First tunnel Wrecker: all six native door transitions, raised motion, sparks and bursts verified." << std::endl;
+  }
   // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
   auto const &record{scenario.records()[3]};
   auto group{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
@@ -205,7 +237,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     convoy.advance(observer,cells,bank,static_cast<uint16_t>(tick),50,0,false,scenario.bytes(record.shared));
     ++calls;
   }
-  if(!convoy.actors.empty() || calls != 3114 || convoy.completed_objectives != 0) {
+  if(!convoy.actors.empty() || calls != 3120 || convoy.completed_objectives != 0) {
     throw std::runtime_error{"Fourth-mission flatbed removal differs from native route timing"};
   }
   for(size_t i{0}; i < cells.size(); ++i) {
@@ -237,6 +269,6 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     std::cout << "Shared blackout: 224 towers fade, nine messages and final change at tick 12512 match native execution." << std::endl;
   }
-  std::cout << "Fourth-mission flatbed traversed its original route and removed itself after 155,650 ticks at 50-tick sampling." << std::endl;
+  std::cout << "Fourth-mission flatbed traversed its original route and removed itself after 155,950 ticks at 50-tick sampling." << std::endl;
 
 }

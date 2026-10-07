@@ -70,15 +70,19 @@ void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const p
   }
 }
 
+void effect_system::spark(std::array<uint16_t,3> const position, uint8_t const phase, uint16_t const sound_level, uint16_t const clock) {
+  /// 6742 emits a stationary sprite plus a short patch-22 sound, also used by the Wrecker's cutting effects
+  if(trails.size() == 20) trails.erase(trails.begin());
+  trails.push_back({.position{position},.start{clock},.flags{phase}});
+  if(gun_sounds.size() == 16) gun_sounds.erase(gun_sounds.begin());
+  gun_sounds.push_back({.position{position},.definition{.duration{256},.pitch{0x203},.level{sound_level},.patch{22},.flags{1}},
+    .deadline{static_cast<uint16_t>(clock + 256)},.identity{next_sound_identity++}});
+}
+
 void effect_system::gun_impact(std::array<uint16_t, 3> position, bool const hit, uint16_t const clock) {
   /// 6730/6742 create a short endpoint sprite and an independently timed patch-22 sound
   position[2] &= 0xfff8;
-  if(trails.size() == 20) trails.erase(trails.begin());
-  trails.push_back({.position{position}, .start{clock}, .flags{static_cast<uint8_t>(hit ? 3 : 6)}});
-  if(gun_sounds.size() == 16) gun_sounds.erase(gun_sounds.begin());
-  gun_sounds.push_back({.position{position}, .definition{.duration{256}, .pitch{0x203},
-    .level{static_cast<uint16_t>(hit ? 0xde30 : 0xce30)}, .patch{22}, .flags{1}},
-    .deadline{static_cast<uint16_t>(clock + 256)}, .identity{next_sound_identity++}});
+  spark(position,static_cast<uint8_t>(hit ? 3 : 6),static_cast<uint16_t>(hit ? 0xde30 : 0xce30),clock);
 }
 
 void effect_system::trail(std::array<uint16_t, 3> const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {

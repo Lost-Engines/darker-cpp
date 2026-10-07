@@ -25,6 +25,7 @@ public:
   bool player_fired{false};
   bool player_hit{false};
   unsigned int completed_objectives{0};
+  uint8_t world_damage_counter{0};
 
   explicit mission_combat(std::vector<scenario_actor> initial);
   void update_difficulty(uint32_t clock) noexcept;

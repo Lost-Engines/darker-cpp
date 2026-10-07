@@ -611,6 +611,7 @@ auto main(int const argc, char const *const argv[])->int {
         objectives.advance(cells,mission,0x20);
         context.objectives_complete = objectives.complete(mission) && combat->remaining_objectives() == 0;
         context.object_counter = static_cast<uint8_t>(combat->completed_objectives);
+        context.counter = combat->world_damage_counter;
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
         context.messages.clear();
         darker::game::advance_mission_script(script, context);
