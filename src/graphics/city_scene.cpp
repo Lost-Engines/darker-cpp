@@ -4,6 +4,7 @@
 #include <ranges>
 #include <stdexcept>
 #include "graphics/particles.h"
+#include "graphics/tunnel_visibility.h"
 
 namespace darker::graphics {
 
@@ -158,16 +159,26 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
 std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
   std::span<game::city_cell const, 128 * 128> const cells, city_view const view, std::uint8_t const damage_mask,
   distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects, particle_scene const *const particles) {
-  /// Assemble and draw the ordinary city path; underground visibility propagation and dynamic objects remain separate
+  /// Assemble the selected native visibility path before sorting world geometry, actors and particle effects
   auto const basis{make_camera_basis(view.angles)};
   camera_position const camera{
     .column{static_cast<std::uint16_t>(view.column * 4 + (view.column_fraction >> 6))},
     .row{static_cast<std::uint16_t>(view.row * 4 + (view.row_fraction >> 6))}, .altitude{view.altitude},
   };
-  collect_city_cells(cells, static_cast<std::uint8_t>(view.column >> 8), static_cast<std::uint8_t>(view.row >> 8), view.angles, view.radius, candidates);
   items.clear();
-  for(auto const index : candidates) {
-    if(auto item{place_city_cell(bank, cells[index], index, damage_mask, basis, camera)}) items.push_back(*item);
+  auto const place{[&](uint16_t const index){
+    if(auto item{place_city_cell(bank,cells[index],index,damage_mask,basis,camera)}) {
+      items.push_back(*item);
+      return true;
+    }
+    return false;
+  }};
+  if(view.underground) {
+    visit_tunnel_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),tunnel_visibility,place);
+  } else {
+    tunnel_visibility.fill(0);
+    collect_city_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),view.angles,view.radius,candidates);
+    for(auto const index : candidates) place(index);
   }
   for(auto const &object : objects) {
     if(!within_object_window(view, object.pose.position)) continue;

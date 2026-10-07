@@ -130,6 +130,8 @@ add_library(darker_graphics STATIC
   src/graphics/particle_tables.h
   src/graphics/city_scene.cpp
   src/graphics/city_scene.h
+  src/graphics/tunnel_visibility.cpp
+  src/graphics/tunnel_visibility.h
   src/graphics/camera.cpp
   src/graphics/camera.h
   src/graphics/model_projection.cpp
@@ -346,6 +348,7 @@ if(BUILD_TESTING)
     tests/city_sweep_test.cpp
     tests/city_collision_test.cpp
     tests/city_scene_test.cpp
+    tests/tunnel_visibility_test.cpp
     tests/camera_test.cpp
     tests/flight_camera_test.cpp
     tests/sky_ground_test.cpp

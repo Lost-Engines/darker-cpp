@@ -53,6 +53,7 @@ struct city_view {
   int bottom{168};
   bool beacon_lighting{true};
   bool gouraud{true};
+  bool underground{false};
 };
 
 bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept;
@@ -67,6 +68,7 @@ class city_renderer {
 private:
   std::vector<std::uint16_t> candidates;
   std::vector<city_draw_item> items;
+  std::array<uint8_t,128*128> tunnel_visibility{};
 
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
