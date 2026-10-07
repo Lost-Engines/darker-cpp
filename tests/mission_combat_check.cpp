@@ -20,7 +20,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  for(size_t mission{0}; mission < 4; ++mission) {
+  for(size_t mission{0}; mission < 7; ++mission) {
     auto const &record{scenario.records()[mission]};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1 + record.groups[0].objects.size()),0,record.shared.offset);
@@ -28,7 +28,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
     caero.energy.reserve = 0xcfff;
-    combat.primary_weapon = 1;
+    combat.primary_weapon = mission < 4 ? 1 : 2;
+    combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
     auto const text{scenario.language(mission, darker::resources::scenario_language::english)};
     darker::presentation::player briefing{archives,fonts,scenario,mission};
@@ -43,7 +44,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     unsigned int shots{0};
     bool message{false};
     bool saw_burst{false}, saw_trail{false};
-    for(uint32_t clock{8}; clock < 120000; clock += 8) {
+    for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
       bool const fire{target != combat.actors.end() && clock % 128 == 0};
       if(target != combat.actors.end()) {
@@ -67,13 +68,18 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(mission < 3 && !context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
         std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
         if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
-        message |= mission < 3 || actual == "all targets are clear.";
+        constexpr std::array final_messages{"Well done- you can return to base.","Mission accomplished. Return to base.",
+          "Good job, Tolly. Return to base.","all targets are clear.","Mission complete- come back to base.",
+          "Well done- you can return to base.","Return to Hemmersan."};
+        message |= actual == final_messages[mission];
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
-      throw std::runtime_error{"Campaign controlled combat did not complete: shots=" + std::to_string(shots)
-        + ", removed=" + std::to_string(combat.completed_objectives) + ", reserve=" + std::to_string(caero.energy.reserve)};
+    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+      throw std::runtime_error{"Campaign controlled combat did not complete: mission=" + std::to_string(mission + 1) + ", shots=" + std::to_string(shots)
+        + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", reserves=" + std::to_string(combat.reserves.size())
+        + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)
+        + ", reserve=" + std::to_string(caero.energy.reserve)};
     }
     if(!saw_burst || !saw_trail) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
     player.pose().position = {12672, 28380, 500};
@@ -115,6 +121,19 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"Hostile homing missile did not reach its target with the native half-strength hit"};
   }
   std::cout << "Mission-two missile launched, homed, hit the player for 45 damage and emitted its original impact effect." << std::endl;
+  darker::game::mission_combat guided{{}};
+  darker::game::player_flight gunner;
+  gunner.pose().position = {10000,10000,10000};
+  std::get<darker::game::caero_flight_state>(gunner.craft).energy.reserve = 0xcfff;
+  guided.primary_weapon = 2;
+  guided.missile_camera_enabled = true;
+  guided.advance(gunner,empty_city,bank,100,8,0,true);
+  if(!guided.camera_projectile || guided.camera_projectile->parameters.definition != &darker::game::original_object_definitions[1]) {
+    throw std::runtime_error{"Mimic launch did not register the missile camera"};
+  }
+  guided.primary_weapon = 0;
+  for(uint16_t clock{108}; clock < 2200; clock += 8) guided.advance(gunner,empty_city,bank,clock,8,0,false);
+  if(guided.camera_projectile) throw std::runtime_error{"Expired projectile retained the missile camera"};
   // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
   auto const &record{scenario.records()[3]};
   auto group{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};

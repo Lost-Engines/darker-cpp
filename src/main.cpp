@@ -213,11 +213,13 @@ auto main(int const argc, char const *const argv[])->int {
       front->draw(output);
       return size_t{0};
     }
-    bool const cockpit_visible{host.camera.visible_mode() == darker::game::camera_mode::cockpit};
-    bool const external{host.camera.visible_mode() != darker::game::camera_mode::cockpit && host.camera.visible_mode() != darker::game::camera_mode::fullscreen};
+    auto const *watched{combat->missile_camera_enabled ? combat->camera_projectile : nullptr};
+    bool const cockpit_visible{!watched && host.camera.visible_mode() == darker::game::camera_mode::cockpit};
+    bool const external{watched || (host.camera.visible_mode() != darker::game::camera_mode::cockpit && host.camera.visible_mode() != darker::game::camera_mode::fullscreen)};
     int const height{cockpit_visible ? (caero ? 168 : 180) : 240};
     auto const &pose{host.player.pose()};
-    auto const camera{host.camera.view(pose, frame_step, (host.player.lifecycle.flags & 16) != 0)};
+    auto const subject{!watched ? darker::game::camera_subject::player : (watched->flags & 8) ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile};
+    auto const camera{host.camera.view(watched ? watched->placement : pose,frame_step,(host.player.lifecycle.flags & 16) != 0,subject)};
     darker::graphics::city_view view{
       .column{camera.position[0]}, .row{camera.position[1]}, .column_fraction{camera.fractions[0]}, .row_fraction{camera.fractions[1]},
       .altitude{std::bit_cast<std::int16_t>(camera.position[2])},
@@ -244,7 +246,7 @@ auto main(int const argc, char const *const argv[])->int {
     }
     for(auto const *pool : {&combat->projectiles,&combat->hostile_projectiles}) {
       for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
-        if(!(shot->flags & 8)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
+        if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
       }
     }
     if(external) objects.push_back({.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
@@ -367,7 +369,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
       auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
       if(key >= GLFW_KEY_F5) {
-        if(!(host.player.lifecycle.flags & 16)) host.camera.drop(selected, host.player.pose());
+        if(!(host.player.lifecycle.flags & 16)) host.camera.drop(selected,host.combat && host.combat->missile_camera_enabled && host.combat->camera_projectile ? host.combat->camera_projectile->placement : host.player.pose());
       } else {
         if(host.camera.mode == darker::game::camera_mode::fixed) {
           host.camera.look_heading = 0;
@@ -396,7 +398,14 @@ auto main(int const argc, char const *const argv[])->int {
     using darker::game::flight_command;
     switch(key) {
       case GLFW_KEY_1:
-        if(host.combat && action == GLFW_PRESS && (host.available_weapons & 1)) host.combat->primary_weapon = 1;
+      case GLFW_KEY_2:
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << (key - GLFW_KEY_1)))) host.combat->primary_weapon = static_cast<uint8_t>(key - GLFW_KEY_1 + 1);
+        break;
+      case GLFW_KEY_M:
+        if(host.combat && action == GLFW_PRESS) {
+          host.combat->missile_camera_enabled = !host.combat->missile_camera_enabled;
+          if(!host.combat->missile_camera_enabled && (host.camera.mode == darker::game::camera_mode::cockpit || host.camera.mode == darker::game::camera_mode::fullscreen)) host.camera.distance = 0x8000;
+        }
         break;
       case GLFW_KEY_E:
         host.player.command(flight_command::engine);
@@ -448,7 +457,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a Caero crash shows the committal sequence; Skimma restarts." << std::endl;
+  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns Caero to the menu (closes Skimma); Enter after a Caero crash shows the committal sequence; Skimma restarts." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
@@ -576,7 +585,9 @@ auto main(int const argc, char const *const argv[])->int {
       }
       if(caero) {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
+        auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held, scenario.bytes(mission.shared));
+        if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         context.objectives_complete = combat->remaining_objectives() == 0;
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;

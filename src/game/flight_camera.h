@@ -8,6 +8,8 @@ namespace darker::game {
 
 enum class camera_mode { cockpit, behind, level, fullscreen, tracking, fixed };
 
+enum class camera_subject { player, missile, missile_effect };
+
 struct flight_camera {
   camera_mode mode{camera_mode::cockpit};
   std::uint8_t distance_step{1};
@@ -22,7 +24,7 @@ struct flight_camera {
   void update_look(flight_steering drive, bool held, std::uint16_t frame_step, bool landed = false) noexcept;
   camera_mode visible_mode() const noexcept;
 
-  object_pose view(object_pose const &player, std::uint16_t frame_step, bool landed = false);
+  object_pose view(object_pose const &player, std::uint16_t frame_step, bool landed = false, camera_subject subject = camera_subject::player);
 };
 
 } // namespace darker::game

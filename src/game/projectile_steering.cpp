@@ -15,6 +15,21 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
+void advance_mimic_projectile(projectile &record, object_pose const &player, uint16_t const remaining, uint16_t const frame_step) {
+  /// CBCE copies player pitch and roll, then 8375 turns using midpoint bank and remaining-life response
+  if(!record.parameters.definition) throw std::invalid_argument{"Mimic projectile requires an object definition"};
+  auto &angles{record.placement.angles};
+  record.parameters.motion[2] = static_cast<uint16_t>(remaining << 4);
+  angles[1] = player.angles[1];
+  auto const difference{signed_word(player.angles[2] - angles[2])};
+  angles[2] = player.angles[2];
+  auto const midpoint{static_cast<uint16_t>(angles[2] - (difference >> 1))};
+  auto const turn{signed_word((signed_word(record.parameters.motion[2]) * signed_word(fold_bank_angle(midpoint))) >> 15)};
+  auto const delta{signed_word((signed_word((frame_step & 255)*257) * turn) >> 15)};
+  angles[0] = static_cast<uint16_t>(angles[0] + delta);
+  advance_direct_projectile(record.placement,*record.parameters.definition,frame_step);
+}
+
 void advance_homing_projectile(projectile &record, std::uint16_t const target_heading,
   std::uint16_t const target_pitch, std::uint16_t const frame_step) {
   /// CCDB updates pitch and heading before CC64 runs the shared speed and position integration

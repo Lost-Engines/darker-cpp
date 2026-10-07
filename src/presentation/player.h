@@ -29,6 +29,7 @@ private:
   struct animation_pair { uint8_t current{160}; uint8_t target{160}; };
   std::array<animation_pair, 12> pairs{};
   std::array<std::vector<animation_frame>, 2> animations;
+  std::array<size_t,2> animation_counts{};
   framework::render::indexed_cockpit_framebuffer background{};
   graphics::palette_state colours;
   graphics::formatted_page page;

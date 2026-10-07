@@ -115,11 +115,16 @@ void player::execute() {
       auto const id{byte()};
       auto frames{decode_animation(archives.load({static_cast<unsigned int>(id >> 6), static_cast<unsigned int>(id & 63)}))};
       auto &destination{animations[op - 0x44]};
-      for(auto &frame : frames) destination.push_back(std::move(frame));
+      auto &count{animation_counts[op - 0x44]};
+      for(auto &frame : frames) {
+        if(count == destination.size()) destination.push_back(std::move(frame));
+        else destination[count] = std::move(frame);
+        ++count;
+      }
       break;
     }
     case 0x46:
-    case 0x47: for(auto &channel : animations) channel.clear(); break;
+    case 0x47: animation_counts.fill(0); break; // DADA resets append descriptors, retaining existing frame-table entries.
     case 0x48: { auto const first{byte()}; pairs[selected] = {first,byte()}; break; }
     case 0x49: { auto const frame{byte()}; pairs[selected] = {frame,frame}; break; }
     case 0x4a: deadline += (std::abs(pairs[selected].current - pairs[selected].target) + 1) * interval; break;

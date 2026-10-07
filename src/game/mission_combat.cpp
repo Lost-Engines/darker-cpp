@@ -109,15 +109,20 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[25].impact_strength}};
   weapon_ready = false;
-  if(primary_weapon == 1) {
-    auto const result{fire_pinner_direct(projectiles, caero.energy, emitter, player.lifecycle.flags, trigger_pressed, bank.special_models()[0], clock)};
+  if(primary_weapon == 1 || primary_weapon == 2) {
+    auto const result{fire_pinner(projectiles, caero.energy, emitter, primary_weapon, player.lifecycle.flags, trigger_pressed, bank.special_models()[primary_weapon - 1], clock)};
     weapon_ready = result.ready;
     player_fired = result.shot != nullptr;
+    if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   for(auto *shot{projectiles.objects().head}; shot;) {
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot, clock)
-      : update_projectile(*shot, clock, frame_step) == projectile_update_result::expired};
-    if(expired) { shot = projectiles.recycle(*shot); continue; }
+      : update_projectile(*shot, clock, frame_step, &player.pose()) == projectile_update_result::expired};
+    if(expired) {
+      if(camera_projectile == shot) camera_projectile = nullptr;
+      shot = projectiles.recycle(*shot);
+      continue;
+    }
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot;) {

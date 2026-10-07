@@ -34,7 +34,7 @@ six modes, distance changes, banked flight and Tab look/recentring on Caero and
 Skimma. These are reconstruction checks, not a claim of complete campaign
 camera coverage.
 
-Remaining camera work includes F7's object selection, missile-follow modes,
+[Missile-follow modes](pinner_mimic.md) now use the native live/impact distance tables. Remaining camera work includes F7's object selection,
 original explosion/death-camera transitions and external actor lighting updates.
 The exterior player currently receives full beacon strength; actor light updates
 will replace this with the original per-object field. Far actor point rendering

@@ -19,6 +19,8 @@ public:
   uint16_t random_state{0};
   uint8_t primary_weapon{0};
   uint8_t difficulty{2};
+  bool missile_camera_enabled{false};
+  projectile *camera_projectile{nullptr};
   bool weapon_ready{false};
   bool player_fired{false};
   bool player_hit{false};

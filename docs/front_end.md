@@ -2,7 +2,7 @@
 
 The default Caero launch now passes through the original startup animation,
 title image, game selection, pilot-name entry and first-mission briefing before
-entering the hangar. The first four campaign missions now run consecutively. All images, animation frames and fonts are read directly
+entering the hangar. The first seven campaign missions now run consecutively. All images, animation frames and fonts are read directly
 from the original packs. Skimma development starts still enter flight directly.
 
 `presentation::player` interprets the presentation portion of the scenario
@@ -174,7 +174,7 @@ The resource integration check covers exact matching, ordinary-name isolation,
 unchanged save bytes and persistence through death. A window test uses actual
 Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
 and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
-copied destination are checked. The unsupported-stage gate now begins at mission five; mission four includes its original reinforcement waves.
+copied destination are checked. The unsupported-stage gate now begins at mission eight; mission four includes its original reinforcement waves.
 
 ## Background transitions and text lifetime
 
@@ -184,3 +184,7 @@ while retaining text cursor and paragraph layout state. This prevents mission
 two's briefing from remaining over its subsequent launch clip. The regression
 check observes the original 3D/22 initial blank interval and confirms no briefing
 pixels remain and no in-flight message text is consumed.
+
+## Animation table reset
+
+Opcodes 46/47 call DADA, which resets the two append descriptors but retains the existing frame-pointer entries and animation pairs. The presentation player now retains decoded frames across this reset and overwrites them as subsequent resources load. Mission six has a timed interval between reset and reload, so discarding all frames immediately left a live pair with no image to draw. An isolated native DADA call confirms that only the three-byte descriptors change, while later entries and all twelve pairs remain untouched. Briefing checks now draw at 25-tick intervals through missions two to seven, rather than observing only their final frames. Exact aliasing of overwritten packed animation memory remains a separate issue if a later scene deliberately reuses stale pointers into replaced data.

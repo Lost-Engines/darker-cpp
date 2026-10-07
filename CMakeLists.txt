@@ -355,6 +355,7 @@ if(BUILD_TESTING)
     tests/flight_controls_test.cpp
     tests/game_clock_test.cpp
     tests/skimma_flight_test.cpp
+    tests/mimic_test.cpp
     tests/caero_weapons_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_energy_test.cpp

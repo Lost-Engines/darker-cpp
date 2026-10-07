@@ -61,12 +61,14 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
-  for(size_t record{1}; record <= 3; ++record) {
+  for(size_t record{1}; record <= 6; ++record) {
     darker::presentation::player next{archives,font,mission,record};
     size_t scenes{0};
     do {
-      next.advance(3000);
-      next.draw(frame);
+      for(unsigned int tick{0}; tick < 3000; tick += 25) {
+        next.advance(25);
+        next.draw(frame);
+      }
       if(++scenes > 8) throw std::runtime_error{"Campaign briefing failed to terminate"};
     } while(next.continue_page());
     if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active"};

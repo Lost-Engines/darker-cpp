@@ -3,6 +3,7 @@
 #include "reference/camera_look_samples.h"
 #include "reference/dropped_camera_samples.h"
 #include "reference/flight_camera_samples.h"
+#include "reference/missile_camera_samples.h"
 
 TEST_CASE("Player camera position and distance smoothing match native views", "[game][camera]") {
   /// Cover all four attached views, distance settings, fractional positions and ground clamping
@@ -51,5 +52,24 @@ TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game]
     CAPTURE(sample.anchor, sample.player, sample.mode);
     CHECK(std::array<int, 8>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
       result.angles[0], result.angles[1], result.angles[2]} == sample.output);
+  }
+}
+
+TEST_CASE("Missile camera positions match native attached and impact views", "[game][camera]") {
+  /// Cover all four attached missile modes, both visibility phases, original distances and ground adjustment
+  for(auto const &sample : darker::test_reference::missile_camera_samples) {
+    darker::game::object_pose shot;
+    for(size_t axis{0}; axis < 3; ++axis) {
+      shot.position[axis] = static_cast<uint16_t>(sample.position[axis]);
+      shot.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
+    }
+    for(size_t axis{0}; axis < 2; ++axis) shot.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
+    auto const &v{sample.input};
+    darker::game::flight_camera camera{.mode{static_cast<darker::game::camera_mode>(v[0])},.distance_step{static_cast<uint8_t>(v[2])},.distance{static_cast<uint16_t>(v[3])}};
+    auto const result{camera.view(shot,static_cast<uint16_t>(v[1]),v[4] != 0,
+      v[5] ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile)};
+    CAPTURE(sample.position,sample.angles,v);
+    CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+      result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
   }
 }
