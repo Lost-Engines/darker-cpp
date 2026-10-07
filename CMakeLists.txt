@@ -39,6 +39,8 @@ endif()
 add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
 target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
 add_library(darker_audio STATIC
+  src/audio/ambient_sounds.cpp
+  src/audio/ambient_sounds.h
   src/audio/sound_images.cpp
   src/audio/sound_images.h
   src/audio/world_sounds.cpp
@@ -352,6 +354,7 @@ if(BUILD_TESTING)
   add_executable(framework_tests
     tests/save_file_test.cpp
     tests/world_sounds_test.cpp
+    tests/ambient_sounds_test.cpp
     tests/effects_test.cpp
     tests/aircraft_combat_test.cpp
     tests/actor_activation_test.cpp

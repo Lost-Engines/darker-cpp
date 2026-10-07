@@ -54,7 +54,7 @@ Player sound callbacks still produce their previously reconstructed nonspatial
 records. Listening position and velocity currently follow the player, including
 external views; native camera-dependent sound ownership remains outstanding.
 OPL output retains the existing mono-compatible presentation; flag-1 stereo
-placement is not reconstructed here. Ambient sources, music and the remaining event bindings remain separate work.
+placement is not reconstructed here. Music uses the separate original sequencer; remaining event bindings still need auditing.
 
 ```sh
 python3 tools/generate_effect_tables.py ../analysis/unpacked/image.bin
@@ -80,4 +80,38 @@ the existing Doppler calculation and provisional nine-channel manager above.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_object_sound_reference.py ..
+```
+
+## Delphi fixed ambience
+
+The live mixer now receives the ten fixed ambient records selected by Delphi's
+BDEC range. Halon and underground ranges exclude these sources. 3599 executes
+each callback before checking its timer and previous-frame voice ownership;
+rejection resets the deadline to the current clock. The reproduction feeds back
+its actual channel assignments, while retaining the provisional strongest-nine
+allocation policy described above.
+
+* 37A6 selects the radio-beacon lattice and rejects state bits E0. Clock-change
+  bit 0200 starts its 112-tick beep; there is one selected source, not sixteen.
+* 37BA selects the nearest type-1 energy tower and derives volume as 218 times
+  its mutable state byte.
+* 380A/381E select industrial proxy positions by listener quadrant and are
+  suppressed in the supplementary mission context. 380A repeats every 1,920
+  ticks; 381E is continuous.
+* 3832 uses its separate factory-chimney regions and original clock-driven
+  pitch modulation.
+* 3846 follows the current hangar site while the gate sound flag is nonzero.
+* 385A–3896 retain four bell-tower positions, pitches and distinct periods.
+  An inaudible or displaced timed source loses its retained voice; this affects
+  its subsequent deadline and cannot be replaced by an unconditional loop.
+
+A further 1,024 native cases execute the original callbacks **and** timer/voice
+checks, substituting only the final spatial-admission call. Comparisons cover
+all updated coordinates, pitch, volume, flags, deadlines and admission results.
+Integration tests check note retention, bell retriggering, world exclusion and
+several cycles through the real OPL PCM renderer. Listener coordinates still
+follow the player rather than the external camera, as noted above.
+
+```sh
+PYTHONPATH=/tmp/darker-python python3 tools/generate_ambient_sound_reference.py ..
 ```

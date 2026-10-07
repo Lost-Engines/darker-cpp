@@ -1,22 +1,22 @@
 # Connected campaign and remaining work
 
-The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. Controlled Halon objective checks now reach normal supply-pad completion; manual full-campaign playthroughs and the remaining fidelity items below are still outstanding. Explicit `--craft` starts remain development free-flight checkpoints.
+The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and intervening films. The original packs supply cities, cockpits, actors, scripts, presentations and sound synthesis data. Controlled integration checks cover normal Caero objectives, Halon launch-site destruction and supply-pad returns, and the final battle. These checks control firing position and resources where documented; they do not establish an unassisted, retail-equivalent full playthrough. Explicit `--craft` starts remain development free-flight checkpoints.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
 ## Next integration priorities
 
-1. **Scenario transitions and world state:** connect supplementary-script activation and remaining actor/player script operations with their native ordering.
-2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
-3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
-4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
-5. **Remaining presentation and fidelity:** exact menus and score/debrief screens, Nightmare entry, radar interference, remaining camera transitions, actor lighting/distant dots, complete audio voice allocation/stereo, palette fades and presentation ordering.
+1. **Collision/update fidelity:** player/object ramming, native collision-list ordering and response ordering where city and actor contacts overlap.
+2. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
+3. **Presentation and rendering:** Nightmare entry, score/debrief fidelity, remaining camera transitions, actor lighting/distant dots, palette fades and presentation ordering.
+4. **Audio fidelity:** native voice allocation, stereo placement, external-camera listening and remaining event bindings. Aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
+5. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
 
 Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.
 
 ## Evidence and limits
 
-The full suite currently has 187 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine and fifty-two through fifty-three with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five, forty-seven and fifty-six’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The suite includes native comparison fixtures and an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine and fifty-two through fifty-three with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five, forty-seven and fifty-six’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
 A real-window check uses the ordinary menus and Level X to traverse all fifty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
@@ -38,7 +38,7 @@ Seventy-two native reference cases cover these branches, existing expiry flags a
 
 ## Campaign archive boundary
 
-`campaign_resources` lazily retains each normal archive-04 scenario at a stable address. Briefing and flight use the same owner; selecting another resource leaves earlier borrowed byte spans valid. The saved stage selects `(stage - 1) >> 3` and `(stage - 1) & 7`, matching `BB12`. Actual record counts are checked before use. The campaign gate remains explicit while later worlds are incomplete.
+`campaign_resources` lazily retains each normal archive-04 scenario at a stable address. Briefing and flight use the same owner; selecting another resource leaves earlier borrowed byte spans valid. The saved stage selects `(stage - 1) >> 3` and `(stage - 1) & 7`, matching `BB12`. Actual record counts are checked before use. The playable campaign is bounded by the original ending stage 116.
 
 Both player and airborne scripts now receive the completed-object counter used by opcode `1F`. Missions nine through fifteen run their original reinforcement, timed-message and patrol scripts. The controlled combat fixture uses Pinner Direct throughout, independently of Mimic steering, and checks counted removals, the final message and docking for each mission. Longer briefing tests include opcode `41`'s palette/image preload and opcode `43`'s cached-image blit; `42` remains the combined load-and-display operation.
 

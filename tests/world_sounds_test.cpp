@@ -128,7 +128,7 @@ TEST_CASE("Aircraft engines follow source admission without restarting moving vo
   CHECK(moving[channel].generation == voice->generation);
   CHECK(moving[channel].level < voice->level);
   for(auto const flag : {8,32}) {
-    combat.actors.front().flags = flag;
+    combat.actors.front().flags = static_cast<uint8_t>(flag);
     auto const silent{mixer.mix({},combat,{},16)};
     CHECK(std::ranges::none_of(silent, [](auto const &note){ return note.active; }));
   }

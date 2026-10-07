@@ -85,7 +85,7 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
   return result;
 }
 
-fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &combat, game::object_pose const &listener, uint16_t const clock) {
+fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient) {
   /// Admit spatial effects and preserve assigned channels while selecting the nine strongest active sources
   struct candidate { uint64_t identity; fm_note note; };
   std::vector<candidate> candidates;
@@ -99,6 +99,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &c
     auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion)};
     candidates.push_back({identity, {.pitch{pitch}, .level{*level}, .patch{definition.patch}, .active{true}}});
   }};
+  for(auto const &sound : ambient) append(sound,nullptr,0x400000000ULL+sound.identity);
   for(auto i{combat.effects.sounds.rbegin()}; i != combat.effects.sounds.rend(); ++i) append(*i, nullptr, i->identity);
   for(auto i{combat.effects.gun_sounds.rbegin()}; i != combat.effects.gun_sounds.rend(); ++i) append(*i, nullptr, i->identity);
   for(auto const &actor : combat.actors) {
@@ -148,6 +149,13 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &c
   }
   for(size_t i{0}; i < owners.size(); ++i) if(!assigned[i]) owners[i] = 0;
   return frame;
+}
+
+uint16_t world_sounds::audible_ambient() const noexcept {
+  /// Return fixed-record ownership for the following frame's native continuation checks
+  uint16_t result{0};
+  for(auto const owner : owners) if((owner >> 32) == 4) result |= static_cast<uint16_t>(1u << ((owner >> 16) & 65535));
+  return result;
 }
 
 } // namespace darker::audio

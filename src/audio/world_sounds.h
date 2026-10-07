@@ -29,7 +29,8 @@ private:
   std::array<uint16_t, 9> generations{};
 
 public:
-  fm_frame mix(fm_frame const &player, game::mission_combat const &combat, game::object_pose const &listener, uint16_t clock = 0);
+  fm_frame mix(fm_frame const &player, game::mission_combat const &combat, game::object_pose const &listener, uint16_t clock = 0, std::span<game::effect_sound const> ambient = {});
+  uint16_t audible_ambient() const noexcept;
 };
 
 } // namespace darker::audio
