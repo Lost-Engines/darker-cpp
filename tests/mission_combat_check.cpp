@@ -162,6 +162,35 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   auto group{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
   std::erase_if(group,[](auto const &actor){ return actor.definition_slot != 31; });
   if(group.size() != 1 || !group.front().route) throw std::runtime_error{"Fourth mission is missing its flatbed route"};
+  {
+    darker::game::mission_combat target_convoy{group};
+    darker::game::player_flight attacker;
+    auto &energy{std::get<darker::game::caero_flight_state>(attacker.craft).energy};
+    target_convoy.primary_weapon = 1;
+    uint16_t hit_clock{0};
+    for(uint16_t clock{8}; clock < 2048; clock += 8) {
+      attacker.pose().position = target_convoy.actors.front().pose.position;
+      attacker.pose().position[1] += 200;
+      // Aim above the ground-level origin, inside the truck's native extent cube.
+      attacker.pose().position[2] += static_cast<uint16_t>(92 + bank.header_at(target_convoy.actors.front().parameters.model_token).extent);
+      attacker.pose().angles = {};
+      attacker.pose().speed = 496;
+      energy.reserve = 0xcfff;
+      target_convoy.advance(attacker,cells,bank,clock,8,0,clock == 128,scenario.bytes(record.shared));
+      if(target_convoy.actors.front().flags & 0x20) { hit_clock = clock; break; }
+    }
+    if(!hit_clock || target_convoy.effects.emitters.empty()
+      || target_convoy.actors.front().expiry != static_cast<uint16_t>(hit_clock + 256)
+      || target_convoy.actors.front().parameters.update_entry != 0x8f3b) {
+      throw std::runtime_error{"Shooting the fourth-mission truck did not schedule its native destruction effect and removal"};
+    }
+    for(uint16_t elapsed{8}; elapsed <= 264; elapsed += 8) {
+      target_convoy.advance(attacker,cells,bank,static_cast<uint16_t>(hit_clock + elapsed),8,0,false,scenario.bytes(record.shared));
+      if((elapsed <= 256) != !target_convoy.actors.empty()) throw std::runtime_error{"Shot truck disappeared at the wrong deadline"};
+    }
+    if(target_convoy.completed_objectives != 0) throw std::runtime_error{"Shooting the uncounted truck credited a mission objective"};
+    std::cout << "Mission-four truck: Pinner impact, destruction effect, 256-tick deadline and uncounted removal verified." << std::endl;
+  }
   darker::game::mission_combat convoy{std::move(group)};
   darker::game::player_flight observer;
   auto const before{cells};

@@ -27,3 +27,11 @@ Mission two exposed a missing renderer integration step: native `26EE` patches t
 Moving objects now pass the original window first: for radius 15, each wrapped cell delta must be between -14 and +14 inclusive. Particle emitters share that check (their previous independent check was one cell too wide). This preserves original arithmetic and range rather than extending the view distance or changing radar/collision rules.
 
 `generate_object_window_reference.py` executes original window setup and acceptance instructions for 1,024 cases covering every byte delta on both axes, both native radii and wrapping camera positions. A resource integration regression renders the actual second-mission aircraft from HQ at sixteen headings and requires an empty scene, then places an aircraft nearby and requires it to be admitted. Existing combat checks continue to exercise real projectile impacts. These checks establish the false-image fix; they do not establish pixel-perfect painter ordering in every overlapping-model situation.
+
+## Ground-vehicle impacts
+
+The fourth mission's flatbed (definition slot 31) has zero resistance and an active route callback. Native `CE26`/`CE38` dispatches it through `CDFB`, not the ordinary aircraft damage calculation: `6EC7` sets flag 20h and a deadline of current clock plus 256, then recipe `7247` is spawned at the vehicle origin. The route callback remains active until removal; no aircraft damage accumulation or random angular kick occurs. The truck is not an objective, so shooting it does not credit an enemy kill.
+
+`hit_actor` now handles this dispatch before calling the ordinary damage routine. It also distinguishes the zero-resistance definition flag 02h (impact-only recipe `721C`) and callback-zero static objects (recipe `7296` at the object origin, followed by immediate removal). The ordinary damage routine retains its precondition checks.
+
+Seventy-two native reference cases cover these branches, existing expiry flags and clock wrapping. The integration check fires a real Pinner at the fourth-mission truck, verifies the destruction effect and retained route callback, and runs through its removal deadline without changing the objective count. The fixture aims within the upper part of the original collision cube to keep the shot above ground.

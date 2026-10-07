@@ -167,8 +167,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
     if(victim) {
-      auto const reaction{hit_aircraft(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
-      effects.spawn(reaction == impact_effect::fatal ? 0x7319 : 0x72df, impact, clock);
+      auto const reaction{hit_actor(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
+      effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
+      if(reaction.remove) {
+        if(victim->attributes & 1) ++completed_objectives;
+        actors.erase(actors.begin() + (victim - actors.data()));
+      }
     }
     else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c);
     shot->flags |= 0x28;

@@ -2,7 +2,9 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
+#include "game/aircraft_combat.h"
 #include "game/object_impact.h"
+#include "reference/actor_impact_samples.h"
 #include "reference/impact_samples.h"
 
 TEST_CASE("Object impacts match native damage, angular kick and delayed destruction", "[game][impact]") {
@@ -36,4 +38,28 @@ TEST_CASE("Ordinary object impact rejects separate removal paths before changing
   state.update_entry = 0;
   REQUIRE_THROWS_AS(darker::game::apply_object_impact(state, 1, 1, false, 0, seed), std::invalid_argument);
   CHECK(seed == 17);
+}
+
+TEST_CASE("Special actor impacts match native removal and effect dispatch", "[game][impact]") {
+  /// Zero resistance follows effect-only or delayed-removal paths without consuming random damage kicks
+  for(auto const &sample : darker::test_reference::actor_impact_samples) {
+    CAPTURE(sample);
+    darker::game::object_definition definition{.role_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}};
+    darker::game::scenario_actor actor;
+    actor.parameters.definition = &definition;
+    actor.parameters.update_entry = static_cast<uint16_t>(sample[0]);
+    actor.expiry = static_cast<uint16_t>(sample[4]);
+    actor.flags = static_cast<uint8_t>(sample[3]);
+    uint16_t random{17};
+    auto const result{darker::game::hit_actor(actor,52,static_cast<uint16_t>(sample[2]),random)};
+    CHECK(result.effect == sample[5]);
+    CHECK(result.at_actor == static_cast<bool>(sample[6]));
+    CHECK(result.remove == static_cast<bool>(sample[7]));
+    CHECK(actor.flags == sample[8]);
+    CHECK(actor.expiry == sample[9]);
+    CHECK(actor.parameters.update_entry == sample[0]);
+    CHECK(random == 17);
+    CHECK(actor.awareness.level == 0);
+    CHECK(actor.awareness.cooldown == 0);
+  }
 }

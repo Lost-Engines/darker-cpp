@@ -30,8 +30,15 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
   return true;
 }
 
-impact_effect hit_aircraft(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state) {
-  /// CE38 shares awareness with impact accumulation and field 64 with damage/recovery accounting
+actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state) {
+  /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
+  if(actor.parameters.update_entry == 0) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
+  if(actor.parameters.definition->impact_strength == 0) {
+    if(actor.parameters.definition->role_data[7] & 2) return {.effect{0x721c}};
+    actor.expiry = static_cast<uint16_t>(clock + 256);
+    actor.flags |= 0x20;
+    return {.effect{0x7247}, .at_actor{true}};
+  }
   object_impact_state state{
     .rotation{actor.attitude.pitch_rate, actor.attitude.bank_rate},
     .impact_accumulator{actor.awareness.level}, .damage{actor.awareness.cooldown},
@@ -43,7 +50,7 @@ impact_effect hit_aircraft(scenario_actor &actor, uint8_t const strength, uint16
   actor.parameters.update_entry = state.update_entry;
   actor.expiry = state.deadline;
   actor.flags = state.flags;
-  return result;
+  return {.effect{static_cast<uint16_t>(result)}};
 }
 
 void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexcept {
