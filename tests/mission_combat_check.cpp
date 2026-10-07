@@ -8,6 +8,7 @@
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
+#include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
 #include "resources/archive_set.h"
@@ -94,6 +95,28 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
+  }
+  // Mission two's aircraft are distant from HQ: word projection alone used to show phantom nearby ships.
+  {
+    auto const actors{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset)};
+    std::vector<darker::graphics::scene_object> objects;
+    for(auto const &actor : actors) objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
+    darker::graphics::city_renderer renderer;
+    darker::graphics::distance_shading const lighting;
+    darker::game::city_map const empty_city{};
+    for(unsigned int heading{0}; heading < 65536; heading += 4096) {
+      framework::render::indexed_cockpit_framebuffer frame{};
+      darker::graphics::city_view const view{.column{12672}, .row{28928}, .altitude{500}, .angles{.heading{static_cast<uint16_t>(heading)}}};
+      if(renderer.draw(frame,bank,empty_city,view,0x20,lighting,{},objects) != 0
+        || std::ranges::any_of(frame.pixels,[](auto pixel){ return pixel != 0; })) {
+        throw std::runtime_error{"Distant mission-two aircraft aliased into the hangar view"};
+      }
+    }
+    objects.front().pose.position = {12672, 28672, 500};
+    framework::render::indexed_cockpit_framebuffer frame{};
+    if(renderer.draw(frame,bank,empty_city,{.column{12672}, .row{28928}, .altitude{500}},0x20,lighting,{},objects) == 0) {
+      throw std::runtime_error{"Nearby mission-two aircraft disappeared with the distant-object rejection"};
+    }
   }
   // Exercise mission two's missile branch through the real pool, homing callback, collision and damage response.
   auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset).front()};

@@ -61,6 +61,14 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
   return item;
 }
 
+bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept {
+  /// 26EE patches 2F35's byte window before word-sized projection can alias distant objects into nearby space
+  auto const width{view.radius * 2 - 1};
+  auto const column{static_cast<uint8_t>((position[0] >> 8) - (view.column >> 8) + view.radius - 1)};
+  auto const row{static_cast<uint8_t>((position[1] >> 8) - (view.row >> 8) + view.radius - 1)};
+  return column < width && row < width;
+}
+
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera) {
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
@@ -162,6 +170,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     if(auto item{place_city_cell(bank, cells[index], index, damage_mask, basis, camera)}) items.push_back(*item);
   }
   for(auto const &object : objects) {
+    if(!within_object_window(view, object.pose.position)) continue;
     if(auto item{place_scene_object(bank, object, basis, camera)}) items.push_back(*item);
   }
   if(particles) {
@@ -170,9 +179,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
         auto const phase{game::particle_phase(emitter, particles->clock)};
         if(!phase) continue;
         // 2F35 admits effects through the same wrapping coordinate window as moving objects.
-        auto const dx{static_cast<uint8_t>((emitter.position[0] >> 8) - (view.column >> 8) + view.radius)};
-        auto const dy{static_cast<uint8_t>((emitter.position[1] >> 8) - (view.row >> 8) + view.radius)};
-        if(dx >= view.radius * 2 || dy >= view.radius * 2) continue;
+        if(!within_object_window(view, emitter.position)) continue;
         auto const placement{place_model(basis, camera, {.column{emitter.position[0]}, .row{emitter.position[1]}, .height{word(-emitter.position[2])}})};
         items.push_back({.placement{placement}, .emitter{&emitter}, .phase{*phase}});
       }

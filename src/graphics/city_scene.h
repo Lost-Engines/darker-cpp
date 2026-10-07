@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -53,6 +54,8 @@ struct city_view {
   bool beacon_lighting{true};
   bool gouraud{true};
 };
+
+bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept;
 
 struct particle_scene {
   game::effect_system const &effects;
