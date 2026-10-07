@@ -27,6 +27,25 @@ Evidence:
   and the appropriate original map. This replaces the earlier analysis harness
   that substituted the underground placement helper.
 
-Route connections, underground steering and the player's D510 flight callback
-remain separate work. Correct placement does not yet establish a playable
+Underground steering and the player's D510 flight callback remain separate work. Correct placement does not yet establish a playable
 underground mission.
+
+## Connections and lookahead
+
+D136/D159 choose the adjoining segment by perimeter endpoint error, height
+agreement and preferred heading. Equal scores retain the native traversal/tie
+order. The special junction table uses a different offset calculation from
+ordinary segments; its low two route bits and the additional junction selector
+must be handled separately.
+
+D284 projects a craft onto its current segment. Crossing behind that segment
+updates its current cell/route; a steering target farther ahead can traverse
+additional edges without changing the craft’s current route. Projection and
+interpolation retain signed division. Flag 40h disables connected-route tracing.
+
+Original-pack checks now compare 1,264 connection choices and 1,264 lookahead
+samples with native execution. They cover both travel directions, varied heading
+preferences, slightly displaced positions and targets spanning multiple cells.
+The special junction addressing was caught by the lookahead comparisons: correct
+connection flags alone did not establish that the subsequent segment was read
+from the correct offset.

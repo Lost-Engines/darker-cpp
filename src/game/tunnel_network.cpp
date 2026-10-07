@@ -1,10 +1,18 @@
 #include "game/tunnel_network.h"
 #include <bit>
+#include <cstdlib>
+#include <functional>
 #include <stdexcept>
 #include "maths/direction.h"
 
 namespace darker::game {
 namespace {
+
+int segment_offset(uint8_t const type, uint8_t const route) {
+  /// Normal and alternate junction records share the native five-byte backwards indexing
+  if(route & 0x10) return type*16 + 1003 - (route & 15)*4 - (route & 3);
+  return type*16 - 5 - (route & 31)*5;
+}
 
 std::array<int,2> boundary(uint8_t const encoded) {
   /// D120 decodes a clockwise position around a cell's 32-unit square perimeter
@@ -63,7 +71,11 @@ std::span<std::byte const> tunnel_network::prepared_bytes() const noexcept {
 
 tunnel_segment tunnel_network::segment(uint8_t const type, uint8_t const route) const {
   /// D24B/D206 address five-byte edges backwards from each cell record, with the junction-table displacement
-  int const index{type*16 - 5 - (route & (route & 0x10 ? 15 : 31))*5 + (route & 0x10 ? 1008 : 0)};
+  return segment_at(segment_offset(type,route));
+}
+
+tunnel_segment tunnel_network::segment_at(int const index) const {
+  /// Decode a segment view without changing the original table offsets
   if(index < 0 || static_cast<size_t>(index) + 5 > data.size()) throw std::out_of_range{"Tunnel segment leaves the prepared route table"};
   auto const read{[&](size_t const offset){ return std::to_integer<uint8_t>(data[static_cast<size_t>(index) + offset]); }};
   return {read(0),read(1),read(2),read(3),read(4)};
@@ -99,6 +111,98 @@ tunnel_start tunnel_network::start(uint8_t const type, uint16_t const cell, uint
   auto const heading{static_cast<uint16_t>(encoded_heading & 0xfcff)};
   auto const edge{segment(type,route)};
   return {.position{point(type,route,cell,edge.length)},.heading{heading},.route{direction(type,route,heading)}};
+}
+
+tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connection const source, uint8_t const preferred_heading) const {
+  /// D136/D159 cross a boundary and choose a connected segment by endpoint, height and heading error
+  auto const type_at{[&](uint16_t const cell){
+    auto const x{cell & 255}, y{cell >> 8};
+    if(x >= 128 || y >= 128) throw std::out_of_range{"Tunnel connection leaves its map"};
+    return cells[y*128+x].type;
+  }};
+  struct selection { tunnel_connection connection; uint8_t entry; };
+  unsigned int visits{0};
+  std::function<selection(tunnel_connection,int)> follow;
+  follow = [&](tunnel_connection const current, int const current_offset)->selection {
+    if(++visits > 200) throw std::invalid_argument{"Tunnel connection does not reach a matching boundary"};
+    auto const edge{segment_at(current_offset)};
+    auto const endpoint{current.route & 0x80 ? edge.second : edge.first};
+    auto const height{current.route & 0x80 ? edge.heights >> 4 : edge.heights & 15};
+    constexpr std::array<int,4> steps{-256,1,256,-1};
+    auto const cell{static_cast<uint16_t>(current.cell + steps[(endpoint >> 5) & 3])};
+    auto const entry{static_cast<uint8_t>(((endpoint & 0x20 ? 0xa0 : 0x60) - endpoint) & 127)};
+    int first{segment_offset(type_at(cell),2)};
+    bool const junction{first == 0xe8d1 - 0xe580};
+    if(junction) first = 0xecc1 - 0xe580 - ((entry & 0x60) >> 1);
+    int best_score{127}, best_angle{255}, best_offset{-1};
+    uint8_t best_route{0};
+    for(unsigned int i{0}; i < 3; ++i) {
+      auto const candidate{segment_at(first + static_cast<int>(i)*5)};
+      if(candidate.first == 0 && candidate.second == 0) continue;
+      auto const first_delta{std::bit_cast<int8_t>(static_cast<uint8_t>((candidate.first - entry)*2))};
+      auto const second_delta{std::bit_cast<int8_t>(static_cast<uint8_t>((candidate.second - entry)*2))};
+      auto const first_score{std::abs(first_delta) + std::abs((candidate.heights & 15) - height)};
+      auto const second_score{std::abs(second_delta) + std::abs((candidate.heights >> 4) - height)};
+      bool const first_end{first_score < second_score};
+      auto const score{first_end ? first_score : second_score};
+      if(best_score < score) continue;
+      auto const delta{first_end ? first_delta : second_delta};
+      auto const heading{static_cast<uint8_t>(candidate.heading - (score == 0 ? 0 : delta < 0 ? -1 : 1))};
+      auto const angle{std::abs(std::bit_cast<int8_t>(static_cast<uint8_t>(heading - preferred_heading)))};
+      if(best_score == score && best_angle < angle) continue;
+      best_score = score;
+      best_angle = angle;
+      best_offset = first + static_cast<int>(i)*5;
+      best_route = static_cast<uint8_t>((first_end ? 0x80 : 0) | (2 - i));
+    }
+    if(best_offset < 0) throw std::invalid_argument{"Tunnel cell has no eligible connected segment"};
+    auto const chosen{segment_at(best_offset)};
+    auto const chosen_end{best_route & 0x80 ? chosen.first : chosen.second};
+    selection result{{cell,best_route},entry};
+    if((chosen_end ^ entry) & 0x60) result = follow({cell,static_cast<uint8_t>(best_route ^ 0x80)},best_offset);
+    if(junction) result.connection.route |= static_cast<uint8_t>(0x10 | ((result.entry & 0x60) >> 3));
+    return result;
+  };
+  return follow(source,segment_offset(type_at(source.cell),source.route)).connection;
+}
+
+std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_connection source,
+  std::array<uint16_t,3> const position, uint16_t const lookahead, uint8_t const preferred_heading) const {
+  /// D284 projects onto the current edge, corrects crossings and samples a target through successive connected edges
+  if(source.route & 0x40) return std::nullopt;
+  auto const type_at{[&](uint16_t const cell){
+    auto const x{cell & 255}, y{cell >> 8};
+    if(x >= 128 || y >= 128) throw std::out_of_range{"Tunnel projection leaves its map"};
+    return cells[y*128+x].type;
+  }};
+  unsigned int visits{0};
+  int progress{0};
+  for(;;) {
+    if(++visits > 200) throw std::invalid_argument{"Tunnel projection does not reach a containing segment"};
+    auto const edge{segment(type_at(source.cell),source.route)};
+    if(edge.length == 0) throw std::invalid_argument{"Cannot project onto a zero-length tunnel segment"};
+    bool const reverse{(source.route & 0x80) != 0};
+    auto const from{boundary(reverse ? edge.second : edge.first)}, to{boundary(reverse ? edge.first : edge.second)};
+    auto const x{static_cast<uint16_t>((source.cell & 255)*256 + from[0]*8)};
+    auto const y{static_cast<uint16_t>((source.cell >> 8)*256 + from[1]*8)};
+    auto const dx{std::bit_cast<int16_t>(static_cast<uint16_t>(position[0] - x))};
+    auto const dy{std::bit_cast<int16_t>(static_cast<uint16_t>(position[1] - y))};
+    progress = (dx*(to[0] - from[0])*8 + dy*(to[1] - from[1])*8) / (edge.length*2);
+    if(progress >= 0) {
+      if(progress > edge.length*2) progress = edge.length*2;
+      break;
+    }
+    source = connect(cells,source,preferred_heading);
+  }
+  tunnel_trace result{.connection{source},.progress{static_cast<uint16_t>(progress)}};
+  int distance{progress - lookahead};
+  while(distance < 0) {
+    if(++visits > 200) throw std::invalid_argument{"Tunnel lookahead exceeds connected route traversal"};
+    source = connect(cells,source,preferred_heading);
+    distance += segment(type_at(source.cell),source.route).length*2;
+  }
+  result.target = point(type_at(source.cell),source.route,source.cell,static_cast<uint16_t>(distance));
+  return result;
 }
 
 } // namespace darker::game

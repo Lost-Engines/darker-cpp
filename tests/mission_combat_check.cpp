@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 #include "game/actor_activation.h"
@@ -14,7 +15,9 @@
 #include "presentation/player.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_placement_samples.h"
+#include "reference/tunnel_trace_samples.h"
 
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
@@ -258,6 +261,35 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + ", record=" + std::to_string(sample[1]) + ", object=" + std::to_string(sample[2])};
       }
     }
+    std::array<std::optional<darker::game::city_map>,8> maps;
+    for(auto const &sample : darker::test_reference::tunnel_connection_samples) {
+      auto &map{maps.at(sample[0] - 70)};
+      if(!map) map = darker::game::make_city_map(archives.load({0,sample[0]}),false);
+      auto const result{network.connect(*map,{sample[1],static_cast<uint8_t>(sample[2])},static_cast<uint8_t>(sample[3]))};
+      if(result.cell != sample[4] || result.route != sample[5]) {
+        throw std::runtime_error{"Tunnel connection differs from native: map=" + std::to_string(sample[0])
+          + ", cell=" + std::to_string(sample[1]) + ", route=" + std::to_string(sample[2]) + ", heading=" + std::to_string(sample[3])
+          + ", actual=" + std::to_string(result.cell) + "/" + std::to_string(result.route)
+          + ", expected=" + std::to_string(sample[4]) + "/" + std::to_string(sample[5])};
+      }
+    }
+    for(auto const &sample : darker::test_reference::tunnel_trace_samples) {
+      auto &map{maps.at(sample[0] - 70)};
+      if(!map) map = darker::game::make_city_map(archives.load({0,sample[0]}),false);
+      auto const result{network.trace(*map,{sample[1],static_cast<uint8_t>(sample[2])},
+        {sample[4],sample[5],0},sample[6],static_cast<uint8_t>(sample[3]))};
+      if(!result || result->progress != sample[7] || result->connection.cell != sample[8] || result->connection.route != sample[9]
+        || result->target != std::array<uint16_t,3>{sample[10],sample[11],sample[12]}) {
+        throw std::runtime_error{"Tunnel lookahead differs from native: map=" + std::to_string(sample[0])
+          + ", cell=" + std::to_string(sample[1]) + ", route=" + std::to_string(sample[2]) + ", lookahead=" + std::to_string(sample[6])
+          + ", expected=" + std::to_string(sample[7]) + "/" + std::to_string(sample[8]) + "/" + std::to_string(sample[9])
+          + "/" + std::to_string(sample[10]) + "/" + std::to_string(sample[11]) + "/" + std::to_string(sample[12])
+          + ", actual=" + (result ? std::to_string(result->progress) + "/" + std::to_string(result->connection.cell) + "/" + std::to_string(result->connection.route)
+          + "/" + std::to_string(result->target[0]) + "/" + std::to_string(result->target[1]) + "/" + std::to_string(result->target[2]) : "none")};
+      }
+    }
+    std::cout << "All 1264 tunnel projection/lookahead targets match native route crossings." << std::endl;
+    std::cout << "All 1264 tunnel connection choices match native endpoint, height and heading selection." << std::endl;
     std::cout << "All 158 underground moving-object placements match native route snapping and direction selection." << std::endl;
   }
   // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
