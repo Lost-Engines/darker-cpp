@@ -138,7 +138,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
   commands.key(front_key::back);
   if(!commands.level_skip_enabled()) throw std::runtime_error{"Death cleared the process-wide Level X patch"};
   // Interstitial records must never construct a world using their FF configuration.
-  for(uint8_t const stage : std::array<uint8_t,8>{98,100,102,104,106,108,110,112}) {
+  for(uint8_t const stage : std::array<uint8_t,9>{98,100,102,104,106,108,110,112,114}) {
     darker::resources::save_file interstitial_saves;
     interstitial_saves.pilots[0].stage = stage;
     interstitial_saves.pilots[0].weapons = 0x3ff;
@@ -154,5 +154,16 @@ void check_presentations(darker::resources::archive_set const &archives) {
     if(interstitial_saves.pilots[0].weapons != 0x3ff)
       throw std::runtime_error{"Presentation-only progression changed saved weapon state"};
   }
+  darker::resources::save_file ending_save;
+  ending_save.pilots[0].stage = 116;
+  darker::presentation::front_end ending{archives,font,campaign,ending_save,true};
+  ending.key(front_key::one);
+  ending.key(front_key::accept);
+  for(unsigned int i{0}; i < 8000; ++i) ending.advance(32);
+  ending.draw(frame);
+  if(!ending.active() || ending_save.pilots[0].stage != 116 || ending.save_requested)
+    throw std::runtime_error{"Ending must retain the completed campaign instead of entering a nonexistent stage"};
+  ending.key(front_key::back);
+  if(!ending.active()) throw std::runtime_error{"Ending back button entered flight"};
   std::cout << "Startup, committal and first three mission animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
 }

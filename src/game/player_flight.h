@@ -26,7 +26,10 @@ struct player_flight {
   bool altitude_hold{false};
   bool upgraded{false};
   supply_pad_state supply{};
+  std::optional<uint8_t> scenario_configuration;
 
+  uint8_t definition_slot() const noexcept;
+  uint8_t world_damage_mask() const noexcept;
   object_pose &pose() noexcept;
   object_pose const &pose() const noexcept;
   void command(flight_command command) noexcept;

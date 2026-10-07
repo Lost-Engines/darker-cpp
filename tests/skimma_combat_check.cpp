@@ -1,14 +1,16 @@
 #include "skimma_combat_check.h"
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
 #include "game/mission_combat.h"
 #include "game/mission_exchange.h"
-#include <bit>
 #include "game/object_definitions.h"
 #include "game/scenario_world.h"
+#include "game/scenario_setup.h"
+#include "presentation/player.h"
 #include "maths/sine_table.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
@@ -179,6 +181,96 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       if(std::get<darker::game::skimma_flight_state>(pilot.craft).damage.shield_charge != 0xbf00)
         throw std::runtime_error{"Supply cycle did not restore the shield"};
     }
+  }
+
+  {
+    darker::resources::geometry_bank const final_bank{archives.load({0,30})};
+    darker::resources::font_resource const font{archives.load({0,29})};
+    auto const &final_scenario{campaign.scenario(115)};
+    auto const index{darker::resources::select_campaign_stage(115).record};
+    auto const &record{final_scenario.records()[index]};
+    auto city{darker::game::make_city_map(archives.load({0,68}),true)};
+    std::array<uint8_t,256> variants{};
+    for(size_t i{0}; i < final_bank.city_types().size(); ++i) variants[i+1] = final_bank.city_types()[i].variant_limit;
+    darker::game::assign_city_variants(city,variants);
+    darker::game::apply_scenario_cells(city,record);
+    darker::presentation::player briefing{archives,font,final_scenario,index};
+    do { briefing.advance(4000); } while(briefing.continue_page());
+    darker::game::player_flight pilot;
+    darker::game::initialise_skimma_pad(pilot,briefing.entry->site,briefing.entry->heading,
+      final_bank.header_at(final_bank.special_models()[24]).height,true);
+    pilot.scenario_configuration = 0;
+    pilot.supply.phase = darker::game::supply_phase::flight;
+    darker::game::weapon_ammunition second_weapon;
+    darker::game::refill_skimma_weapon(second_weapon,1);
+    auto groups{darker::game::make_scenario_actors(record,final_scenario,final_bank,pilot,second_weapon,0)};
+    if(second_weapon.working || second_weapon.reserve || pilot.definition_slot() != 24 || pilot.world_damage_mask() != 0x20)
+      throw std::runtime_error{"Final approach lost its native Skimma profile or empty ground-weapon bay"};
+    darker::game::mission_combat combat{std::move(groups[0])};
+    combat.reserves = std::move(groups[1]);
+    combat.skimma_selection = 2;
+    combat.skimma_weapons[2].flags = 1;
+    darker::game::refill_skimma_weapon(combat.skimma_weapons[2].ammunition,2);
+    darker::game::refill_skimma_weapon(combat.skimma_weapons[0].ammunition,0);
+    combat.free_actors = std::move(groups[2]);
+    auto &craft{std::get<darker::game::skimma_flight_state>(pilot.craft)};
+    craft.damage.shield_enabled = true;
+    pilot.engine_flags = 1;
+    darker::game::world_objectives objectives{.list{record.objective_cell_list}};
+    darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
+    darker::game::mission_context context{.program{final_scenario.bytes(record.shared)},
+      .text{final_scenario.language(index,darker::resources::scenario_language::english)},.cells{city},
+      .time_multiplier{record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+    context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
+      combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,pilot.pose(),static_cast<uint16_t>(context.clock));
+      return objectives.complete(record) && !combat.remaining_objectives();
+    };
+    unsigned int shots{0};
+    for(uint32_t clock{8}; clock < 500000 && !context.progress; clock += 8) {
+      auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return !(actor.flags & 0x20); })};
+      if(target != combat.actors.end()) {
+        auto const heading{target->pose.angles[0]};
+        auto const sine{darker::maths::original_sine[heading >> 6]};
+        auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+        pilot.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
+          static_cast<uint16_t>(target->pose.position[1]+((cosine*200) >> 15)),target->pose.position[2]};
+        pilot.pose().angles = {heading,0,0};
+        pilot.pose().speed = 496;
+      }
+      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles[0],pilot.pose().angles[1],0});
+      if(combat.skimma_selection == 2 && !combat.skimma_weapons[2].ammunition.working && !combat.skimma_weapons[2].ammunition.reserve) {
+        darker::game::select_skimma_weapon(combat.skimma_weapons,combat.skimma_selection,combat.skimma_ring,1,7,static_cast<uint16_t>(clock));
+        combat.target.clear();
+      }
+      // This fixture controls the firing position and shield reserve; hostile damage is checked separately above.
+      craft.damage.shield_charge = 0xbf00;
+      bool const heavy{target != combat.actors.end() && target->parameters.definition->impact_strength >= 50};
+      bool const pressed{target != combat.actors.end() && clock%128 == 0};
+      combat.advance(pilot,city,final_bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),
+        pressed && !heavy,final_scenario.bytes(record.shared),record.time_multiplier,nullptr,pressed && heavy);
+      darker::game::update_weapon_ring(combat.skimma_weapons[combat.skimma_selection].ammunition,combat.skimma_ring,static_cast<uint16_t>(clock),
+        combat.skimma_weapons[combat.skimma_selection].flags,8);
+      shots += combat.player_fired;
+      darker::game::recharge_skimma_shield(craft.damage,8);
+      if(pilot.lifecycle.crashing) throw std::runtime_error{"Controlled final battle lost its shielded pilot"};
+      objectives.advance(city,record,0x20);
+      context.clock = clock;
+      context.objectives_complete = objectives.complete(record) && !combat.remaining_objectives();
+      context.object_counter = static_cast<uint8_t>(combat.completed_objectives);
+      context.object_flags = combat.status_flags(pilot.lifecycle.flags);
+      darker::game::advance_mission_script(script,context);
+    }
+    if(!context.progress) for(auto const &actor : combat.actors) {
+      std::cerr << "Final actor " << unsigned{actor.index} << " slot " << unsigned{actor.definition_slot}
+        << " flags " << unsigned{actor.flags} << " callback " << actor.parameters.update_entry
+        << " position " << actor.pose.position[0] << ',' << actor.pose.position[1] << ',' << actor.pose.position[2]
+        << std::endl;
+    }
+    if(!context.progress || !context.objectives_complete || !combat.reserves.empty())
+      throw std::runtime_error{"Final battle failed to finish: removals="+std::to_string(combat.completed_objectives)
+        +", reserves="+std::to_string(combat.reserves.size())+", shots="+std::to_string(shots)};
+    std::cout << "Final Delphi battle: " << combat.completed_objectives << " removals and " << shots
+      << " controlled gun/missile shots reach the original ending request." << std::endl;
   }
 
 }

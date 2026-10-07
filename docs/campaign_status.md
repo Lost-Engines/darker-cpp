@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The connected campaign now reaches stage 113, including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. The final Delphi return and ending remain the next boundary. Explicit `--craft` starts remain development free-flight checkpoints.
+The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. Halon objective playthroughs and the remaining fidelity items below are still being checked. Explicit `--craft` starts remain development free-flight checkpoints.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -496,5 +496,30 @@ The film backing-strip compositing still needs a native framebuffer comparison.
 
 Verification includes all eight Halon presentation transitions and real window
 launch/weapon/Level-X/save progression. This is not a claim that every Halon
-objective has been completed interactively. Mission-bearing guidance and final
-stage 115 remain follow-up work.
+objective has been completed interactively. Mission-bearing guidance and the final stage were connected in the subsequent pass below.
+
+
+### Mission bearing, final battle and ending
+
+The Skimma bearing indicator follows the scripted HUD cell, using native
+576E's seven forward sectors and its negative sentinel. All 1,024 generated
+position/heading cases match the original routine.
+
+Stage 115 uses definition 24: an upgraded Skimma in Delphi, with that
+specific definition's steering response and Delphi's 20h damage-state mask.
+The player now retains the scenario configuration separately from the craft
+variant, so model selection, collisions and combat use the proper profile.
+Its inline setup empties weapon bay two as in the executable.
+
+A controlled final-battle test clears all 49 counted aircraft through the
+original reinforcement waits and timed final wave, then reaches progress 1
+and the ending request. It uses 253 gun/missile launches in this fixture,
+including the original finite ammunition in both air-weapon bays. Firing
+position and shield reserve are controlled; this is not an unassisted
+playthrough. Primary fire alone is ineffective against the heavier craft's
+resistance, so the fixture changes weapon rather than altering damage rules.
+
+The real window passes stage 114's film, launches the Skimma over Delphi and
+saves stage 116 through Level X. The complete ending presentation runs in the
+resource test and retains stage 116; its back button returns to the menu
+rather than attempting to load an absent stage 117.

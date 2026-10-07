@@ -297,7 +297,7 @@ auto main(int const argc, char const *const argv[])->int {
         if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
       }
     }
-    if(external) objects.push_back({.model_offset{bank.special_models()[host.player.tunnel ? 28 : caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
+    if(external) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
     auto const count{scene.draw(world, bank, cells, view, world_mode == 0 ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
@@ -344,7 +344,8 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
-      darker::graphics::skimma_bitmap_state indicators;
+      darker::graphics::skimma_bitmap_state indicators{.bearing{darker::graphics::skimma_mission_bearing(
+        context.hud_reference,pose.position[0],pose.position[1],pose.angles[0])}};
       for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, indicators);
       auto const &weapon{combat->skimma_weapons[combat->skimma_selection]};
@@ -676,6 +677,8 @@ auto main(int const argc, char const *const argv[])->int {
             darker::game::initialise_skimma_pad(host.player,site,entry ? entry->heading : uint8_t{0},
               bank.header_at(bank.special_models()[configuration + 24]).height,configuration != 2);
           }
+          host.player.scenario_configuration = configuration;
+          if(configuration == 0) host.player.supply.phase = darker::game::supply_phase::flight;
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
           darker::game::weapon_ammunition second_weapon;
           darker::game::refill_skimma_weapon(second_weapon,1);
@@ -815,7 +818,7 @@ auto main(int const argc, char const *const argv[])->int {
     auto const status{host.briefing ? " - menu / presentation"
       : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete"
       : host.player.lifecycle.crashing ? (caero ? " - crashed: Enter to continue" : " - crashed: Enter to restart") : " - flight"};
-    std::string const title{"Darker - " + std::string{host.player.tunnel ? "Underground" : caero ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
+    std::string const title{"Darker - " + std::string{world_mode == 2 ? "Underground" : world_mode == 0 ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);
   }

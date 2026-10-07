@@ -5,6 +5,17 @@
 
 namespace darker::game {
 
+uint8_t player_flight::definition_slot() const noexcept {
+  /// The scenario's low configuration nibble selects definitions 24–28, independently of the visible craft family
+  if(scenario_configuration) return static_cast<uint8_t>(24+*scenario_configuration);
+  return tunnel ? 28 : std::holds_alternative<caero_flight_state>(craft) ? 25 : upgraded ? 27 : 26;
+}
+
+uint8_t player_flight::world_damage_mask() const noexcept {
+  /// Both definition 24's final Skimma and definition 25's Caero use Delphi's single damage-stage bit
+  return definition_slot() <= 25 ? 0x20 : 0x60;
+}
+
 object_pose &player_flight::pose() noexcept {
   /// Both craft callbacks expose the same position and attitude to collision and camera consumers
   return std::visit([](auto &state)->object_pose &{ return state.pose; }, craft);
@@ -61,7 +72,7 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
   }
   auto const previous{pose().position};
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
-  auto const &definition{original_object_definitions[tunnel ? 28 : caero ? 25 : upgraded ? 27 : 26]};
+  auto const &definition{original_object_definitions[definition_slot()]};
   auto const gain{static_cast<std::uint16_t>(definition.angular_seed * 8)};
   auto const bias{static_cast<std::int8_t>(definition.role_data[5])};
   if(tunnel) {
@@ -86,7 +97,7 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
     advance_skimma_flight(std::get<skimma_flight_state>(craft), {.angular_response{gain}, .vertical_bias{bias}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .forward_setting{forward_setting}, .brake{brake}}, frame_step);
   }
-  auto const mask{static_cast<std::uint8_t>(caero && !tunnel ? 0x20 : 0x60)};
+  auto const mask{world_damage_mask()};
   auto const contact{sweep_city(bank, cells, mask, previous, pose().position)};
   bool const protected_terrain{contact.contact == city_contact::terrain && (lifecycle.flags & 0x10)};
   if(contact.contact != city_contact::none && !protected_terrain && !(lifecycle.flags & 0x20)) {

@@ -188,7 +188,7 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
   skimma_aim_offset = recoil.aim_offset;
   if(!pressed || (player.lifecycle.flags & 0x20)) return;
   auto end{skimma_gun_endpoint(player.pose(),recoil.shot_offset,random_state)};
-  sweep_city(bank,cells,0x60,player.pose().position,end,0,10);
+  sweep_city(bank,cells,player.world_damage_mask(),player.pose().position,end,0,10);
   scenario_actor *victim{nullptr};
   auto impact{end};
   for(auto &actor : actors) {
@@ -226,8 +226,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   player_hit = false;
   auto *caero{std::get_if<caero_flight_state>(&player.craft)};
   auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
-  auto const player_definition{player.tunnel ? 28u : caero ? 25u : player.upgraded ? 27u : 26u};
-  auto const damage_mask{static_cast<uint8_t>(caero && !player.tunnel ? 0x20 : 0x60)};
+  auto const player_definition{player.definition_slot()};
+  auto const damage_mask{player.world_damage_mask()};
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto &actor){
     if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;

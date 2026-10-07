@@ -1,8 +1,9 @@
-#include "reference/hud_integration_samples.h"
 #include <catch2/catch_test_macros.hpp>
 #include "graphics/flight_instruments.h"
 #include "reference/flight_instruments_samples.h"
 #include "reference/skimma_instruments_samples.h"
+#include "reference/hud_integration_samples.h"
+#include "reference/skimma_bearing_samples.h"
 
 TEST_CASE("Live flight instrument producers match native damage, charging, altitude and speed fields", "[graphics][cockpit]") {
   /// Include damage flashing and the original word/byte boundaries rather than inferring gauges from labels
@@ -35,5 +36,14 @@ TEST_CASE("Caero engine lamp retains native stall hysteresis", "[graphics][cockp
   /// Include both directions through the 200–409 retained-state interval
   for(auto const &sample : darker::test_reference::engine_samples) {
     CHECK(darker::graphics::caero_engine_indicator(sample.previous,sample.enabled,sample.speed) == sample.result);
+  }
+}
+
+TEST_CASE("Skimma mission-bearing symbols match the native heading sectors", "[graphics][cockpit]") {
+  /// Verify wrapped positions, relative heading and the negative sentinel against 576E
+  for(auto const &v : darker::test_reference::skimma_bearing_samples) {
+    CAPTURE(v);
+    CHECK(darker::graphics::skimma_mission_bearing(static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),
+      static_cast<uint16_t>(v[2]),static_cast<uint16_t>(v[3])) == v[4]);
   }
 }

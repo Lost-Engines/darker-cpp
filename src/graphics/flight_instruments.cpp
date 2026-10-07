@@ -1,8 +1,20 @@
 #include "graphics/flight_instruments.h"
 #include <algorithm>
 #include <bit>
+#include "maths/direction.h"
 
 namespace darker::graphics {
+
+uint8_t skimma_mission_bearing(uint16_t const site, uint16_t const column, uint16_t const row, uint16_t const heading) {
+  /// 576E projects the scripted cell centre into seven forward bearing sectors, hiding absent and rearward targets
+  if(site & 0x8000) return 0;
+  auto const dx{static_cast<uint16_t>((site & 255)*256+128-column)};
+  auto const dy{static_cast<uint16_t>((site & 0xff00)+128-row)};
+  auto const direction{static_cast<uint16_t>(maths::direction_index(dx,dy) << 5)};
+  auto const difference{static_cast<uint16_t>(heading-direction)};
+  auto const sector{static_cast<uint8_t>((difference >> 8)+0xb8)};
+  return sector < 0x70 ? static_cast<uint8_t>((sector >> 4)+1) : 0;
+}
 
 uint8_t caero_engine_indicator(uint8_t const previous, bool const enabled, uint16_t const speed) noexcept {
   /// 56B2–56C5 retains dimming between the stall and recovery speed thresholds
