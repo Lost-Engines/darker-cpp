@@ -20,6 +20,7 @@
 #include "graphics/formatted_text.h"
 #include "maths/sine_table.h"
 #include "presentation/player.h"
+#include "reference/actor_admission_samples.h"
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_contact_samples.h"
 #include "reference/aircraft_spawning_samples.h"
@@ -41,6 +42,37 @@
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
   darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
+  for(auto const &sample : darker::test_reference::actor_admission_samples) {
+    darker::game::scenario_actor source;
+    source.index = 1;
+    source.definition_slot = 20;
+    darker::game::apply_object_definition(source.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
+    source.parameters.update_entry = 0x8823;
+    source.pose.position = {12000,12000,4000};
+    source.previous_position = source.pose.position;
+    source.script.continuation = 0;
+    source.script.deadline = 1000;
+    auto reserve{source};
+    reserve.index = 2;
+    reserve.category = sample[1] ? darker::game::actor_category::ground : darker::game::actor_category::air;
+    reserve.pose.position = {24000,24000,4000};
+    reserve.previous_position = reserve.pose.position;
+    reserve.script.continuation = 2;
+    darker::game::mission_combat combat{sample[0] ? std::vector<darker::game::scenario_actor>{} : std::vector{source}};
+    combat.reserves.push_back(reserve);
+    darker::game::player_flight player;
+    player.pose().position = {32000,32000,4000};
+    darker::game::city_map empty{};
+    std::array<std::byte,3> const program{static_cast<std::byte>(sample[1] ? 10 : 9),std::byte{1},std::byte{0x23}};
+    for(size_t frame{0}; frame < 2; ++frame) {
+      combat.advance(player,empty,bank,1000+static_cast<uint32_t>(frame),1,0,false,program);
+      if(sample[0] && frame == 0) combat.activate_reserves(reserve.category,1,player.pose(),1000);
+      auto const admitted{std::ranges::find(combat.actors,uint8_t{2},&darker::game::scenario_actor::index)};
+      if(admitted == combat.actors.end() || admitted->script.stopped != (sample[2+frame] != 0)) {
+        throw std::runtime_error{"Reserve callback ran in a different frame from the native list traversal: player="+std::to_string(sample[0])+", ground="+std::to_string(sample[1])+", frame="+std::to_string(frame)+", admitted="+std::to_string(admitted != combat.actors.end())+", stopped="+std::to_string(admitted == combat.actors.end() ? false : admitted->script.stopped)};
+      }
+    }
+  }
   for(auto const &s : darker::test_reference::aircraft_contact_samples) {
     darker::game::mission_combat combat{{}};
     combat.random_state = static_cast<uint16_t>(s[0]);
@@ -181,7 +213,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; bool aircraft_trails{true}; };
-  constexpr std::array<combat_case,48> cases{{
+  constexpr std::array<combat_case,53> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -204,6 +236,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {60,6,"Return to Hemmersan, Tolly.",false,9}, {61,11,"Tolly: get back to base.",false,9},
     {62,11,"Mission accomplished. Return to base.",false,9}, {63,8,"Good job, Tolly. Return to base.",false,9},
     {64,9,"Mission accomplished. Return to base.",false,1,false},
+    {70,6,"Radar clear; you're safe to return.",false,9}, {71,8,"all targets are clear.",false,9},
+    {72,14,"Good job, Tolly. Return to base.",false,9},
+    {78,3,"Return to base, Tolly.",false,9}, {79,10,"Well done- you can return to base.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -269,16 +304,20 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
       bool const fire{target != combat.actors.end() && clock % 128 == 0};
+      auto const weapon{target != combat.actors.end() && target->category != darker::game::actor_category::air ? uint8_t{1} : test.weapon};
+      combat.primary_weapon = weapon <= 3 ? weapon : 0;
+      if(combat.secondary_weapon != (weapon > 3 ? weapon : 0)) combat.target.clear();
+      combat.secondary_weapon = weapon > 3 ? weapon : 0;
       if(target != combat.actors.end()) {
         player.pose().position = target->pose.position;
         player.pose().position[1] += 200;
         player.pose().position[2] += 92;
-        if(target->category == darker::game::actor_category::ground) player.pose().position[2] += bank.header_at(target->parameters.model_token).extent;
+        if(target->category != darker::game::actor_category::air) player.pose().position[2] += bank.header_at(target->parameters.model_token).extent;
         player.pose().angles = {};
         player.pose().speed = 496;
         if(test.stage >= 33) {
           // Follow behind the target rather than launching across an Assassin's lateral motion.
-          auto const heading{target->pose.angles[0]};
+          auto const heading{static_cast<uint16_t>(target->pose.angles[0]+(target->category != darker::game::actor_category::air ? 0x8000 : 0))};
           auto const sine{darker::maths::original_sine[heading >> 6]};
           auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
           player.pose().position[0] = static_cast<uint16_t>(target->pose.position[0] + ((sine*200) >> 15));
@@ -289,7 +328,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
       beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(test.weapon == 10 && fire) || (test.weapon == 9 && clock % 2048 == 8),test.weapon == 9 && clock % 2048 != 0);
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(weapon == 10 && fire) || (weapon == 9 && clock % 2048 == 8),weapon == 9 && clock % 2048 != 0);
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();

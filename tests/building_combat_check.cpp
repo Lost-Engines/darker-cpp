@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include "game/beacon_changes.h"
 #include "game/city_collision.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
@@ -23,8 +24,10 @@ void check_building_combat(darker::resources::archive_set const &archives) {
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   struct building_case { uint8_t stage; size_t count; char const *message; unsigned int removals{0}; };
-  for(auto const test : std::array<building_case,5>{{
-    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."}, {65,8,"Tolly; we need you back at Hemmersan.",14},
+  for(auto const test : std::array<building_case,11>{{
+    {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."}, {65,8,"Tolly; we need you back at Hemmersan.",14}, {69,8,"Return to Hemmersan.",3},
+    {73,9,"Mission accomplished. Return to base."}, {74,5,"Return to base for a mission update."},
+    {75,19,"Return to Hemmersan."}, {76,16,"Mission complete- come back to base."}, {77,43,"Return to Hemmersan, Tolly."},
   }}) {
     auto const &scenario{campaign.scenario(test.stage)};
     auto const index{darker::resources::select_campaign_stage(test.stage).record};
@@ -33,7 +36,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     darker::game::assign_city_variants(cells,limits);
     darker::game::apply_scenario_cells(cells,record);
     auto targets{record.cell_lists.at(1).cells};
-    if(test.stage != 65 && targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
+    if(test.stage != 65 && test.stage != 77 && targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1+record.groups[0].objects.size()),0,record.shared.offset);
     combat.secondary_weapon = 6;
@@ -53,9 +56,14 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return objectives.complete(record) && combat.remaining_objectives() == 0;
     };
+    darker::game::beacon_changes beacon_changes;
+    context.change_beacons = [&](uint8_t const opcode,uint8_t const origin,uint8_t const count){
+      beacon_changes.command(opcode,origin,count,static_cast<uint16_t>(context.clock),scenario.bytes(record.beacon_sequence));
+    };
     context.replace_world_objectives = [&](std::span<std::byte const> const program){
       auto const consumed{objectives.replace(cells,program)};
-      targets = objectives.script_lists->at(0).cells;
+      auto const &replacement{objectives.script_lists->at(0).cells};
+      targets.insert(targets.end(),replacement.begin(),replacement.end());
       context.objectives_complete = objectives.complete(record) && combat.remaining_objectives() == 0;
       return consumed;
     };
@@ -65,7 +73,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     uint16_t previous_target{0xffff};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(targets,[&](auto const cell){ return !(cells[cell.row*128+cell.column].state & 0x20); })};
-      auto const aircraft{std::ranges::find_if(combat.actors,[](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
+      auto const aircraft{std::ranges::find_if(combat.actors,[&](auto const &actor){ return actor.category == darker::game::actor_category::air && ((actor.attributes & 1) || test.stage >= 73) && !(actor.flags & 0x20); })};
       bool const airborne{aircraft != combat.actors.end()};
       uint8_t const weapon{static_cast<uint8_t>(airborne ? 9 : 6)};
       if(combat.secondary_weapon != weapon) combat.target.clear();
@@ -82,13 +90,14 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       } else if(target != targets.end()) {
         auto const token{static_cast<uint16_t>(target->row*256+target->column)};
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
+        auto const &cell{cells[target->row*128+target->column]};
+        bool const office{cell.type >= 86 && cell.type <= 89};
         std::array<uint16_t,3> const centre{aim.position[0],aim.position[1],static_cast<uint16_t>(aim.height-aim.height_extent/2)};
         constexpr std::array<int,4> columns{0,200,0,-200}, rows{200,0,-200,0};
         auto const approach{test.stage >= 54 ? (clock/2048)%4 : 0};
-        player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(test.stage == 65 ? 348 : aim.height+512)};
+        player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(office ? 348 : aim.height+512)};
         auto direction{darker::maths::object_target_direction(player.pose().position,centre)};
-        if(test.stage == 65) {
-          auto const &cell{cells[target->row*128+target->column]};
+        if(office) {
           auto const boxes{darker::game::city_collision_boxes(bank,cell.type,cell.state,0x20,target->column,target->row)};
           auto const door{std::ranges::find_if(boxes,[](auto const &box){ return box.category == 0; })};
           if(door == boxes.end()) throw std::runtime_error{"Office target has no vulnerable entrance"};
@@ -99,16 +108,17 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           point[along] = static_cast<uint16_t>((point[along]+nearer)/2);
           point[2] *= 8;
           player.pose().position = point;
-          for(size_t axis{0}; axis < 2; ++axis) player.pose().position[axis] = static_cast<uint16_t>(centre[axis]+4*(int{point[axis]}-centre[axis]));
+          for(size_t axis{0}; axis < 2; ++axis) player.pose().position[axis] = static_cast<uint16_t>(centre[axis]+static_cast<int>(2+(clock/2048)%5)*(int{point[axis]}-centre[axis]));
           player.pose().position[2] += 92;
           direction = darker::maths::object_target_direction(player.pose().position,centre);
         }
-        player.pose().angles = {direction.heading,test.stage == 65 ? uint16_t{0} : direction.pitch,0};
+        player.pose().angles = {direction.heading,office ? uint16_t{0} : direction.pitch,0};
         player.pose().speed = 496;
         combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],0});
         if(token != previous_target) combat.target.clear();
         previous_target = token;
       }
+      beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),false,
         scenario.bytes(record.shared),record.time_multiplier,nullptr,airborne ? clock%2048 == 8 : target != targets.end() && clock%256 == 0,airborne && clock%2048 != 0);
       shots += combat.player_fired;
@@ -130,7 +140,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     if(!script.stopped || !message || !context.objectives_complete || static_cast<size_t>(destroyed) != test.count || combat.completed_objectives != test.removals) {
       throw std::runtime_error{"Ground mission did not complete: stage="+std::to_string(test.stage)+", destroyed="+std::to_string(destroyed)
         +", shots="+std::to_string(shots)+", lock="+std::to_string(combat.target.token)+", wanted="+std::to_string(previous_target)
-        +", stopped="+std::to_string(script.stopped)+", message="+std::to_string(message)};
+        +", stopped="+std::to_string(script.stopped)+", message="+std::to_string(message)+", crashing="+std::to_string(player.lifecycle.crashing)};
     }
     uint16_t const destination{briefing.departure_destination ? briefing.departure_destination : uint16_t{0x7162}};
     darker::game::hangar_state hangar{.return_site{destination}};

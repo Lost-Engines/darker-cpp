@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–68 (04/0 through the first four records of 04/8), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixty-eight saves stage sixty-nine and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–79 (04/0 through the first seven records of 04/9), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable and Brent Ground, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission seventy-nine saves stage eighty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -389,3 +389,36 @@ has been weakened to achieve these results.
 All 188 tests pass with the corrected underground response. Windowed Level X
 checks cover mission 67’s underground entry, mission 68’s return briefing and
 flight, both saved transitions and the final Hemmersan return site.
+
+## Western supply craft and industrial targets
+
+Missions 69–79 are connected through their original scripts and resources.
+Mission 69 clears eight Teale houses and three counted aircraft. Missions 70–72
+clear six, eight and fourteen objects; their Terrablitz mix includes parked
+stationary records as well as flying craft. The controlled pilot uses Pinner
+Direct on parked craft and ground vehicles, which cannot be acquired by the
+air-targeting Chargeable. It attacks vehicles from the front rather than
+remaining in the missile launchers’ rearward firing sector.
+
+Missions 73–76 complete nine office components, five storage targets, nineteen
+power-site components and sixteen processing targets. Office approaches use
+the actual vulnerable entrance bounds, varying distance to avoid neighbouring
+buildings. Mission 77 clears 39 initial office/house cells and then four new
+factory targets supplied by opcode 34. These later demolition checks also
+engage defending aircraft; they do not disable enemy weapons or restore player
+health. They still control player position, aim and beacon power, so this is
+objective/combat integration evidence rather than an unaided playthrough.
+Missions 78 and 79 clear three and ten counted craft/vehicles respectively.
+All checks follow completion messages and finish docking.
+
+Mission 76 additionally exercises reserve admission from an **actor’s** script.
+Actor update traversal now records stable identities separately for each native
+category pass. Admissions at the head of the current category wait until the
+next pass; a later category sees its new objects immediately. The executing
+script retains its actor independently while insertion moves vector elements,
+and writes it back by identity before flight continues. Four native two-frame
+traces compare actor/player admission into air/ground lists and establish the
+scheduling rule independently of the mission test.
+
+All 188 tests pass. Windowed Level X traversal covers all eleven new briefings
+and flight entries, saved weapon masks/checksums and the stage-80 boundary.

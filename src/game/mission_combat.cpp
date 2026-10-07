@@ -203,71 +203,86 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
     return true;
   });
-  for(auto &actor : actors) {
-    if(actor.parameters.update_entry == 0x6ed3) continue;
-    if(actor.parameters.update_entry == 0x8f3b) {
-      if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
-      actor.previous_position = actor.pose.position;
-      auto const event{advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height,random_state)};
-      if(event.firing_direction) fire_vehicle_missile(hostile_projectiles,actor,player.pose(),cells,bank.city_types(),
-        *event.firing_direction,clock,difficulty,bank.special_models()[18]);
-      if(event.damage_cell) {
-        damage_world_cell(static_cast<uint8_t>(*event.damage_cell),static_cast<uint8_t>(*event.damage_cell >> 8),0xe0,cells,bank,effects,clock,world_damage_counter);
+  for(auto const category : {actor_category::air,actor_category::ground,actor_category::stationary}) {
+    // New heads in this category wait until the next pass; later categories see admissions immediately.
+    std::array<uint8_t,256> update_order{};
+    size_t count{0};
+    for(auto const &actor : actors) if(actor.category == category) update_order[count++] = actor.index;
+    for(auto const index : std::span{update_order}.first(count)) {
+      auto const find_actor{[&]{ return std::ranges::find(actors,index,&scenario_actor::index); }};
+      auto const callback{find_actor()->parameters.update_entry};
+      if((callback == 0x8823 || callback == 0x8609) && !find_actor()->script.stopped) {
+        // Script callbacks may insert into actors, so retain the executing record independently of vector storage.
+        auto actor{*find_actor()};
+        mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
+          .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
+          .set_target{[&](uint16_t const target, bool const flag_02){
+            actor.target_token = target;
+            actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
+          }},
+          .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
+        context.adjust_objectives = [&](uint8_t const operand){ adjust_objectives(operand); return remaining_objectives() == 0; };
+        context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
+          activate_reserves(static_cast<actor_category>(opcode-9),count,player.pose(),clock);
+          return remaining_objectives() == 0;
+        };
+        context.set_tunnel_oscillation = [&](uint8_t const phase){
+          if(!actor.tunnel) throw std::logic_error{"Tunnel direction command requires an underground actor"};
+          actor.tunnel->oscillation = phase;
+        };
+        context.register_owner = [&]{ return std::exchange(script_owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
+        advance_mission_script(actor.script,context);
+        *find_actor() = std::move(actor);
       }
-      if(event.deadline) actor.expiry = *event.deadline;
-      if(event.effect) {
-        auto const &effect{*event.effect};
-        if(effect.recipe) effects.spawn(effect.recipe,effect.position,clock);
-        else effects.spark(effect.position,effect.phase,effect.sound_level,clock);
-      }
-      continue;
-    }
-    if(actor.parameters.update_entry == 0) continue;
-    auto const callback{actor.parameters.update_entry};
-    if((actor.parameters.update_entry == 0x8823 || actor.parameters.update_entry == 0x8609) && !actor.script.stopped) {
-      mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
-        .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
-        .set_target{[&](uint16_t const target, bool const flag_02){
-          actor.target_token = target;
-          actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
-        }},
-        .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
-      context.adjust_objectives = [&](uint8_t const operand){ adjust_objectives(operand); return remaining_objectives() == 0; };
-      context.set_tunnel_oscillation = [&](uint8_t const phase){
-        if(!actor.tunnel) throw std::logic_error{"Tunnel direction command requires an underground actor"};
-        actor.tunnel->oscillation = phase;
-      };
-      context.register_owner = [&]{ return std::exchange(script_owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
-      advance_mission_script(actor.script,context);
-    }
-    if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);
-    else if(callback == 0x8ddd) advance_aircraft_departure(actor,clock,frame_step);
-    else if(callback == 0x8609) {
-      if(!network) throw std::logic_error{"Underground actor update requires its route network"};
-      advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
-    } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
-      [&](scenario_actor &source, actor_course const course, uint8_t const distance){
-        auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
-        if(shot) effects.gun_impact(shot->end, shot->hit, clock);
-        if(shot && shot->hit) {
-          apply_player_damage(caero.damage, 0x15, 3, false, false, random_state);
-          player_hit = true;
+      auto &actor{*find_actor()};
+      if(actor.parameters.update_entry == 0x6ed3) continue;
+      if(actor.parameters.update_entry == 0x8f3b) {
+        if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
+        actor.previous_position = actor.pose.position;
+        auto const event{advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height,random_state)};
+        if(event.firing_direction) fire_vehicle_missile(hostile_projectiles,actor,player.pose(),cells,bank.city_types(),
+          *event.firing_direction,clock,difficulty,bank.special_models()[18]);
+        if(event.damage_cell) {
+          damage_world_cell(static_cast<uint8_t>(*event.damage_cell),static_cast<uint8_t>(*event.damage_cell >> 8),0xe0,cells,bank,effects,clock,world_damage_counter);
         }
-        if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
-          if(auto const slot{aircraft_projectile_definition(source,player.lifecycle.flags,course,distance,clock,difficulty,building_attacks)}) {
-            // CAF0 records the attempt time even if the hostile pool is exhausted.
-            source.last_shot = clock;
-            auto const &definition{original_object_definitions[*slot]};
-            launch_emitter const launcher{.position{source.pose.position},.fractions{source.pose.fractions},
-              .angles{source.pose.angles},.speed{source.pose.speed},.side_flags{source.flags},
-              .definition_strength{source.parameters.definition->impact_strength}};
-            hostile_projectiles.launch({.definition{definition},.emitter{launcher},.model_token{bank.special_models()[*slot]},
-              .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
+        if(event.deadline) actor.expiry = *event.deadline;
+        if(event.effect) {
+          auto const &effect{*event.effect};
+          if(effect.recipe) effects.spawn(effect.recipe,effect.position,clock);
+          else effects.spark(effect.position,effect.phase,effect.sound_level,clock);
+        }
+        continue;
+      }
+      if(actor.parameters.update_entry == 0) continue;
+      if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);
+      else if(callback == 0x8ddd) advance_aircraft_departure(actor,clock,frame_step);
+      else if(callback == 0x8609) {
+        if(!network) throw std::logic_error{"Underground actor update requires its route network"};
+        advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
+      } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
+        [&](scenario_actor &source, actor_course const course, uint8_t const distance){
+          auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
+          if(shot) effects.gun_impact(shot->end, shot->hit, clock);
+          if(shot && shot->hit) {
+            apply_player_damage(caero.damage, 0x15, 3, false, false, random_state);
+            player_hit = true;
           }
-        }
-      },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); });
-    if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
-      effects.trail(actor.previous_position, *severity, random_state, clock);
+          if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
+            if(auto const slot{aircraft_projectile_definition(source,player.lifecycle.flags,course,distance,clock,difficulty,building_attacks)}) {
+              // CAF0 records the attempt time even if the hostile pool is exhausted.
+              source.last_shot = clock;
+              auto const &definition{original_object_definitions[*slot]};
+              launch_emitter const launcher{.position{source.pose.position},.fractions{source.pose.fractions},
+                .angles{source.pose.angles},.speed{source.pose.speed},.side_flags{source.flags},
+                .definition_strength{source.parameters.definition->impact_strength}};
+              hostile_projectiles.launch({.definition{definition},.emitter{launcher},.model_token{bank.special_models()[*slot]},
+                .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
+            }
+          }
+        },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); });
+      if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
+        effects.trail(actor.previous_position, *severity, random_state, clock);
+      }
     }
   }
   auto const &pose{player.pose()};
