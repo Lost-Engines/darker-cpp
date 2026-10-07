@@ -15,3 +15,7 @@ python3 tools/generate_scenario_reference.py ..
 ```
 
 The generator records the analysis JSON and original executable hashes. It checks stored shared/object bytes against the extracted resources; its fixtures describe source decoding, not a claim of complete native mission execution.
+
+`game::apply_scenario_cells` now applies the first two state lists after city restoration. `world_objectives` follows the selected list one cell per frame and crosses an FE terminator into the next list on a separate frame; FF completes the cell condition. Player completion and reserve callbacks combine this condition with the remaining object count. Sixty-four native setups and 512 C82F/C84E frames verify state masks, cursor movement and completion.
+
+The exit path now applies every queued beacon coordinate before successful city-state packing. Failed/abandoned attempts still discard their runtime map when restoring the saved city. This does not activate gradual outages at mission setup: the header queue remains untouched until an in-flight command consumes it or the mission exits.

@@ -168,6 +168,8 @@ add_library(darker_game STATIC
   src/game/vehicle_route.h
   src/game/actor_navigation.cpp
   src/game/actor_navigation.h
+  src/game/scenario_world.cpp
+  src/game/scenario_world.h
   src/game/scenario_actor.cpp
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
@@ -321,6 +323,7 @@ if(BUILD_TESTING)
     tests/mission_script_test.cpp
     tests/hangar_test.cpp
     tests/font_test.cpp
+    tests/scenario_world_test.cpp
     tests/scenario_test.cpp
     tests/support/sine_wave.cpp
     tests/support/sine_wave.h

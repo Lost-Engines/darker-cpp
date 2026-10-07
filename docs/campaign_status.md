@@ -6,7 +6,7 @@ The playable campaign currently covers missions 1â€“15 (04/0 and 04/1 records 0â
 
 ## Next integration priorities
 
-1. **Scenario transitions and world state:** connect the first tunnel-entry presentation and subsequent underground mission, apply nonempty scenario cell lists and beacon queues, and connect remaining actor/player script operations with their native ordering.
+1. **Scenario transitions and world state:** connect the first tunnel-entry presentation and subsequent underground mission, connect gradual beacon changes and remaining actor/player script operations with their native ordering.
 2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, vehicle destruction/raised-route events, Wrecker door destruction, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
 3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
 4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
@@ -16,7 +16,7 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 161 passing tests, including an optional original-pack integration test. The latter completes all fifteen supported scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 163 passing tests, including an optional original-pack integration test. The latter completes all fifteen supported scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
 A real-window check uses the ordinary menus and Level X to traverse every supported briefing and flight entry, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 

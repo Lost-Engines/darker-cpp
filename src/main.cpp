@@ -28,6 +28,7 @@
 #include "game/game_clock.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
+#include "game/scenario_world.h"
 #include "game/player_flight.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/city_scene.h"
@@ -168,6 +169,7 @@ auto main(int const argc, char const *const argv[])->int {
   darker::resources::campaign_resources campaign{archives};
   auto const *scenario{&campaign.scenario(1)};
   auto mission{scenario->records().front()};
+  darker::game::world_objectives objectives{.list{mission.objective_cell_list}};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
   auto text{scenario->language(0, darker::resources::scenario_language::english)};
   std::unique_ptr<darker::presentation::front_end> front;
@@ -199,7 +201,7 @@ auto main(int const argc, char const *const argv[])->int {
   auto const activate_reserves{[&](uint8_t const opcode, uint8_t const count){
     darker::game::activate_scenario_reserves(combat->actors,combat->reserves,static_cast<darker::game::actor_category>(opcode - 9),
       count,host.player.pose(),static_cast<uint16_t>(context.clock));
-    return combat->remaining_objectives() == 0;
+    return objectives.complete(mission) && combat->remaining_objectives() == 0;
   }};
   context.activate_reserves = activate_reserves;
   if(caero) host.combat = combat.get();
@@ -483,6 +485,7 @@ auto main(int const argc, char const *const argv[])->int {
       bool const died{host.exit_requested == session_exit::death};
       auto const completed{static_cast<uint8_t>(combat->completed_objectives)};
       bool const completed_mission{host.exit_requested == session_exit::completed};
+      if(front) darker::game::commit_beacon_queue(cells,scenario->bytes(mission.beacon_sequence));
       if(completed_mission && front) {
         auto updated{front->selected_pilot()};
         darker::game::pack_city_state(cells,bank.city_types(),updated.delphi);
@@ -550,6 +553,8 @@ auto main(int const argc, char const *const argv[])->int {
           text = scenario->language(record,darker::resources::scenario_language::english);
           cells = darker::game::make_city_map(archives.load({0,68}),true);
           darker::game::restore_city_state(cells,bank.city_types(),pilot.delphi,pilot.stage);
+          darker::game::apply_scenario_cells(cells,mission);
+          objectives = {.list{mission.objective_cell_list}};
           host.hangar = {};
           if(pilot.stage > 1 && pilot.return_site != 0) host.hangar.return_site = pilot.return_site;
           darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
@@ -594,7 +599,8 @@ auto main(int const argc, char const *const argv[])->int {
           step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
-        context.objectives_complete = combat->remaining_objectives() == 0;
+        objectives.advance(cells,mission,0x20);
+        context.objectives_complete = objectives.complete(mission) && combat->remaining_objectives() == 0;
         context.object_counter = static_cast<uint8_t>(combat->completed_objectives);
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
         context.messages.clear();
