@@ -8,16 +8,18 @@
 #include "game/mission_combat.h"
 #include "game/mission_exchange.h"
 #include "game/object_definitions.h"
-#include "game/scenario_world.h"
+#include "game/projectile_steering.h"
 #include "game/scenario_setup.h"
-#include "presentation/player.h"
+#include "game/scenario_world.h"
+#include "maths/direction.h"
 #include "maths/sine_table.h"
+#include "presentation/player.h"
+#include "reference/halon_spawning_samples.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
-#include "reference/halon_spawning_samples.h"
 
 void check_skimma_combat(darker::resources::archive_set const &archives) {
-  /// Exercise the Skimma primary gun against original Halon actors, retaining their movement and return fire
+  /// Exercise original Skimma combat, Halon objectives, supply exchanges and the final battle
   darker::resources::geometry_bank const bank{archives.load({0,31})};
   for(auto const &v : darker::test_reference::halon_spawning_samples) {
     darker::game::aircraft_spawning state{.sites{0x0969,0x0b6f,0x0d6f},.departure_heading{static_cast<uint16_t>(v[10])},.halon{true},.enabled{v[5] != 0}};
@@ -258,6 +260,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       context.objectives_complete = objectives.complete(record) && !combat.remaining_objectives();
       context.object_counter = static_cast<uint8_t>(combat.completed_objectives);
       context.object_flags = combat.status_flags(pilot.lifecycle.flags);
+      context.messages.clear();
       darker::game::advance_mission_script(script,context);
     }
     if(!context.progress) for(auto const &actor : combat.actors) {
@@ -271,6 +274,136 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         +", reserves="+std::to_string(combat.reserves.size())+", shots="+std::to_string(shots)};
     std::cout << "Final Delphi battle: " << combat.completed_objectives << " removals and " << shots
       << " controlled gun/missile shots reach the original ending request." << std::endl;
+  }
+  darker::resources::font_resource const mission_font{archives.load({0,29})};
+  for(uint8_t const stage : std::array<uint8_t,8>{99,101,103,105,107,109,111,113}) {
+    auto const &source{campaign.scenario(stage)};
+    auto const index{darker::resources::select_campaign_stage(stage).record};
+    auto const &record{source.records()[index]};
+    auto city{darker::game::make_city_map(archives.load({0,69}),false)};
+    darker::game::assign_city_variants(city,limits);
+    darker::game::apply_scenario_cells(city,record);
+    darker::presentation::player briefing{archives,mission_font,source,index};
+    do { briefing.advance(10000); } while(briefing.continue_page());
+    darker::game::player_flight pilot;
+    darker::game::initialise_skimma_pad(pilot,0x16fc,0,bank.header_at(bank.special_models()[stage == 99 ? 26 : 27]).height,stage != 99);
+    pilot.scenario_configuration = static_cast<uint8_t>(record.configuration & 15);
+    darker::game::weapon_ammunition second_weapon;
+    darker::game::refill_skimma_weapon(second_weapon,1);
+    auto groups{darker::game::make_scenario_actors(record,source,bank,pilot,second_weapon,0)};
+    pilot.lifecycle.flags &= 0xef;
+    pilot.supply = {};
+    auto &craft{std::get<darker::game::skimma_flight_state>(pilot.craft)};
+    craft.damage.shield_enabled = true;
+    pilot.engine_flags = 1;
+    darker::game::mission_combat combat{std::move(groups[0])};
+    combat.reserves = std::move(groups[1]);
+    combat.free_actors = std::move(groups[2]);
+    combat.spawning.sites.clear();
+    combat.spawning.halon = true;
+    for(uint8_t i{0}; i < 3; ++i) darker::game::refill_skimma_weapon(combat.skimma_weapons[i].ammunition,i);
+    darker::game::world_objectives objectives{.list{record.objective_cell_list}};
+    darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
+    darker::game::mission_context context{.program{source.bytes(record.shared)},
+      .text{source.language(index,darker::resources::scenario_language::english)},.cells{city},
+      .time_multiplier{record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+    uint16_t available{static_cast<uint16_t>(stage <= 101 ? 3 : 7)};
+    auto const &supplementary{campaign.supplementary()};
+    auto const supply_index{static_cast<size_t>(record.configuration >> 4)};
+    auto const &supply_record{supplementary.records()[supply_index]};
+    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{supplementary.bytes(supply_record.shared),
+      supplementary.language(supply_index,darker::resources::scenario_language::english),supply_record.entry_offset-supply_record.shared.offset}}};
+    context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
+      combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,pilot.pose(),static_cast<uint16_t>(context.clock));
+      return objectives.complete(record) && !combat.remaining_objectives();
+    };
+    context.adjust_objectives = [&](uint8_t const operand){ combat.adjust_objectives(operand); return objectives.complete(record) && !combat.remaining_objectives(); };
+    context.mark_aircraft_sites = [&](std::span<std::byte const> const program){ return darker::game::prepare_halon_aircraft_sites(combat.spawning,city,program); };
+    context.select_weapon = [&](uint8_t const selection){
+      available = std::rotl(uint16_t{0x8000},selection);
+      darker::game::select_skimma_weapon(std::span{combat.skimma_weapons}.first(pilot.upgraded ? 3 : 2),
+        combat.skimma_selection,combat.skimma_ring,selection,available,static_cast<uint16_t>(context.clock));
+      combat.target.clear();
+    };
+    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat.skimma_weapons[combat.skimma_selection].ammunition,combat.skimma_selection); };
+    context.reset_shield = [&]{ craft.damage.shield_charge = static_cast<uint16_t>((craft.damage.shield_charge & 255) | 0xbf00); };
+    context.toggle_weapons = [&](uint16_t const mask){ available ^= mask; };
+    context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
+    unsigned int shots{0};
+    bool returned{false};
+    uint16_t previous_target{0xffff};
+    for(uint32_t clock{8}; clock < 400000 && !context.progress; clock += 8) {
+      bool primary{false}, secondary{false};
+      auto const building{std::ranges::find_if(combat.spawning.sites,[&](uint16_t const site){ return !(city[(site >> 8)*128+(site & 127)].state & 0x20); })};
+      auto const actor{std::ranges::find_if(combat.actors,[](auto const &candidate){ return !(candidate.flags & 0x20) && (candidate.attributes & 1); })};
+      uint8_t weapon{combat.skimma_selection};
+      uint16_t token{0xffff};
+      if(building != combat.spawning.sites.end()) {
+        auto const aim{darker::game::resolve_map_guidance(*building,city,bank,0x60)};
+        std::array<uint16_t,3> const target{aim.position[0],aim.position[1],aim.height};
+        pilot.pose().position = {target[0],static_cast<uint16_t>(target[1]+32),static_cast<uint16_t>(target[2]+2048)};
+        auto const direction{darker::maths::object_target_direction(pilot.pose().position,target)};
+        pilot.pose().angles = {direction.heading,direction.pitch,0};
+        secondary = true;
+        weapon = 1;
+        token = *building;
+      } else if(actor != combat.actors.end()) {
+        auto const heading{actor->pose.angles[0]};
+        auto const sine{darker::maths::original_sine[heading >> 6]};
+        auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+        pilot.pose().position = {static_cast<uint16_t>(actor->pose.position[0]+((sine*200) >> 15)),
+          static_cast<uint16_t>(actor->pose.position[1]+((cosine*200) >> 15)),actor->pose.position[2]};
+        pilot.pose().angles = {heading,0,0};
+        primary = actor->parameters.definition->impact_strength < 50;
+        secondary = !primary;
+        weapon = pilot.upgraded && (available & 4) ? 2 : 0;
+        token = static_cast<uint16_t>(0xd986+actor->index*112);
+      } else if(!returned && clock > 1024 && !combat.spawning.sites.empty()) {
+        auto const pad{std::ranges::find(city,uint8_t{3},&darker::game::city_cell::type)};
+        auto const pad_index{static_cast<size_t>(pad-city.begin())};
+        pilot.pose().position = {static_cast<uint16_t>((pad_index%128)*256+128),static_cast<uint16_t>((pad_index/128)*256+255),512};
+        pilot.pose().angles = {};
+        pilot.engine_flags = 0;
+        craft.damage.shield_enabled = false;
+        craft.horizontal_velocity = 100;
+        craft.vertical_velocity = 0xffff;
+        if(!darker::game::begin_supply_approach(pilot,city,pilot.supply)) throw std::runtime_error{"Halon objective fixture could not enter its original supply pad"};
+        for(auto &slot : combat.skimma_weapons) slot.flags &= 0xfe;
+        exchange.enter_supply(script,context);
+        returned = true;
+      }
+      if(!returned && secondary && (combat.skimma_selection != weapon || !(combat.skimma_weapons[weapon].flags & 1))) {
+        darker::game::select_skimma_weapon(std::span{combat.skimma_weapons}.first(pilot.upgraded ? 3 : 2),
+          combat.skimma_selection,combat.skimma_ring,static_cast<uint8_t>(weapon+1),available,static_cast<uint16_t>(clock));
+      }
+      if(token != previous_target) combat.target.clear();
+      previous_target = token;
+      // Control firing position and survivability; spawning/damage fidelity have independent native comparisons.
+      craft.damage.shield_charge = 0xbf00;
+      pilot.pose().speed = 496;
+      if(returned) darker::game::advance_supply_motion(pilot,pilot.supply,context.transition_output,exchange.supplementary_active,0,8);
+      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles[0],pilot.pose().angles[1],0});
+      combat.advance(pilot,city,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),primary && clock%128 == 0,
+        source.bytes(record.shared),record.time_multiplier,nullptr,secondary && clock%128 == 0);
+      shots += combat.player_fired;
+      auto const &selected{combat.skimma_weapons[combat.skimma_selection]};
+      darker::game::update_weapon_ring(selected.ammunition,combat.skimma_ring,static_cast<uint16_t>(clock),selected.flags,8);
+      if(pilot.lifecycle.crashing) throw std::runtime_error{"Halon controlled objective check lost the pilot"};
+      objectives.advance(city,record,0x60);
+      context.clock = clock;
+      context.objectives_complete = objectives.complete(record) && !combat.remaining_objectives();
+      context.object_counter = static_cast<uint8_t>(combat.completed_objectives);
+      context.counter = combat.world_damage_counter;
+      context.object_flags = combat.status_flags(pilot.lifecycle.flags);
+      context.messages.clear();
+      darker::game::advance_mission_script(script,context);
+    }
+    if(available != (pilot.upgraded ? 7 : 3)) throw std::runtime_error{"Supply completion did not restore the craft weapon mask"};
+    if(!context.progress || !returned) throw std::runtime_error{"Halon objective check incomplete: stage="+std::to_string(stage)
+      +", buildings="+std::to_string(combat.world_damage_counter)+", removals="+std::to_string(combat.completed_objectives)
+      +", remaining="+std::to_string(combat.remaining_objectives())+", shots="+std::to_string(shots)};
+    std::cout << "Halon stage " << unsigned{stage} << ": " << unsigned{combat.world_damage_counter} << " sites, "
+      << combat.completed_objectives << " counted aircraft, " << shots << " controlled shots and supply return complete." << std::endl;
   }
 
 }

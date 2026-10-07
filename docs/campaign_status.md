@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. Halon objective playthroughs and the remaining fidelity items below are still being checked. Explicit `--craft` starts remain development free-flight checkpoints.
+The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and the intervening films. The original packs supply the city, cockpits, actors, scripts and presentation assets. Caero missions 1–97 retain their controlled combat/objective checks; Halon combat and supply routines have native comparisons and controlled integration checks, with broader end-to-end objective playthroughs still in progress. Controlled Halon objective checks now reach normal supply-pad completion; manual full-campaign playthroughs and the remaining fidelity items below are still outstanding. Explicit `--craft` starts remain development free-flight checkpoints.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -523,3 +523,32 @@ The real window passes stage 114's film, launches the Skimma over Delphi and
 saves stage 116 through Level X. The complete ending presentation runs in the
 resource test and retains stage 116; its back button returns to the menu
 rather than attempting to load an absent stage 117.
+
+
+### Controlled Halon objective completion
+
+All eight Halon flight scripts now reach progress 1 after real missile impacts
+on their original launch-site models and entry into an actual type-3 supply
+pad. The original supplementary script performs replenishment and restores
+the primary script before completion. There is no Level-X shortcut in these
+checks. The first upgraded mission starts with only the first two weapons
+available; its supply sequence enables all three.
+
+| Stage | Destroyed launch sites | Counted aircraft removed | Controlled launches |
+| --- | ---: | ---: | ---: |
+| 99 | 3 | 0 | 6 |
+| 101 | 6 | 10 | 52 |
+| 103 | 5 | 0 | 10 |
+| 105 | 6 | 0 | 12 |
+| 107 | 4 | 0 | 8 |
+| 109 | 8 | 0 | 16 |
+| 111 | 9 | 0 | 18 |
+| 113 | 8 | 0 | 16 |
+
+These are fixture outcomes, not minimum mission requirements. Firing positions
+and shield reserve are controlled, and reusable site-spawn admission is tested
+separately rather than run in this objective fixture. Actors already placed or
+activated by the scenario retain their movement, weapons and scripts. Steep
+shots target the launch sites' vulnerable centres; the raised category-one rim
+can intercept shallower approaches. Finite original ammunition and reloads
+remain active.
