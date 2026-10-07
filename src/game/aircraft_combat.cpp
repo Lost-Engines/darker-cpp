@@ -2,10 +2,9 @@
 #include <bit>
 #include "game/angular_motion.h"
 #include "game/collision_sweep.h"
-#include "game/object_impact.h"
 #include "game/object_definitions.h"
-#include "game/random.h"
-#include "maths/sine_table.h"
+#include "game/object_impact.h"
+#include "game/skimma_weapons.h"
 
 namespace darker::game {
 
@@ -117,23 +116,7 @@ std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pos
   if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
   auto const elapsed{static_cast<uint16_t>(clock - actor.last_shot)};
   if((elapsed & 0x100) || !(changes & 0x80)) return std::nullopt;
-  auto const sine{[](uint16_t const angle){ return maths::original_sine[angle >> 6]; }};
-  auto const cosine{[&](uint16_t const angle){ return sine(static_cast<uint16_t>(angle + 16384)); }};
-  auto const heading{actor.pose.angles[0]};
-  auto const pitch{actor.pose.angles[1]};
-  auto x{-((sine(heading) * cosine(pitch)) >> 16)};
-  auto y{(cosine(heading) * cosine(pitch)) >> 16};
-  auto z{-(sine(pitch) >> 1)};
-  auto const random{next_random(random_state)};
-  x = (x >> 2) + std::bit_cast<int8_t>(static_cast<uint8_t>(random));
-  y = (y >> 2) + std::bit_cast<int8_t>(static_cast<uint8_t>(random >> 8));
-  auto const rotated{static_cast<uint16_t>((random & 0xff00) | std::rotr(static_cast<uint8_t>(random), 3))};
-  z = (z >> 2) + (std::bit_cast<int8_t>(static_cast<uint8_t>(rotated >> 3)) >> 3);
-  gun_trace result{.start{actor.pose.position}, .end{
-    static_cast<uint16_t>(actor.pose.position[0] + (x >> 2)),
-    static_cast<uint16_t>(actor.pose.position[1] - (y >> 2)),
-    static_cast<uint16_t>(((std::bit_cast<int16_t>(actor.pose.position[2]) >> 1) - z) * 2),
-  }};
+  gun_trace result{.start{actor.pose.position},.end{skimma_gun_endpoint(actor.pose,0,random_state)}};
   result.hit = sweep_aircraft(player, player_extent, 10, result.start, result.end);
   return result;
 }

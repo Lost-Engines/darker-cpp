@@ -69,3 +69,24 @@ The first and third Skimma projectile definitions use `CA55` (object-target acce
 ### Mutable spread target
 
 Expiry's selected-target clear (`CFCB`) writes 508 to the target operand at `5E03`. This is now explicit `weapon_ring_state::target_spread`; the post-draw update approaches it through the same signed/wrapping `7CDB` rules. Earlier zero-target descriptions above describe the initial probe configuration only. Reload changes current spread and deadline without resetting target spread. The full ring reference set now has 1,008 cases across three target values.
+
+## Primary gun and craft-aware combat
+
+The core combat update now accepts Skimma players. CD84's shortened ray,
+recoil pitch offset and three random spread components are reproduced;
+2,048 native endpoint/random-state comparisons cover arbitrary angles and
+word wrapping. Enemy Skimma guns share that same verified ray calculation.
+
+C950's recoil update runs every frame. A primary trigger edge outside the
+crash flag traces against the city and the aircraft list, damages the last
+intersecting aircraft with strength 32h, emits the original gun impact and
+applies the next random recoil impulse. Ground and stationary lists are not
+added to this gun's native aircraft-only trace. Caero projectile collision
+still has its own broader actor traversal.
+
+Player damage now dispatches through the actual craft: Skimma hits deplete
+an enabled shield and are fatal without one. A controlled original-Halon
+scene clears four aircraft with sixteen gun shots, retaining enemy movement
+and return fire. Separate projectile-impact scenes check shielded survival
+and unshielded death. This is combat-core integration; connected Halon
+campaign startup and the remaining Skimma weapons are still being wired.

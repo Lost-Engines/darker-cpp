@@ -324,6 +324,8 @@ if(BUILD_TESTING)
     tests/music_check.h
     tests/city_persistence_check.cpp
     tests/city_persistence_check.h
+    tests/skimma_combat_check.cpp
+    tests/skimma_combat_check.h
     tests/building_combat_check.cpp
     tests/building_combat_check.h
     tests/mission_combat_check.cpp

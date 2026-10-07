@@ -25,6 +25,8 @@ public:
   uint16_t random_state{0};
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
+  int8_t skimma_recoil{0};
+  int16_t skimma_aim_offset{0};
   uint16_t dual_launch_pitch{614};
   diffuser_state diffuser;
   uint8_t primary_weapon{0};
@@ -57,6 +59,7 @@ private:
   std::array<uint8_t,256> retained_flags{};
   uint8_t outstanding_objectives{0};
   void release_target(uint16_t token) noexcept;
+  void fire_skimma_primary(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step, bool pressed);
   void detonate_dual_launch(projectile &shot, uint16_t clock, bool underground);
 };
 

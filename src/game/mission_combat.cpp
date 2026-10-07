@@ -13,6 +13,8 @@
 #include "game/objective_counter.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
+#include "game/random.h"
+#include "game/skimma_weapons.h"
 #include "game/tunnel_navigation.h"
 #include "game/vehicle_combat.h"
 
@@ -177,6 +179,42 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
   return outstanding_objectives;
 }
 
+void mission_combat::fire_skimma_primary(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank,
+  uint16_t const clock, uint16_t const frame_step, bool const pressed) {
+  /// C950 updates recoil every frame; CD6C traces the short primary ray and applies strength 32h only to aircraft
+  auto const recoil{calculate_skimma_recoil(skimma_recoil,frame_step)};
+  skimma_recoil = recoil.next;
+  skimma_aim_offset = recoil.aim_offset;
+  if(!pressed || (player.lifecycle.flags & 0x20)) return;
+  auto end{skimma_gun_endpoint(player.pose(),recoil.shot_offset,random_state)};
+  sweep_city(bank,cells,0x60,player.pose().position,end,0,10);
+  scenario_actor *victim{nullptr};
+  auto impact{end};
+  for(auto &actor : actors) {
+    if(actor.category != actor_category::air) continue;
+    auto candidate{end};
+    if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,0,player.pose().position,candidate)) {
+      victim = &actor;
+      impact = candidate;
+    }
+  }
+  bool const hit{victim != nullptr};
+  if(victim) {
+    auto const reaction{hit_actor(*victim,0x32,clock,random_state)};
+    effects.spawn(reaction.effect,reaction.at_actor ? victim->pose.position : impact,clock);
+    if(reaction.remove) {
+      retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
+      release_target(static_cast<uint16_t>(0xd986+victim->index*112));
+      completed_objectives += victim->attributes & 1;
+      adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
+      actors.erase(actors.begin()+(victim-actors.data()));
+    }
+  }
+  effects.gun_impact(impact,hit,clock);
+  skimma_recoil = kick_skimma_recoil(skimma_recoil,static_cast<uint8_t>(next_random(random_state)));
+  player_fired = true;
+}
+
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
   uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
@@ -185,9 +223,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   player_fired = false;
   if(player.lifecycle.crashing) weapon_charge = 0;
   player_hit = false;
-  auto &caero{std::get<caero_flight_state>(player.craft)};
-  auto const player_definition{player.tunnel ? 28u : 25u};
-  auto const damage_mask{static_cast<uint8_t>(player.tunnel ? 0x60 : 0x20)};
+  auto *caero{std::get_if<caero_flight_state>(&player.craft)};
+  auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
+  auto const player_definition{player.tunnel ? 28u : caero ? 25u : player.upgraded ? 27u : 26u};
+  auto const damage_mask{static_cast<uint8_t>(caero && !player.tunnel ? 0x20 : 0x60)};
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto &actor){
     if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;
@@ -264,7 +303,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
           if(shot) effects.gun_impact(shot->end, shot->hit, clock);
           if(shot && shot->hit) {
-            apply_player_damage(caero.damage, 0x15, 3, false, false, random_state);
+            apply_player_damage(damage,0x15,3,!caero,false,random_state);
             player_hit = true;
           }
           if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
@@ -289,8 +328,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
-  if(primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7) {
-    auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
+  if(!caero) fire_skimma_primary(player,cells,bank,clock,frame_step,trigger_pressed);
+  if(caero && (primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7)) {
+    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{trigger_pressed},.model{bank.special_models()[primary_weapon - 1]},
       .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()}})};
     weapon_ready = result.ready;
@@ -299,8 +339,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   secondary_ready = false;
-  if(secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 8 || secondary_weapon == 9 || secondary_weapon == 10) {
-    auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
+  if(caero && (secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 8 || secondary_weapon == 9 || secondary_weapon == 10)) {
+    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.held{secondary_held},.model{bank.special_models()[secondary_weapon - 1]},
       .clock{clock},.frame_step{frame_step},.target{target.token},.underground{player.tunnel.has_value()}})};
     secondary_ready = result.ready;
@@ -380,9 +420,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition == &original_object_definitions[0]
         ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
-      auto const damage{shot->parameters.definition == &original_object_definitions[7]
+      auto const strength_input{shot->parameters.definition == &original_object_definitions[7]
         ? caero_weapon_strength(cells,impact,static_cast<uint16_t>(0xd986 + victim->index*112)) : *strength};
-      auto const reaction{hit_actor(*victim,damage,clock,random_state,player.tunnel.has_value())};
+      auto const reaction{hit_actor(*victim,strength_input,clock,random_state,player.tunnel.has_value())};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
@@ -419,7 +459,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(hit) {
       // 6E95 halves definition strength and derives the angular kick from that amount.
       uint8_t const amount{static_cast<uint8_t>(shot->parameters.definition->impact_strength >> 1)};
-      apply_player_damage(caero.damage,amount,static_cast<uint8_t>((amount >> 1) - 7),false,false,random_state);
+      apply_player_damage(damage,amount,static_cast<uint8_t>((amount >> 1) - 7),!caero,false,random_state);
       effects.spawn(0x70c3,end,clock);
       player_hit = true;
     } else {
@@ -429,7 +469,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot->parameters.update_entry = 0x6ed3;
     shot->deadline = static_cast<uint16_t>(clock + 256);
   }
-  if(player_damage_is_lethal(caero.damage) && start_player_crash(player.pose(), player.lifecycle, clock)) player.engine_flags = 0;
+  if(player_damage_is_lethal(damage) && start_player_crash(player.pose(), player.lifecycle, clock)) player.engine_flags = 0;
 }
 
 } // namespace darker::game

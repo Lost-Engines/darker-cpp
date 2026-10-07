@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "game/skimma_weapons.h"
 #include "reference/recoil_samples.h"
+#include "reference/skimma_gun_samples.h"
 #include "reference/weapon_samples.h"
 
 TEST_CASE("Skimma automatic reload matches original counters, byte signs and deadline wrapping") {
@@ -127,5 +128,18 @@ TEST_CASE("Skimma random recoil kicks match every native input byte pair") {
       checksum = (checksum ^ static_cast<std::uint8_t>(next)) * 1099511628211ULL;
     }
     CHECK(checksum == sample.checksum);
+  }
+}
+
+TEST_CASE("Skimma primary gun rays match native recoil and random spread", "[game][weapons]") {
+  /// Compare endpoints and consumed random state before city or aircraft clipping
+  for(auto const &sample : darker::test_reference::skimma_gun_samples) {
+    CAPTURE(sample);
+    darker::game::object_pose player{.position{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]),static_cast<uint16_t>(sample[2])},
+      .angles{static_cast<uint16_t>(sample[3]),static_cast<uint16_t>(sample[4]),0}};
+    auto random{static_cast<uint16_t>(sample[6])};
+    auto const end{darker::game::skimma_gun_endpoint(player,std::bit_cast<int16_t>(static_cast<uint16_t>(sample[5])),random)};
+    CHECK(end == std::array<uint16_t,3>{static_cast<uint16_t>(sample[7]),static_cast<uint16_t>(sample[8]),static_cast<uint16_t>(sample[9])});
+    CHECK(random == sample[10]);
   }
 }

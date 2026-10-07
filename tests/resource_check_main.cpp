@@ -33,6 +33,7 @@
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 #include "scenario_resource_check.h"
+#include "skimma_combat_check.h"
 #include "text_resource_check.h"
 #include "presentation_check.h"
 
@@ -55,6 +56,7 @@ auto main(int const argc, char const *const argv[])->int try {
   check_hangar_flight(archives, arguments.contains("launch-trace") ? arguments["launch-trace"].as<std::string>() : std::string{});
   check_mission_combat(archives);
   check_building_combat(archives);
+  check_skimma_combat(archives);
   check_actor_flight(archives);
   check_scenario_resources(archives);
   check_text_resources(archives);

@@ -3,6 +3,8 @@
 #include <array>
 #include <bit>
 #include <stdexcept>
+#include "game/random.h"
+#include "maths/sine_table.h"
 
 namespace darker::game {
 namespace {
@@ -34,6 +36,23 @@ std::int8_t kick_skimma_recoil(std::int8_t const current, std::uint8_t const ran
   /// C984–C98E apply the random 64–95 impulse through C9FE, preserving byte wrapping
   int const impulse{64 + (random_byte & 31)};
   return std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(current + (current < 0 ? impulse : -impulse)));
+}
+
+std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t const pitch_offset, uint16_t &random_state) noexcept {
+  /// CD84 quarters the sight vector and adds three signed random components before 6D08 constructs the ray
+  auto const heading{player.angles[0] >> 6};
+  auto const pitch{static_cast<uint16_t>(player.angles[1]+pitch_offset) >> 6};
+  auto const cosine{maths::original_sine[(pitch+256)%1024]};
+  auto const random{next_random(random_state)};
+  auto const horizontal{-(maths::original_sine[heading]*cosine >> 16)};
+  auto const forward{maths::original_sine[(heading+256)%1024]*cosine >> 16};
+  auto const vertical{-(maths::original_sine[pitch] >> 1)};
+  auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>((horizontal >> 2)+std::bit_cast<int8_t>(static_cast<uint8_t>(random))))};
+  auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>((forward >> 2)+std::bit_cast<int8_t>(static_cast<uint8_t>(random >> 8))))};
+  auto const mixed{static_cast<uint16_t>((random & 0xff00) | std::rotr(static_cast<uint8_t>(random),3))};
+  auto const z{std::bit_cast<int16_t>(static_cast<uint16_t>((vertical >> 2)+(std::bit_cast<int8_t>(static_cast<uint8_t>(mixed >> 3)) >> 3)))};
+  return {static_cast<uint16_t>(player.position[0]+(x >> 2)),static_cast<uint16_t>(player.position[1]-(y >> 2)),
+    static_cast<uint16_t>((player.position[2] & 0xfffe)-z*2)};
 }
 
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {

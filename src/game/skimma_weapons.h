@@ -1,8 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <span>
+#include "game/object_pose.h"
 
 namespace darker::game {
 
@@ -35,6 +37,8 @@ struct weapon_ring_display {
   std::uint8_t radius{0};
   std::uint8_t remaining{0};
 };
+
+std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t pitch_offset, uint16_t &random_state) noexcept;
 
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t weapon);
 bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring, std::uint8_t weapon, std::uint16_t clock);
