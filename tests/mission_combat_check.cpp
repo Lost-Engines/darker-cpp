@@ -14,6 +14,7 @@
 #include "presentation/player.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "reference/tunnel_placement_samples.h"
 
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
@@ -232,6 +233,32 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     if(events != times.size() || !sparks || !bursts) throw std::runtime_error{"Wrecker route omitted door damage or cutting effects"};
     std::cout << "First tunnel Wrecker: all six native door transitions, raised motion, sparks and bursts verified." << std::endl;
+  }
+  {
+    darker::game::tunnel_network const network{archives.load({0,78})};
+    darker::resources::geometry_bank const underground_bank{archives.load({0,32})};
+    for(auto const &sample : darker::test_reference::tunnel_placement_samples) {
+      auto const &source{campaign.scenario(static_cast<uint8_t>(sample[0]*8 + sample[1] + 1))};
+      auto const &record{source.records()[sample[1]]};
+      auto const map{darker::game::make_city_map(archives.load({0,70u + (record.configuration >> 4)}),false)};
+      unsigned int index{0};
+      darker::resources::scenario_placement const *placement{nullptr};
+      for(auto const &group : record.groups) for(auto const &object : group.objects) {
+        if(++index == sample[2]) placement = &object;
+      }
+      if(!placement || placement->definition_slot != sample[3]) throw std::runtime_error{"Native tunnel placement refers to a different scenario object"};
+      auto const model{underground_bank.special_models()[sample[3]]};
+      auto const height{underground_bank.header_at(model).height};
+      auto const actor{darker::game::make_scenario_actor(*placement,darker::game::original_object_definitions[sample[3]],
+        model,height,static_cast<uint8_t>(sample[2]),2,record.shared.offset,darker::game::tunnel_setup{network,map})};
+      if(actor.pose.position != std::array<uint16_t,3>{sample[4],sample[5],static_cast<uint16_t>(sample[6] - height)}
+        || actor.pose.angles[0] != sample[7] || !actor.tunnel || actor.tunnel->route != sample[8]
+        || actor.parameters.update_entry != 0x8609) {
+        throw std::runtime_error{"Underground actor differs from native route placement: archive=" + std::to_string(sample[0])
+          + ", record=" + std::to_string(sample[1]) + ", object=" + std::to_string(sample[2])};
+      }
+    }
+    std::cout << "All 158 underground moving-object placements match native route snapping and direction selection." << std::endl;
   }
   // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
   auto const &record{scenario.records()[3]};

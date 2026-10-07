@@ -10,6 +10,7 @@
 #include "game/mission_script.h"
 #include "game/object_definition.h"
 #include "game/object_pose.h"
+#include "game/tunnel_network.h"
 #include "game/vehicle_route.h"
 #include "resources/geometry_bank.h"
 #include "resources/scenario.h"
@@ -17,6 +18,16 @@
 namespace darker::game {
 
 enum class actor_category { air, ground, stationary };
+
+struct tunnel_actor_state {
+  uint8_t route{0};
+  uint16_t progress{0};
+};
+
+struct tunnel_setup {
+  tunnel_network const &network;
+  city_map const &cells;
+};
 
 struct scenario_actor {
   actor_category category{actor_category::air};
@@ -26,6 +37,7 @@ struct scenario_actor {
   actor_awareness awareness{};
   mission_script script{};
   std::optional<vehicle_route> route{};
+  std::optional<tunnel_actor_state> tunnel{};
   std::array<std::uint16_t, 3> previous_position{};
   // Native 50–55: retained until all navigation consumers have named contracts.
   std::array<std::uint8_t, 6> behaviour{};
@@ -44,9 +56,9 @@ struct scenario_actor {
 
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,
   object_definition const &definition, std::uint16_t model_token, std::int16_t model_height,
-  std::uint8_t index, std::uint8_t world_mode, std::size_t shared_offset);
+  std::uint8_t index, std::uint8_t world_mode, std::size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
 
 std::vector<scenario_actor> make_scenario_group(resources::scenario_group const &group, resources::geometry_bank const &bank,
-  std::uint8_t first_index, std::uint8_t world_mode, std::size_t shared_offset);
+  std::uint8_t first_index, std::uint8_t world_mode, std::size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
 
 } // namespace darker::game

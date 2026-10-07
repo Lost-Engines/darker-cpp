@@ -16,7 +16,7 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 165 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks mission sixteen’s destination handoff and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 167 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks mission sixteen’s destination handoff and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
 A real-window check uses the ordinary menus and Level X to traverse all sixteen supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
@@ -66,3 +66,7 @@ check does not prove the entire manually flown transfer.
 Automatic selection of other return hangars when the native destination is
 zero is still incomplete: the reconstruction retains the starting site in that
 case. Explicit nonzero scripted destinations now take precedence correctly.
+
+## Underground foundations
+
+The native [visibility scan](underground_visibility.md) and [route geometry/placement](tunnel_navigation.md) are implemented. Visibility compares against 384 native frames, and all 158 shipped underground moving-object starts now match the actual BEE7 helper. Underground steering, player flight and the connected transition remain outstanding.
