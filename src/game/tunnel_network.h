@@ -62,6 +62,8 @@ public:
   tunnel_connection connect(city_map const &cells, tunnel_connection source, uint8_t preferred_heading) const;
   std::optional<tunnel_trace> trace(city_map const &cells, tunnel_connection source,
     std::array<uint16_t,3> position, uint16_t lookahead, uint8_t preferred_heading) const;
+  std::optional<tunnel_connection> reacquire(city_map const &cells, tunnel_connection source,
+    std::array<uint16_t,3> position, uint8_t preferred_heading) const;
 };
 
 } // namespace darker::game

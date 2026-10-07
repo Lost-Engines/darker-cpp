@@ -67,3 +67,19 @@ awareness/cooldown and route-state field matches. Only script execution is stubb
 in that fixture; navigation, awareness, neighbour traversal and motion execute the
 original instructions. The surrounding mission script/collision pipeline still
 needs integration.
+
+## Player route reacquisition
+
+D39C searches the current cell, then one horizontal and one vertical neighbour
+chosen by the player's half-cell position. D474 scores eligible segments using
+height difference and separately truncated fixed-point projections. The search
+retains the original asymmetric negative-distance rounding, strict acceptance
+threshold and rejection of matching route indices. It is not a generic nearest
+line search.
+
+`reacquire` matches 5,214 native cases around the shipped moving-object starts,
+with displaced positions, three heights and both retained and unrelated current
+cells. The native fixture initialises the extended sine table as the game does;
+raw executable bytes beyond the base table are not valid runtime sine values.
+This helper supplies the player's off-route recovery path; D510 integration is
+still required.

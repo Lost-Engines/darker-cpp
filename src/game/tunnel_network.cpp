@@ -4,6 +4,7 @@
 #include <functional>
 #include <stdexcept>
 #include "maths/direction.h"
+#include "maths/sine_table.h"
 
 namespace darker::game {
 namespace {
@@ -41,6 +42,28 @@ uint8_t segment_length(int const x, int const y) {
 int height_byte(unsigned int const nibble) {
   /// D37C/D384 replace the lowest two height levels before interpolating the vertical route
   return nibble == 0 ? 6 : nibble == 1 ? 11 : static_cast<int>(nibble*8);
+}
+
+uint16_t proximity(tunnel_segment const edge, uint16_t const x, uint16_t const y, uint8_t const height) {
+  /// D474 scores a point against an edge using separately truncated products and the original perimeter orientation
+  auto const origin{boundary(edge.first)};
+  auto const dx{std::bit_cast<int16_t>(static_cast<uint16_t>((x - origin[0]*8)*2))};
+  auto const dy{std::bit_cast<int16_t>(static_cast<uint16_t>((y - origin[1]*8)*2))};
+  auto const sine{[&](unsigned int const phase){ return maths::original_sine[(edge.heading*2 + phase) % 1024]; }};
+  auto perpendicular{static_cast<uint16_t>(((sine(256)*dy) >> 16) - ((sine(0)*dx) >> 16))};
+  auto along{static_cast<uint16_t>(((sine(768)*dx) >> 16) - ((sine(0)*dy) >> 16))};
+  if(edge.first >= 0x60 && static_cast<uint8_t>(0xa0 - edge.first) <= edge.second) {
+    perpendicular = static_cast<uint16_t>(-perpendicular);
+    along = static_cast<uint16_t>(-along);
+  }
+  along >>= 1;
+  if(along >= edge.length) return 0xffff;
+  auto const start{(edge.heights & 15)*4}, end{(edge.heights >> 4)*4};
+  auto const vertical{std::abs(start + (end - start)*along/edge.length - height)};
+  bool const negative{(perpendicular & 0x8000) != 0};
+  perpendicular = static_cast<uint16_t>((perpendicular << 1) | (negative ? 1 : 0));
+  if(negative) perpendicular = static_cast<uint16_t>(-perpendicular);
+  return static_cast<uint16_t>(vertical + perpendicular);
 }
 
 } // namespace
@@ -218,6 +241,44 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
     distance += segment(type_at(source.cell),source.route).length*2;
   }
   result.target = point(type_at(source.cell),source.route,source.cell,static_cast<uint16_t>(distance));
+  return result;
+}
+
+std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells, tunnel_connection const source,
+  std::array<uint16_t,3> const position, uint8_t const preferred_heading) const {
+  /// D39C searches the current cell and two axial neighbours for a sufficiently close route after free flight
+  uint16_t const cell{static_cast<uint16_t>((position[0] >> 8) | (position[1] & 0xff00))};
+  uint16_t best{64};
+  uint8_t route{0};
+  auto const search{[&](int const x_offset, int const y_offset){
+    auto const column{static_cast<uint8_t>(cell + x_offset)}, row{static_cast<uint8_t>((cell >> 8) + y_offset)};
+    if(row >= 128) return;
+    auto const type{cells[row*128 + (column & 127)].type};
+    if(type == 0) return;
+    for(uint8_t i{0}; i < 3; ++i) {
+      auto const edge{segment(type,i)};
+      if(edge.first == 0) continue;
+      auto const score{proximity(edge,static_cast<uint16_t>((position[0] & 255) + x_offset*256),
+        static_cast<uint16_t>((position[1] & 255) + y_offset*256),static_cast<uint8_t>(position[2] >> 6))};
+      if(score < best) { best = score; route = i; }
+    }
+  }};
+  search(0,0);
+  if(best < 64) {
+    if(cell == source.cell || ((route ^ source.route) & 31) == 0) return std::nullopt;
+    return tunnel_connection{cell,route};
+  }
+  int const x_step{(position[0] & 255) < 128 ? -1 : 1};
+  int const y_step{(position[1] & 255) < 128 ? -1 : 1};
+  search(x_step,0);
+  auto const horizontal{best};
+  search(0,y_step);
+  if(best >= 64) return std::nullopt;
+  bool const vertical{best < horizontal};
+  tunnel_connection const result{static_cast<uint16_t>(static_cast<uint8_t>(cell + (vertical ? 0 : x_step))
+    | (static_cast<uint8_t>((cell >> 8) + (vertical ? y_step : 0))*256)),route};
+  auto const next{connect(cells,result,preferred_heading)};
+  if(result.cell == next.cell || ((result.route ^ next.route) & 31) == 0) return std::nullopt;
   return result;
 }
 

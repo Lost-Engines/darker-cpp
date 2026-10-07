@@ -20,6 +20,7 @@
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
+#include "reference/tunnel_reacquisition_samples.h"
 #include "reference/tunnel_trace_samples.h"
 
 void check_mission_combat(darker::resources::archive_set const &archives) {
@@ -289,6 +290,19 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + "/" + std::to_string(sample[10]) + "/" + std::to_string(sample[11]) + "/" + std::to_string(sample[12])
           + ", actual=" + (result ? std::to_string(result->progress) + "/" + std::to_string(result->connection.cell) + "/" + std::to_string(result->connection.route)
           + "/" + std::to_string(result->target[0]) + "/" + std::to_string(result->target[1]) + "/" + std::to_string(result->target[2]) : "none")};
+      }
+    }
+    for(auto const &sample : darker::test_reference::tunnel_reacquisition_samples) {
+      auto &map{maps.at(sample[0] - 70)};
+      if(!map) map = darker::game::make_city_map(archives.load({0,sample[0]}),false);
+      auto const result{network.reacquire(*map,{sample[1],static_cast<uint8_t>(sample[2])},
+        {sample[4],sample[5],sample[6]},static_cast<uint8_t>(sample[3]))};
+      if(result.has_value() != (sample[7] != 0) || (result && (result->cell != sample[8] || result->route != sample[9]))) {
+        throw std::runtime_error{"Tunnel reacquisition differs from native: map=" + std::to_string(sample[0])
+          + ", source=" + std::to_string(sample[1]) + ", route=" + std::to_string(sample[2])
+          + ", position=" + std::to_string(sample[4]) + "/" + std::to_string(sample[5]) + "/" + std::to_string(sample[6])
+          + ", expected=" + std::to_string(sample[7]) + "/" + std::to_string(sample[8]) + "/" + std::to_string(sample[9])
+          + ", actual=" + (result ? std::to_string(result->cell) + "/" + std::to_string(result->route) : "none")};
       }
     }
     for(auto const &sample : darker::test_reference::tunnel_navigation_samples) {
