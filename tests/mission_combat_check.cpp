@@ -121,7 +121,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; };
-  constexpr std::array<combat_case,33> cases{{
+  constexpr std::array<combat_case,37> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -136,6 +136,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {33,4,"You can return to Hemmersan.",false,9}, {34,2,"Return to Hemmersan.",false,9},
     {35,1,nullptr,false,9}, {38,8,"Tolly: get back to base.",false,9},
     {39,4,"Return to base for a mission update.",false,9}, {40,6,"all targets are clear.",false,9},
+    {41,7,"Return to Hemmersan.",false,9}, {42,6,"Return to base immediately, Tolly.",false,9},
+    {43,8,"Return to Hemmersan, Tolly.",false,9}, {44,12,"Good job, Tolly. Return to base.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -167,6 +169,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     context.adjust_objectives = [&](uint8_t const operand){ combat.adjust_objectives(operand); return combat.remaining_objectives() == 0; };
     context.set_aircraft_spawning = [&](uint8_t const setting){ combat.spawning.enabled = setting != 0; };
     context.set_building_attacks = [&](uint8_t const setting){ combat.building_attacks = setting != 0; };
+    darker::game::beacon_changes beacon_changes;
+    context.change_beacons = [&](uint8_t const opcode, uint8_t const origin, uint8_t const count){
+      beacon_changes.command(opcode,origin,count,static_cast<uint16_t>(context.clock),scenario.bytes(record.beacon_sequence));
+    };
     context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
       combat.activate_reserves(static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return combat.remaining_objectives() == 0;
@@ -194,6 +200,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           combat.targeting_basis = darker::maths::make_view_basis({.heading{heading}});
         }
       }
+      beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
       combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(test.weapon == 10 && fire) || (test.weapon == 9 && clock % 2048 == 8),test.weapon == 9 && clock % 2048 != 0);
       if(combat.player_fired) ++shots;
@@ -240,17 +247,21 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
-  for(uint8_t const stage : std::array<uint8_t,4>{16,18,23,37}) {
+  struct transfer_case { uint8_t stage; uint16_t origin, destination; size_t actors, messages; };
+  for(auto const test : std::array<transfer_case,6>{{
+    {16,0x7162,0x3064,4,0},{18,0x3064,0x7162,4,2},{23,0x7162,0x4c64,0,0},
+    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},
+  }}) {
+    auto const stage{test.stage};
     auto const &transfer{campaign.scenario(stage)};
     auto const record_index{darker::resources::select_campaign_stage(stage).record};
     auto const &record{transfer.records()[record_index]};
-    uint16_t const origin{stage == 37 ? uint16_t{0x3060} : stage != 18 ? uint16_t{0x7162} : uint16_t{0x3064}};
-    uint16_t const destination{stage == 16 ? uint16_t{0x3064} : (stage == 18 || stage == 37) ? uint16_t{0x7162} : uint16_t{0x4c64}};
+    auto const origin{test.origin}, destination{test.destination};
     darker::resources::font_resource const fonts{archives.load({0,29})};
     darker::presentation::player briefing{archives,fonts,transfer,record_index};
     do { briefing.advance(4000); } while(briefing.continue_page());
     darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
-    if(briefing.departure_destination != destination || traffic.actors.size() != (stage == 23 || stage == 37 ? 0u : 4u) || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
+    if(briefing.departure_destination != destination || traffic.actors.size() != test.actors || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
       throw std::runtime_error{"Transfer mission did not select the original destination"};
     }
     auto transfer_cells{darker::game::make_city_map(archives.load({0,68}),true)};
@@ -273,7 +284,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       context.clock = clock;
       darker::game::advance_mission_script(script,context);
     }
-    if(!script.stopped || context.messages.size() != (stage == 18 ? 2u : 0u)) throw std::runtime_error{"Transfer mission omitted its timed messages or stop"};
+    if(!script.stopped || context.messages.size() != test.messages) throw std::runtime_error{"Transfer mission omitted its timed messages or stop"};
     player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
     player.pose().angles = {0x8000,0,0};
     if(!darker::game::begin_hangar_return(player,transfer_cells,hangar,true)) throw std::runtime_error{"Transfer mission refused its destination hangar"};
@@ -690,7 +701,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,3>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19}}}) {
+    for(auto const test : std::array<tunnel_case,4>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};
