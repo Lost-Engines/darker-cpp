@@ -24,6 +24,7 @@ struct player_flight {
   std::uint16_t forward_setting{248};
   std::uint8_t engine_flags{1};
   bool altitude_hold{false};
+  bool scripted_altitude_hold{false};
   bool upgraded{false};
   supply_pad_state supply{};
   std::optional<uint8_t> scenario_configuration;

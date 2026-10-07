@@ -341,6 +341,8 @@ if(BUILD_TESTING)
     tests/resource_check_main.cpp
     tests/scenario_resource_check.cpp
     tests/scenario_resource_check.h
+    tests/nightmare_check.cpp
+    tests/nightmare_check.h
     tests/presentation_check.cpp
     tests/presentation_check.h
     tests/text_resource_check.cpp

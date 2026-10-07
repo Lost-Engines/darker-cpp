@@ -55,6 +55,16 @@ void check_presentations(darker::resources::archive_set const &archives) {
   framework::render::cockpit_framebuffer expected_rgb{};
   framework::render::expand_palette(expected,palette.palette.colours,expected_rgb);
   if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels}))) throw std::runtime_error{"Quotation lost inherited spacing or original advance glyphs"};
+  for(auto const pointer : {std::array{283,230},std::array{284,225},std::array{301,239},std::array{302,225},std::array{310,224}}) {
+    auto hovered{expected};
+    auto const glyph{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 60 : 62) : 0};
+    if(glyph) darker::graphics::draw_glyph(hovered,font,darker::resources::font_face::wide,static_cast<uint8_t>(glyph),
+      {.x{glyph == 60 ? 287 : 305},.y{226}},{.ink{253},.edge{252}});
+    framework::render::expand_palette(hovered,palette.palette.colours,expected_rgb);
+    quotation.draw(frame,pointer);
+    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels})))
+      throw std::runtime_error{"Presentation navigation differs from DA75/DA48 hover bounds and colours"};
+  }
   unsigned int pages{0};
   do {
     briefing.draw(frame);
@@ -166,6 +176,35 @@ void check_presentations(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Halon interstitial did not advance to its playable stage"};
     if(interstitial_saves.pilots[0].weapons != 0x3ff)
       throw std::runtime_error{"Presentation-only progression changed saved weapon state"};
+  }
+  for(uint8_t const outcome : std::array<uint8_t,5>{1,2,3,4,255}) {
+    darker::resources::save_file challenge_save;
+    challenge_save.pilots[0].stage = 41;
+    challenge_save.pilots[0].weapons = 123;
+    challenge_save.trailer = {std::byte{12},std::byte{0xa5}};
+    auto const previous{darker::resources::encode_save(challenge_save)};
+    darker::presentation::front_end challenge{archives,font,campaign,challenge_save,true};
+    challenge.key(front_key::nightmare);
+    challenge.key(front_key::erase);
+    challenge.key(front_key::accept);
+    for(unsigned int i{0}; challenge.active() && i < 200; ++i) { challenge.advance(32); challenge.key(front_key::accept); }
+    if(challenge.active() || !challenge.nightmare_selected() || challenge.selected_record() != 0
+      || &challenge.selected_scenario() != &campaign.supplementary() || challenge.save_requested)
+      throw std::runtime_error{"Nightmare failed its separate menu/scenario entry"};
+    if(!challenge.entry() || challenge.entry()->site != 0x4258 || challenge.entry()->heading != 0xc4)
+      throw std::runtime_error{"Nightmare lost its Kismet Square starting position"};
+    challenge.finish_nightmare(37,outcome);
+    challenge.advance(60000);
+    challenge.draw(frame);
+    if(!challenge.active() || !challenge.save_requested || challenge_save.trailer[0] != std::byte{37})
+      throw std::runtime_error{"Nightmare failed to retain its best score"};
+    auto const after{darker::resources::encode_save(challenge_save)};
+    if(!std::equal(previous.begin(),previous.begin()+6596,after.begin()) || after[6597] != previous[6597])
+      throw std::runtime_error{"Nightmare changed a campaign record or the other trailer byte"};
+    challenge.save_requested = false;
+    challenge.finish_nightmare(9,255);
+    if(challenge.save_requested || challenge_save.trailer[0] != std::byte{37})
+      throw std::runtime_error{"A lower Nightmare score replaced the best score"};
   }
   darker::resources::save_file ending_save;
   ending_save.pilots[0].stage = 116;

@@ -137,6 +137,8 @@ void player::execute() {
       weapon_toggles ^= std::rotl(mask,range >> 4);
       break;
     }
+    case 0x36: difficulty = byte(); break;
+    case 0x37: score = byte(); break;
     case 0x3a:
       text_y = byte(); image_height = byte();
       if(image_height) { image_width = word(); image_y = byte(); image_x = word(); }
@@ -223,7 +225,7 @@ size_t player::consumed_text() const noexcept {
   return text_cursor;
 }
 
-void player::draw(framework::render::cockpit_framebuffer &output) const {
+void player::draw(framework::render::cockpit_framebuffer &output, std::array<int,2> const pointer) const {
   /// Composite the retained background, descending animation channels and formatted text before palette expansion
   auto frame{background};
   for(auto i{pairs.rbegin()}; i != pairs.rend(); ++i) {
@@ -245,9 +247,12 @@ void player::draw(framework::render::cockpit_framebuffer &output) const {
     graphics::draw_message(frame,font,face,caption.text,{.x{caption.x},.y{caption_y}},caption.width,
       {.ink{static_cast<uint8_t>(caption_colours >> 8)},.edge{static_cast<uint8_t>(caption_colours)}});
   }
-  // DA48 uses glyphs in the current presentation font, not separate button bitmaps.
-  if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{.x{305},.y{226}},{.ink{255},.edge{254}});
-  if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{.x{287},.y{226}},{.ink{255},.edge{254}});
+  // DA75 selects a hover bit below row 225, split at columns 284 and 302; DA48 selects its palette pair.
+  auto const hover{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 4 : 1) : 0};
+  if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{.x{305},.y{226}},
+    {.ink{static_cast<uint8_t>(hover == 1 ? 253 : 255)},.edge{static_cast<uint8_t>(hover == 1 ? 252 : 254)}});
+  if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{.x{287},.y{226}},
+    {.ink{static_cast<uint8_t>(hover == 4 ? 253 : 255)},.edge{static_cast<uint8_t>(hover == 4 ? 252 : 254)}});
   framework::render::expand_palette(frame,colours.colours,output);
 }
 

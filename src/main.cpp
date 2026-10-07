@@ -75,6 +75,7 @@ struct flight_host {
   darker::game::hangar_state hangar;
   darker::game::mission_combat *combat{nullptr};
   uint16_t available_weapons{0};
+  uint8_t score_base{0};
   bool primary_held{false};
   bool secondary_held{false};
   bool weapon_selection_blocked{false};
@@ -425,6 +426,7 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_2: host.front->key(front_key::two); break;
       case GLFW_KEY_3: host.front->key(front_key::three); break;
       case GLFW_KEY_4: host.front->key(front_key::four); break;
+      case GLFW_KEY_N: host.front->key(front_key::nightmare); break;
       default: break;
       }
       return;
@@ -527,6 +529,14 @@ auto main(int const argc, char const *const argv[])->int {
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(host.front) host.front->character(code);
   });
+  glfwSetCursorPosCallback(window.get(), [](GLFWwindow *const window, double const x, double const y){
+    auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
+    if(!host.front || !host.front->active()) return;
+    int width{0},height{0};
+    glfwGetWindowSize(window,&width,&height);
+    auto const viewport{framework::render::fit_viewport(width,height,320,240)};
+    if(viewport.width > 0 && viewport.height > 0) host.front->point(static_cast<int>((x-viewport.x)*320/viewport.width),static_cast<int>((y-viewport.y)*240/viewport.height));
+  });
   glfwSetMouseButtonCallback(window.get(), [](GLFWwindow *window, int button, int action, int){
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(!host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
@@ -575,7 +585,7 @@ auto main(int const argc, char const *const argv[])->int {
       auto const completed{static_cast<uint8_t>(combat->completed_objectives)};
       bool const completed_mission{host.exit_requested == session_exit::completed};
       if(front) darker::game::commit_beacon_queue(cells,scenario->bytes(mission.beacon_sequence));
-      if(completed_mission && front) {
+      if(completed_mission && front && !front->nightmare_selected()) {
         auto updated{front->selected_pilot()};
         if(!host.player.tunnel) {
           darker::game::pack_city_state(cells,bank.city_types(),world_mode == 1 ? std::span<std::byte>{updated.halon} : std::span<std::byte>{updated.delphi});
@@ -604,7 +614,8 @@ auto main(int const argc, char const *const argv[])->int {
       host.engine_indicator = 0;
       host.briefing = front != nullptr;
       if(front) {
-        if(completed_mission) front->continue_campaign();
+        if(front->nightmare_selected()) front->finish_nightmare(static_cast<uint8_t>(host.score_base+completed),context.progress ? context.progress : died ? 2 : completed_mission ? 1 : 255);
+        else if(completed_mission) front->continue_campaign();
         else if(died) front->show_death(completed);
         else front->return_to_menu();
         glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL);
@@ -639,8 +650,8 @@ auto main(int const argc, char const *const argv[])->int {
         if(!active) {
           auto const &pilot{front->selected_pilot()};
           host.available_weapons = pilot.weapons ^ front->weapon_changes();
-          scenario = &campaign.scenario(pilot.stage);
-          auto const record{darker::resources::select_campaign_stage(pilot.stage).record};
+          scenario = &front->selected_scenario();
+          auto const record{front->selected_record()};
           mission = scenario->records()[record];
           text = scenario->language(record,darker::resources::scenario_language::english);
           auto const configuration{static_cast<uint8_t>(mission.configuration & 15)};
@@ -673,6 +684,15 @@ auto main(int const argc, char const *const argv[])->int {
             if(!entry) throw std::logic_error{"Underground briefing did not supply an entry site"};
             host.hangar.return_site = entry->site;
             darker::game::initialise_tunnel_entry(host.player,entry->site,entry->heading,bank.header_at(bank.special_models()[28]).height);
+          } else if(caero && front->nightmare_selected()) {
+            auto const entry{front->entry()};
+            if(!entry) throw std::logic_error{"Nightmare briefing did not supply its entry site"};
+            host.hangar.return_site = entry->site;
+            host.player = {};
+            host.player.pose().position = {static_cast<uint16_t>((entry->site & 255)*128+128),
+              static_cast<uint16_t>((entry->site & 0xff00)+128),0};
+            host.player.pose().angles[0] = static_cast<uint16_t>(entry->heading*256);
+            std::get<darker::game::caero_flight_state>(host.player.craft).energy.buffer = 0x6000;
           } else if(caero) darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
           else {
             auto const entry{front->entry()};
@@ -704,11 +724,18 @@ auto main(int const argc, char const *const argv[])->int {
           combat->reserves = std::move(groups[1]);
           combat->free_actors = std::move(groups[2]);
           combat->skimma_weapons[1].ammunition = second_weapon;
-          combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
+          combat->difficulty = front->initial_difficulty().value_or(static_cast<uint8_t>(pilot.stage*2));
+          host.score_base = front->initial_score();
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
           script = initial_script;
           context = {.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
+          context.set_altitude = [&](std::optional<uint16_t> const height){
+            host.player.scripted_altitude_hold = height.has_value();
+            if(height) host.player.desired_height = *height;
+          };
+          context.set_difficulty = [&](uint8_t const value){ combat->difficulty = value; };
+          context.reset_score = [&](uint8_t const value){ host.score_base = value; combat->completed_objectives = 0; };
           context.activate_reserves = activate_reserves;
           context.change_beacons = change_beacons;
           exchange = {};

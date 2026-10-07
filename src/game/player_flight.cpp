@@ -88,7 +88,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
     advance_caero_flight(std::get<caero_flight_state>(craft),
       {.angular_response{gain}, .drive_multiplier{static_cast<std::uint16_t>(definition.role_data[4] * 8)},
         .vertical_bias{bias}, .desired_height{desired_height}, .height_reference{controls.pitch.reference}},
-      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold}, .brake{brake}},
+      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}},
       frame_step, cells);
   } else if(supply.phase != supply_phase::flight) {
     advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,steering.pitch,frame_step);

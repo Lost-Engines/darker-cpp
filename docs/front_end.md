@@ -2,7 +2,7 @@
 
 The default Caero launch now passes through the original startup animation,
 title image, game selection, pilot-name entry and first-mission briefing before
-entering the hangar. The first eight campaign missions now run consecutively. All images, animation frames and fonts are read directly
+entering the hangar. The campaign interpreter now covers all 116 stages, including the Halon sequence and ending; see `campaign_status.md` for the distinction between controlled checks and playtesting. All images, animation frames and fonts are read directly
 from the original packs. Skimma development starts still enter flight directly.
 
 `presentation::player` interprets the presentation portion of the scenario
@@ -20,7 +20,7 @@ text cursor is 1085, where the in-flight message interpreter resumes.
 ## Controls and current scope
 
 Space, Enter or a click dismisses the startup/title and advances the briefing.
-Select a slot using 1–4, arrows and Enter, or the mouse. Empty slots ask for a
+Select a slot using 1–4, arrows and Enter, or the mouse; N selects Nightmare. Empty slots ask for a
 pilot name. The run menu supports Enter to run, S to select another slot, E to
 erase the slot, and Escape to confirm quitting. Confirmation uses up/down and
 Enter, or clicking Yes/No. Escape during flight returns to the run menu; Enter
@@ -100,8 +100,8 @@ adjustment during composition.
 
 DA48 draws the navigation controls using glyphs 60 and 62 of the current font,
 at (287,226) and (305,226). Input-policy bits 4 and 1 select their visibility.
-The left control exits to the run menu; the right advances. Exact hover colours
-and the remaining original input policies are still outstanding.
+The left control exits to the run menu; the right advances. DA75 hover regions now select the FD/FC colour pair, using row 225 and the
+284/302 column boundaries. Other original input-policy details remain outstanding.
 
 ## Mission death and save verification
 
@@ -115,7 +115,7 @@ supplies the completed-object counter before resetting the failed mission.
 
 The underground abort screen is record 3; Nightmare victory is record 4.
 Neither is substituted for ordinary Escape or successful first-mission docking.
-These will connect when their corresponding gameplay outcomes exist.
+Both are now connected to their corresponding gameplay outcomes.
 
 A windowed Xvfb/Mesa check created a pilot, restarted the executable and reloaded
 it, launched with the engine off to trigger a crash, ran the committal scene for
@@ -175,7 +175,7 @@ The resource integration check covers exact matching, ordinary-name isolation,
 unchanged save bytes and persistence through death. A window test uses actual
 Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
 and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
-copied destination are checked. The unsupported-stage gate now begins at mission nine; mission four includes its original reinforcement waves.
+copied destination are checked. All campaign stages now have script coverage; mission four includes its original reinforcement waves.
 
 ## Background transitions and text lifetime
 
@@ -189,3 +189,26 @@ pixels remain and no in-flight message text is consumed.
 ## Animation table reset
 
 Opcodes 46/47 call DADA, which resets the two append descriptors but retains the existing frame-pointer entries and animation pairs. The presentation player now retains decoded frames across this reset and overwrites them as subsequent resources load. Mission six has a timed interval between reset and reload, so discarding all frames immediately left a live pair with no image to draw. An isolated native DADA call confirms that only the three-byte descriptors change, while later entries and all twelve pairs remain untouched. Briefing checks now draw at 25-tick intervals through missions two to seven, rather than observing only their final frames. Exact aliasing of overwritten packed animation memory remains a separate issue if a later scene deliberately reuses stale pointers into replaced data.
+
+## Nightmare
+
+N selects the original fifth menu entry (native key table 054F). It uses record
+0 of 04/15 and a transient pilot, rather than treating the two-byte save trailer
+as a fifth pilot record. Native 3F23 updates only trailer byte 0 when the wrapping
+byte score exceeds the existing best. Normal pilots and trailer byte 1 remain
+untouched. Leaving, dying or skipping returns to the challenge menu; outcome 4
+plays its dedicated victory presentation.
+
+The launch uses site 4258, heading C4 and the existing Nightmare inline player
+setup: an airborne downward launch near Kismet Square, rather than a hangar.
+Briefing and mission opcodes 36/37 set difficulty and score checkpoints. Opcode
+38 toggles the independent scripted altitude-hold bit; it consumes a height
+word only when enabling it, and does not cancel the player's manual hold bit.
+
+The integration check runs the entire original challenge with live actor and
+beacon updates and controlled removal of counted objectives: outcome 4 at tick
+162456, 15 reserve activations, 50 removals, 24 score checkpoints and final score
+100. This verifies script progression, not the combat difficulty. Menu checks
+cover all five exit outcomes, best-score updates and byte-for-byte preservation
+of all four pilot records. An Xvfb/Mesa run enters through N, advances into live
+flight, fires, exits with Level X and verifies the ordinary save is unchanged.

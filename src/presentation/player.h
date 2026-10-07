@@ -55,6 +55,8 @@ public:
   uint16_t departure_destination{0};
   std::optional<landing_entry> entry;
   std::optional<uint8_t> music;
+  std::optional<uint8_t> difficulty;
+  std::optional<uint8_t> score;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,
     resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0);
@@ -62,7 +64,7 @@ public:
   bool continue_page();
   bool finished() const noexcept;
   size_t consumed_text() const noexcept;
-  void draw(framework::render::cockpit_framebuffer &output) const;
+  void draw(framework::render::cockpit_framebuffer &output, std::array<int,2> pointer = {-1,-1}) const;
 };
 
 } // namespace darker::presentation

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <span>
 #include <vector>
 #include "game/city_map.h"
@@ -38,6 +39,10 @@ struct mission_context {
   bool objectives_complete{false};
   bool at_target_cell{false};
   bool suppress_messages{false};
+  std::function<void(uint8_t)> set_difficulty{};
+  std::function<void(uint8_t)> reset_score{};
+  std::function<void(std::optional<uint16_t>)> set_altitude{};
+  bool scripted_altitude_hold{false};
   std::uint8_t object_counter{0};
   std::uint8_t counter{0};
   std::uint8_t animation_parameter{0};

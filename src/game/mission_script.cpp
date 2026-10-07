@@ -138,6 +138,20 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         context.toggle_weapons(std::rotl(mask,range >> 4));
       }
       break;
+    case 0x38:
+      if(!context.set_altitude) throw std::logic_error{"Mission altitude mode has no player consumer"};
+      context.scripted_altitude_hold = !context.scripted_altitude_hold;
+      context.set_altitude(context.scripted_altitude_hold ? std::optional<uint16_t>{word()} : std::nullopt);
+      break;
+    case 0x36:
+      if(!context.set_difficulty) throw std::logic_error{"Mission difficulty change has no game consumer"};
+      context.set_difficulty(byte());
+      break;
+    case 0x37:
+      if(!context.reset_score) throw std::logic_error{"Mission score reset has no game consumer"};
+      context.reset_score(byte());
+      context.object_counter = 0;
+      break;
     case 0x35:
       if(!context.mark_aircraft_sites) throw std::logic_error{"Mission aircraft sites have no world consumer"};
       cursor += context.mark_aircraft_sites(context.program.subspan(cursor));

@@ -35,6 +35,37 @@ bool front_end::active() const noexcept {
   return current != screen::flight;
 }
 
+bool front_end::nightmare_selected() const noexcept {
+  /// Original selection four names a separate challenge, not a fifth pilot record
+  return selected == 4;
+}
+
+resources::scenario_resource const &front_end::selected_scenario() {
+  /// Special selection bypasses BB12 and chooses archive 04/15 directly
+  return nightmare_selected() ? campaign.supplementary() : campaign.scenario(selected_pilot().stage);
+}
+
+size_t front_end::selected_record() const {
+  /// Nightmare always enters record zero independently of its best-score byte
+  return nightmare_selected() ? 0 : resources::select_campaign_stage(save.pilots[selected].stage).record;
+}
+
+void front_end::finish_nightmare(uint8_t const completed_objects, uint8_t const outcome) {
+  /// 3F23 retains the best byte-sized kill count; only outcome four presents the challenge victory
+  if(!nightmare_selected()) throw std::logic_error{"Nightmare outcome requires the special selection"};
+  challenge_score = completed_objects;
+  if(challenge_score > std::to_integer<uint8_t>(save.trailer[0])) {
+    save.trailer[0] = static_cast<std::byte>(challenge_score);
+    save_requested = true;
+  }
+  current = screen::run;
+  if(outcome == 4) {
+    retained_music = -1;
+    scene = std::make_unique<player>(archives,font,introduction,4,completed_objects);
+    current = screen::outcome;
+  }
+}
+
 bool front_end::editing_text() const noexcept {
   /// Both native editor states receive text independently of menu command keys
   return current == screen::name || current == screen::hidden_command;
@@ -60,6 +91,16 @@ uint16_t front_end::weapon_changes() const noexcept {
   return scene ? scene->weapon_toggles : 0;
 }
 
+std::optional<uint8_t> front_end::initial_difficulty() const noexcept {
+  /// Briefing opcode 36 overrides the ordinary saved-stage firing pressure
+  return scene ? scene->difficulty : std::nullopt;
+}
+
+uint8_t front_end::initial_score() const noexcept {
+  /// Nightmare's briefing resets the separate score accumulator with opcode 37
+  return scene && scene->score ? *scene->score : 0;
+}
+
 uint16_t front_end::departure_destination() const noexcept {
   /// C246 redirects the return site when the player leaves the departure hangar
   return scene ? scene->departure_destination : 0;
@@ -81,22 +122,23 @@ void front_end::choose_game() {
   /// An empty slot asks for a name before exposing its run menu
   draft_name.clear();
   unsupported_stage = false;
-  current = save.pilots[selected].stage == 0 ? screen::name : screen::run;
+  current = !nightmare_selected() && save.pilots[selected].stage == 0 ? screen::name : screen::run;
 }
 
 void front_end::begin_briefing() {
   /// Select the current supported campaign record for briefing
-  if(save.pilots[selected].stage < 1 || save.pilots[selected].stage > 116) { unsupported_stage = true; return; }
+  if(!nightmare_selected() && (save.pilots[selected].stage < 1 || save.pilots[selected].stage > 116)) { unsupported_stage = true; return; }
   retained_music = music_group();
-  scene = std::make_unique<player>(archives,font,campaign.scenario(save.pilots[selected].stage),resources::select_campaign_stage(save.pilots[selected].stage).record);
+  if(nightmare_selected()) { challenge_pilot = {.stage{1}}; challenge_score = 0; }
+  scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record());
   current = screen::briefing;
 }
 
 void front_end::finish_briefing() {
   /// Presentation-only records advance the saved stage without constructing a flight world
-  auto &pilot{save.pilots[selected]};
-  auto const record{resources::select_campaign_stage(pilot.stage).record};
-  if(campaign.scenario(pilot.stage).records()[record].configuration != 0xff) {
+  auto &pilot{selected_pilot()};
+  auto const record{selected_record()};
+  if(selected_scenario().records()[record].configuration != 0xff) {
     current = screen::flight;
     return;
   }
@@ -154,7 +196,7 @@ void front_end::key(front_key const input) {
         save_requested = true;
         unsupported_stage = false;
       }
-      current = save.pilots[selected].stage == 0 ? screen::games : previous;
+      current = !nightmare_selected() && save.pilots[selected].stage == 0 ? screen::games : previous;
     }
     return;
   }
@@ -167,8 +209,9 @@ void front_end::key(front_key const input) {
       current = screen::hidden_command;
       return;
     }
-    if(input == front_key::up) selected = (selected + 3) % 4;
-    if(input == front_key::down) selected = (selected + 1) % 4;
+    if(input == front_key::up) selected = (selected + 4) % 5;
+    if(input == front_key::down) selected = (selected + 1) % 5;
+    if(input == front_key::nightmare) { selected = 4; choose_game(); }
     if(input >= front_key::one && input <= front_key::four) {
       selected = static_cast<unsigned int>(input) - static_cast<unsigned int>(front_key::one);
       choose_game();
@@ -177,7 +220,7 @@ void front_end::key(front_key const input) {
   } else if(current == screen::run) {
     if(input == front_key::accept) begin_briefing();
     if(input == front_key::select) current = screen::games;
-    if(input == front_key::erase) { previous = current; current = screen::erase; confirmation = false; }
+    if(input == front_key::erase && !nightmare_selected()) { previous = current; current = screen::erase; confirmation = false; }
   }
 }
 
@@ -189,9 +232,14 @@ void front_end::character(unsigned int const code) {
   if(editing_text() && code >= 32 && code <= 126 && draft_name.size() < 20) draft_name += static_cast<char>(code);
 }
 
+void front_end::point(int const x, int const y) noexcept {
+  /// Retain framebuffer mouse coordinates for native presentation navigation highlighting
+  pointer = {x,y};
+}
+
 void front_end::click(int const x, int const y) {
   /// Selection rows follow the original 36-pixel pitch; other screens expose their visible actions
-  if(current == screen::games && x >= 15 && x < 305 && y >= 48 && y < 192) {
+  if(current == screen::games && x >= 15 && x < 305 && y >= 48 && y < 220) {
     selected = static_cast<unsigned int>((y - 48) / 36);
     choose_game();
   } else if(current == screen::run && y >= 152 && y < 216) {
@@ -213,7 +261,7 @@ void front_end::advance(uint32_t const elapsed_ticks) {
 
 resources::pilot_record &front_end::selected_pilot() noexcept {
   /// The selected slot owns the last committed campaign state
-  return save.pilots[selected];
+  return nightmare_selected() ? challenge_pilot : save.pilots[selected];
 }
 
 void front_end::continue_campaign() {
@@ -236,7 +284,7 @@ void front_end::return_to_menu() {
 
 void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   /// Original menu imagery and interface font stay inside the indexed software-rendering path
-  if(current == screen::introduction || current == screen::briefing || current == screen::outcome) { scene->draw(output); return; }
+  if(current == screen::introduction || current == screen::briefing || current == screen::outcome) { scene->draw(output,pointer); return; }
   if(current == screen::title) { framework::render::expand_palette(title_background,title_palette.colours,output); return; }
   auto frame{menu_background};
   auto const text{[&](std::string const &value, int const x, int const y, uint8_t const colour = 125){
@@ -249,6 +297,7 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
       text("Game " + std::to_string(i + 1),48,48 + static_cast<int>(i) * 36,colour);
       text(save.pilots[i].stage == 0 ? "Start a new game" : save.pilots[i].display_name(),48,62 + static_cast<int>(i) * 36,colour);
     }
+    text("NIGHTMARE",48,192,selected == 4 ? 126 : 125);
     text(selection_prompt,48,222);
   } else if(editing_text()) {
     bool const hidden{current == screen::hidden_command};
@@ -256,12 +305,18 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
     text(hidden ? "What do you want?" : "Please enter your name",hidden ? 84 : 65,192);
     text(draft_name + "_",70,208,126);
   } else if(current == screen::run) {
-    text(save.pilots[selected].display_name(),48,64,126);
-    text("Game " + std::to_string(selected + 1) + "     Level " + std::to_string(save.pilots[selected].stage),48,88);
+    if(nightmare_selected()) {
+      text("NIGHTMARE",48,64,126);
+      text("Last score " + std::to_string(challenge_score),48,88);
+      text("Best score " + std::to_string(std::to_integer<uint8_t>(save.trailer[0])),48,104);
+    } else {
+      text(save.pilots[selected].display_name(),48,64,126);
+      text("Game " + std::to_string(selected + 1) + "     Level " + std::to_string(save.pilots[selected].stage),48,88);
+    }
     if(unsupported_stage) text("This stage is not implemented yet",32,120);
     text("ENTER: Run this game",76,160);
     text("S: Select a different game",76,176);
-    text("E: Erase this game",76,192);
+    if(!nightmare_selected()) text("E: Erase this game",76,192);
     text("ESC: Quit to DOS",76,208);
   } else {
     text(current == screen::erase ? "ERASE GAME" : "QUIT TO DOS",96,96);

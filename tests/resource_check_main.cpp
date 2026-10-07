@@ -35,6 +35,7 @@
 #include "scenario_resource_check.h"
 #include "skimma_combat_check.h"
 #include "text_resource_check.h"
+#include "nightmare_check.h"
 #include "presentation_check.h"
 
 auto main(int const argc, char const *const argv[])->int try {
@@ -61,6 +62,7 @@ auto main(int const argc, char const *const argv[])->int try {
   check_scenario_resources(archives);
   check_text_resources(archives);
   check_presentations(archives);
+  check_nightmare(archives);
   check_city_persistence(archives);
   check_music(archives);
   std::size_t total{0};
