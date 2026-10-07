@@ -91,5 +91,36 @@ void check_presentations(darker::resources::archive_set const &archives) {
   front.key(darker::presentation::front_key::back);
   front.draw(frame);
   if(!front.active()) throw std::runtime_error{"Dismissing death must return to the menu, not launch a mission"};
+  // The hidden command must never be interpreted as a pilot name or a save-record setting.
+  darker::resources::save_file command_saves;
+  darker::presentation::front_end commands{archives,font,mission,command_saves};
+  using darker::presentation::front_key;
+  commands.key(front_key::accept);
+  commands.key(front_key::accept);
+  commands.key(front_key::one);
+  commands.character('1');
+  for(char const c : std::string{"Level X"}) commands.character(static_cast<unsigned int>(c));
+  commands.key(front_key::accept);
+  if(commands.level_skip_enabled() || command_saves.pilots[0].display_name() != "Level X") throw std::runtime_error{"Normal pilot name enabled Level X"};
+  commands.save_requested = false;
+  commands.key(front_key::select);
+  auto const saved_before{darker::resources::encode_save(command_saves)};
+  for(auto const phrase : {"level x","Level XI","Level X ","Level X"}) {
+    commands.character('*');
+    commands.advance(10000);
+    commands.key(front_key::three);
+    commands.character('3');
+    if(!commands.editing_text()) throw std::runtime_error{"STAR THREE prompt did not open"};
+    for(char const c : std::string{phrase}) commands.character(static_cast<unsigned int>(c));
+    commands.key(front_key::accept);
+    if(commands.level_skip_enabled() != (std::string_view{phrase} == "Level X")) throw std::runtime_error{"Hidden command matching is not exact"};
+    if(commands.save_requested || darker::resources::encode_save(command_saves) != saved_before) throw std::runtime_error{"Hidden command changed a saved pilot"};
+  }
+  commands.key(front_key::one);
+  commands.character('1');
+  commands.show_death(0);
+  commands.advance(60000);
+  commands.key(front_key::back);
+  if(!commands.level_skip_enabled()) throw std::runtime_error{"Death cleared the process-wide Level X patch"};
   std::cout << "Startup, committal and first three mission animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;
 }

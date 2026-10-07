@@ -298,7 +298,7 @@ auto main(int const argc, char const *const argv[])->int try {
       if(action != GLFW_PRESS && key != GLFW_KEY_BACKSPACE) return;
       switch(key) {
       case GLFW_KEY_ENTER: host.front->key(front_key::accept); break;
-      case GLFW_KEY_SPACE: if(!host.front->editing_name()) host.front->key(front_key::accept); break;
+      case GLFW_KEY_SPACE: if(!host.front->editing_text()) host.front->key(front_key::accept); break;
       case GLFW_KEY_ESCAPE: host.front->key(front_key::back); break;
       case GLFW_KEY_UP: host.front->key(front_key::up); break;
       case GLFW_KEY_DOWN: host.front->key(front_key::down); break;
@@ -345,6 +345,13 @@ auto main(int const argc, char const *const argv[])->int try {
       return;
     }
     if(host.player.lifecycle.crashing) return;
+    if(key == GLFW_KEY_X && action == GLFW_PRESS && host.front && host.front->level_skip_enabled()
+      && !(host.player.lifecycle.flags & 0x20)) {
+      // B926 restores C610 into C81E and requests the ordinary successful mission exit.
+      host.hangar.return_site = host.hangar.next_return_site;
+      host.exit_requested = session_exit::completed;
+      return;
+    }
     using darker::audio::flight_sound;
     using darker::game::flight_command;
     switch(key) {

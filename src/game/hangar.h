@@ -10,6 +10,8 @@ enum class hangar_return_phase { none, approaching, settling, complete };
 
 struct hangar_state {
   std::uint16_t return_site{0x7162};
+  // C610 retains the script/supply-pad destination used by B926, separately from C81E.
+  std::uint16_t next_return_site{0};
   std::uint16_t extension{0};
   std::uint8_t sound_level{0};
   hangar_return_phase returning{hangar_return_phase::none};

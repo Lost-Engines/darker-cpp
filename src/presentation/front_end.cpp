@@ -34,9 +34,14 @@ bool front_end::active() const noexcept {
   return current != screen::flight;
 }
 
-bool front_end::editing_name() const noexcept {
-  /// Character events belong only to the name field, independently of command keys
-  return current == screen::name;
+bool front_end::editing_text() const noexcept {
+  /// Both native editor states receive text independently of menu command keys
+  return current == screen::name || current == screen::hidden_command;
+}
+
+bool front_end::level_skip_enabled() const noexcept {
+  /// The original executable patch lasts for the process, independently of pilot selection and deaths
+  return level_x;
 }
 
 size_t front_end::consumed_text() const noexcept {
@@ -84,6 +89,18 @@ void front_end::key(front_key const input) {
     if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::flight;
     return;
   }
+  if(current == screen::hidden_command) {
+    if(input == front_key::erase_character && !draft_name.empty()) draft_name.pop_back();
+    if(input == front_key::accept || input == front_key::back) {
+      if(input == front_key::accept && draft_name == "Level X") {
+        level_x = true;
+        selection_prompt = draft_name;
+      }
+      draft_name.clear();
+      current = screen::games;
+    }
+    return;
+  }
   if(current == screen::name) {
     if(input == front_key::erase_character && !draft_name.empty()) draft_name.pop_back();
     if(input == front_key::accept && !draft_name.empty()) {
@@ -113,6 +130,13 @@ void front_end::key(front_key const input) {
   }
   if(input == front_key::quit || input == front_key::back) { previous = current; current = screen::quit; confirmation = false; return; }
   if(current == screen::games) {
+    if(input == front_key::three && star_prefix) {
+      star_prefix = false;
+      draft_name.clear();
+      ignored_character = '3';
+      current = screen::hidden_command;
+      return;
+    }
     if(input == front_key::up) selected = (selected + 3) % 4;
     if(input == front_key::down) selected = (selected + 1) % 4;
     if(input >= front_key::one && input <= front_key::four) {
@@ -131,7 +155,8 @@ void front_end::character(unsigned int const code) {
   /// Accept the original font's ordinary printable name characters with a bounded field
   if(code == ignored_character) { ignored_character = 0; return; }
   ignored_character = 0;
-  if(current == screen::name && code >= 32 && code <= 126 && draft_name.size() < 20) draft_name += static_cast<char>(code);
+  if(current == screen::games && code >= 32 && code <= 126) star_prefix = code == '*';
+  if(editing_text() && code >= 32 && code <= 126 && draft_name.size() < 20) draft_name += static_cast<char>(code);
 }
 
 void front_end::click(int const x, int const y) {
@@ -194,10 +219,11 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
       text("Game " + std::to_string(i + 1),48,48 + static_cast<int>(i) * 36,colour);
       text(save.pilots[i].stage == 0 ? "Start a new game" : save.pilots[i].display_name(),48,62 + static_cast<int>(i) * 36,colour);
     }
-    text("Select a game: 1,2,3,4",48,222);
-  } else if(current == screen::name) {
-    text("START NEW GAME",88,176);
-    text("Please enter your name",65,192);
+    text(selection_prompt,48,222);
+  } else if(editing_text()) {
+    bool const hidden{current == screen::hidden_command};
+    text(hidden ? "STAR THREE" : "START NEW GAME",hidden ? 104 : 88,176);
+    text(hidden ? "What do you want?" : "Please enter your name",hidden ? 84 : 65,192);
     text(draft_name + "_",70,208,126);
   } else if(current == screen::run) {
     text(save.pilots[selected].display_name(),48,64,126);

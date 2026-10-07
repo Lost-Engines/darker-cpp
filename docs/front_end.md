@@ -148,3 +148,31 @@ Mission two's second scene disables input and finishes automatically. C06E
 multiplied by the record interval. The player implements this delay, and the
 front end honours no-input scene completion. Framebuffer transition/fade details
 remain outside the pixel-decoder checks.
+
+## Level X hidden command
+
+Game selection recognises the original asterisk/three sequence (0751–078D).
+Shift+8 followed by number-row 3 opens the separate STAR THREE editor. Exact
+`Level X` submission enables the process-wide B92A patch equivalent and replaces
+the selection prompt with the accepted phrase. Case changes, trailing characters
+and entering the phrase as an ordinary pilot name do not enable it. The prompt
+returns to game selection after submission or cancellation and never writes a
+pilot record. Only Level X is connected; the other three hidden commands remain
+future work.
+
+X during live, non-dying flight follows B926: copy the retained C610 destination
+into the C81E return site and request outcome 1. The existing successful exit
+commits city state and weapons, advances the selected pilot, writes the save and
+opens the next supported briefing. This deliberately does not mark remaining
+actors destroyed or run docking. `hangar_state::next_return_site` names C610;
+the first three supported mission scripts leave it at its initial zero value.
+Future scripted destination changes and Skimma supply-pad landings must update
+both destination fields as C23B/C764 do. Existing zero-site setup currently uses
+the supported Caero HQ start; later return-site setup is not established here.
+
+The resource integration check covers exact matching, ordinary-name isolation,
+unchanged save bytes and persistence through death. A window test uses actual
+Shift+8, number-row 3, typed text and X events, checks X is inactive beforehand,
+and advances 1→2→3→saved 4 without debugger injection. Save checksum, weapons and
+copied destination are checked. The existing unsupported-stage gate remains in
+place for mission four.
