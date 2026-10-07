@@ -1,12 +1,13 @@
 #pragma once
 
-#include <span>
+#include <optional>
 #include <variant>
 #include "game/caero_flight.h"
 #include "game/city_sweep.h"
 #include "game/flight_controls.h"
 #include "game/player_crash.h"
 #include "game/skimma_flight.h"
+#include "game/tunnel_flight.h"
 
 namespace darker::game {
 
@@ -14,6 +15,7 @@ enum class flight_command { engine, altitude_hold, boost, speed_low, speed_high 
 
 struct player_flight {
   std::variant<caero_flight_state, skimma_flight_state> craft{};
+  std::optional<tunnel_flight_state> tunnel;
   flight_controls_state controls{};
   flight_steering look_drive{};
   player_crash_state lifecycle{};
@@ -27,7 +29,7 @@ struct player_flight {
   object_pose const &pose() const noexcept;
   void command(flight_command command) noexcept;
   city_collision_result advance(flight_controls_input input, bool brake, std::uint16_t frame_step,
-    std::uint16_t clock, resources::geometry_bank const &bank, std::span<city_cell, 128 * 128> cells);
+    std::uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr);
 };
 
 } // namespace darker::game

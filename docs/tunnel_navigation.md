@@ -94,9 +94,10 @@ Connected flight replenishes the original energy fields directly; it does not
 sample the surface beacon grid.
 
 The original-pack check compares 2,048 updates: 1,024 entering D5C9 directly and
-1,024 entering the complete D510 callback. It checks 33 retained fields, including
+1,024 entering the complete D510 callback. It checks 34 retained fields, including
 fractional coordinates, auxiliary aiming state, damage/repair and recharge. Inputs
 exercise engine-off movement, braking, steering and leaving low-speed aiming.
+They include the 0, 64 and 172-unit lookahead settings used by the entry/exit logic.
 The repair helper executes the original instructions with mirrored data memory to
 avoid Unicorn losing carry during self-modification, as in the Caero fixture.
 
@@ -105,5 +106,18 @@ replaces CL with the cell type’s collision marker before the movement callback
 This changes that update’s timestep low byte. The fixture loads the real bank-32
 city-type directory, rather than treating the overwritten register as zero.
 
-The callbacks still need connecting to world setup, transitions, player collision
-and campaign progression before the first tunnel is advertised as playable.
+The player controller now dispatches D510 for a Caero with tunnel state, feeding
+both control references and the timestep-scaled pitch drive. It uses definition
+28 and the underground 60h geometry damage mask. Thirty-two native hands-off
+updates also run through the player controller and its real geometry collision
+check.
+
+The combat controller dispatches underground actor scripts and callback 8609,
+using the same mask for world collisions and projectile impacts. A further
+1,536 native updates run BF97 scripts without substituting their results, checking
+the three aircraft’s motion, target changes, deadlines and script continuations.
+The fixture does not simulate the Wrecker opening doors or reserve activation;
+those remain separate integration work.
+
+World setup and entry/exit transitions still need connecting to the main loop
+before the first tunnel is advertised as playable.

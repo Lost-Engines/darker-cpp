@@ -9,6 +9,7 @@ namespace darker::game {
 struct tunnel_flight_state {
   tunnel_connection connection{};
   uint16_t progress{0};
+  uint16_t lookahead{0};
   uint16_t heading_rate{0};
   uint16_t filtered_pitch{0};
   uint16_t filtered_bank{0};

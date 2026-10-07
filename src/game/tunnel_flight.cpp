@@ -136,7 +136,7 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   frame_step = roll.frame_step;
   auto const bank{static_cast<uint16_t>(std::clamp<int>(word(angles[2]),-0x700,0x700))};
   auto const preferred{static_cast<uint8_t>(((bank >> 6) - (angles[0] >> 8))*2 ^ 0x80)};
-  auto path{input.engine ? network.trace(cells,state.connection,pose.position,0,preferred) : std::nullopt};
+  auto path{input.engine ? network.trace(cells,state.connection,pose.position,state.lookahead,preferred) : std::nullopt};
   if(input.engine && !path) {
     auto const candidate{network.reacquire(cells,state.connection,pose.position,preferred)};
     if(candidate) {
@@ -144,7 +144,7 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
       auto const edge{network.segment(type,candidate->route)};
       if(static_cast<uint8_t>((angles[0] >> 8)*2 + edge.heading + 0xa0) < 0x40) {
         state.connection = {candidate->cell,network.direction(type,candidate->route,angles[0])};
-        path = network.trace(cells,state.connection,pose.position,0,preferred);
+        path = network.trace(cells,state.connection,pose.position,state.lookahead,preferred);
         if(path) state.resistance = 0;
       }
     }

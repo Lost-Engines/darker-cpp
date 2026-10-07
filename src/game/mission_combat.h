@@ -31,7 +31,7 @@ public:
   void update_difficulty(uint32_t clock) noexcept;
   unsigned int remaining_objectives() const noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50);
+    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr);
 };
 
 } // namespace darker::game

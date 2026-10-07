@@ -9,6 +9,7 @@
 #include "game/object_definitions.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
+#include "game/tunnel_navigation.h"
 
 namespace darker::game {
 namespace {
@@ -26,11 +27,11 @@ void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const h
 }
 
 void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact,
-  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter) {
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter, uint8_t const damage_mask) {
   /// Share the reconstructed building damage path while preserving each projectile list's terrain recipe
   if(contact.contact == city_contact::building && contact.category == 2) {
     auto &cell{cells[contact.row * 128 + contact.column]};
-    auto const model{bank.city_model_offset(cell.type, cell.state, 0x20)};
+    auto const model{bank.city_model_offset(cell.type, cell.state, damage_mask)};
     auto const bytes{bank.model_pool()};
     if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
       damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,counter);
@@ -62,14 +63,16 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier) {
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
   player_fired = false;
   player_hit = false;
   auto &caero{std::get<caero_flight_state>(player.craft)};
-  auto const player_extent{bank.header_at(bank.special_models()[25]).extent};
+  auto const player_definition{player.tunnel ? 28u : 25u};
+  auto const damage_mask{static_cast<uint8_t>(player.tunnel ? 0x60 : 0x20)};
+  auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto const &actor){
     bool const expired{(actor.flags & 0x60) && std::bit_cast<int16_t>(static_cast<uint16_t>(actor.expiry - clock)) < 0};
     if(expired && (actor.attributes & 1)) ++completed_objectives;
@@ -93,7 +96,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       continue;
     }
     if(actor.parameters.update_entry == 0) continue;
-    if(actor.parameters.update_entry == 0x8823 && !actor.script.stopped) {
+    if((actor.parameters.update_entry == 0x8823 || actor.parameters.update_entry == 0x8609) && !actor.script.stopped) {
       mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
         .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
         .set_target{[&](uint16_t const target, bool const flag_02){
@@ -103,7 +106,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       advance_mission_script(actor.script,context);
     }
     if(actor.parameters.update_entry == 0x8daa) advance_falling_aircraft(actor, frame_step);
-    else advance_surface_actor(actor, player.pose(), actors, cells, bank, 0x20, frame_step,
+    else if(actor.parameters.update_entry == 0x8609) {
+      if(!network) throw std::logic_error{"Underground actor update requires its route network"};
+      advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
+    } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
       [&](scenario_actor &source, actor_course const course, uint8_t const distance){
         auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
         if(shot) effects.gun_impact(shot->end, shot->hit, clock);
@@ -130,7 +136,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   auto const &pose{player.pose()};
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
-    .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[25].impact_strength}};
+    .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
   if(primary_weapon == 1 || primary_weapon == 2) {
     auto const result{fire_pinner(projectiles, caero.energy, emitter, primary_weapon, player.lifecycle.flags, trigger_pressed, bank.special_models()[primary_weapon - 1], clock)};
@@ -156,7 +162,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   for(auto &actor : actors) {
     if((actor.flags & 8) || actor.parameters.update_entry == 0x8f3b) continue;
-    auto const contact{sweep_city(bank, cells, 0x20, actor.previous_position, actor.pose.position, 12, 10)};
+    auto const contact{sweep_city(bank, cells, damage_mask, actor.previous_position, actor.pose.position, 12, 10)};
     if(contact.contact != city_contact::none) {
       effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);
       actor.flags |= 0x28;
@@ -167,7 +173,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
-    auto const contact{sweep_city(bank, cells, 0x20, shot->previous_position, end, 2, 10)};
+    auto const contact{sweep_city(bank, cells, damage_mask, shot->previous_position, end, 2, 10)};
     scenario_actor *victim{nullptr};
     auto impact{end};
     for(auto &actor : actors) {
@@ -187,7 +193,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         actors.erase(actors.begin() + (victim - actors.data()));
       }
     }
-    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter);
+    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter,damage_mask);
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;
     shot->deadline = static_cast<uint16_t>(clock + 256);
@@ -195,7 +201,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   for(auto *shot{hostile_projectiles.objects().head}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
-    auto const contact{sweep_city(bank,cells,0x20,shot->previous_position,end,2,10)};
+    auto const contact{sweep_city(bank,cells,damage_mask,shot->previous_position,end,2,10)};
     bool const hit{!(player.lifecycle.flags & 0x20) && sweep_aircraft(player.pose(),player_extent,2,shot->previous_position,end)};
     if(!hit && contact.contact == city_contact::none) continue;
     shot->placement.position = end;
@@ -206,7 +212,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       effects.spawn(0x70c3,end,clock);
       player_hit = true;
     } else {
-      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199,world_damage_counter);
+      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199,world_damage_counter,damage_mask);
     }
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;

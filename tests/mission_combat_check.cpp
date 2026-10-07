@@ -15,15 +15,16 @@
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
-#include "resources/archive_set.h"
-#include "resources/campaign.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_flight_samples.h"
 #include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
 #include "reference/tunnel_reacquisition_samples.h"
+#include "reference/tunnel_scripted_actor_samples.h"
 #include "reference/tunnel_trace_samples.h"
+#include "resources/archive_set.h"
+#include "resources/campaign.h"
 
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
@@ -357,24 +358,74 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       craft.energy.reserve_display = static_cast<uint8_t>(before[30]);
       craft.repair_phase = before[31];
       craft.damage.damage = before[32];
+      flight.lookahead = before[33];
       auto const &input{sample.input};
+      auto controller{darker::game::player_flight{}};
+      bool const check_controller{flight_sample >= 1024 && flight_sample < 1056};
+      if(check_controller) {
+        controller.craft = craft;
+        controller.tunnel = flight;
+        controller.forward_setting = input[3];
+        controller.engine_flags = static_cast<uint8_t>(input[5]);
+        auto city{*maps[0]};
+        auto const contact{controller.advance({},input[6] != 0,input[0],static_cast<uint16_t>(flight_sample*input[0]),underground_bank,city,&network)};
+        if(contact.contact != darker::game::city_contact::none) throw std::runtime_error{"Hands-off tunnel flight unexpectedly touches geometry"};
+      }
       auto const advance{input[8] ? darker::game::advance_tunnel_flight : darker::game::advance_tunnel_motion};
       advance(craft,flight,{.pitch_reference{input[1]},.bank_reference{input[2]},.pitch_drive{input[7]},.forward_setting{input[3]},
         .angular_response{input[4]},.cell_collision_marker{static_cast<uint8_t>(input[9])},.engine{input[5] != 0},.brake{input[6] != 0}},input[0],*maps[0],network);
-      std::array<uint16_t,33> const actual{craft.pose.position[0],craft.pose.position[1],craft.pose.position[2],
+      std::array<uint16_t,34> const actual{craft.pose.position[0],craft.pose.position[1],craft.pose.position[2],
         craft.pose.angles[0],craft.pose.angles[1],craft.pose.angles[2],craft.pose.speed,flight.heading_rate,
         craft.damage.rotation.pitch,craft.damage.rotation.turn,craft.horizontal_velocity,craft.vertical_velocity,
         flight.connection.cell,flight.progress,flight.connection.route,craft.pose.fractions[0],craft.pose.fractions[1],craft.pose.fractions[2],
         flight.filtered_pitch,flight.filtered_bank,flight.off_route_time,flight.resistance,craft.energy.boost,craft.energy.incoming_display,
         static_cast<uint16_t>(flight.aiming),flight.aim_heading,flight.aim_pitch,flight.aim_heading_rate,flight.aim_pitch_rate,
-        craft.energy.reserve,craft.energy.reserve_display,craft.repair_phase,craft.damage.damage};
+        craft.energy.reserve,craft.energy.reserve_display,craft.repair_phase,craft.damage.damage,flight.lookahead};
       for(unsigned int field{0}; field < actual.size(); ++field) if(actual[field] != sample.after[field]) {
         throw std::runtime_error{"Tunnel player flight differs from native: sample=" + std::to_string(flight_sample)
           + ", field=" + std::to_string(field) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(sample.after[field])};
       }
+      if(check_controller) {
+        auto const &controlled{std::get<darker::game::caero_flight_state>(controller.craft)};
+        if(controlled.pose.position != craft.pose.position || controlled.pose.angles != craft.pose.angles
+          || controlled.pose.fractions != craft.pose.fractions || controlled.pose.speed != craft.pose.speed
+          || controlled.energy.boost != craft.energy.boost || controller.tunnel->connection.route != flight.connection.route) {
+          throw std::runtime_error{"Player controller differs from native underground flight"};
+        }
+      }
       ++flight_sample;
     }
     auto const &underground_record{campaign.scenario(17).records()[0]};
+    {
+      auto scripted{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,
+        underground_record.shared.offset,darker::game::tunnel_setup{network,*maps[0]})};
+      std::erase_if(scripted,[](auto const &actor){ return actor.category != darker::game::actor_category::air; });
+      darker::game::mission_combat underground{scripted};
+      darker::game::player_flight observer;
+      observer.pose().position = {13952,14464,512};
+      observer.tunnel.emplace();
+      auto geometry{*maps[0]};
+      size_t sample_index{0};
+      for(unsigned int frame{0}; frame < 512; ++frame) {
+        underground.advance(observer,geometry,underground_bank,frame*8,8,0,false,
+          campaign.scenario(17).bytes(underground_record.shared),50,&network);
+        if(underground.actors.size() != 3) throw std::runtime_error{"Scripted underground aircraft were unexpectedly removed"};
+        for(auto const &actor : underground.actors) {
+          auto const &expected{darker::test_reference::tunnel_scripted_actor_samples[sample_index++]};
+          std::array<uint16_t,23> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+            actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,
+            actor.attitude.pitch_rate,actor.attitude.bank_rate,actor.awareness.level,actor.awareness.cooldown,
+            actor.current_cell,actor.target_token,actor.tunnel->progress,actor.tunnel->route,actor.tunnel->oscillation,
+            actor.pose.fractions[0],actor.pose.fractions[1],actor.pose.fractions[2],actor.flags,actor.script.deadline,
+            static_cast<uint16_t>(actor.script.stopped ? 65535 : actor.script.continuation),static_cast<uint16_t>(actor.script.checkpoint)};
+          for(unsigned int field{0}; field < actual.size(); ++field) if(actual[field] != expected[field]) {
+            throw std::runtime_error{"Scripted tunnel actor differs from native: frame=" + std::to_string(frame)
+              + ", actor=" + std::to_string(actor.index) + ", field=" + std::to_string(field)
+              + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(expected[field])};
+          }
+        }
+      }
+    }
     auto actors{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,
       underground_record.shared.offset,darker::game::tunnel_setup{network,*maps[0]})};
     std::erase_if(actors,[](auto const &actor){ return actor.category != darker::game::actor_category::air; });
