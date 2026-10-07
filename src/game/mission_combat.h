@@ -10,6 +10,7 @@
 #include "game/player_flight.h"
 #include "game/projectile_pool.h"
 #include "game/weapon_target.h"
+#include "game/skimma_weapons.h"
 
 namespace darker::game {
 
@@ -25,6 +26,10 @@ public:
   uint16_t random_state{0};
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
+  std::array<skimma_weapon_slot,3> skimma_weapons{};
+  weapon_ring_state skimma_ring{.spread{508},.target_spread{508}};
+  uint8_t skimma_selection{0};
+  uint8_t skimma_reserves{0};
   int8_t skimma_recoil{0};
   int16_t skimma_aim_offset{0};
   uint16_t dual_launch_pitch{614};

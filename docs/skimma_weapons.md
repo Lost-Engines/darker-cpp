@@ -1,6 +1,6 @@
 # Skimma ammunition and ring state
 
-`src/game/skimma_weapons` begins the gameplay layer with original state transitions, independent of graphics, GLFW and wall-clock time. The application still supplies sample state; firing, weapon selection and the simulation clock are not connected yet.
+`src/game/skimma_weapons` implements original state transitions independently of graphics, GLFW and wall-clock time. Both primary and secondary weapons now run in the combat core. Halon campaign startup, input selection and live cockpit integration remain to be connected.
 
 ## Implemented routines
 
@@ -21,11 +21,6 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_weapon_reference.py ..
 ```
 
 Tests compare 72 native reload transitions and 120 native ring decisions. Reload cases include empty/nonempty counters, signed-byte boundaries and deadline overflow. Each ring case is also translated to three deadline positions to check clock wrapping. Capacities match executable tables `5E19` and `5E1C`. All 41 CTest cases and 381 whole-cockpit comparisons pass.
-
-## Remaining integration
-
-The stateful follow-up below now implements the post-draw update and the weapon-status producer. Firing, target acquisition, global frame scheduling and connection to live cockpit state remain separate. The alternate-view ring baseline is also separate. The main program now obtains its existing sample ring through the new state calculation, with identical pixels and no added keys or options.
-
 
 ## Stateful ring and weapon-status update
 
@@ -58,13 +53,7 @@ The native probe executes these exact code ranges. It records checksums for ever
 PYTHONPATH=/tmp/darker-python python3 tools/generate_recoil_reference.py ..
 ```
 
-All 45 CTest cases pass. These routines are ready for the game loop but are not a new firing simulation in the cockpit inspector.
-
-### Remaining firing work
-
-The path after `C96D` couples to the world. It rejects player flag 20h; trigger bits 4016h invoke `CD6C` with the recoil-adjusted direction, followed by a random kick. `CD6C` performs a collision/damage query, with its own random calls below `CD84`. Separately, an exactly-3 selected weapon status enters the projectile handler through `C9F5`, using definition records at `1A16 + 24*index` and trigger mask 8021h. The result byte at `7FA6` is then added to the selected working count at `C9BD`.
-
-The first and third Skimma projectile definitions use `CA55` (object-target acceptance), and the second uses `CA5A` (map-target acceptance). Successful launch proceeds through `CAC4/CB01`, which needs projectile allocation, player transforms, original random sequencing and world state. Those operations must be translated before treating shot consumption or firing cadence as complete. There is no invented timer or successful-shot stub in the current implementation.
+These arithmetic checks cover the production combat routines.
 
 ### Mutable spread target
 
@@ -89,4 +78,27 @@ an enabled shield and are fatal without one. A controlled original-Halon
 scene clears four aircraft with sixteen gun shots, retaining enemy movement
 and return fire. Separate projectile-impact scenes check shielded survival
 and unshielded death. This is combat-core integration; connected Halon
-campaign startup and the remaining Skimma weapons are still being wired.
+campaign startup and cockpit/input wiring remain separate.
+
+## Secondary weapons and targeting
+
+C90A–C9BF now runs through ammunition/status update and actual projectile
+allocation. Only status exactly 3 admits a shot. Successful launch consumes
+one working round. Slot 1 requires a map target; slots 0 and 2 require an
+object target. Definitions 10–12 supply the original models, guidance,
+strength and lifetime. A full firing-path fixture compares 1,536 native
+cases, including full pools, disabled slots, empty magazines and clock wrap.
+
+Reload gating belongs to the later target update, not an invented firing
+deadline check. CF4A releases locks while reloading or disabled. Skimma
+projection uses the wider 62-coordinate/3721-squared cone; ring spread is
+four times the integer square root of four times squared screen distance.
+Map locks require a nonzero damage-model link, without the Caero's marked
+objective requirement. All 2,048 native projection cases match, including
+partial screen-coordinate writes on rejection.
+
+The controlled Halon actor scene also clears its four aircraft with both
+air-target secondary weapons (13 shots for slot 0; 10 for upgraded slot 2).
+It retains actor movement, return fire, normal ammunition and reload rules;
+only player positioning/aim are controlled. This does not assert completion
+of a Halon mission or verify the supply-pad campaign flow.

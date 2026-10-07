@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <stdexcept>
+#include "game/object_definitions.h"
 #include "game/random.h"
 #include "maths/sine_table.h"
 
@@ -53,6 +54,19 @@ std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t co
   auto const z{std::bit_cast<int16_t>(static_cast<uint16_t>((vertical >> 2)+(std::bit_cast<int8_t>(static_cast<uint8_t>(mixed >> 3)) >> 3)))};
   return {static_cast<uint16_t>(player.position[0]+(x >> 2)),static_cast<uint16_t>(player.position[1]-(y >> 2)),
     static_cast<uint16_t>((player.position[2] & 0xfffe)-z*2)};
+}
+
+projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, skimma_fire_request const request) {
+  /// C991 admits exact status 3, reuses the target-class firing handlers and deducts one working round on launch
+  validate_weapon(request.weapon);
+  if(!request.pressed || (request.player_flags & 0x20) || slot.flags != 3) return nullptr;
+  bool const valid_target{request.weapon == 1 ? !(request.target & 0x8000) : (static_cast<uint16_t>(request.target+1) & 0x8000) != 0};
+  if(!valid_target) return nullptr;
+  auto const &definition{original_object_definitions[10+request.weapon]};
+  auto *shot{pool.launch({.definition{definition},.emitter{request.emitter},.model_token{request.model},.clock{request.clock},
+    .lifetime{static_cast<uint16_t>(definition.role_data[1]*256)},.target_token{request.target}})};
+  if(shot) --slot.ammunition.working;
+  return shot;
 }
 
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {

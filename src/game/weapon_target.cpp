@@ -39,11 +39,13 @@ uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_acto
   return selected;
 }
 
-void project_caero_target(weapon_target &lock, std::array<uint16_t, 3> const &player,
+namespace {
+
+void project_target(weapon_target &lock, std::array<uint16_t, 3> const &player,
   std::array<uint16_t, 3> const &target, uint16_t const extent, maths::view_basis const &basis,
-  uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state) noexcept {
-  /// CF94–D056 retain a resolved Caero lock only inside its original view cone and target class
-  if(!secondary_weapon) { lock.clear(); return; }
+  uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state, bool const skimma) noexcept {
+  /// CF94–D056 retain a resolved lock only inside its original view cone and target class
+  if(!skimma && !secondary_weapon) { lock.clear(); return; }
   if(lock.token == 0xffff) return;
   auto const dx{static_cast<uint16_t>(target[0] - player[0])};
   auto const dy{static_cast<uint16_t>(target[1] - player[1])};
@@ -61,16 +63,41 @@ void project_caero_target(weapon_target &lock, std::array<uint16_t, 3> const &pl
   if(depth < 64) { lock.clear(); return; }
   lock.horizontal = static_cast<int16_t>(transform(&maths::view_axis::horizontal) * 256 / depth);
   auto const horizontal{lock.horizontal < 0 ? ~lock.horizontal : lock.horizontal};
-  if(horizontal >= 55) { lock.clear(); return; }
+  if(horizontal >= (skimma ? 62 : 55)) { lock.clear(); return; }
   lock.vertical = static_cast<int16_t>(transform(&maths::view_axis::vertical) * 256 / depth);
   auto const vertical{lock.vertical < 0 ? ~lock.vertical : lock.vertical};
-  if(vertical >= 55) { lock.clear(); return; }
+  if(vertical >= (skimma ? 62 : 55)) { lock.clear(); return; }
   auto const radial{horizontal*horizontal + vertical*vertical};
-  if(radial >= 0x0b64) { lock.clear(); return; }
-  lock.distance = static_cast<uint8_t>(radial >> 8);
-  bool const ground{(original_object_definitions[secondary_weapon - 1].role_data[7] & 2) != 0};
-  if(ground ? (lock.token & 0x8000) || cell_type == 1 || !(cell_state & 0x40) : !(lock.token & 0x8000)) { lock.clear(); return; }
-  lock.spread = height;
+  if(radial >= (skimma ? 0x0e89 : 0x0b64)) { lock.clear(); return; }
+  if(!skimma) lock.distance = static_cast<uint8_t>(radial >> 8);
+  bool const ground{(original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data[7] & 2) != 0};
+  if(ground ? (lock.token & 0x8000) || (!skimma && (cell_type == 1 || !(cell_state & 0x40))) : !(lock.token & 0x8000)) { lock.clear(); return; }
+  if(skimma) {
+    uint16_t root{0};
+    for(uint16_t bit{128}; bit; bit >>= 1) {
+      auto const candidate{static_cast<uint16_t>(root | bit)};
+      if(candidate*candidate <= radial*4) root = candidate;
+    }
+    lock.spread = static_cast<uint16_t>(root*4);
+  } else lock.spread = height;
+}
+
+} // namespace
+
+void project_caero_target(weapon_target &lock, std::array<uint16_t,3> const &player,
+  std::array<uint16_t,3> const &target, uint16_t const extent, maths::view_basis const &basis,
+  uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state) noexcept {
+  /// Preserve the Caero target class and marked-building restrictions
+  project_target(lock,player,target,extent,basis,secondary_weapon,cell_type,cell_state,false);
+}
+
+void project_skimma_target(weapon_target &lock, std::array<uint16_t,3> const &player,
+  std::array<uint16_t,3> const &target, uint16_t const extent, maths::view_basis const &basis,
+  uint8_t const weapon, bool const enabled, bool const reloading, bool const destructible) noexcept {
+  /// CF4A accepts enabled, reloaded weapons and rejects indestructible map targets after projection
+  if(!enabled || reloading || weapon >= 3) { lock.clear(); return; }
+  project_target(lock,player,target,extent,basis,weapon,0,0,true);
+  if(!(lock.token & 0x8000) && !destructible) lock.clear();
 }
 
 } // namespace darker::game

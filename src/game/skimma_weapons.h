@@ -5,6 +5,7 @@
 #include <optional>
 #include <span>
 #include "game/object_pose.h"
+#include "game/projectile_pool.h"
 
 namespace darker::game {
 
@@ -17,6 +18,18 @@ struct skimma_weapon_slot {
   weapon_ammunition ammunition;
   std::uint8_t flags{0};
 };
+
+struct skimma_fire_request {
+  launch_emitter const &emitter;
+  uint8_t weapon{0};
+  uint8_t player_flags{0};
+  bool pressed{false};
+  uint16_t model{0};
+  uint16_t clock{0};
+  uint16_t target{0xffff};
+};
+
+projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, skimma_fire_request request);
 
 struct weapon_ring_state {
   std::uint16_t reload_deadline{0};

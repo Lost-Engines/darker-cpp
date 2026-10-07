@@ -27,4 +27,8 @@ void project_caero_target(weapon_target &lock, std::array<uint16_t, 3> const &pl
   std::array<uint16_t, 3> const &target, uint16_t extent, maths::view_basis const &basis,
   uint8_t secondary_weapon, uint8_t cell_type = 0, uint8_t cell_state = 0) noexcept;
 
+void project_skimma_target(weapon_target &lock, std::array<uint16_t,3> const &player,
+  std::array<uint16_t,3> const &target, uint16_t extent, maths::view_basis const &basis,
+  uint8_t weapon, bool enabled, bool reloading, bool destructible) noexcept;
+
 } // namespace darker::game

@@ -3,8 +3,10 @@
 #include <bit>
 #include <cstdint>
 #include <stdexcept>
+#include "game/object_definitions.h"
 #include "game/skimma_weapons.h"
 #include "reference/recoil_samples.h"
+#include "reference/skimma_firing_samples.h"
 #include "reference/skimma_gun_samples.h"
 #include "reference/weapon_samples.h"
 
@@ -141,5 +143,39 @@ TEST_CASE("Skimma primary gun rays match native recoil and random spread", "[gam
     auto const end{darker::game::skimma_gun_endpoint(player,std::bit_cast<int16_t>(static_cast<uint16_t>(sample[5])),random)};
     CHECK(end == std::array<uint16_t,3>{static_cast<uint16_t>(sample[7]),static_cast<uint16_t>(sample[8]),static_cast<uint16_t>(sample[9])});
     CHECK(random == sample[10]);
+  }
+}
+
+TEST_CASE("Skimma secondary firing matches native status, reload and ammunition changes", "[game][weapons]") {
+  /// Run the same status-before-firing sequence as C90A, retaining all three slots even on the ordinary craft
+  for(auto const &sample : darker::test_reference::skimma_firing_samples) {
+    CAPTURE(sample);
+    std::array<darker::game::skimma_weapon_slot,3> weapons;
+    for(size_t i{0}; i < 3; ++i) weapons[i] = {.ammunition{static_cast<uint8_t>(sample[5+i]),static_cast<uint8_t>(sample[8+i])},.flags{static_cast<uint8_t>(sample[2+i])}};
+    darker::game::weapon_ring_state ring{static_cast<uint16_t>(sample[12]),static_cast<uint16_t>(sample[13])};
+    auto const selected{static_cast<uint8_t>(sample[1])};
+    auto const reserve{darker::game::update_skimma_weapon_status(std::span{weapons}.first(sample[0]),ring,selected,static_cast<uint16_t>(sample[11]),
+      std::bit_cast<int16_t>(static_cast<uint16_t>(sample[14])),static_cast<uint16_t>(sample[15]))};
+    darker::game::projectile_pool pool;
+    darker::game::launch_emitter const emitter{.definition_strength{40}};
+    if(!sample[15]) {
+      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
+    }
+    auto *shot{darker::game::fire_skimma_weapon(pool,weapons[selected],{.emitter{emitter},.weapon{selected},.player_flags{static_cast<uint8_t>(sample[16])},
+      .pressed{sample[17] != 0},.model{0x400},.clock{static_cast<uint16_t>(sample[11])},.target{static_cast<uint16_t>(sample[14])}})};
+    for(size_t i{0}; i < 3; ++i) {
+      CHECK(weapons[i].flags == sample[18+i]);
+      CHECK(weapons[i].ammunition.working == sample[21+i]);
+      CHECK(weapons[i].ammunition.reserve == sample[24+i]);
+    }
+    CHECK(ring.reload_deadline == sample[27]);
+    CHECK(ring.spread == sample[28]);
+    CHECK(reserve == sample[29]);
+    CHECK((shot != nullptr) == (sample[30] != 0));
+    if(shot) {
+      CHECK(shot->parameters.definition == &darker::game::original_object_definitions[10+selected]);
+      CHECK(shot->target_token == sample[14]);
+      CHECK(shot->deadline == static_cast<uint16_t>(sample[11]+2560));
+    }
   }
 }

@@ -22,34 +22,48 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells,limits);
   darker::game::apply_scenario_cells(cells,record);
-  auto initial{darker::game::make_scenario_group(record.groups[0],bank,1,1,record.shared.offset)};
-  if(initial.size() != 4) throw std::runtime_error{"Skimma gun fixture lost its four original Halon craft"};
-  darker::game::mission_combat combat{std::move(initial)};
-  darker::game::player_flight player;
-  player.craft = darker::game::skimma_flight_state{.damage{.shield_charge{0xbfff},.shield_enabled{true}}};
-  player.engine_flags = 1;
-  auto &craft{std::get<darker::game::skimma_flight_state>(player.craft)};
-  unsigned int shots{0};
-  bool effects{false};
-  for(uint32_t clock{8}; clock < 100000 && !combat.actors.empty(); clock += 8) {
-    auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return !(actor.flags & 0x20); })};
-    if(target != combat.actors.end()) {
-      auto const heading{target->pose.angles[0]};
-      auto const sine{darker::maths::original_sine[heading >> 6]};
-      auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-      player.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
-        static_cast<uint16_t>(target->pose.position[1]+((cosine*200) >> 15)),target->pose.position[2]};
-      player.pose().angles = {heading,0,0};
-      player.pose().speed = 496;
+  for(int const weapon : {-1,0,2}) {
+    auto initial{darker::game::make_scenario_group(record.groups[0],bank,1,1,record.shared.offset)};
+    if(initial.size() != 4) throw std::runtime_error{"Skimma gun fixture lost its four original Halon craft"};
+    darker::game::mission_combat combat{std::move(initial)};
+    darker::game::player_flight player;
+    player.craft = darker::game::skimma_flight_state{.damage{.shield_charge{0xbfff},.shield_enabled{true}}};
+    player.engine_flags = 1;
+    player.upgraded = weapon == 2;
+    if(weapon >= 0) {
+      combat.skimma_selection = static_cast<uint8_t>(weapon);
+      auto &slot{combat.skimma_weapons[weapon]};
+      darker::game::refill_skimma_weapon(slot.ammunition,static_cast<uint8_t>(weapon));
+      slot.flags = 1;
     }
-    combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),target != combat.actors.end() && clock%128 == 0,
-      scenario.bytes(record.shared),record.time_multiplier);
-    shots += combat.player_fired;
-    effects |= !combat.effects.gun_sounds.empty();
-    darker::game::recharge_skimma_shield(craft.damage,8);
-    if(player.lifecycle.crashing) throw std::runtime_error{"Controlled Halon gun run lost the shielded pilot"};
+    auto &craft{std::get<darker::game::skimma_flight_state>(player.craft)};
+    unsigned int shots{0};
+    bool effects{false};
+    for(uint32_t clock{8}; clock < 100000 && !combat.actors.empty(); clock += 8) {
+      auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return !(actor.flags & 0x20); })};
+      if(target != combat.actors.end()) {
+        auto const heading{target->pose.angles[0]};
+        auto const sine{darker::maths::original_sine[heading >> 6]};
+        auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
+        player.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
+          static_cast<uint16_t>(target->pose.position[1]+((cosine*200) >> 15)),target->pose.position[2]};
+        player.pose().angles = {heading,0,0};
+        player.pose().speed = 496;
+      }
+      combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],player.pose().angles[2]});
+      bool const pressed{target != combat.actors.end() && clock%128 == 0};
+      combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),weapon < 0 && pressed,
+        scenario.bytes(record.shared),record.time_multiplier,nullptr,weapon >= 0 && pressed);
+      if(weapon >= 0) darker::game::update_weapon_ring(combat.skimma_weapons[weapon].ammunition,combat.skimma_ring,
+        static_cast<uint16_t>(clock),combat.skimma_weapons[weapon].flags,8);
+      shots += combat.player_fired;
+      effects |= !combat.effects.gun_sounds.empty();
+      darker::game::recharge_skimma_shield(craft.damage,8);
+      if(player.lifecycle.crashing) throw std::runtime_error{"Controlled Halon gun run lost the shielded pilot"};
+    }
+    if(!combat.actors.empty() || !shots || (weapon < 0 && !effects)) throw std::runtime_error{"Skimma primary gun did not clear the controlled Halon actors"};
+    std::cout << "Skimma weapon " << weapon << ": four Halon craft cleared with " << shots << " controlled shots." << std::endl;
   }
-  if(!combat.actors.empty() || !shots || !effects) throw std::runtime_error{"Skimma primary gun did not clear the controlled Halon actors"};
   for(bool const shield : {false,true}) {
     darker::game::mission_combat incoming{{}};
     darker::game::player_flight victim;
@@ -65,5 +79,5 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     if(!incoming.player_hit || victim.lifecycle.crashing == shield || (shield && damage.shield_charge >= 0xbfff))
       throw std::runtime_error{"Skimma projectile impact did not honour its enabled shield"};
   }
-  std::cout << "Skimma primary gun: four original Halon craft cleared with " << shots << " controlled shots, shielded return fire and impact effects." << std::endl;
+
 }
