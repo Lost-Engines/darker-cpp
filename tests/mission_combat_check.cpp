@@ -12,6 +12,7 @@
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
 #include "resources/archive_set.h"
+#include "resources/campaign.h"
 
 void check_mission_combat(darker::resources::archive_set const &archives) {
   /// Drive real campaign projectiles through real aircraft hulls, then observe removal and the original completion script
@@ -21,19 +22,22 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  for(size_t mission{0}; mission < 8; ++mission) {
-    auto const &record{scenario.records()[mission]};
+  darker::resources::campaign_resources campaign{archives};
+  for(size_t mission{0}; mission < 15; ++mission) {
+    auto const &scenario{campaign.scenario(static_cast<uint8_t>(mission + 1))};
+    auto const record_index{darker::resources::select_campaign_stage(static_cast<uint8_t>(mission + 1)).record};
+    auto const &record{scenario.records()[record_index]};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1 + record.groups[0].objects.size()),0,record.shared.offset);
     darker::game::player_flight player;
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
     caero.energy.reserve = 0xcfff;
-    combat.primary_weapon = mission < 4 ? 1 : 2;
+    combat.primary_weapon = 1;
     combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
-    auto const text{scenario.language(mission, darker::resources::scenario_language::english)};
-    darker::presentation::player briefing{archives,fonts,scenario,mission};
+    auto const text{scenario.language(record_index, darker::resources::scenario_language::english)};
+    darker::presentation::player briefing{archives,fonts,scenario,record_index};
     do { briefing.advance(4000); } while(briefing.continue_page());
     auto const cursor{briefing.consumed_text()};
     darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
@@ -63,6 +67,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       darker::game::charge_caero_energy(caero.energy, 13056, 1, 1028, false);
       context.clock = clock;
       context.objectives_complete = combat.remaining_objectives() == 0;
+      context.object_counter = static_cast<uint8_t>(combat.completed_objectives);
       context.messages.clear();
       darker::game::advance_mission_script(script, context);
       for(auto const &event : context.messages) {
@@ -71,12 +76,12 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(mission < 3 && actual != std::array{"Well done- you can return to base.","Mission accomplished. Return to base.","Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
         constexpr std::array final_messages{"Well done- you can return to base.","Mission accomplished. Return to base.",
           "Good job, Tolly. Return to base.","all targets are clear.","Mission complete- come back to base.",
-          "Well done- you can return to base.","Return to Hemmersan.","Mission complete- come back to base."};
+          "Well done- you can return to base.","Return to Hemmersan.","Mission complete- come back to base.","Good job, Tolly. Return to base.","Return to base for a mission update.","Mission accomplished. Return to base.","Good job, Tolly. Return to base.","Return to Hemmersan, Tolly.","Mission complete- come back to base.","Return to base immediately, Tolly."};
         message |= actual == final_messages[mission];
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u,8u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+    if(!message || !script.stopped || combat.completed_objectives != std::array{2u,2u,3u,5u,3u,5u,8u,8u,4u,7u,2u,1u,2u,2u,1u}[mission] || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
       throw std::runtime_error{"Campaign controlled combat did not complete: mission=" + std::to_string(mission + 1) + ", shots=" + std::to_string(shots)
         + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", reserves=" + std::to_string(combat.reserves.size())
         + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)

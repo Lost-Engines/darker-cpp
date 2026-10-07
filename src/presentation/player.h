@@ -32,6 +32,7 @@ private:
   std::array<size_t,2> animation_counts{};
   framework::render::indexed_cockpit_framebuffer background{};
   graphics::palette_state colours;
+  std::vector<std::byte> image_pixels;
   graphics::formatted_page page;
   resources::font_face face{resources::font_face::compact};
   uint8_t text_y{0}, image_height{0}, image_y{0};
@@ -39,6 +40,8 @@ private:
   uint8_t byte();
   uint16_t word();
   void execute();
+  void load_image(resources::resource_id id);
+  void draw_image(unsigned int width, unsigned int height, unsigned int x, unsigned int y);
   void image(resources::resource_id id, unsigned int width, unsigned int height, unsigned int x, unsigned int y);
 
 public:

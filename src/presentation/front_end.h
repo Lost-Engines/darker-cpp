@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include "presentation/player.h"
+#include "resources/campaign.h"
 #include "resources/save_file.h"
 
 namespace darker::presentation {
@@ -14,7 +15,7 @@ private:
   enum class screen { introduction, title, games, name, hidden_command, run, erase, quit, briefing, outcome, flight };
   resources::archive_set const &archives;
   resources::font_resource const &font;
-  resources::scenario_resource const &mission;
+  resources::campaign_resources &campaign;
   resources::scenario_resource introduction;
   std::unique_ptr<player> scene;
   screen current{screen::introduction};
@@ -37,7 +38,7 @@ private:
 public:
   bool quit_requested{false};
   bool save_requested{false};
-  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save, bool skip_intro = false);
+  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool skip_intro = false);
   bool active() const noexcept;
   bool editing_text() const noexcept;
   bool level_skip_enabled() const noexcept;

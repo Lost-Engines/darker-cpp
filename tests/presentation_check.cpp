@@ -23,6 +23,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     }
   }
   darker::resources::font_resource const font{archives.load({0,29})};
+  darker::resources::campaign_resources campaign{archives};
   darker::resources::scenario_resource const mission{archives.load({4,0})};
   darker::presentation::player briefing{archives,font,mission,0};
   framework::render::cockpit_framebuffer frame{};
@@ -61,17 +62,17 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
-  for(size_t record{1}; record <= 7; ++record) {
-    darker::presentation::player next{archives,font,mission,record};
+  for(uint8_t stage{2}; stage <= 15; ++stage) {
+    darker::presentation::player next{archives,font,campaign.scenario(stage),darker::resources::select_campaign_stage(stage).record};
     size_t scenes{0};
     do {
-      for(unsigned int tick{0}; tick < 3000; tick += 25) {
-        next.advance(25);
+      for(unsigned int tick{0}; tick < 10000; tick += 50) {
+        next.advance(50);
         next.draw(frame);
       }
       if(++scenes > 8) throw std::runtime_error{"Campaign briefing failed to terminate"};
     } while(next.continue_page());
-    if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active"};
+    if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active: " + std::to_string(stage)};
   }
   darker::presentation::player launch_clip{archives,font,mission,1};
   launch_clip.advance(3000);
@@ -98,7 +99,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"Committal presentation failed to retain its text while looping"};
   }
   darker::resources::save_file saves;
-  darker::presentation::front_end front{archives,font,mission,saves};
+  darker::presentation::front_end front{archives,font,campaign,saves};
   front.show_death(2);
   front.advance(60000);
   front.draw(frame);
@@ -107,7 +108,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
   if(!front.active()) throw std::runtime_error{"Dismissing death must return to the menu, not launch a mission"};
   // The hidden command must never be interpreted as a pilot name or a save-record setting.
   darker::resources::save_file command_saves;
-  darker::presentation::front_end commands{archives,font,mission,command_saves};
+  darker::presentation::front_end commands{archives,font,campaign,command_saves};
   using darker::presentation::front_key;
   commands.key(front_key::accept);
   commands.key(front_key::accept);

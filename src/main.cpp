@@ -165,10 +165,11 @@ auto main(int const argc, char const *const argv[])->int {
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
   }
-  darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
-  auto mission{scenario.records().front()};
+  darker::resources::campaign_resources campaign{archives};
+  auto const *scenario{&campaign.scenario(1)};
+  auto mission{scenario->records().front()};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
-  auto text{scenario.language(0, darker::resources::scenario_language::english)};
+  auto text{scenario->language(0, darker::resources::scenario_language::english)};
   std::unique_ptr<darker::presentation::front_end> front;
   std::filesystem::path const save_path{"darker-cpp.sav"};
   darker::resources::save_file saves;
@@ -180,7 +181,7 @@ auto main(int const argc, char const *const argv[])->int {
     return startup_failure(error.what());
   }
   if(caero) {
-    front = std::make_unique<darker::presentation::front_end>(archives,font,scenario,saves,arguments.contains("skip-intro"));
+    front = std::make_unique<darker::presentation::front_end>(archives,font,campaign,saves,arguments.contains("skip-intro"));
     if(arguments.contains("cheat-level-x")) front->enable_level_skip();
     host.front = front.get();
   }
@@ -188,7 +189,7 @@ auto main(int const argc, char const *const argv[])->int {
     .continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset},
   };
   auto script{initial_script};
-  darker::game::mission_context context{.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
+  darker::game::mission_context context{.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
   std::optional<darker::game::mission_message> message;
   host.briefing = caero;
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
@@ -543,9 +544,10 @@ auto main(int const argc, char const *const argv[])->int {
         if(!active) {
           auto const &pilot{front->selected_pilot()};
           host.available_weapons = pilot.weapons ^ front->weapon_changes();
-          auto const record{static_cast<size_t>(pilot.stage - 1)};
-          mission = scenario.records()[record];
-          text = scenario.language(record,darker::resources::scenario_language::english);
+          scenario = &campaign.scenario(pilot.stage);
+          auto const record{darker::resources::select_campaign_stage(pilot.stage).record};
+          mission = scenario->records()[record];
+          text = scenario->language(record,darker::resources::scenario_language::english);
           cells = darker::game::make_city_map(archives.load({0,68}),true);
           darker::game::restore_city_state(cells,bank.city_types(),pilot.delphi,pilot.stage);
           host.hangar = {};
@@ -560,7 +562,7 @@ auto main(int const argc, char const *const argv[])->int {
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
           script = initial_script;
-          context = {.program{scenario.bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
+          context = {.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
           context.activate_reserves = activate_reserves;
           message.reset();
           game_clock = {};
@@ -589,10 +591,11 @@ auto main(int const argc, char const *const argv[])->int {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario.bytes(mission.shared),mission.time_multiplier);
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         context.objectives_complete = combat->remaining_objectives() == 0;
+        context.object_counter = static_cast<uint8_t>(combat->completed_objectives);
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
         context.messages.clear();
         darker::game::advance_mission_script(script, context);

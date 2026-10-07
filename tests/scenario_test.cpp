@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include "resources/campaign.h"
 #include "resources/scenario.h"
 
 namespace {
@@ -46,4 +47,16 @@ TEST_CASE("Scenario reader rejects truncated records and inverted language range
     bytes[offset] = std::byte{255};
     CHECK_THROWS_AS(darker::resources::scenario_resource{std::move(bytes)}, std::invalid_argument);
   }
+}
+
+TEST_CASE("Campaign stages select consecutive archive records", "[resources][scenario]") {
+  /// Saved stages are one-based while resources and records are zero-based
+  for(unsigned int stage{1}; stage <= 120; ++stage) {
+    auto const selection{darker::resources::select_campaign_stage(static_cast<uint8_t>(stage))};
+    CHECK(selection.resource.archive == 4);
+    CHECK(selection.resource.slot*8 + selection.record == stage - 1);
+    CHECK(selection.record < 8);
+  }
+  CHECK_THROWS_AS(darker::resources::select_campaign_stage(0), std::out_of_range);
+  CHECK_THROWS_AS(darker::resources::select_campaign_stage(121), std::out_of_range);
 }

@@ -76,7 +76,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
     if(actor.parameters.update_entry == 0) continue;
     if(actor.parameters.update_entry == 0x8823 && !actor.script.stopped) {
-      mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier},
+      mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
         .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
         .set_target{[&](uint16_t const target, bool const flag_02){
           actor.target_token = target;

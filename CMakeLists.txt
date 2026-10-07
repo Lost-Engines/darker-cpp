@@ -91,6 +91,8 @@ add_library(darker_resources STATIC
   src/resources/save_file.h
   src/resources/font.cpp
   src/resources/font.h
+  src/resources/campaign.cpp
+  src/resources/campaign.h
   src/resources/scenario.cpp
   src/resources/scenario.h
   src/resources/geometry_bank.cpp

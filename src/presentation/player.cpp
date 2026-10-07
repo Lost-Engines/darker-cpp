@@ -55,17 +55,28 @@ uint16_t player::word() {
   return static_cast<uint16_t>(low | byte() * 256);
 }
 
-void player::image(resources::resource_id const id, unsigned int const width, unsigned int const height, unsigned int const x, unsigned int const y) {
-  /// Image loads update retained palette entries even when no pixels follow the palette stream
+void player::load_image(resources::resource_id const id) {
+  /// C07A loads palette and pixel data without copying the image into the displayed background
   auto const bytes{archives.load(id)};
   auto const decoded{graphics::decode_palette(bytes, colours)};
   colours = decoded.palette;
   auto const pixels{std::span{bytes}.subspan(decoded.bytes_consumed)};
-  if(pixels.empty()) return;
-  if(pixels.size() != width * height || x + width > 320 || y + height > 240) throw std::invalid_argument{"Presentation image/layout mismatch"};
+  image_pixels.assign(pixels.begin(),pixels.end());
+}
+
+void player::draw_image(unsigned int const width, unsigned int const height, unsigned int const x, unsigned int const y) {
+  /// C0B4 copies the retained image using the current scene layout
+  if(image_pixels.empty()) return;
+  if(image_pixels.size() != width * height || x + width > 320 || y + height > 240) throw std::invalid_argument{"Presentation image/layout mismatch"};
   for(size_t row{0}; row < height; ++row) for(size_t column{0}; column < width; ++column) {
-    background.pixels[(row + y) * 320 + column + x] = std::to_integer<uint8_t>(pixels[row * width + column]);
+    background.pixels[(row + y) * 320 + column + x] = std::to_integer<uint8_t>(image_pixels[row * width + column]);
   }
+}
+
+void player::image(resources::resource_id const id, unsigned int const width, unsigned int const height, unsigned int const x, unsigned int const y) {
+  /// C09E combines loading with display; palette-only resources leave the background intact
+  load_image(id);
+  draw_image(width,height,x,y);
 }
 
 void player::execute() {
@@ -109,6 +120,8 @@ void player::execute() {
       break;
     case 0x3f: { auto const displacement{std::bit_cast<int16_t>(word())}; next = cursor + displacement; break; }
     case 0x40: music = byte(); break;
+    case 0x41: load_image({3,static_cast<uint8_t>(47 + byte())}); break;
+    case 0x43: draw_image(image_width,image_height,image_x,image_y); break;
     case 0x42: image({3,static_cast<uint8_t>(47 + byte())},image_width,image_height,image_x,image_y); break;
     case 0x44:
     case 0x45: {
