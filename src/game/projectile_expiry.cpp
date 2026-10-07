@@ -1,4 +1,5 @@
 #include "game/projectile_expiry.h"
+#include "game/objective_counter.h"
 
 namespace darker::game {
 
@@ -17,8 +18,7 @@ projectile *expire_projectile(projectile_pool &pool, projectile &record, project
   if(references.missile_view == record.native_id) references.missile_view = 0;
   auto const counted{static_cast<std::uint8_t>(record.lifecycle & 1)};
   objectives.completed = static_cast<std::uint8_t>(objectives.completed + counted);
-  auto const outstanding{static_cast<std::uint8_t>(objectives.outstanding - counted)};
-  objectives.outstanding = (outstanding & 0x80) != 0 ? 0 : outstanding;
+  objectives.outstanding = adjust_objective_counter(objectives.outstanding,static_cast<uint8_t>(-counted));
   auto const lifecycle{static_cast<std::uint8_t>(record.lifecycle & 0xfe)};
   if(lifecycle == 0) return pool.unlink(record);
   if(lifecycle < 0xfe) record.lifecycle = static_cast<std::uint8_t>(lifecycle - 2);

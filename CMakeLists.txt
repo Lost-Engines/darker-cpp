@@ -248,6 +248,7 @@ add_library(darker_game STATIC
   src/game/caero_energy.h
   src/game/object_deadline.cpp
   src/game/object_deadline.h
+  src/game/objective_counter.h
   src/game/object_definition.cpp
   src/game/object_definition.h
   src/game/object_definitions.h
@@ -349,6 +350,7 @@ if(BUILD_TESTING)
     tests/tunnel_network_test.cpp
     tests/scenario_actor_test.cpp
     tests/actor_awareness_test.cpp
+    tests/objective_counter_test.cpp
     tests/mission_exchange_test.cpp
     tests/mission_script_test.cpp
     tests/hangar_test.cpp

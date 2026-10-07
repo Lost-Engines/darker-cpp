@@ -40,6 +40,8 @@ public:
 
   explicit mission_combat(std::vector<scenario_actor> initial);
   void spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step);
+  void activate_reserves(actor_category category, uint8_t count, object_pose const &player, uint16_t clock);
+  void adjust_objectives(uint8_t operand) noexcept;
   void update_difficulty(uint32_t clock) noexcept;
   unsigned int remaining_objectives() const noexcept;
   std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
@@ -48,6 +50,7 @@ public:
 
 private:
   std::array<uint8_t,256> retained_flags{};
+  uint8_t outstanding_objectives{0};
   void release_target(uint16_t token) noexcept;
 };
 

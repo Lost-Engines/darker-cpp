@@ -54,6 +54,7 @@ struct mission_context {
   std::function<void(uint8_t)> set_aircraft_spawning{};
   std::function<uint16_t()> register_owner{};
   std::function<void(mission_script &)> exchange_context{};
+  std::function<bool(uint8_t)> adjust_objectives{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

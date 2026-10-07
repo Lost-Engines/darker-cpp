@@ -194,6 +194,10 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         context.select_weapon(selection);
       }
       break;
+    case 0x33:
+      if(!context.adjust_objectives) throw std::logic_error{"Mission objective adjustment has no world consumer"};
+      context.objectives_complete = context.adjust_objectives(byte());
+      break;
     case 0x31:
       {
         auto const setting{byte()};

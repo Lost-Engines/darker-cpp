@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–27 (04/0 through 04/2 and the first three records of 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-seven saves stage twenty-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–29 (04/0 through 04/2 and the first five records of 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-nine saves stage thirty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 174 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through twenty-seven with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 175 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through twenty-nine with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all twenty-seven supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all twenty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all twenty-seven supported briefings and flight entries, including both
+covers all twenty-nine supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -173,7 +173,21 @@ Native comparisons additionally cover twelve owner registrations and four
 consecutive context exchanges, including a displayed message surviving return
 to the other text stream. See [mission execution](mission_execution.md).
 
-Mission 28 next needs its explicit objective-count adjustment: that script can
-allow withdrawal while some counted aircraft remain. A derived count of live
-actors cannot reproduce that operation. Mission 30 introduces Chargeable and
-will require its held/released trigger, changing power and impact path.
+Mission 30 next introduces Chargeable and requires its held/released trigger,
+changing power and impact path.
+
+## Withdrawal with surviving aircraft
+
+Mission 28's opcode 33 adds CEh (-50) to the outstanding-objective byte, then
+clamps a negative signed result to zero. This permits withdrawal after its
+six-removal threshold and subsequent messages even if other aircraft remain.
+The counter is now explicit: reserve admission adds counted records with byte
+wrapping; removal and script adjustments use native C16E. Completed removals and
+live actors remain separate quantities. Projectile expiry shares that arithmetic.
+
+The counter matches 1,280 native cases covering every initial byte and boundary
+operands. Mission 28's controlled check currently removes eight of eleven counted
+aircraft, receives the withdrawal message and docks with three survivors.
+Its assertion allows the original minimum rather than requiring all eleven to
+die. Mission 29 completes nine removals and docks. Windowed checks cover both
+briefing/flight entries and the stage-30 save boundary.

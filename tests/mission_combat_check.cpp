@@ -119,8 +119,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         || target.height != sample[6] || target.height_extent != sample[7]) throw std::runtime_error{"Building missile guidance differs from native model lookup"};
     }
   }
-  struct combat_case { uint8_t stage; unsigned int removals; char const *message; };
-  constexpr std::array<combat_case,22> cases{{
+  struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; };
+  constexpr std::array<combat_case,24> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -130,7 +130,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."}, {20,5,"Return to Hemmersan."},
     {21,8,"all targets are clear."}, {22,7,"Return to Hemmersan."},
     {25,7,"Good job, Tolly. Return to base."}, {26,12,"Mission accomplished. Return to base."},
-    {27,6,"Return to base for a mission update."},
+    {27,6,"Return to base for a mission update."}, {28,6,"You've done all you can.",true}, {29,9,"and return to base."},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -159,10 +159,11 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const cursor{briefing.consumed_text()};
     darker::game::mission_context context{.program{scenario.bytes(record.shared)}, .text{text}, .cells{cells}, .time_multiplier{record.time_multiplier}, .text_cursor{cursor}};
     darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    context.adjust_objectives = [&](uint8_t const operand){ combat.adjust_objectives(operand); return combat.remaining_objectives() == 0; };
     context.set_aircraft_spawning = [&](uint8_t const setting){ combat.spawning.enabled = setting != 0; };
     context.set_building_attacks = [&](uint8_t const setting){ combat.building_attacks = setting != 0; };
     context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
-      darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
+      combat.activate_reserves(static_cast<darker::game::actor_category>(opcode - 9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return combat.remaining_objectives() == 0;
     };
     unsigned int shots{0};
@@ -199,7 +200,11 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
       if(message && script.stopped) break;
     }
-    if(!message || !script.stopped || combat.completed_objectives != test.removals || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
+    auto const live_objectives{static_cast<unsigned>(std::ranges::count_if(combat.actors,[](auto const &actor){ return actor.attributes & 1; }))};
+    bool const correct_removals{test.permits_survivors
+      ? combat.completed_objectives >= test.removals && combat.completed_objectives + live_objectives == 11
+      : combat.completed_objectives == test.removals};
+    if(!message || !script.stopped || !correct_removals || combat.remaining_objectives() != 0 || player.lifecycle.crashing) {
       throw std::runtime_error{"Campaign controlled combat did not complete: mission=" + std::to_string(mission + 1) + ", shots=" + std::to_string(shots)
         + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", reserves=" + std::to_string(combat.reserves.size())
         + ", stopped=" + std::to_string(script.stopped) + ", message=" + std::to_string(message) + ", crashing=" + std::to_string(player.lifecycle.crashing)
@@ -693,7 +698,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       unsigned int admitted{0};
       context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
         auto const before{combat.reserves};
-        darker::game::activate_scenario_reserves(combat.actors,combat.reserves,static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
+        combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
         for(auto const &actor : combat.actors) {
           auto const original{std::ranges::find_if(before,[&](auto const &item){ return item.index == actor.index; })};
           if(original != before.end() && (actor.pose.position != original->pose.position || actor.tunnel->route != original->tunnel->route)) {

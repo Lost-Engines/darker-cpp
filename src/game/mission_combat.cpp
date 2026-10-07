@@ -8,6 +8,7 @@
 #include "game/effect_tables.h"
 #include "game/object_deadline.h"
 #include "game/object_definitions.h"
+#include "game/objective_counter.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
 #include "game/tunnel_navigation.h"
@@ -48,6 +49,7 @@ void impact_projectile_world(city_collision_result const &contact, std::array<ui
 mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std::move(initial)} {
   /// Keep stable native identities and reverse source order within the original air/ground/static category traversal
   std::stable_sort(actors.begin(),actors.end(),[](auto const &a, auto const &b){ return a.category < b.category; });
+  outstanding_objectives = static_cast<uint8_t>(std::ranges::count_if(actors,[](auto const &actor){ return actor.attributes & 1; }));
 }
 
 std::span<uint8_t const> mission_combat::status_flags(uint8_t const player_flags) noexcept {
@@ -74,6 +76,19 @@ void mission_combat::spawn_aircraft(player_flight const &player, city_map const 
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
 }
 
+void mission_combat::activate_reserves(actor_category const category, uint8_t const count, object_pose const &player, uint16_t const clock) {
+  /// C37A adds each admitted record's objective bit without the signed clamp used by removal
+  auto const counted{[&]{ return std::ranges::count_if(actors,[](auto const &actor){ return actor.attributes & 1; }); }};
+  auto const before{counted()};
+  activate_scenario_reserves(actors,reserves,category,count,player,clock);
+  outstanding_objectives = static_cast<uint8_t>(outstanding_objectives + counted() - before);
+}
+
+void mission_combat::adjust_objectives(uint8_t const operand) noexcept {
+  /// Script 33 and object removal share C16E's mutable outstanding counter
+  outstanding_objectives = adjust_objective_counter(outstanding_objectives,operand);
+}
+
 void mission_combat::update_difficulty(uint32_t const clock) noexcept {
   /// 3DB1–3DCB increase the scenario's firing pressure after four clock wraps, saturating after eight
   auto const wraps{static_cast<uint8_t>(clock >> 16)};
@@ -83,8 +98,8 @@ void mission_combat::update_difficulty(uint32_t const clock) noexcept {
 }
 
 unsigned int mission_combat::remaining_objectives() const noexcept {
-  /// C16F counts admitted objective objects until their removal, including falling and effect-only records
-  return static_cast<unsigned int>(std::ranges::count_if(actors, [](auto const &actor){ return (actor.attributes & 1) != 0; }));
+  /// C16F is independently mutable: withdrawal scripts can clear obligations while aircraft remain
+  return outstanding_objectives;
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
@@ -101,7 +116,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   std::erase_if(actors, [&](auto &actor){
     if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;
     release_target(static_cast<uint16_t>(0xd986 + actor.index*112));
-    if(actor.attributes & 1) ++completed_objectives;
+    completed_objectives += actor.attributes & 1;
+    adjust_objectives(static_cast<uint8_t>(-(actor.attributes & 1)));
     auto const lifetime{static_cast<uint8_t>(actor.attributes & 0xfe)};
     actor.flags |= 0x20;
     retained_flags[actor.index] = actor.flags;
@@ -138,6 +154,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
         }},
         .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
+      context.adjust_objectives = [&](uint8_t const operand){ adjust_objectives(operand); return remaining_objectives() == 0; };
       context.register_owner = [&]{ return std::exchange(script_owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
       advance_mission_script(actor.script,context);
     }
@@ -266,7 +283,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
         release_target(static_cast<uint16_t>(0xd986 + victim->index*112));
-        if(victim->attributes & 1) ++completed_objectives;
+        completed_objectives += victim->attributes & 1;
+        adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
         actors.erase(actors.begin() + (victim - actors.data()));
       }
     }

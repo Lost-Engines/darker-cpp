@@ -208,7 +208,7 @@ auto main(int const argc, char const *const argv[])->int {
   auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
   if(caero) combat->reserves = darker::game::make_scenario_group(mission.groups[1],bank,static_cast<uint8_t>(1 + mission.groups[0].objects.size()),0,mission.shared.offset);
   auto const activate_reserves{[&](uint8_t const opcode, uint8_t const count){
-    darker::game::activate_scenario_reserves(combat->actors,combat->reserves,static_cast<darker::game::actor_category>(opcode - 9),
+    combat->activate_reserves(static_cast<darker::game::actor_category>(opcode - 9),
       count,host.player.pose(),static_cast<uint16_t>(context.clock));
     return objectives.complete(mission) && combat->remaining_objectives() == 0;
   }};
@@ -225,6 +225,7 @@ auto main(int const argc, char const *const argv[])->int {
   }};
   context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
   context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
+  context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
   context.select_weapon = select_weapon;
   context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
   context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
@@ -654,6 +655,7 @@ auto main(int const argc, char const *const argv[])->int {
           }
           context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
           context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
+          context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
           context.select_weapon = select_weapon;
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };

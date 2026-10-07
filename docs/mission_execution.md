@@ -4,7 +4,7 @@
 
 Deadlines use wrapping 16-bit subtraction and its sign bit. Delays advance the previous deadline rather than restarting from the current clock; overdue scripts can execute several instructions in one update. Failed waits rewind to the checkpoint and add eight times the record multiplier. Checkpoint timestamps retain the original rounded coarse clock, while coarse-time waits require strictly passing their target. Stop state ends script progression without removing the actor or stopping its movement.
 
-Implemented operations are 00–0E, 11–14, 1A–26, 2F, 31 and 32, plus high-bit animation-parameter selection. Object/world flag waits preserve both all-set and all-clear masks. World waits address the original packed type/state bytes. Completion and target-position conditions are supplied by the world; they are not inferred from message text.
+Implemented operations are 00–0E, 11–14, 1A–26, 2F and 31–33, plus high-bit animation-parameter selection. Object/world flag waits preserve both all-set and all-clear masks. World waits address the original packed type/state bytes. Completion and target-position conditions are supplied by the world; they are not inferred from message text.
 
 Counted messages preserve the shared text cursor, empty-entry behaviour, suppression, centre/left/right selection and independent display expiry. Script continuation and display duration run concurrently. Emitted messages retain their own source text view across context changes; the presentation owner must consume the events and manage the three display slots. Unknown opcodes currently raise an explicit diagnostic rather than being treated as no-ops. A bounded instruction budget also diagnoses non-yielding malformed programs.
 
@@ -40,3 +40,15 @@ return; Skimma supply-pad entry remains a separate integration task.
 
 The current flight presentation still displays the most recently emitted message.
 Simultaneous composition of all three native message channels remains outstanding.
+
+## Explicit outstanding-objective counter
+
+The original C16F byte can be changed by script opcode 33 independently of live
+object records. C16E adds modulo 256 and replaces a result with its sign bit set
+by zero. Reserve activation C37A uses an unclamped byte addition; removal uses
+C16E even for an uncounted object. Mission 28 relies on this distinction to
+permit withdrawal with survivors. The completed-removal counter is separate.
+
+`generate_objective_counter_reference.py` captures 1,280 native script-33 cases.
+The runtime tests retain all actor records while verifying the independently
+changed obligation count and immediately updated script-completion condition.
