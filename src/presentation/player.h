@@ -46,6 +46,7 @@ private:
 
 public:
   uint16_t weapon_toggles{0};
+  uint16_t departure_destination{0};
   std::optional<uint8_t> music;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,

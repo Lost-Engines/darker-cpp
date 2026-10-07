@@ -65,3 +65,12 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_return_reference.py 
 
 The current application stops at a simple completion overlay after docking;
 original debrief presentation and loading the next mission are still pending.
+
+## Scripted departure destination
+
+Presentation opcode 29 supplies the C610 destination operand. When the ship
+leaves its starting hangar, the old gate/interior/light states are closed before
+that nonzero destination becomes the return site. Mission sixteen uses 3064h,
+cell (50,48), to direct the player to Communications HQ for the tunnel mission.
+The native departure fixtures include this handoff. Zero-destination automatic
+hangar selection remains a limitation; see [campaign status](campaign_status.md).

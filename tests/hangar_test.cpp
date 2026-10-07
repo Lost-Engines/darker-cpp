@@ -33,9 +33,10 @@ TEST_CASE("Caero gate extension and departure match native updates", "[game][han
     player.pose().position = {static_cast<std::uint16_t>(sample.x), static_cast<std::uint16_t>(sample.y), 0};
     player.lifecycle.flags = 16;
     darker::game::hangar_state hangar{.return_site{static_cast<std::uint16_t>(sample.site)},
-      .extension{static_cast<std::uint16_t>(sample.gate)}, .sound_level{0x35}};
+      .next_return_site{static_cast<uint16_t>(sample.destination)}, .extension{static_cast<std::uint16_t>(sample.gate)}, .sound_level{0x35}};
     darker::game::advance_hangar_departure(player, cells, hangar, static_cast<std::uint16_t>(sample.step));
     CHECK(hangar.extension == sample.result);
+    CHECK(hangar.return_site == sample.return_site);
     CHECK(hangar.sound_level == sample.sound);
     CHECK(player.lifecycle.flags == sample.flags);
     for(auto const index : {centre - 128, centre, centre + 128}) CHECK(cells[index].state == (sample.flags & 16 ? 0 : 128));

@@ -62,7 +62,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
-  for(uint8_t stage{2}; stage <= 15; ++stage) {
+  for(uint8_t stage{2}; stage <= 16; ++stage) {
     darker::presentation::player next{archives,font,campaign.scenario(stage),darker::resources::select_campaign_stage(stage).record};
     size_t scenes{0};
     do {

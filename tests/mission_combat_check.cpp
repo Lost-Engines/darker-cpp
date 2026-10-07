@@ -102,6 +102,44 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
+  {
+    auto const &transfer{campaign.scenario(16)};
+    auto const &record{transfer.records()[7]};
+    darker::resources::font_resource const fonts{archives.load({0,29})};
+    darker::presentation::player briefing{archives,fonts,transfer,7};
+    do { briefing.advance(4000); } while(briefing.continue_page());
+    darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
+    if(briefing.departure_destination != 0x3064 || traffic.actors.size() != 4 || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
+      throw std::runtime_error{"Mission sixteen did not select the original transfer destination"};
+    }
+    auto transfer_cells{darker::game::make_city_map(archives.load({0,68}),true)};
+    darker::game::player_flight player;
+    darker::game::hangar_state hangar{.next_return_site{briefing.departure_destination}};
+    darker::game::initialise_caero_hangar(player,transfer_cells,hangar,bank.header_at(bank.special_models()[25]).height);
+    for(uint32_t clock{8}; clock <= 4000; clock += 8) traffic.advance(player,transfer_cells,bank,clock,8,0,false,transfer.bytes(record.shared));
+    // Isolate the departure boundary and destination handoff from manual navigation.
+    player.pose().position[1] -= 768;
+    darker::game::advance_hangar_departure(player,transfer_cells,hangar,8);
+    if(hangar.return_site != 0x3064 || (player.lifecycle.flags & 16)
+      || transfer_cells[113*128+49].state != 0 || transfer_cells[48*128+50].state != 0) {
+      throw std::runtime_error{"Hangar departure did not close the old site before changing destination"};
+    }
+    darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    darker::game::mission_context context{.program{transfer.bytes(record.shared)},.cells{transfer_cells},.objectives_complete{true}};
+    darker::game::advance_mission_script(script,context);
+    if(!script.stopped) throw std::runtime_error{"Transfer mission script did not reach its native stop"};
+    player.pose().position = {50*256+128,48*256+152-700,500};
+    player.pose().angles = {0x8000,0,0};
+    if(!darker::game::begin_hangar_return(player,transfer_cells,hangar,true)) throw std::runtime_error{"Mission sixteen refused its destination hangar"};
+    for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {
+      darker::game::advance_hangar_return(player,hangar,8,static_cast<uint16_t>(frame*8));
+      darker::game::advance_hangar_departure(player,transfer_cells,hangar,8);
+    }
+    if(hangar.returning != darker::game::hangar_return_phase::complete || hangar.return_site != 0x3064) {
+      throw std::runtime_error{"Transfer mission did not complete at the destination hangar"};
+    }
+    std::cout << "Mission sixteen: briefing destination, departure handoff and docking at cell (50,48) verified." << std::endl;
+  }
   // Mission two's aircraft are distant from HQ: word projection alone used to show phantom nearby ships.
   {
     auto const actors{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset)};

@@ -45,6 +45,7 @@ public:
   void enable_level_skip() noexcept;
   size_t consumed_text() const noexcept;
   uint16_t weapon_changes() const noexcept;
+  uint16_t departure_destination() const noexcept;
   int music_group() const noexcept;
   void key(front_key input);
   void character(unsigned int code);

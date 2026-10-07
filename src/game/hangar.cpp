@@ -57,6 +57,7 @@ void advance_hangar_departure(player_flight &player, city_map &cells, hangar_sta
     hangar.extension = 0;
     hangar.sound_level = 0;
     toggle_hangar(player, cells, centre);
+    if(hangar.next_return_site != 0) hangar.return_site = hangar.next_return_site;
     return;
   }
   if(type & 1) {

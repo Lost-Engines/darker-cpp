@@ -95,6 +95,7 @@ void player::execute() {
       break;
     case 0x22: deadline += byte() * interval; break;
     case 0x23: stopped = true; break;
+    case 0x29: departure_destination = word(); break;
     case 0x30: {
       auto const range{byte()};
       auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};

@@ -561,7 +561,7 @@ auto main(int const argc, char const *const argv[])->int {
           darker::game::restore_city_state(cells,bank.city_types(),pilot.delphi,pilot.stage);
           darker::game::apply_scenario_cells(cells,mission);
           objectives = {.list{mission.objective_cell_list}};
-          host.hangar = {};
+          host.hangar = {.next_return_site{front->departure_destination()}};
           if(pilot.stage > 1 && pilot.return_site != 0) host.hangar.return_site = pilot.return_site;
           darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
           initial_player = host.player;

@@ -1,12 +1,12 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–15 (04/0 and 04/1 records 0–6), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct and Mimic, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission fifteen saves stage sixteen and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–16 (04/0 and 04/1), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct and Mimic, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission sixteen saves stage seventeen and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
 ## Next integration priorities
 
-1. **Scenario transitions and world state:** connect the first tunnel-entry presentation and subsequent underground mission, connect supplementary-script activation and remaining actor/player script operations with their native ordering.
+1. **Scenario transitions and world state:** connect the underground-entry presentation and first underground mission, connect supplementary-script activation and remaining actor/player script operations with their native ordering.
 2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
 3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
 4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 165 passing tests, including an optional original-pack integration test. The latter completes all fifteen supported scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 165 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks mission sixteen’s destination handoff and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse every supported briefing and flight entry, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all sixteen supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -45,3 +45,24 @@ Both player and airborne scripts now receive the completed-object counter used b
 ## Wrecker routes and effects
 
 Raised movement, door damage, cutting sparks/bursts and timed route removal now match native route fixtures. An original-pack integration check follows all six door-state changes in the first underground section. The tunnel renderer and campaign transition still need connecting; see [vehicle routes](vehicle_routes.md).
+
+## Transfer to the tunnel-entry hangar
+
+Mission sixteen (04/1 record 7) is a Delphi flight to the east hangar of
+Communications HQ, cell (50,48). Its four aircraft are not counted objectives;
+its player script stops immediately. Briefing opcode 29 stores destination
+3064h in the immediate operand C610. Departure closes the old hangar’s three
+linked cells before installing the new return site. Level X uses the same
+retained destination when skipping this flight; the stage-seventeen save
+therefore retains 3064h.
+
+The 512 native departure fixtures now compare destination handoff as well as
+gate state. Original-pack checks execute the briefing, advance its four actors,
+close the departure site and dock at the destination. A real-window check
+traverses all sixteen briefings and flight entries using Level X, checking the
+save checksum and final return site. Controlled repositioning in the docking
+check does not prove the entire manually flown transfer.
+
+Automatic selection of other return hangars when the native destination is
+zero is still incomplete: the reconstruction retains the starting site in that
+case. Explicit nonzero scripted destinations now take precedence correctly.
