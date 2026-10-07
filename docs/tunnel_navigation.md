@@ -121,3 +121,24 @@ those remain separate integration work.
 
 World setup and entry/exit transitions still need connecting to the main loop
 before the first tunnel is advertised as playable.
+
+## Entry and return portal
+
+`game/tunnel_portal` retains the underground BD65 placement: heading-dependent
+cell fractions, altitude 1536 minus the player model’s height, energy 1FFFh,
+forward setting 96 and initial protection. Thirty-two native placements cover
+all eight shipped tunnel maps and all four cardinal headings.
+
+C582 clears entry protection through the shared three-cell alternate-state
+toggle. Two rows beyond the return site, outbound movement selects forward
+setting 384/lookahead 172; returning movement selects 130/64. Returning to the
+site’s row with route bit 80h set admits callback 7D71 and restores setting 96.
+This capture is independent of mission-objective completion; the later outcome
+check decides success or failure. Nine hundred and sixty native cases cover the
+row/column window, route flags, protection, speed and map-state writes.
+
+The shared automatic-return controller now uses definition 28 for underground
+flight, the portal target at height 1640, and the tunnel settling pitch/heading.
+A complete 409-frame return matches native 7D71/7D32/C582, including fractional
+movement, angular rates and gate-extension state. Connected campaign handling
+must still preserve the original failed-return outcome.

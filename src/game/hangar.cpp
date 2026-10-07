@@ -105,7 +105,7 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   /// 7CEF/7D32 steer through the approach and inner berth, then turn in place until the original completion deadline
   auto &craft{std::get<caero_flight_state>(player.craft)};
   auto &pose{craft.pose};
-  auto const &definition{original_object_definitions[25]};
+  auto const &definition{original_object_definitions[player.tunnel ? 28 : 25]};
   actor_attitude attitude{craft.damage.rotation.pitch, craft.damage.rotation.turn};
   actor_steering_parameters parameters{
     .response{static_cast<uint16_t>(definition.angular_seed * 8)},
@@ -120,7 +120,7 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   if(hangar.returning == hangar_return_phase::approaching) {
     auto const centre{site_index(hangar.return_site)};
     std::array<uint16_t, 3> target{static_cast<uint16_t>((centre % 128) * 256 + 128),
-      static_cast<uint16_t>((centre / 128) * 256 + 216), 220};
+      static_cast<uint16_t>((centre / 128) * 256 + (player.tunnel ? 144 : 216)), static_cast<uint16_t>(player.tunnel ? 1640 : 220)};
     auto const distance{horizontal_distance(pose.position, target)};
     auto const approach{[&](std::array<uint16_t, 3> const &point){
       bool const close{static_cast<uint16_t>(point[0] - pose.position[0] + 7) < 15
@@ -135,7 +135,8 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
     auto outer{target};
     outer[1] -= 256;
     bool arrived{false};
-    if(approach(outer)) {
+    if(player.tunnel) arrived = approach(target);
+    else if(approach(outer)) {
       target[2] = static_cast<uint16_t>(std::min<int>(static_cast<int>(distance >> 2) - 40, 41));
       arrived = approach(target);
     }
@@ -153,9 +154,10 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   if(hangar.returning != hangar_return_phase::settling) return;
   auto const remaining{static_cast<uint16_t>(hangar.deadline - clock)};
   if(remaining & 0x8000) { hangar.returning = hangar_return_phase::complete; return; }
-  auto const heading{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.angles[0] - 0x8000))};
+  auto const target_heading{static_cast<uint16_t>(player.tunnel ? 0 : 0x8000)};
+  auto const heading{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.angles[0] - target_heading))};
   parameters.bank_limit = static_cast<uint16_t>(heading ^ (heading < 0 ? -1 : 0));
-  steer(0, static_cast<uint16_t>(0x8000 - pose.angles[0]));
+  steer(player.tunnel ? 0x0a20 : 0, static_cast<uint16_t>(target_heading - pose.angles[0]));
   hangar.extension = remaining < 1024 ? 0 : static_cast<uint16_t>(std::min<unsigned int>((remaining - 1024) << 6, 0xe800));
 }
 

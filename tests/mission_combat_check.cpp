@@ -12,6 +12,7 @@
 #include "game/object_definitions.h"
 #include "game/tunnel_flight.h"
 #include "game/tunnel_navigation.h"
+#include "game/tunnel_portal.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
@@ -20,7 +21,9 @@
 #include "reference/tunnel_flight_samples.h"
 #include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
+#include "reference/tunnel_portal_samples.h"
 #include "reference/tunnel_reacquisition_samples.h"
+#include "reference/tunnel_return_samples.h"
 #include "reference/tunnel_scripted_actor_samples.h"
 #include "reference/tunnel_trace_samples.h"
 #include "resources/archive_set.h"
@@ -326,6 +329,56 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + "/" + std::to_string(sample[10]) + "/" + std::to_string(sample[11])
           + ", actual=" + std::to_string(actor.current_cell) + "/" + std::to_string(actor.tunnel->route) + "/" + std::to_string(actor.tunnel->oscillation)
           + "/" + std::to_string(actor.tunnel->progress) + "/" + std::to_string(preferred)};
+      }
+    }
+    for(auto const &sample : darker::test_reference::tunnel_entry_samples) {
+      darker::game::player_flight player;
+      darker::game::initialise_tunnel_entry(player,static_cast<uint16_t>(sample[1]),static_cast<uint8_t>(sample[2]),static_cast<int16_t>(sample[3]));
+      auto const &craft{std::get<darker::game::caero_flight_state>(player.craft)};
+      std::array<int,10> const actual{player.pose().position[0],player.pose().position[1],player.pose().position[2],
+        player.pose().angles[0],player.pose().angles[1],player.lifecycle.flags,player.forward_setting,
+        craft.energy.reserve,craft.energy.boost,player.tunnel->connection.cell};
+      if(!std::equal(actual.begin(),actual.end(),sample.begin()+4)) throw std::runtime_error{"Underground entry differs from native placement"};
+    }
+    for(auto const &sample : darker::test_reference::tunnel_portal_samples) {
+      auto &map{maps.at(static_cast<size_t>(sample[0] - 70))};
+      if(!map) map = darker::game::make_city_map(archives.load({0,static_cast<unsigned int>(sample[0])}),false);
+      auto cells{*map};
+      darker::game::player_flight player;
+      player.tunnel.emplace();
+      player.tunnel->connection.route = static_cast<uint8_t>(sample[4]);
+      player.tunnel->lookahead = static_cast<uint16_t>(sample[7]);
+      player.pose().position = {static_cast<uint16_t>(sample[2]*256+128),static_cast<uint16_t>(sample[3]*256+128),0};
+      player.lifecycle.flags = static_cast<uint8_t>(sample[5]);
+      player.forward_setting = static_cast<uint16_t>(sample[6]);
+      darker::game::hangar_state portal{.return_site{static_cast<uint16_t>(sample[1])},.next_return_site{static_cast<uint16_t>(sample[1])}};
+      darker::game::update_tunnel_portal(player,cells,portal,static_cast<uint16_t>(sample[8]));
+      auto const centre{(sample[1] >> 8)*128 + ((sample[1] & 255) >> 1)};
+      std::array<int,9> const actual{player.lifecycle.flags,player.forward_setting,player.tunnel->lookahead,
+        portal.returning == darker::game::hangar_return_phase::approaching ? 0x7d71 : 0xd510,portal.extension,
+        cells[centre-128].state,cells[centre].state,cells[centre+128].state,portal.return_site};
+      if(!std::equal(actual.begin(),actual.end(),sample.begin()+9)) {
+        throw std::runtime_error{"Underground portal differs from native: map=" + std::to_string(sample[0])
+          + ", position=" + std::to_string(sample[2]) + "/" + std::to_string(sample[3]) + ", route=" + std::to_string(sample[4])
+          + ", flags=" + std::to_string(sample[5])};
+      }
+    }
+    {
+      darker::game::player_flight player;
+      player.tunnel.emplace();
+      player.pose().position = {12928,12530,800};
+      darker::game::hangar_state portal{.return_site{0x3064},.returning{darker::game::hangar_return_phase::approaching}};
+      for(auto const &expected : darker::test_reference::tunnel_return_samples) {
+        darker::game::advance_hangar_return(player,portal,8,static_cast<uint16_t>(expected[0]));
+        auto const &craft{std::get<darker::game::caero_flight_state>(player.craft)};
+        std::array<int,14> const actual{player.pose().position[0],player.pose().position[1],player.pose().position[2],
+          player.pose().fractions[0],player.pose().fractions[1],player.pose().fractions[2],
+          craft.damage.rotation.pitch,craft.damage.rotation.turn,player.pose().angles[0],player.pose().angles[1],player.pose().angles[2],
+          player.pose().speed,portal.extension,static_cast<int>(portal.returning)};
+        for(size_t field{0}; field < actual.size(); ++field) if(actual[field] != expected[field+1]) {
+          throw std::runtime_error{"Tunnel return differs from native: clock=" + std::to_string(expected[0])
+            + ", field=" + std::to_string(field) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(expected[field+1])};
+        }
       }
     }
     unsigned int flight_sample{0};

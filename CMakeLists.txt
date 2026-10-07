@@ -176,6 +176,8 @@ add_library(darker_game STATIC
   src/game/tunnel_network.h
   src/game/tunnel_navigation.cpp
   src/game/tunnel_navigation.h
+  src/game/tunnel_portal.cpp
+  src/game/tunnel_portal.h
   src/game/scenario_world.cpp
   src/game/scenario_world.h
   src/game/scenario_actor.cpp
