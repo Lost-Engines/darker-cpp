@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <vector>
 #include "game/aircraft_combat.h"
@@ -40,10 +41,12 @@ public:
   void spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step);
   void update_difficulty(uint32_t clock) noexcept;
   unsigned int remaining_objectives() const noexcept;
+  std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
     uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false);
 
 private:
+  std::array<uint8_t,256> retained_flags{};
   void release_target(uint16_t token) noexcept;
 };
 

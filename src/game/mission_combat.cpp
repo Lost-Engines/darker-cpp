@@ -50,6 +50,15 @@ mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std
   std::stable_sort(actors.begin(),actors.end(),[](auto const &a, auto const &b){ return a.category < b.category; });
 }
 
+std::span<uint8_t const> mission_combat::status_flags(uint8_t const player_flags) noexcept {
+  /// C1EF addresses stable object indices, including the player and records removed from active lists
+  retained_flags[0] = player_flags;
+  for(auto const *group : {&actors,&reserves,&free_actors}) {
+    for(auto const &actor : *group) retained_flags[actor.index] = actor.flags;
+  }
+  return retained_flags;
+}
+
 void mission_combat::release_target(uint16_t const token) noexcept {
   /// 7A52 makes missiles targeting a removed record self-guiding and releases its selected lock
   for(auto *pool : {&projectiles,&hostile_projectiles}) {
@@ -95,6 +104,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(actor.attributes & 1) ++completed_objectives;
     auto const lifetime{static_cast<uint8_t>(actor.attributes & 0xfe)};
     actor.flags |= 0x20;
+    retained_flags[actor.index] = actor.flags;
     if(lifetime && actor.category == actor_category::air) {
       actor.attributes = lifetime < 0xfe ? static_cast<uint8_t>(lifetime - 2) : lifetime;
       free_actors.insert(free_actors.begin(),actor);
@@ -121,7 +131,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(actor.parameters.update_entry == 0) continue;
     auto const callback{actor.parameters.update_entry};
     if((actor.parameters.update_entry == 0x8823 || actor.parameters.update_entry == 0x8609) && !actor.script.stopped) {
-      mission_context context{.program{routes},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
+      mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
         .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
         .set_target{[&](uint16_t const target, bool const flag_02){
           actor.target_token = target;
@@ -253,6 +263,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       auto const reaction{hit_actor(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
+        retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
         release_target(static_cast<uint16_t>(0xd986 + victim->index*112));
         if(victim->attributes & 1) ++completed_objectives;
         actors.erase(actors.begin() + (victim - actors.data()));
