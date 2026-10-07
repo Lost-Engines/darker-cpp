@@ -1,4 +1,5 @@
 #include "graphics/font.h"
+#include <algorithm>
 #include <bit>
 
 namespace darker::graphics {
@@ -20,6 +21,19 @@ std::uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target,
     }
   }
   return static_cast<std::uint16_t>(position.x + glyph.advance);
+}
+
+void draw_message(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
+  resources::font_face const face, std::span<std::byte const> const text, pixel_position const position,
+  uint16_t const width, text_colours const colours) {
+  /// B221 clears a nine-row backing strip with three-pixel side margins before drawing the counted glyphs
+  if(width < 2) return;
+  int const left{position.x-3};
+  int const right{left+(width/2+3)*2};
+  for(int y{std::max(0,position.y)}; y < std::min(240,position.y+9); ++y) {
+    for(int x{std::max(0,left)}; x < std::min(320,right); ++x) target.pixels[static_cast<size_t>(y*320+x)] = 0;
+  }
+  draw_text(target,font,face,text,position,colours);
 }
 
 std::uint16_t draw_text(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,

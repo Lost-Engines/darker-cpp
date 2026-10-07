@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include "graphics/flight_instruments.h"
 #include "reference/flight_instruments_samples.h"
-#include "reference/skimma_instruments_samples.h"
 #include "reference/hud_integration_samples.h"
+#include "reference/receiver_indicator_samples.h"
 #include "reference/skimma_bearing_samples.h"
+#include "reference/skimma_instruments_samples.h"
 
 TEST_CASE("Live flight instrument producers match native damage, charging, altitude and speed fields", "[graphics][cockpit]") {
   /// Include damage flashing and the original word/byte boundaries rather than inferring gauges from labels
@@ -45,5 +46,14 @@ TEST_CASE("Skimma mission-bearing symbols match the native heading sectors", "[g
     CAPTURE(v);
     CHECK(darker::graphics::skimma_mission_bearing(static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),
       static_cast<uint16_t>(v[2]),static_cast<uint16_t>(v[3])) == v[4]);
+  }
+}
+
+TEST_CASE("Nayas receiver activity matches the original message and return conditions", "[graphics][cockpit]") {
+  /// Include active text, stopped scripts, incomplete objectives and the docked-player flag across the timer cycle
+  for(auto const &v : darker::test_reference::receiver_indicator_samples) {
+    CAPTURE(v);
+    CHECK(darker::graphics::caero_receiver_indicator(static_cast<uint16_t>(v[0]),v[1] != 0,v[2] != 0,
+      v[3] != 0,static_cast<uint8_t>(v[4])) == v[5]);
   }
 }

@@ -36,7 +36,7 @@ private:
   graphics::palette_state colours;
   std::vector<std::byte> image_pixels;
   graphics::formatted_page page;
-  struct caption { std::span<std::byte const> text; uint32_t expiry{0}; int16_t x{0}; };
+  struct caption { std::span<std::byte const> text; uint32_t expiry{0}; int16_t x{0}; uint16_t width{0}; };
   std::array<caption,3> captions{};
   uint8_t caption_y{229}, caption_width_extension{0};
   uint16_t caption_colours{0xfffe};

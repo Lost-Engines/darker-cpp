@@ -23,6 +23,7 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
     case flight_sound::charged: channel = 2; patch = 32; pitch = 1372; level = 0xee00; duration = 640; break;
     case flight_sound::caero_switch: channel = 3; patch = 4; pitch = 6928; level = 0xce00; duration = 112; break;
     case flight_sound::skimma_switch: channel = 3; patch = 37; pitch = 3464; level = 0xe000; duration = 112; break;
+    case flight_sound::message: channel = 6; patch = 31; pitch = 13056; level = 0xc000; duration = 160; break;
     case flight_sound::shield_start:
       channel = 4; patch = 36; pitch = 0x302; level = 0xcc00; duration = 4080;
       shield_ready = false;
@@ -43,7 +44,7 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
     if(voices[i].active && std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - deadlines[i])) >= 0) voices[i].active = false;
   }
   bool const caero{std::holds_alternative<game::caero_flight_state>(player.craft)};
-  auto const &definition{game::original_object_definitions[caero ? 25 : player.upgraded ? 27 : 26]};
+  auto const &definition{game::original_object_definitions[player.definition_slot()]};
   auto pitch{definition.sound_pitch};
   if(!caero) {
     auto const phase{static_cast<std::uint8_t>(clock + 0x86)};

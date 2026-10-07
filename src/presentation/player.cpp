@@ -97,7 +97,7 @@ void player::execute() {
       auto const length{std::to_integer<uint8_t>(text[text_cursor++])};
       if(length > text.size()-text_cursor) throw std::invalid_argument{"Presentation caption is truncated"};
       auto const x{op == 0x0d ? 12 : op == 0x0e ? 308-width : (321-width-(width < caption_width_extension ? 256 : 0))/2};
-      captions[op-0x0c] = {text.subspan(text_cursor,length),ticks+duration*interval,static_cast<int16_t>(x)};
+      captions[op-0x0c] = {text.subspan(text_cursor,length),ticks+duration*interval,static_cast<int16_t>(x),static_cast<uint16_t>(width+(op == 0x0c && width < caption_width_extension ? 256 : 0))};
       text_cursor += length;
       deadline += delay*interval;
       break;
@@ -239,8 +239,10 @@ void player::draw(framework::render::cockpit_framebuffer &output) const {
   for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,face,glyph.code,glyph.position,
     {.ink{static_cast<uint8_t>(glyph.colour >> 8)},.edge{static_cast<uint8_t>(glyph.colour)}});
   // D8E6 places the three independent counted-message slots at row E5 for film subtitles.
-  for(auto const &caption : captions) if(ticks < caption.expiry) {
-    graphics::draw_text(frame,font,face,caption.text,{.x{caption.x},.y{caption_y}},
+  for(size_t const channel : {1u,0u,2u}) {
+    auto const &caption{captions[channel]};
+    if(ticks >= caption.expiry) continue;
+    graphics::draw_message(frame,font,face,caption.text,{.x{caption.x},.y{caption_y}},caption.width,
       {.ink{static_cast<uint8_t>(caption_colours >> 8)},.edge{static_cast<uint8_t>(caption_colours)}});
   }
   // DA48 uses glyphs in the current presentation font, not separate button bitmaps.

@@ -17,6 +17,9 @@ struct text_colours {
 std::uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
   resources::font_face face, std::uint8_t code, pixel_position position, text_colours colours);
 
+void draw_message(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
+  resources::font_face face, std::span<std::byte const> text, pixel_position position, uint16_t width, text_colours colours);
+
 std::uint16_t draw_text(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
   resources::font_face face, std::span<std::byte const> text, pixel_position position, text_colours colours);
 

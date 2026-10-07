@@ -15,6 +15,8 @@ struct caero_instruments {
 
 uint8_t skimma_mission_bearing(uint16_t site, uint16_t column, uint16_t row, uint16_t heading);
 
+uint8_t caero_receiver_indicator(uint16_t clock, bool message, bool script_stopped, bool objectives_complete, uint8_t player_flags) noexcept;
+
 uint8_t caero_engine_indicator(uint8_t previous, bool enabled, uint16_t speed) noexcept;
 
 caero_instruments measure_caero_instruments(game::caero_flight_state const &state, std::uint16_t clock) noexcept;

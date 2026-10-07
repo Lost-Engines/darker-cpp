@@ -203,7 +203,7 @@ auto main(int const argc, char const *const argv[])->int {
   auto script{initial_script};
   darker::game::mission_exchange exchange;
   darker::game::mission_context context{.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
-  std::optional<darker::game::mission_message> message;
+  std::array<std::optional<darker::game::mission_message>,3> messages;
   host.briefing = front != nullptr;
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
@@ -307,7 +307,9 @@ auto main(int const argc, char const *const argv[])->int {
       auto const measured{darker::graphics::measure_caero_instruments(*state, clock)};
       host.engine_indicator = darker::graphics::caero_engine_indicator(host.engine_indicator, host.player.engine_flags & 1, state->pose.speed);
       instruments = {measured.altitude, measured.impact, measured.damage_lights, measured.power_cells, measured.charging,
-        state->energy.incoming_display, state->energy.reserve_display, host.engine_indicator, 0};
+        state->energy.incoming_display, state->energy.reserve_display, host.engine_indicator,
+        darker::graphics::caero_receiver_indicator(clock,messages[0].has_value(),
+          script.stopped,context.objectives_complete,host.player.lifecycle.flags)};
     } else {
       auto const &skimma{std::get<darker::game::skimma_flight_state>(host.player.craft)};
       auto const measured{darker::graphics::measure_skimma_instruments(pose.position[2], skimma.damage.shield_charge,
@@ -355,9 +357,13 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
         {.x{164}, .y{static_cast<int16_t>(90 + combat->skimma_aim_offset)}}, 14, 14);
     }
-    if(message) {
-      darker::graphics::draw_text(display, font, darker::resources::font_face::compact,
-        message->text.subspan(message->offset, message->length), {.x{static_cast<int16_t>((320 - message->width) / 2)}, .y{32}}, {.ink{255}, .edge{0}});
+    for(size_t const channel : {1u,0u,2u}) if(auto const &message{messages[channel]}) {
+      auto const width{static_cast<uint16_t>(message->width + (message->alignment == darker::game::message_alignment::centre
+        && message->width < context.message_setting ? 256 : 0))};
+      int const x{message->alignment == darker::game::message_alignment::left ? 12
+        : message->alignment == darker::game::message_alignment::right ? 308-width : (321-width)/2};
+      darker::graphics::draw_message(display,font,darker::resources::font_face::compact,
+        message->text.subspan(message->offset,message->length),{.x{x},.y{231}},width,{.ink{24},.edge{18}});
     }
     if(host.hangar.returning == darker::game::hangar_return_phase::complete) {
       std::string const complete{"Mission complete"};
@@ -607,7 +613,7 @@ auto main(int const argc, char const *const argv[])->int {
       script = initial_script;
       context.text_cursor = 0;
       context.messages.clear();
-      message.reset();
+      messages.fill(std::nullopt);
       host.mouse_started = false;
       host.shield_deadline = 0;
       host.clock = 0;
@@ -729,7 +735,7 @@ auto main(int const argc, char const *const argv[])->int {
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
           beacon_changes = {};
-          message.reset();
+          messages.fill(std::nullopt);
           game_clock = {};
           host.clock = 0;
           host.primary_held = false;
@@ -777,8 +783,13 @@ auto main(int const argc, char const *const argv[])->int {
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
         context.messages.clear();
         darker::game::advance_mission_script(script, context);
-        for(auto const &event : context.messages) message = event;
-        if(message && std::bit_cast<int16_t>(static_cast<uint16_t>(game_clock.frame_ticks - message->expiry)) >= 0) message.reset();
+        for(auto const &event : context.messages) {
+          messages[static_cast<size_t>(event.alignment)] = event;
+          host.sounds.trigger(darker::audio::flight_sound::message,game_clock.frame_ticks);
+        }
+        for(auto &message : messages) {
+          if(message && std::bit_cast<int16_t>(static_cast<uint16_t>(game_clock.frame_ticks-message->expiry)) >= 0) message.reset();
+        }
         if(host.player.tunnel) darker::game::update_tunnel_portal(host.player,cells,host.hangar,step);
         else if(caero) {
           darker::game::begin_hangar_return(host.player, cells, host.hangar, context.objectives_complete);

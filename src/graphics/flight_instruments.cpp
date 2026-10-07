@@ -16,6 +16,13 @@ uint8_t skimma_mission_bearing(uint16_t const site, uint16_t const column, uint1
   return sector < 0x70 ? static_cast<uint8_t>((sector >> 4)+1) : 0;
 }
 
+uint8_t caero_receiver_indicator(uint16_t const clock, bool const message, bool const script_stopped,
+  bool const objectives_complete, uint8_t const player_flags) noexcept {
+  /// 567D blinks for the centre message channel or a completed, stopped mission while the player is airborne
+  bool const returning{script_stopped && objectives_complete && !(player_flags & 0x10)};
+  return message || returning ? static_cast<uint8_t>((clock >> 7) & 1) : 0;
+}
+
 uint8_t caero_engine_indicator(uint8_t const previous, bool const enabled, uint16_t const speed) noexcept {
   /// 56B2–56C5 retains dimming between the stall and recovery speed thresholds
   auto dim{static_cast<uint8_t>(previous & 128)};

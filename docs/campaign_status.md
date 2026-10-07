@@ -10,7 +10,7 @@ The connected campaign now reaches the final battle (115) and ending (116), incl
 2. **World interactions and enemy roles:** actor-to-actor and building attacks, ground weapons, remaining aircraft callbacks, ramming, and the complete collision/update ordering.
 3. **Weapons and targeting:** original target acquisition and lock indicators, remaining primary/secondary weapon selection and firing, Dual Launch, Diffuser timing, charged weapons and their distinct damage paths. Existing homing/placement primitives are useful but do not by themselves establish these behaviours.
 4. **Tunnels and Halon progression:** original transitions, underground navigation and map-state rules, connected Skimma combat, upgrades, supply-pad capture/release and endgame progression.
-5. **Remaining presentation and fidelity:** exact menus and score/debrief screens, Nightmare entry, Nayas activity, radar interference, remaining camera transitions, actor lighting/distant dots, complete audio voice allocation/stereo, palette fades and presentation ordering.
+5. **Remaining presentation and fidelity:** exact menus and score/debrief screens, Nightmare entry, radar interference, remaining camera transitions, actor lighting/distant dots, complete audio voice allocation/stereo, palette fades and presentation ordering.
 
 Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.
 
@@ -492,7 +492,7 @@ See [supply pads](supply_pads.md) for movement and replenishment comparisons.
 Later films also use three independent timed counted-caption slots alongside
 formatted pages. Their left/centre/right positions and lifetime operands now
 reach the presentation renderer; their text shares the original language cursor.
-The film backing-strip compositing still needs a native framebuffer comparison.
+The shared film/flight backing-strip renderer is now checked against 21 native frames.
 
 Verification includes all eight Halon presentation transitions and real window
 launch/weapon/Level-X/save progression. This is not a claim that every Halon
@@ -552,3 +552,26 @@ activated by the scenario retain their movement, weapons and scripts. Steep
 shots target the launch sites' vulnerable centres; the raised category-one rim
 can intercept shallower approaches. Finite original ammunition and reloads
 remain active.
+
+
+### Receiver and counted-message display
+
+Caero Nayas state 4553 follows 567D: blink on bit 7 of the frame clock while
+the centre message is active, or while the primary script is stopped, its
+objectives are complete and the player is not docked. All 512 generated native
+cases agree. The right-hand lamp remains part of the underlying cockpit image.
+
+Flight now retains all three counted-message channels independently, renders
+left/centre/right with the native margins and width-extension setting, and
+expires each on its original timer. Flight text uses row 231 and palette
+colours 24/18; presentation captions use their row-229 default and 255/254.
+Both paths share B221's nine-row black backing strip. Twenty-one native frame
+comparisons cover all three fonts, odd widths, extended widths and all four
+pixel phases. E11F colour-latch setup is substituted in the native fixture;
+its glyph coverage and rectangle writes are executed, with indexed colours
+24/18 assigned to the two native coverage classes.
+
+Nonempty flight messages trigger original effect 38BE (patch 31, pitch 13056,
+level C000, 160 ticks). Voice allocation is still provisional as noted in the
+audio backlog; this restores the notification event without claiming the
+entire original sound scheduler has been reproduced.

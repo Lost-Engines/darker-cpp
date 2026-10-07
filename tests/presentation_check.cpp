@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include "presentation/front_end.h"
 #include "presentation/player.h"
+#include "reference/message_display_samples.h"
 #include "reference/presentation_samples.h"
 
 void check_presentations(darker::resources::archive_set const &archives) {
@@ -23,6 +24,18 @@ void check_presentations(darker::resources::archive_set const &archives) {
     }
   }
   darker::resources::font_resource const font{archives.load({0,29})};
+  for(auto const &sample : darker::test_reference::message_display_samples) {
+    framework::render::indexed_cockpit_framebuffer caption_frame;
+    caption_frame.pixels.fill(7);
+    std::string const text{"Return to base."};
+    darker::graphics::draw_message(caption_frame,font,static_cast<darker::resources::font_face>(sample.face),
+      std::as_bytes(std::span{text}),{.x{static_cast<int>(sample.x)},.y{static_cast<int>(sample.y)}},
+      static_cast<uint16_t>(sample.width),{.ink{24},.edge{18}});
+    uint64_t fingerprint{0xcbf29ce484222325};
+    for(auto const pixel : caption_frame.pixels) fingerprint = (fingerprint ^ pixel)*0x100000001b3;
+    if(fingerprint != sample.fingerprint) throw std::runtime_error{"Counted message pixels differ from B20E: face="
+      +std::to_string(sample.face)+", x="+std::to_string(sample.x)+", width="+std::to_string(sample.width)};
+  }
   darker::resources::campaign_resources campaign{archives};
   darker::resources::scenario_resource const mission{archives.load({4,0})};
   darker::presentation::player briefing{archives,font,mission,0};
