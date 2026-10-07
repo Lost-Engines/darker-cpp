@@ -11,6 +11,7 @@
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
 #include "game/projectile_steering.h"
+#include "game/scenario_world.h"
 #include "game/tunnel_flight.h"
 #include "game/tunnel_navigation.h"
 #include "game/tunnel_portal.h"
@@ -18,6 +19,7 @@
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
 #include "reference/aircraft_bomb_samples.h"
+#include "reference/aircraft_spawning_samples.h"
 #include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
 #include "reference/tunnel_flight_samples.h"
@@ -41,6 +43,53 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   darker::game::assign_city_variants(cells, limits);
   darker::resources::scenario_resource const scenario{archives.load({.archive{4}, .slot{0}})};
   darker::resources::campaign_resources campaign{archives};
+  for(auto const &v : darker::test_reference::aircraft_spawning_samples) {
+    darker::game::aircraft_spawning state{.enabled{v[5] != 0}};
+    state.timers[0] = static_cast<uint16_t>(v[6]);
+    darker::game::city_map city{};
+    city[(v[0] >> 8)*128 + (v[0] & 127)] = {76,static_cast<uint8_t>(v[1])};
+    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    std::vector<darker::game::scenario_actor> active, free;
+    if(v[4]) {
+      free.emplace_back();
+      free.back().script.checkpoint = 0xe800;
+      darker::game::apply_object_definition(free.back().parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
+    }
+    uint16_t random{static_cast<uint16_t>(v[9])};
+    darker::game::advance_aircraft_spawning(state,active,free,city,bank,player,static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8]),random);
+    if(active.size() != v[11] || state.timers[0] != v[12] || random != v[13]) {
+      throw std::runtime_error{"Warehouse admission or timer differs from native: site=" + std::to_string(v[0])
+        + ", flags=" + std::to_string(v[1]) + ", player=" + std::to_string(v[2]) + "," + std::to_string(v[3])
+        + ", step=" + std::to_string(v[8]) + ", initial timer=" + std::to_string(v[6])
+        + ", active=" + std::to_string(active.size()) + "/" + std::to_string(v[11])
+        + ", timer=" + std::to_string(state.timers[0]) + "/" + std::to_string(v[12])
+        + ", random=" + std::to_string(random) + "/" + std::to_string(v[13])};
+    }
+    if(active.empty()) continue;
+    auto const &actor{active.front()};
+    std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+      actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,actor.selected_target,actor.target_token,
+      actor.current_cell,actor.parameters.update_entry,actor.expiry,actor.script.deadline,actor.flags,
+      static_cast<uint16_t>(actor.script.continuation == 0xe800)};
+    for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != v[i+15]) throw std::runtime_error{"Warehouse placement differs from native: field=" + std::to_string(i)};
+  }
+  {
+    darker::game::scenario_actor actor;
+    darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
+    actor.parameters.update_entry = 0x8ddd;
+    actor.flags = 0x50;
+    actor.pose = {.position{21632,14328,static_cast<uint16_t>(100-bank.header_at(bank.special_models()[20]).height)},.angles{0x8000,0,0},.speed{100}};
+    actor.script.deadline = 1024;
+    uint16_t clock{0};
+    for(auto const &expected : darker::test_reference::aircraft_departure_samples) {
+      clock += 8;
+      darker::game::advance_aircraft_departure(actor,clock,8);
+      std::array<uint16_t,14> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+        actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,actor.attitude.pitch_rate,actor.attitude.bank_rate,
+        actor.parameters.update_entry,actor.pose.fractions[0],actor.pose.fractions[1],actor.pose.fractions[2],actor.flags};
+      for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != expected[i]) throw std::runtime_error{"Warehouse departure differs from native: field=" + std::to_string(i)};
+    }
+  }
   for(unsigned int const bank_id : {30u,31u,32u}) {
     darker::resources::geometry_bank const geometry{archives.load({0,bank_id})};
     darker::game::city_map target_cells{};
@@ -68,8 +117,14 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const &scenario{campaign.scenario(static_cast<uint8_t>(mission + 1))};
     auto const record_index{darker::resources::select_campaign_stage(static_cast<uint8_t>(mission + 1)).record};
     auto const &record{scenario.records()[record_index]};
+    auto cells{darker::game::make_city_map(archives.load({0,68}),true)};
+    darker::game::assign_city_variants(cells,limits);
+    darker::game::apply_scenario_cells(cells,record);
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1 + record.groups[0].objects.size()),0,record.shared.offset);
+    combat.free_actors = darker::game::make_scenario_group(record.groups[2],bank,
+      static_cast<uint8_t>(1 + record.groups[0].objects.size() + record.groups[1].objects.size()),0,record.shared.offset);
+    darker::game::prepare_delphi_aircraft_sites(combat.spawning,cells);
     darker::game::player_flight player;
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
@@ -101,6 +156,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().angles = {};
         player.pose().speed = 496;
       }
+      combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
       combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), fire, scenario.bytes(record.shared));
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
@@ -185,6 +241,35 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Transfer mission did not complete at the destination hangar"};
     }
     std::cout << "Mission " << static_cast<unsigned int>(stage) << ": briefing destination, timed messages, departure handoff and docking verified." << std::endl;
+  }
+  {
+    auto const &source{campaign.scenario(20)};
+    auto const &record{source.records()[3]};
+    auto city{darker::game::make_city_map(archives.load({0,68}),true)};
+    darker::game::assign_city_variants(city,limits);
+    darker::game::apply_scenario_cells(city,record);
+    darker::game::mission_combat combat{{}};
+    combat.free_actors = darker::game::make_scenario_group(record.groups[2],bank,16,0,record.shared.offset);
+    darker::game::prepare_delphi_aircraft_sites(combat.spawning,city);
+    darker::game::player_flight player;
+    player.pose().position = {21632,14584,2000};
+    combat.spawn_aircraft(player,city,bank,8,8);
+    if(combat.actors.size() != 1 || combat.free_actors.size() != 3) throw std::runtime_error{"Occupied mission-twenty warehouse did not launch an aircraft"};
+    auto const identity{combat.actors.front().index};
+    bool departed{false};
+    for(uint32_t clock{8}; clock < 5000 && !combat.actors.empty(); clock += 8) {
+      if(clock >= 1100) player.pose().position = {};
+      combat.advance(player,city,bank,clock,8,0,false,source.bytes(record.shared),record.time_multiplier);
+      if(!combat.actors.empty() && combat.actors.front().parameters.update_entry == 0x8823) departed = true;
+    }
+    if(!departed || !combat.actors.empty() || combat.free_actors.size() != 4 || combat.completed_objectives != 0) {
+      throw std::runtime_error{"Warehouse aircraft failed to depart, retire at distance and return to the free list"};
+    }
+    player.pose().position = {21632,14584,2000};
+    combat.spawning.timers.fill(0);
+    combat.spawn_aircraft(player,city,bank,5000,8);
+    if(combat.actors.size() != 1 || combat.actors.front().index != identity) throw std::runtime_error{"Warehouse did not reuse the retired aircraft's native identity"};
+    std::cout << "Mission twenty warehouse: launch, protected take-off, ordinary AI, distance retirement and reuse verified." << std::endl;
   }
   // Mission two's aircraft are distant from HQ: word projection alone used to show phantom nearby ships.
   {

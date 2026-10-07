@@ -221,6 +221,7 @@ auto main(int const argc, char const *const argv[])->int {
   }};
   context.select_weapon = select_weapon;
   context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
+  context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
   context.change_beacons = change_beacons;
   context.activate_reserves = activate_reserves;
   if(caero) host.combat = combat.get();
@@ -256,6 +257,7 @@ auto main(int const argc, char const *const argv[])->int {
     view.gouraud = host.gouraud;
     darker::graphics::model_animation animation;
     animation.parameters[0] = std::bit_cast<std::int16_t>(host.hangar.extension);
+    if(caero && !host.player.tunnel) std::ranges::copy(combat->spawning.platforms,animation.parameters.begin()+1);
     darker::graphics::update_fountain_parameters(animation, clock);
     darker::graphics::draw_sky_ground(world, view.angles, view.origin, height);
     objects.clear();
@@ -602,8 +604,15 @@ auto main(int const argc, char const *const argv[])->int {
           initial_cells = cells;
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
           initial_actors = darker::game::make_scenario_group(mission.groups[0],bank,1,underground ? 2 : 0,mission.shared.offset,tunnels);
+          auto const spawning{combat->spawning};
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+          combat->spawning = spawning;
+          combat->spawning.enabled = true;
+          if(!underground) darker::game::prepare_delphi_aircraft_sites(combat->spawning,cells);
           combat->reserves = darker::game::make_scenario_group(mission.groups[1],bank,static_cast<uint8_t>(1 + mission.groups[0].objects.size()),underground ? 2 : 0,mission.shared.offset,tunnels);
+          combat->free_actors = darker::game::make_scenario_group(mission.groups[2],bank,
+            static_cast<uint8_t>(1 + mission.groups[0].objects.size() + mission.groups[1].objects.size()),
+            underground ? 2 : 0,mission.shared.offset,tunnels);
           combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
@@ -613,6 +622,7 @@ auto main(int const argc, char const *const argv[])->int {
           context.change_beacons = change_beacons;
           context.select_weapon = select_weapon;
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
+          context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
           beacon_changes = {};
           message.reset();
           game_clock = {};
@@ -634,6 +644,7 @@ auto main(int const argc, char const *const argv[])->int {
     darker::game::city_collision_result contact;
     bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
     if(step != 0) {
+      if(caero) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
         contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
           step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr);

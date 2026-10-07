@@ -158,6 +158,8 @@ configure_first_party(darker_graphics)
 add_library(darker_game STATIC
   src/game/city_persistence.cpp
   src/game/city_persistence.h
+  src/game/aircraft_spawning.cpp
+  src/game/aircraft_spawning.h
   src/game/actor_activation.cpp
   src/game/actor_activation.h
   src/game/actor_motion.cpp
@@ -233,6 +235,8 @@ add_library(darker_game STATIC
   src/game/caero_flight.cpp
   src/game/caero_flight.h
   src/game/caero_energy.h
+  src/game/object_deadline.cpp
+  src/game/object_deadline.h
   src/game/object_definition.cpp
   src/game/object_definition.h
   src/game/object_definitions.h

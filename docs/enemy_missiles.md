@@ -56,5 +56,5 @@ vertical marker and extent. All 1,564 real bank/type/state target lookups match
 native results. A separate 512-case native probe covers bomb admission,
 cooldown wrapping, exhausted allocation and forced pitch; allocation itself is
 intercepted and retains its existing independent verification. The controlled
-mission-twenty combat script now runs, but that mission remains gated pending
-warehouse aircraft spawning and the remaining coupled world behaviour.
+mission-twenty combat script now runs with warehouse spawning enabled. Mission
+twenty is connected; actor-to-actor missile dispatch remains outstanding.

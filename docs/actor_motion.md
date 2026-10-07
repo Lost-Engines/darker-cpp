@@ -61,15 +61,15 @@ Clearance follows the original order:
 PYTHONPATH=/tmp/darker-python python3 tools/generate_actor_target_reference.py ..
 ```
 
-The slot-23 close-target action, other weapon branches and complete scenario/world integration remain outstanding. These comparisons establish individual routine contracts, not an end-to-end native enemy simulation.
+The slot-23 close-target bomb drop is now connected; other weapon branches and complete scenario/world integration remain outstanding. These comparisons establish individual routine contracts, not an end-to-end native enemy simulation.
 
 ## Combined surface flight
 
 `advance_surface_actor` now composes awareness, target selection, object/city
 courses, neighbour clearance, manoeuvre selection, steering and displacement in
 native callback order. It returns a firing-check request; weapon allocation and
-hit processing remain separate. Slot 23's special close-target action is rejected
-until that callback is connected.
+hit processing remain separate. Slot 23's close-target action now requests the
+original building-directed bomb drop before obstacle avoidance.
 
 The application constructs the first mission's two slot-19 aircraft from
 `04_000 / 0`, preserving source identities and reverse active-list order. They

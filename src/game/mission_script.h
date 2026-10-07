@@ -50,6 +50,7 @@ struct mission_context {
   std::function<void(uint8_t)> select_weapon{};
   std::function<void(uint8_t)> set_building_attacks{};
   std::function<bool()> retire_distant_actor{};
+  std::function<void(uint8_t)> set_aircraft_spawning{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

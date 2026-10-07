@@ -52,7 +52,7 @@ struct scenario_actor {
   std::uint8_t definition_slot{0};
   std::uint8_t flags{0};
   std::uint8_t attributes{0};
-  std::uint8_t lifecycle{255};
+  std::uint8_t fade{255};
 };
 
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,

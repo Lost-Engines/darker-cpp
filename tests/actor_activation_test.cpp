@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include "game/actor_activation.h"
+#include "game/aircraft_spawning.h"
+#include "reference/aircraft_spawning_samples.h"
 #include "reference/actor_activation_samples.h"
 
 TEST_CASE("Air reserve placement matches the native player and neighbour scans", "[actors]") {
@@ -44,4 +46,22 @@ TEST_CASE("Reserve activation preserves category heads and reverses each admitte
   REQUIRE(reserves.size() == 2);
   CHECK(reserves[0].index == 3);
   CHECK(reserves[1].index == 6);
+}
+
+TEST_CASE("Warehouse preparation matches native cell variants and platform parameters") {
+  /// Occupied warehouses reserve model parameter slots one through eight without altering spawn timers
+  for(auto const &v : darker::test_reference::aircraft_site_samples) {
+    darker::game::city_map cells{};
+    darker::game::aircraft_spawning state;
+    for(size_t i{0}; i < darker::game::delphi_aircraft_sites.size(); ++i) {
+      auto const site{darker::game::delphi_aircraft_sites[i]};
+      cells[(site >> 8)*128 + (site & 127)].state = static_cast<uint8_t>(v[i]);
+    }
+    darker::game::prepare_delphi_aircraft_sites(state,cells);
+    for(size_t i{0}; i < darker::game::delphi_aircraft_sites.size(); ++i) {
+      auto const site{darker::game::delphi_aircraft_sites[i]};
+      CHECK(cells[(site >> 8)*128 + (site & 127)].state == v[i+8]);
+      CHECK(state.platforms[i] == v[i+16]);
+    }
+  }
 }

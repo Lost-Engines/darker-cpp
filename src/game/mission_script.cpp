@@ -181,6 +181,13 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         context.select_weapon(selection);
       }
       break;
+    case 0x31:
+      {
+        auto const setting{byte()};
+        if(!context.set_aircraft_spawning) throw std::runtime_error{"Mission aircraft spawning setting has no world consumer"};
+        context.set_aircraft_spawning(setting);
+      }
+      break;
     case 0x32:
       {
         auto const setting{byte()};

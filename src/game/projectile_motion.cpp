@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <bit>
 #include "game/flight_motion.h"
+#include "game/object_deadline.h"
 
 namespace darker::game {
 namespace {
@@ -24,25 +25,8 @@ void advance_direct_projectile(object_pose &state, object_definition const &defi
 }
 
 bool update_projectile_deadline(projectile &record, std::uint16_t const clock) {
-  /// 79E5–7A18 update timed flags/fade, stopping before expiry's world and mission effects
-  auto mode{static_cast<std::uint8_t>(record.flags & 0x60)};
-  if(mode == 0) return false;
-  auto const delta{static_cast<std::uint16_t>(record.deadline - clock)};
-  if((delta & 0x8000) != 0) {
-    record.flags ^= mode;
-    if((mode & 0x20) != 0) return true;
-    record.fade = 255;
-    return false;
-  }
-  std::uint8_t fade{255};
-  if(delta < 256) fade = static_cast<std::uint8_t>(delta);
-  else if(std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(record.placement.position[2] >> 8)) >= 0x50) {
-    record.flags |= 0x20;
-    mode = 0x20;
-    record.deadline = static_cast<std::uint16_t>(clock + 255);
-  }
-  record.fade = (mode & 0x20) != 0 ? fade : static_cast<std::uint8_t>(~fade);
-  return false;
+  /// Projectiles share the native object walker's fade and removal deadline rules
+  return advance_object_deadline(record.flags,record.deadline,record.fade,record.placement.position[2],clock);
 }
 
 } // namespace darker::game

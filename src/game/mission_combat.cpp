@@ -1,12 +1,12 @@
 #include "game/mission_combat.h"
 #include <algorithm>
-#include <bit>
 #include <stdexcept>
 #include <utility>
 #include "game/actor_activation.h"
 #include "game/actor_update.h"
 #include "game/caero_weapons.h"
 #include "game/effect_tables.h"
+#include "game/object_deadline.h"
 #include "game/object_definitions.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
@@ -50,6 +50,11 @@ mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std
   std::stable_sort(actors.begin(),actors.end(),[](auto const &a, auto const &b){ return a.category < b.category; });
 }
 
+void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t const clock, uint16_t const frame_step) {
+  /// 3E02 visits occupied warehouses before the player and other moving-object callbacks
+  if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
+}
+
 void mission_combat::update_difficulty(uint32_t const clock) noexcept {
   /// 3DB1–3DCB increase the scenario's firing pressure after four clock wraps, saturating after eight
   auto const wraps{static_cast<uint8_t>(clock >> 16)};
@@ -74,10 +79,16 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto const player_definition{player.tunnel ? 28u : 25u};
   auto const damage_mask{static_cast<uint8_t>(player.tunnel ? 0x60 : 0x20)};
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
-  std::erase_if(actors, [&](auto const &actor){
-    bool const expired{(actor.flags & 0x60) && std::bit_cast<int16_t>(static_cast<uint16_t>(actor.expiry - clock)) < 0};
-    if(expired && (actor.attributes & 1)) ++completed_objectives;
-    return expired;
+  std::erase_if(actors, [&](auto &actor){
+    if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;
+    if(actor.attributes & 1) ++completed_objectives;
+    auto const lifetime{static_cast<uint8_t>(actor.attributes & 0xfe)};
+    actor.flags |= 0x20;
+    if(lifetime && actor.category == actor_category::air) {
+      actor.attributes = lifetime < 0xfe ? static_cast<uint8_t>(lifetime - 2) : lifetime;
+      free_actors.insert(free_actors.begin(),actor);
+    }
+    return true;
   });
   for(auto &actor : actors) {
     if(actor.parameters.update_entry == 0x6ed3) continue;
@@ -109,6 +120,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       advance_mission_script(actor.script,context);
     }
     if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);
+    else if(callback == 0x8ddd) advance_aircraft_departure(actor,clock,frame_step);
     else if(callback == 0x8609) {
       if(!network) throw std::logic_error{"Underground actor update requires its route network"};
       advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
@@ -166,7 +178,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot = shot->next;
   }
   for(auto &actor : actors) {
-    if((actor.flags & 8) || actor.parameters.update_entry == 0x8f3b) continue;
+    if((actor.flags & 0x18) || actor.parameters.update_entry == 0x8f3b) continue;
     auto const contact{sweep_city(bank, cells, damage_mask, actor.previous_position, actor.pose.position, 12, 10)};
     if(contact.contact != city_contact::none) {
       effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);
