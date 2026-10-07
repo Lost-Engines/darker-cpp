@@ -17,6 +17,17 @@ struct tunnel_segment {
   uint8_t heading{0};
 };
 
+struct tunnel_junction {
+  uint8_t flags{0};
+  std::array<tunnel_segment,3> edges{};
+};
+
+struct tunnel_boundary {
+  uint16_t cell{0};
+  uint8_t perimeter{0};
+  uint8_t height{0};
+};
+
 struct tunnel_connection {
   uint16_t cell{0};
   uint8_t route{0};
@@ -43,6 +54,8 @@ public:
   explicit tunnel_network(std::span<std::byte const> source);
   std::span<std::byte const> prepared_bytes() const noexcept;
   tunnel_segment segment(uint8_t type, uint8_t route) const;
+  tunnel_junction junction(uint8_t type) const;
+  tunnel_boundary crossing(uint8_t type, tunnel_connection source) const;
   std::array<uint16_t,3> point(uint8_t type, uint8_t route, uint16_t cell, uint16_t distance) const;
   uint8_t direction(uint8_t type, uint8_t route, uint16_t heading) const;
   tunnel_start start(uint8_t type, uint16_t cell, uint16_t encoded_heading) const;

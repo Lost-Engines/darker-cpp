@@ -10,12 +10,15 @@
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
+#include "game/tunnel_navigation.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "reference/tunnel_actor_samples.h"
 #include "reference/tunnel_connection_samples.h"
+#include "reference/tunnel_navigation_samples.h"
 #include "reference/tunnel_placement_samples.h"
 #include "reference/tunnel_trace_samples.h"
 
@@ -288,6 +291,56 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + "/" + std::to_string(result->target[0]) + "/" + std::to_string(result->target[1]) + "/" + std::to_string(result->target[2]) : "none")};
       }
     }
+    for(auto const &sample : darker::test_reference::tunnel_navigation_samples) {
+      auto &map{maps.at(sample[0] - 70)};
+      if(!map) map = darker::game::make_city_map(archives.load({0,sample[0]}),false);
+      darker::game::scenario_actor actor;
+      actor.current_cell = sample[1];
+      actor.target_token = sample[3];
+      actor.pose.angles[0] = sample[4];
+      actor.tunnel = darker::game::tunnel_actor_state{.route{static_cast<uint8_t>(sample[2])},
+        .progress{sample[6]},.oscillation{static_cast<uint8_t>(sample[5])}};
+      auto const preferred{darker::game::choose_tunnel_heading(actor,*map,network)};
+      if(actor.current_cell != sample[7] || actor.tunnel->route != sample[8] || actor.tunnel->oscillation != sample[9]
+        || actor.tunnel->progress != sample[10] || preferred != sample[11]) {
+        throw std::runtime_error{"Underground heading choice differs from native: map=" + std::to_string(sample[0])
+          + ", cell=" + std::to_string(sample[1]) + ", route=" + std::to_string(sample[2]) + ", target=" + std::to_string(sample[3])
+          + ", expected=" + std::to_string(sample[7]) + "/" + std::to_string(sample[8]) + "/" + std::to_string(sample[9])
+          + "/" + std::to_string(sample[10]) + "/" + std::to_string(sample[11])
+          + ", actual=" + std::to_string(actor.current_cell) + "/" + std::to_string(actor.tunnel->route) + "/" + std::to_string(actor.tunnel->oscillation)
+          + "/" + std::to_string(actor.tunnel->progress) + "/" + std::to_string(preferred)};
+      }
+    }
+    auto const &underground_record{campaign.scenario(17).records()[0]};
+    auto actors{darker::game::make_scenario_group(underground_record.groups[0],underground_bank,1,2,
+      underground_record.shared.offset,darker::game::tunnel_setup{network,*maps[0]})};
+    std::erase_if(actors,[](auto const &actor){ return actor.category != darker::game::actor_category::air; });
+    if(actors.size() != 3) throw std::runtime_error{"First tunnel motion fixture requires its three initial aircraft"};
+    std::array<uint16_t,3> starts{actors[2].current_cell,actors[1].current_cell,actors[0].current_cell};
+    darker::game::object_pose player{.position{13952,14464,512}};
+    size_t sample_index{0};
+    for(unsigned int frame{0}; frame < 512; ++frame) {
+      if(frame == 128) for(auto &actor : actors) actor.target_token = starts[actor.index % 3];
+      if(frame >= 256) {
+        player.position = actors.back().pose.position;
+        player.position[0] += 100;
+      }
+      for(auto &actor : actors) {
+        darker::game::advance_tunnel_actor(actor,player,actors,*maps[0],network,8);
+        std::array<uint16_t,19> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+          actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,actor.attitude.pitch_rate,actor.attitude.bank_rate,
+          actor.awareness.level,actor.awareness.cooldown,actor.current_cell,actor.target_token,actor.tunnel->progress,
+          actor.tunnel->route,actor.tunnel->oscillation,actor.pose.fractions[0],actor.pose.fractions[1],actor.pose.fractions[2]};
+        auto const &expected{darker::test_reference::tunnel_actor_samples[sample_index++]};
+        for(size_t field{0}; field < actual.size(); ++field) if(actual[field] != expected[field]) {
+          throw std::runtime_error{"Underground motion differs from native: frame=" + std::to_string(frame)
+            + ", actor=" + std::to_string(actor.index) + ", field=" + std::to_string(field)
+            + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(expected[field])};
+        }
+      }
+    }
+    std::cout << "All 1536 underground actor updates match native steering, route traversal and nearby-aircraft responses." << std::endl;
+    std::cout << "All 2528 underground heading/junction decisions match native execution." << std::endl;
     std::cout << "All 1264 tunnel projection/lookahead targets match native route crossings." << std::endl;
     std::cout << "All 1264 tunnel connection choices match native endpoint, height and heading selection." << std::endl;
     std::cout << "All 158 underground moving-object placements match native route snapping and direction selection." << std::endl;

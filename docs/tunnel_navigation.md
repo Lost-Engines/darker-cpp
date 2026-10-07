@@ -27,8 +27,7 @@ Evidence:
   and the appropriate original map. This replaces the earlier analysis harness
   that substituted the underground placement helper.
 
-Underground steering and the player's D510 flight callback remain separate work. Correct placement does not yet establish a playable
-underground mission.
+The player’s D510 flight callback and campaign integration remain separate work. Correct actor movement does not yet establish a playable underground mission.
 
 ## Connections and lookahead
 
@@ -49,3 +48,22 @@ preferences, slightly displaced positions and targets spanning multiple cells.
 The special junction addressing was caught by the lookahead comparisons: correct
 connection flags alone did not establish that the subsequent segment was read
 from the correct offset.
+
+## Aircraft steering and motion
+
+`game/tunnel_navigation` reproduces 860D–874D junction preferences, target-cell
+selection, wandering and door-route changes. The original-pack check compares
+2,528 native choices, including the retained route, progress and oscillation state.
+
+The rest of callback 8609 combines awareness, route lookahead, direct heading and
+pitch steering, nearby-player height adjustment, aircraft avoidance and fixed-point
+movement. The avoidance callback can raise the *other aircraft’s* awareness, so
+list order is retained. This underground callback does not itself fire weapons.
+
+A further 1,536 native actor updates follow the three aircraft in the first tunnel
+for 512 frames, change destinations, and bring the player close to exercise vertical
+avoidance. Every position, angle, fractional coordinate, speed, angular rate,
+awareness/cooldown and route-state field matches. Only script execution is stubbed
+in that fixture; navigation, awareness, neighbour traversal and motion execute the
+original instructions. The surrounding mission script/collision pipeline still
+needs integration.

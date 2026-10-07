@@ -22,6 +22,7 @@ enum class actor_category { air, ground, stationary };
 struct tunnel_actor_state {
   uint8_t route{0};
   uint16_t progress{0};
+  uint8_t oscillation{0};
 };
 
 struct tunnel_setup {
