@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
-#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -13,6 +12,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
@@ -48,6 +48,12 @@
 #include "resources/save_file.h"
 
 namespace {
+
+int startup_failure(std::string_view const message) {
+  /// Report expected launch failures without converting runtime programming errors into normal exits
+  std::cerr << "ERROR: " << message << std::endl;
+  return EXIT_FAILURE;
+}
 
 enum class session_exit { none, menu, death, completed };
 
@@ -94,7 +100,7 @@ struct flight_host {
 
 } // namespace
 
-auto main(int const argc, char const *const argv[])->int try {
+auto main(int const argc, char const *const argv[])->int {
   /// Run the reconstructed city flight path while scenario, actors and remaining presentation systems are recovered
   namespace po = boost::program_options;
   po::options_description options{"Darker (current flight reconstruction milestone)"};
@@ -107,25 +113,35 @@ auto main(int const argc, char const *const argv[])->int try {
     ("seconds", po::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
     ("output", po::value<std::string>(), "write RGB PPM without opening a window");
   po::variables_map arguments;
-  po::store(po::parse_command_line(argc, argv, options), arguments);
-  if(arguments.contains("help")) {
-    std::cout << options << std::endl;
-    return EXIT_SUCCESS;
+  try {
+    po::store(po::parse_command_line(argc, argv, options), arguments);
+    if(arguments.contains("help")) {
+      std::cout << options << std::endl;
+      return EXIT_SUCCESS;
+    }
+    po::notify(arguments);
+  } catch(po::error const &error) {
+    return startup_failure(error.what());
   }
-  po::notify(arguments);
   auto const scale{arguments["scale"].as<int>()};
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
   constexpr int display_height{framework::render::cockpit_framebuffer::height};
   if(scale < 1 || scale > std::numeric_limits<int>::max() / std::max(display_width,display_height)) {
-    throw std::invalid_argument{"--scale must be a positive integer whose window dimensions fit in an int"};
+    return startup_failure("--scale must be a positive integer whose window dimensions fit in an int");
   }
   auto const name{arguments["craft"].as<std::string>()};
-  if(name != "caero" && name != "skimma" && name != "upgraded") throw std::invalid_argument{"unknown --craft"};
+  if(name != "caero" && name != "skimma" && name != "upgraded") return startup_failure("unknown --craft");
   auto const type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
   bool const caero{type == darker::graphics::craft::caero};
   auto const seconds{arguments["seconds"].as<double>()};
-  if(!std::isfinite(seconds) || seconds < 0) throw std::invalid_argument{"--seconds must be finite and non-negative"};
-  darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
+  if(!std::isfinite(seconds) || seconds < 0) return startup_failure("--seconds must be finite and non-negative");
+  std::optional<darker::resources::archive_set> loaded_archives;
+  try {
+    loaded_archives.emplace(arguments["data-dir"].as<std::string>());
+  } catch(std::runtime_error const &error) {
+    return startup_failure(error.what());
+  }
+  auto const &archives{*loaded_archives};
   unsigned int const slot{caero ? 16u : type == darker::graphics::craft::skimma ? 17u : 18u};
   auto const bitmap{darker::graphics::decode_bitmap(archives.load({.archive{0}, .slot{slot}}))};
   auto const cache{darker::graphics::make_cockpit_cache(bitmap.image)};
@@ -152,7 +168,13 @@ auto main(int const argc, char const *const argv[])->int try {
   std::unique_ptr<darker::presentation::front_end> front;
   std::filesystem::path const save_path{"darker-cpp.sav"};
   darker::resources::save_file saves;
-  if(caero && std::filesystem::exists(save_path)) saves = darker::resources::decode_save(darker::resources::read_binary_file(save_path,darker::resources::save_file_size));
+  try {
+    if(caero && std::filesystem::exists(save_path)) saves = darker::resources::decode_save(darker::resources::read_binary_file(save_path,darker::resources::save_file_size));
+  } catch(std::runtime_error const &error) {
+    return startup_failure(error.what());
+  } catch(std::invalid_argument const &error) {
+    return startup_failure(error.what());
+  }
   if(caero) {
     front = std::make_unique<darker::presentation::front_end>(archives,font,scenario,saves);
     host.front = front.get();
@@ -277,14 +299,14 @@ auto main(int const argc, char const *const argv[])->int try {
   glfwSetErrorCallback([](int const code, char const *const message){
     std::cerr << "ERROR: GLFW " << code << ": " << message << std::endl;
   });
-  if(!glfwInit()) throw std::runtime_error{"GLFW initialisation failed"};
+  if(!glfwInit()) return startup_failure("GLFW initialisation failed");
   boost::scope::scope_exit terminate_glfw{[]{ glfwTerminate(); }};
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> const window{
     glfwCreateWindow(display_width * scale, display_height * scale, "Darker", nullptr, nullptr), glfwDestroyWindow,
   };
-  if(!window) throw std::runtime_error{"cannot create the GLFW window"};
+  if(!window) return startup_failure("cannot create the GLFW window");
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
   glfwSetInputMode(window.get(), GLFW_CURSOR, caero ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
@@ -394,18 +416,17 @@ auto main(int const argc, char const *const argv[])->int try {
     if(viewport.width > 0 && viewport.height > 0) host.front->click(static_cast<int>((x - viewport.x) * 320 / viewport.width),static_cast<int>((y - viewport.y) * 240 / viewport.height));
   });
   std::unique_ptr<framework::platform::audio_output> audio_device;
-  bool music_error_reported{false};
   if(!arguments.contains("mute")) {
+    if(caero) {
+      std::array<std::vector<std::byte>,6> songs;
+      for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + group * 5});
+      audio.configure_music(archives.load({0,33}),std::move(songs));
+    }
     try {
-      if(caero) {
-        std::array<std::vector<std::byte>,6> songs;
-        for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + group * 5});
-        audio.configure_music(archives.load({0,33}),std::move(songs));
-      }
       audio_device = std::make_unique<framework::platform::audio_output>([](void *const data, std::span<float> const output) noexcept {
         static_cast<darker::audio::fm_stream *>(data)->render(output);
       }, &audio);
-    } catch(std::exception const &error) {
+    } catch(std::runtime_error const &error) {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
@@ -561,10 +582,6 @@ auto main(int const argc, char const *const argv[])->int try {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
       audio.select_music(front ? front->music_group() : -1);
-      if(audio.music_failed() && !music_error_reported) {
-        std::cerr << "WARNING: music sequence playback failed; continuing with flight effects." << std::endl;
-        music_error_reported = true;
-      }
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
     }
     auto const status{host.briefing ? " - menu / presentation"
@@ -575,7 +592,4 @@ auto main(int const argc, char const *const argv[])->int try {
     presenter.present(output);
   }
   return EXIT_SUCCESS;
-} catch(std::exception const &error) {
-  std::cerr << "ERROR: " << error.what() << std::endl;
-  return EXIT_FAILURE;
 }

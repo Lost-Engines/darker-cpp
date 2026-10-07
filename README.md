@@ -28,6 +28,8 @@ Use `--scale N` to set the initial window size to an integer multiple of the 320
 
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.
 
+Unexpected runtime exceptions are deliberately uncaught, including failures inside the `noexcept` PCM callback. They terminate the process for debugging instead of becoming a normal error exit or silent audio. Expected startup failures retain short diagnostics. To stop at the original throw site, launch with `gdb --args ./build/darker --data-dir ../darker`, then use `catch throw` and `run`.
+
 ## Current milestone
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation. City visibility now also follows the original 256-cell coordinate wrap, including scenery approaching across either seam.

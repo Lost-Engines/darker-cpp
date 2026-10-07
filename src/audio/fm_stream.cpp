@@ -19,7 +19,6 @@ struct fm_stream::implementation {
   std::unique_ptr<sound_images> music;
   std::array<std::vector<std::byte>,6> songs;
   std::atomic<int> requested{-1};
-  std::atomic<bool> failed{false};
   int playing{-1};
   uint64_t phase{0}, period;
   fm_sink sink;
@@ -68,20 +67,15 @@ void fm_stream::select_music(int const group) noexcept {
   state->requested.store(group >= 0 && group < 6 ? group : -1,std::memory_order_relaxed);
 }
 
-bool fm_stream::music_failed() const noexcept {
-  /// Report a malformed sequence outside the audio callback without logging or allocating there
-  return state->failed.load(std::memory_order_relaxed);
-}
-
 bool fm_stream::publish(fm_frame const &frame) noexcept {
   /// The simulation is the sole producer; immutable snapshots cross into the audio callback
   for(auto const &note : frame) if(note.patch >= 39) return false;
   return state->frames.push(frame);
 }
 
-void fm_stream::render(std::span<float> const stereo) noexcept try {
-  /// Render music at its native interrupt cadence or consume procedural effect snapshots on the same OPL chip
-  int const requested{state->failed.load(std::memory_order_relaxed) ? -1 : state->requested.load(std::memory_order_relaxed)};
+void fm_stream::render(std::span<float> const stereo) noexcept {
+  /// Render music or effects on the same OPL chip; unexpected failures terminate at the noexcept device boundary
+  int const requested{state->requested.load(std::memory_order_relaxed)};
   if(requested != state->playing) {
     if(requested < 0) {
       if(state->music) state->music->stop(state->sink);
@@ -108,11 +102,6 @@ void fm_stream::render(std::span<float> const stereo) noexcept try {
   } else {
     state->synth.render(stereo);
   }
-} catch(...) {
-  state->failed.store(true,std::memory_order_relaxed);
-  state->silence();
-  state->playing = -1;
-  std::ranges::fill(stereo,0.0f);
 }
 
 } // namespace darker::audio

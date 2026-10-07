@@ -61,7 +61,7 @@ void check_music(darker::resources::archive_set const &archives) {
       }
       offset += frames;
     }
-    if(stream.music_failed() || energy < 1) throw std::runtime_error{"Music stream is silent or failed"};
+    if(energy < 1) throw std::runtime_error{"Music stream is silent"};
     stream.select_music(-1);
     stream.render(pcm);
     return hash;
