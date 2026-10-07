@@ -299,7 +299,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   secondary_ready = false;
-  if(secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 9 || secondary_weapon == 10) {
+  if(secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 8 || secondary_weapon == 9 || secondary_weapon == 10) {
     auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.held{secondary_held},.model{bank.special_models()[secondary_weapon - 1]},
       .clock{clock},.frame_step{frame_step},.target{target.token},.underground{player.tunnel.has_value()}})};
@@ -380,7 +380,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition == &original_object_definitions[0]
         ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
-      auto const reaction{hit_actor(*victim, *strength, clock, random_state,player.tunnel.has_value())};
+      auto const damage{shot->parameters.definition == &original_object_definitions[7]
+        ? caero_weapon_strength(cells,impact,static_cast<uint16_t>(0xd986 + victim->index*112)) : *strength};
+      auto const reaction{hit_actor(*victim,damage,clock,random_state,player.tunnel.has_value())};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);

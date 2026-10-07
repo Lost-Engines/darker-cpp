@@ -1,8 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include "game/caero_energy.h"
+#include "game/city_map.h"
 #include "game/projectile_pool.h"
 
 namespace darker::game {
@@ -36,6 +38,8 @@ struct diffuser_state {
 
   diffuser_impact hit(bool gas, uint8_t category, uint8_t state, uint16_t target, uint16_t clock) noexcept;
 };
+
+uint8_t caero_weapon_strength(city_map const &cells, std::array<uint16_t,3> position, uint16_t victim);
 
 uint8_t pinner_direct_strength(bool underground) noexcept;
 

@@ -213,7 +213,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; bool aircraft_trails{true}; };
-  constexpr std::array<combat_case,56> cases{{
+  constexpr std::array<combat_case,61> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -240,6 +240,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {72,14,"Good job, Tolly. Return to base.",false,9},
     {78,3,"Return to base, Tolly.",false,9}, {79,10,"Well done- you can return to base.",false,9},
     {83,6,"Tolly: get back to base.",false,9}, {84,4,"Return to Hemmersan.",false,9}, {85,15,"and clear the network of enemy craft.",false,9},
+    {88,28,"Mission accomplished. Return to base.",false,8}, {89,23,"Return to Hemmersan, Tolly.",false,9}, {90,34,"Good job, Tolly. Return to base.",false,9},
+    {95,7,"Tolly; we need you back at Hemmersan.",false,9}, {97,17,"we've important news from Intelligence.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -329,7 +331,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
       beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(weapon == 10 && fire) || (weapon == 9 && clock % 2048 == 8),weapon == 9 && clock % 2048 != 0);
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,((weapon == 8 || weapon == 10) && fire) || (weapon == 9 && clock % 2048 == 8),weapon == 9 && clock % 2048 != 0);
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -375,9 +377,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
   struct transfer_case { uint8_t stage; uint16_t origin, destination; size_t actors, messages; };
-  for(auto const test : std::array<transfer_case,9>{{
+  for(auto const test : std::array<transfer_case,11>{{
     {16,0x7162,0x3064,4,0},{18,0x3064,0x7162,4,2},{23,0x7162,0x4c64,0,0},
-    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},{56,0x0d88,0x7162,8,4},{66,0x7162,0x4d62,8,0},{68,0x4d62,0x7162,10,3},
+    {37,0x3060,0x7162,0,0},{45,0x7162,0x0c84,7,0},{47,0x0c84,0x7162,4,0},{56,0x0d88,0x7162,8,4},{66,0x7162,0x4d62,8,0},{68,0x4d62,0x7162,10,3}, {91,0x7162,0x793e,5,0}, {93,0x793e,0x7162,3,0},
   }}) {
     auto const stage{test.stage};
     auto const &transfer{campaign.scenario(stage)};
@@ -828,7 +830,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,7>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23},{67,0x4362,24,36},{86,0x693a,10,18}}}) {
+    for(auto const test : std::array<tunnel_case,8>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23},{67,0x4362,24,36},{86,0x693a,10,18},{92,0x693e,29,41}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};

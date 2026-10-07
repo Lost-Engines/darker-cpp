@@ -24,11 +24,12 @@ void check_building_combat(darker::resources::archive_set const &archives) {
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   struct building_case { uint8_t stage; size_t count; char const *message; unsigned int removals{0}; };
-  for(auto const test : std::array<building_case,15>{{
+  for(auto const test : std::array<building_case,17>{{
     {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."}, {65,8,"Tolly; we need you back at Hemmersan.",14}, {69,8,"Return to Hemmersan.",3},
     {73,9,"Mission accomplished. Return to base."}, {74,5,"Return to base for a mission update."},
     {75,19,"Return to Hemmersan."}, {76,16,"Mission complete- come back to base."}, {77,43,"Return to Hemmersan, Tolly."}, {80,4,"Return to Hemmersan immediately."},
     {81,6,"all targets are clear.",13}, {82,4,"Mission accomplished. Return to base.",17}, {87,9,"Return to Hemmersan, Tolly."},
+    {94,5,"Return to base immediately.",2}, {96,9,"we advise you come back in."},
   }}) {
     auto const &scenario{campaign.scenario(test.stage)};
     auto const index{darker::resources::select_campaign_stage(test.stage).record};
@@ -79,7 +80,14 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     uint16_t previous_target{0xffff};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(targets,[&](auto const cell){ return !(cells[cell.row*128+cell.column].state & 0x20); })};
-      auto const actor_target{std::ranges::find_if(combat.actors,[&](auto const &actor){ return ((actor.attributes & 1) || (actor.category == darker::game::actor_category::air && test.stage >= 73)) && !(actor.flags & 0x20); })};
+      auto const actor_target{std::ranges::find_if(combat.actors,[&](auto const &actor){
+        if(actor.flags & 0x20) return false;
+        // Mission 94's parked fighters are sheltered until their warehouses are opened.
+        if(test.stage == 94 && target != targets.end() && actor.category == darker::game::actor_category::stationary) return false;
+        if(actor.attributes & 1) return true;
+        return actor.category == darker::game::actor_category::air && test.stage >= 73
+          && actor.index <= record.groups[0].objects.size()+record.groups[1].objects.size();
+      })};
       bool const attacking_actor{actor_target != combat.actors.end()};
       bool const warehouse{target != targets.end() && cells[target->row*128+target->column].type == 76};
       bool const ground_actor{attacking_actor && actor_target->category != darker::game::actor_category::air};
@@ -95,7 +103,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           static_cast<uint16_t>(actor_target->pose.position[1]+((cosine*200) >> 15)),static_cast<uint16_t>(actor_target->pose.position[2]+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))};
         player.pose().angles = {heading,0,0};
         player.pose().speed = 496;
-        if(ground_actor) {
+        if(ground_actor && actor_target->category == darker::game::actor_category::ground) {
           auto centre{actor_target->pose.position};
           centre[2] += bank.header_at(actor_target->parameters.model_token).extent/2;
           player.pose().position = {static_cast<uint16_t>(centre[0]+32),centre[1],static_cast<uint16_t>(centre[2]+2048)};

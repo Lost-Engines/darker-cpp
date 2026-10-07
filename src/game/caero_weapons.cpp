@@ -1,6 +1,7 @@
 #include "game/caero_weapons.h"
 #include <algorithm>
 #include <stdexcept>
+#include "game/beacon_light.h"
 #include "game/object_definitions.h"
 
 namespace darker::game {
@@ -19,6 +20,12 @@ diffuser_impact diffuser_state::hit(bool const gas, uint8_t const category, uint
   return diffuser_impact::destroyed;
 }
 
+uint8_t caero_weapon_strength(city_map const &cells, std::array<uint16_t,3> const position, uint16_t const victim) {
+  /// CF21 leaves the victim pointer in AX, so 8450 uses its nibbles as sub-coordinate fractions
+  auto const light{beacon_light(cells,position,{static_cast<uint8_t>(victim),static_cast<uint8_t>(victim >> 8)})};
+  return static_cast<uint8_t>((light >> 6) + 45);
+}
+
 uint8_t pinner_direct_strength(bool const underground) noexcept {
   /// BCBF patches definition zero from world profile BDEC: 34h in Delphi and 3Bh underground
   return underground ? 0x3b : 0x34;
@@ -34,7 +41,7 @@ std::optional<uint8_t> chargeable_impact_strength(uint16_t const deadline, uint1
 caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &energy, uint16_t &charge, caero_fire_request const request) {
   /// C9C2 gates shots; CA7D accumulates Chargeable energy while held and releases it as projectile lifetime
   auto const selection{request.selection};
-  if(selection != 1 && selection != 2 && selection != 3 && selection != 4 && selection != 5 && selection != 6 && selection != 7 && selection != 9 && selection != 10) throw std::invalid_argument{"Caero firing branch is not implemented"};
+  if(selection < 1 || selection > 10) throw std::invalid_argument{"Caero weapon selection is outside 1–10"};
   auto const &definition{original_object_definitions[selection - 1]};
   auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data[0]) * 256 + 255)};
   if((request.player_flags & 0x30) || !pool.objects().free) return {};
@@ -73,7 +80,7 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
       if(!(request.trigger_mask & 0x80)) return {.ready{true}};
       target = capsule->native_id;
     }
-    if(selection == 10 && !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {};
+    if((selection == 8 || selection == 10) && !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {};
     if(selection == 6 && (request.target & 0x8000)) return {};
     if(selection != 7 && !request.pressed) return {.ready{true}};
     energy.reserve -= cost;

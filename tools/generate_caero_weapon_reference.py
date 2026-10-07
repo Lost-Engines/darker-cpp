@@ -22,7 +22,7 @@ def main():
              for selection in (1,2)
              for energy in (0,6398,6399,6400,7422,7423,7424,53247,65535)
              for flags in (0,2,16,32,48) for trigger in (0,1) for free in (0,1)]
-    for selection in (1,2,6,10):
+    for selection in (1,2,6,8,10):
         for mode in (0,2):
             cost = 0x80ff if mode == 2 else image[0x190e+selection*24+10]*256+255
             cases.extend((selection, energy, flags, trigger, free, target, mode)

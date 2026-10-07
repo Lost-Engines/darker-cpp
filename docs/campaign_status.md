@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–87 (04/0 through the first seven records of 04/10), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground and Forbes Diffuser, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission eighty-seven saves stage eighty-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–97 (04/0 through the first record of 04/12), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground, Forbes Diffuser and the Caero Weapon, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission ninety-seven saves stage ninety-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -451,3 +451,30 @@ roof; this is a position-controlled integration test, not an automated
 navigation/playthrough claim. No health restoration or invulnerability is
 used. Uncounted aircraft defenders are included, and mission 84's controlled
 run also clears its defending aircraft before the final bombing targets.
+
+### Final Delphi missions, 88–97
+
+Key 8 and the Caero Weapon's beacon-powered hit are connected. Its impact
+calculation matches 2,048 native samples, including the original use of the
+victim token as coordinate fractions. Mission 88's controlled run uses it to
+complete 28 objectives. Later tests use Chargeable when low beacon output
+makes the Caero Weapon ineffective against a target's resistance.
+
+The remaining surface combat, transfer briefings, and eighth tunnel sortie
+are connected. Mission 92 admits 29 reserves, removes 41 objectives and
+returns through the original portal. Mission 94 verifies five building
+objectives plus two parked aircraft; mission 96 verifies nine buildings.
+All checks use the original messages and normal docking/portal completion.
+
+Objective totals are path-dependent. In the controlled mission-89 run,
+23 initial counted aircraft are removed before actor scripts admit another
+ten from reserve. Mission 97 admits its waves after seven and fourteen
+removals, delivers the withdrawal messages, then executes `33 9C` to subtract
+100 from the outstanding counter. The test reaches that deliberate early
+return after seventeen removals; it must not require destroying every
+remaining enemy. These counts describe controlled runs, not universal
+requirements for every playthrough.
+
+Stage 98 is a presentation-only transition into Halon. It and the connected
+Skimma campaign remain the next boundary; free-flight Skimma starts still do
+not constitute that campaign.

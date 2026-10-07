@@ -125,3 +125,23 @@ comparisons. A controlled mission-80 test uses real projectile flight and
 collision geometry to destroy three skylights with timed pairs, then the
 storage tank with Brent Ground, and verifies the return message and docking.
 It does not replace an interactive retail comparison of the gas appearance.
+
+## Caero Weapon
+
+Key 8 selects the final Caero secondary weapon, introduced in mission 88.
+CA55 uses the same negative-object-target gate as Brent Hunter. At object
+impact CF21 samples beacon light through 8450, shifts the returned word left
+two and adds 45 to its high byte. The resulting strength is a wrapped byte;
+it retains a baseline of 45 with no usable beacon power. It is an input to
+the ordinary resistance/damage calculation, not a direct hit-point deduction.
+
+CF21 leaves the victim's native object token in AX before calling 8450. That
+routine rotates AX and uses two nibbles as coordinate fractions. The
+reconstruction deliberately retains these token-derived fractions rather
+than substituting the projectile's or victim's fractional position.
+
+Native verification covers 2,048 impact samples with varying position,
+altitude, tower type/output and victim token. The shared firing fixture now
+also covers selection 8 at energy and target boundaries. Mission 88's
+controlled combat uses this weapon, with ordinary Pinner Direct for ground
+vehicles that cannot be selected by the air-target acquisition pass.

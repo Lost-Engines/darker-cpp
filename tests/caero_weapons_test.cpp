@@ -2,6 +2,7 @@
 #include "audio/flight_sounds.h"
 #include "game/caero_weapons.h"
 #include "game/object_definitions.h"
+#include "reference/caero_impact_samples.h"
 #include "reference/caero_weapon_samples.h"
 #include "reference/chargeable_samples.h"
 #include "reference/diffuser_samples.h"
@@ -117,5 +118,15 @@ TEST_CASE("Diffuser building impacts match native gas target and wrapped detonat
     CHECK(state.cell == sample[9]);
     CHECK(state.deadline == sample[10]);
     CHECK(state.sound_deadline == sample[11]);
+  }
+}
+
+TEST_CASE("Caero Weapon impact strength matches native beacon sampling", "[game][weapons]") {
+  /// Include off towers, intermediate strengths, altitude cutoffs and the victim-token fraction quirk
+  for(auto const &sample : darker::test_reference::caero_impact_samples) {
+    CAPTURE(sample);
+    darker::game::city_map cells{};
+    cells[36*128+36] = {static_cast<uint8_t>(sample[3]),static_cast<uint8_t>(sample[4])};
+    CHECK(darker::game::caero_weapon_strength(cells,{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]),static_cast<uint16_t>(sample[2])},static_cast<uint16_t>(sample[5])) == sample[6]);
   }
 }
