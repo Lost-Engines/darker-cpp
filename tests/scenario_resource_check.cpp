@@ -1,15 +1,20 @@
 #include "scenario_resource_check.h"
 #include <cstdint>
+#include <algorithm>
 #include <format>
 #include <iostream>
 #include <stdexcept>
 #include "reference/scenario_samples.h"
+#include "game/scenario_setup.h"
 #include "resources/archive_set.h"
 #include "resources/scenario.h"
 
 void check_scenario_resources(darker::resources::archive_set const &archives) {
   /// Compare all setup fields and exact multilingual bytes against the independently verified analysis export
-  std::size_t records{0}, placements{0}, native_blocks{0};
+  std::size_t records{0}, placements{0}, native_blocks{0}, constructed{0};
+  std::array<darker::resources::geometry_bank,3> const banks{darker::resources::geometry_bank{archives.load({0,30})},
+    darker::resources::geometry_bank{archives.load({0,31})},darker::resources::geometry_bank{archives.load({0,32})}};
+  darker::game::tunnel_network const network{archives.load({0,78})};
   for(unsigned int slot{0}; slot < 16; ++slot) {
     darker::resources::scenario_resource const resource{archives.load({.archive{4}, .slot{slot}})};
     for(std::size_t index{0}; index < resource.records().size(); ++index) {
@@ -37,6 +42,30 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
         bytes(language);
       }
       if(record.configuration != 255) {
+        auto const configuration{record.configuration & 15};
+        auto const &bank{banks[configuration == 4 ? 2 : configuration <= 1 ? 0 : 1]};
+        auto const cells{darker::game::make_city_map(archives.load({0,configuration == 4 ? static_cast<unsigned int>(70+(record.configuration >> 4)) : configuration <= 1 ? 68u : 69u}),configuration <= 1)};
+        darker::game::player_flight player;
+        if(configuration == 2 || configuration == 3) player.craft = darker::game::skimma_flight_state{};
+        player.pose().position = {0x4271,0x5163,3000};
+        darker::game::weapon_ammunition ammunition;
+        auto const actors{darker::game::make_scenario_actors(record,resource,bank,player,ammunition,0xff00,
+          configuration == 4 ? std::optional{darker::game::tunnel_setup{network,cells}} : std::nullopt)};
+        for(size_t group{0}; group < actors.size(); ++group) {
+          if(actors[group].size() != record.groups[group].objects.size()) throw std::runtime_error{"Scenario setup lost actor placements"};
+          constructed += actors[group].size();
+        }
+        if(slot == 12 && index == 4) {
+          for(auto const &actor : actors[0]) {
+            if((actor.pose.position[0] >> 8) != 0x42 || (actor.pose.position[1] >> 8) != 0x51)
+              throw std::runtime_error{"Embedded escort setup did not anchor subsequent actors to the player"};
+          }
+        }
+        if(slot == 15 && index == 0) {
+          auto const actor{std::ranges::find(actors[1],2,&darker::game::scenario_actor::index)};
+          if(actor == actors[1].end() || actor->parameters.model_token != bank.special_models()[25])
+            throw std::runtime_error{"Linked nightmare setup did not copy the player model"};
+        }
         range(record.beacon_sequence);
         bytes(record.beacon_sequence);
         add(record.objective_cell_list);
@@ -76,6 +105,6 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
       if(fingerprint != reference.fingerprint) throw std::runtime_error{std::format("Scenario resource {}, record {} differs from reference", slot, index)};
     }
   }
-  if(records != 124 || placements != 1857 || native_blocks != 7) throw std::runtime_error{"Scenario coverage differs from reference"};
+  if(records != 124 || placements != 1857 || constructed != 1857 || native_blocks != 7) throw std::runtime_error{"Scenario coverage differs from reference"};
   std::cout << "124 scenarios, 1,857 placements, seven native blocks and all three language sections match the independent export." << std::endl;
 }

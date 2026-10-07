@@ -190,6 +190,8 @@ add_library(darker_game STATIC
   src/game/tunnel_portal.h
   src/game/scenario_world.cpp
   src/game/scenario_world.h
+  src/game/scenario_setup.cpp
+  src/game/scenario_setup.h
   src/game/scenario_actor.cpp
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
@@ -356,6 +358,7 @@ if(BUILD_TESTING)
     tests/vehicle_route_test.cpp
     tests/actor_navigation_test.cpp
     tests/tunnel_network_test.cpp
+    tests/scenario_setup_test.cpp
     tests/scenario_actor_test.cpp
     tests/actor_awareness_test.cpp
     tests/objective_counter_test.cpp

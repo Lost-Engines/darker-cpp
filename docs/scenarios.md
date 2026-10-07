@@ -21,3 +21,25 @@ The generator records the analysis JSON and original executable hashes. It check
 The exit path now applies every queued beacon coordinate before successful city-state packing. Failed/abandoned attempts still discard their runtime map when restoring the saved city. This does not activate gradual outages at mission setup: the header queue remains untouched until an in-flight command consumes it or the mission exits.
 
 `beacon_changes` implements C510/C54C's single retained fade run. Opcodes 11–13 configure queue, row and column changes and wait six record intervals; opcode 14 reverses direction. Dimming clamps each source downward, restoration writes the intermediate value, and a run reaches its endpoint after 256 ticks before disabling itself. Native fixtures compare all map cells across 252 frames, including clock wrapping. The actual supplementary blackout record 04/15/7 also runs through the C++ interpreter: 224 towers extinguished, nine messages and the final change at tick 12512 match the native trace. Supplementary-script activation by later mission owners remains separate work.
+
+## Embedded setup in the runtime
+
+`game/scenario_setup` translates the seven recognised inline assembly blocks
+into named player and actor operations. The loader retains the original
+bytes; the runtime recognises the audited sequences and never executes
+resource-supplied machine code. Unknown sequences remain errors.
+
+Construction now preserves the player-dependent escort placements in
+04_012/4, the two clock-relative departure fields, model-height subtraction,
+and the cross-group player-model copy in 04_015/0. The latter affects an
+actor in the reserve group. Position caches that the original actor blocks
+leave untouched remain untouched here; player caches are derived from its
+live pose. The source resource itself is not modified.
+
+There are 224 original-code comparisons covering wrapping heights, clocks,
+retained actor state, energy, ammunition and approach parameters. The pack
+integration check now constructs all 1,857 placements across the 107 world
+records, including all seven blocks, with real model headers and tunnel
+routes. It separately checks the escort cell anchoring and reserve model
+copy. This establishes setup coverage, not completed gameplay for every
+mission. Halon startup, supply pads and endgame scheduling remain separate.

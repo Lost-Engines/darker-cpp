@@ -33,6 +33,7 @@
 #include "game/mission_exchange.h"
 #include "game/player_flight.h"
 #include "game/scenario_world.h"
+#include "game/scenario_setup.h"
 #include "game/tunnel_portal.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/city_scene.h"
@@ -641,19 +642,20 @@ auto main(int const argc, char const *const argv[])->int {
             host.hangar.return_site = entry->site;
             darker::game::initialise_tunnel_entry(host.player,entry->site,entry->heading,bank.header_at(bank.special_models()[28]).height);
           } else darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
+          std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
+          darker::game::weapon_ammunition first_weapon;
+          auto groups{darker::game::make_scenario_actors(mission,*scenario,bank,host.player,first_weapon,0,tunnels)};
+          initial_actors = std::move(groups[0]);
           initial_player = host.player;
           initial_cells = cells;
-          std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
-          initial_actors = darker::game::make_scenario_group(mission.groups[0],bank,1,underground ? 2 : 0,mission.shared.offset,tunnels);
           auto const spawning{combat->spawning};
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
           combat->spawning = spawning;
           combat->spawning.enabled = true;
           if(!underground) darker::game::prepare_delphi_aircraft_sites(combat->spawning,cells);
-          combat->reserves = darker::game::make_scenario_group(mission.groups[1],bank,static_cast<uint8_t>(1 + mission.groups[0].objects.size()),underground ? 2 : 0,mission.shared.offset,tunnels);
-          combat->free_actors = darker::game::make_scenario_group(mission.groups[2],bank,
-            static_cast<uint8_t>(1 + mission.groups[0].objects.size() + mission.groups[1].objects.size()),
-            underground ? 2 : 0,mission.shared.offset,tunnels);
+          combat->reserves = std::move(groups[1]);
+          combat->free_actors = std::move(groups[2]);
+          combat->skimma_weapons[0].ammunition = first_weapon;
           combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
