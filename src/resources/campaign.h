@@ -19,10 +19,12 @@ class campaign_resources {
 private:
   archive_set const &archives;
   std::array<std::optional<scenario_resource>,15> scenarios;
+  std::optional<scenario_resource> shared_scenarios;
 
 public:
   explicit campaign_resources(archive_set const &archives);
   scenario_resource const &scenario(uint8_t stage);
+  scenario_resource const &supplementary();
 };
 
 } // namespace darker::resources

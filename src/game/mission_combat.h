@@ -22,6 +22,7 @@ public:
   projectile_pool hostile_projectiles{projectile_list::hostile};
   effect_system effects;
   uint16_t random_state{0};
+  uint16_t script_owner{0};
   uint8_t primary_weapon{0};
   uint8_t secondary_weapon{0};
   uint8_t difficulty{2};

@@ -25,6 +25,7 @@ struct mission_message {
   std::uint8_t width{0};
   std::uint16_t expiry{0};
   message_alignment alignment{message_alignment::centre};
+  std::span<std::byte const> text{};
 };
 
 struct mission_context {
@@ -51,6 +52,8 @@ struct mission_context {
   std::function<void(uint8_t)> set_building_attacks{};
   std::function<bool()> retire_distant_actor{};
   std::function<void(uint8_t)> set_aircraft_spawning{};
+  std::function<uint16_t()> register_owner{};
+  std::function<void(mission_script &)> exchange_context{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

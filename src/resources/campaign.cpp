@@ -23,4 +23,10 @@ scenario_resource const &campaign_resources::scenario(uint8_t const stage) {
   return *resource;
 }
 
+scenario_resource const &campaign_resources::supplementary() {
+  /// BB3D retains archive 04/15 for blackout and supply-pad contexts independently of normal campaign stages
+  if(!shared_scenarios) shared_scenarios.emplace(archives.load({4,15}));
+  return *shared_scenarios;
+}
+
 } // namespace darker::resources

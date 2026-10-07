@@ -9,6 +9,7 @@
 #include "game/beacon_changes.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
+#include "game/mission_exchange.h"
 #include "game/object_definitions.h"
 #include "game/projectile_steering.h"
 #include "game/scenario_world.h"
@@ -119,7 +120,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; };
-  constexpr std::array<combat_case,21> cases{{
+  constexpr std::array<combat_case,22> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -129,6 +130,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {15,1,"Return to base immediately, Tolly."}, {19,3,"Return to Hemmersan."}, {20,5,"Return to Hemmersan."},
     {21,8,"all targets are clear."}, {22,7,"Return to Hemmersan."},
     {25,7,"Good job, Tolly. Return to base."}, {26,12,"Mission accomplished. Return to base."},
+    {27,6,"Return to base for a mission update."},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -850,6 +852,52 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Shared blackout differs from its native 224-tower, nine-message timeline"};
     }
     std::cout << "Shared blackout: 224 towers fade, nine messages and final change at tick 12512 match native execution." << std::endl;
+  }
+  {
+    // Supply the failed power-station state while retaining the original enemy script and its timed patrol instructions.
+    auto const &source{campaign.scenario(27)};
+    auto const &record{source.records()[2]};
+    auto city{darker::game::make_city_map(archives.load({0,68}),true)};
+    for(auto &cell : city) if(cell.type != 1) cell.state |= 0x20;
+    auto actors{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
+    uint16_t owner{0};
+    uint32_t clock{0};
+    for(clock = 16; clock < 250000 && !owner; clock += 16) {
+      for(auto &actor : actors) {
+        darker::game::mission_context context{.program{source.bytes(record.shared)},.cells{city},.clock{clock},.time_multiplier{record.time_multiplier}};
+        context.set_target = [&](uint16_t token, bool flagged){ actor.target_token = token; actor.flags = flagged ? 2 : 0; };
+        context.register_owner = [&]{ return std::exchange(owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
+        darker::game::advance_mission_script(actor.script,context);
+      }
+    }
+    if(!owner) throw std::runtime_error{"Destroyed power station never registered its blackout owner"};
+    clock -= 16;
+    auto const &supplementary{campaign.supplementary()};
+    auto const &blackout{supplementary.records()[7]};
+    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{supplementary.bytes(blackout.shared),
+      supplementary.language(7,darker::resources::scenario_language::english),blackout.entry_offset - blackout.shared.offset}}};
+    darker::game::mission_script script{.continuation{*record.player_program - record.shared.offset}};
+    darker::game::mission_context context{.program{source.bytes(record.shared)},.text{source.language(2,darker::resources::scenario_language::english)},
+      .cells{city},.clock{clock},.time_multiplier{record.time_multiplier}};
+    darker::game::beacon_changes fade;
+    context.change_beacons = [&](uint8_t op, uint8_t origin, uint8_t count){ fade.command(op,origin,count,static_cast<uint16_t>(context.clock),{}); };
+    exchange.exchange(script,context,std::nullopt);
+    if(!exchange.supplementary_active || context.text.data() != supplementary.language(7,darker::resources::scenario_language::english).data()
+      || script.deadline != static_cast<uint16_t>(clock) || exchange.alternate->continuation)
+      throw std::runtime_error{"Late-frame blackout entry did not install its original message/script context"};
+    unsigned int messages{0};
+    auto const entered{clock};
+    for(clock += 16; clock < entered + 40000; clock += 16) {
+      context.clock = clock;
+      fade.advance(city,static_cast<uint16_t>(clock));
+      context.messages.clear();
+      darker::game::advance_mission_script(script,context);
+      messages += static_cast<unsigned int>(context.messages.size());
+    }
+    auto const dark{std::ranges::count_if(city,[](auto cell){ return cell.type == 1 && cell.state == 0; })};
+    if(messages != 9 || dark != 224 || script.stopped || !exchange.supplementary_active)
+      throw std::runtime_error{"Power-station failure did not enter the persistent shared blackout sequence"};
+    std::cout << "Mission 27 power failure: actual enemy scripts register the owner, switch message context and extinguish 224 towers." << std::endl;
   }
   std::cout << "Fourth-mission flatbed traversed its original route and removed itself after 155,950 ticks at 50-tick sampling." << std::endl;
 

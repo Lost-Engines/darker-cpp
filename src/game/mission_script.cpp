@@ -110,7 +110,7 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         if(length > context.text.size() - context.text_cursor) throw std::invalid_argument{"Counted mission message exceeds its language section"};
         context.messages.push_back({.offset{context.text_cursor}, .length{length}, .width{width},
           .expiry{static_cast<std::uint16_t>(now + duration * context.time_multiplier)},
-          .alignment{static_cast<message_alignment>(opcode - 0x0c)}});
+          .alignment{static_cast<message_alignment>(opcode - 0x0c)}, .text{context.text}});
         context.text_cursor += length;
         delay(interval);
       }
@@ -166,6 +166,19 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       script.continuation = cursor;
       script.deadline = now;
       return dispatched;
+    case 0x24:
+      if(!context.register_owner) throw std::logic_error{"Mission owner registration has no world consumer"};
+      script.checkpoint = context.register_owner();
+      script.stopped = true;
+      script.continuation = cursor;
+      script.deadline = now;
+      return dispatched;
+    case 0x26:
+      if(!context.exchange_context) throw std::logic_error{"Mission context exchange has no saved context"};
+      script.continuation = cursor;
+      context.exchange_context(script);
+      cursor = script.continuation;
+      break;
     case 0x25:
       {
         auto const displacement{std::bit_cast<std::int8_t>(byte())};

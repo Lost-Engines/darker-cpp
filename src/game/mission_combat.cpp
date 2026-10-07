@@ -138,6 +138,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
         }},
         .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
+      context.register_owner = [&]{ return std::exchange(script_owner,static_cast<uint16_t>(0xd986 + actor.index*112)); };
       advance_mission_script(actor.script,context);
     }
     if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);

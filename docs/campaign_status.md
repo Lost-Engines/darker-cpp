@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–26 (04/0 through 04/2 and the first two records of 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-six saves stage twenty-seven and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–27 (04/0 through 04/2 and the first three records of 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-seven saves stage twenty-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 172 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five and twenty-six with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 174 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through twenty-seven with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all twenty-six supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all twenty-seven supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all twenty-six supported briefings and flight entries, including both
+covers all twenty-seven supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -154,3 +154,26 @@ The real-window Level X traversal covers stages 1–26 and verifies that the
 Administration return site and Hunter unlock survive the second tunnel, then
 mission 25 selects Hemmersan as its return destination. Controlled aiming/energy and Level X checks
 remain distinct from an uncontrolled gameplay comparison.
+
+## Power-station failure and supplementary contexts
+
+Mission 27 connects the first owner-registered blackout path. Its enemy patrol
+scripts can register opcode 24 after the generator-state waits. The late frame
+gate then installs shared record 04/15/7, including its separate language cursor.
+The blackout continues indefinitely after its nine messages and tower fades;
+it does not return to the interrupted player script. Successful combat still
+finishes the ordinary mission and docks.
+
+The normal controlled combat check removes six counted attackers. A separate
+failure check supplies destroyed generator states, executes the original enemy
+patrol scripts and waits, enters the supplementary context, and verifies nine
+messages and 224 extinguished towers. Aircraft movement and the actual attacks
+causing those supplied generator states are outside that failure fixture.
+Native comparisons additionally cover twelve owner registrations and four
+consecutive context exchanges, including a displayed message surviving return
+to the other text stream. See [mission execution](mission_execution.md).
+
+Mission 28 next needs its explicit objective-count adjustment: that script can
+allow withdrawal while some counted aircraft remain. A derived count of live
+actors cannot reproduce that operation. Mission 30 introduces Chargeable and
+will require its held/released trigger, changing power and impact path.

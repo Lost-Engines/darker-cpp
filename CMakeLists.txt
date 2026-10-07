@@ -199,6 +199,8 @@ add_library(darker_game STATIC
   src/game/effect_tables.h
   src/game/mission_combat.cpp
   src/game/mission_combat.h
+  src/game/mission_exchange.cpp
+  src/game/mission_exchange.h
   src/game/mission_script.cpp
   src/game/mission_script.h
   src/game/hangar.cpp
@@ -347,6 +349,7 @@ if(BUILD_TESTING)
     tests/tunnel_network_test.cpp
     tests/scenario_actor_test.cpp
     tests/actor_awareness_test.cpp
+    tests/mission_exchange_test.cpp
     tests/mission_script_test.cpp
     tests/hangar_test.cpp
     tests/font_test.cpp

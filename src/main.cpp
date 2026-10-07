@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
@@ -29,6 +30,7 @@
 #include "game/game_clock.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
+#include "game/mission_exchange.h"
 #include "game/player_flight.h"
 #include "game/scenario_world.h"
 #include "game/tunnel_portal.h"
@@ -197,6 +199,7 @@ auto main(int const argc, char const *const argv[])->int {
     .continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset},
   };
   auto script{initial_script};
+  darker::game::mission_exchange exchange;
   darker::game::mission_context context{.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{0}};
   std::optional<darker::game::mission_message> message;
   host.briefing = caero;
@@ -220,6 +223,8 @@ auto main(int const argc, char const *const argv[])->int {
     if(selection > 0 && selection < 4) combat->primary_weapon = selection;
     else if(selection >= 4) combat->secondary_weapon = selection;
   }};
+  context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
+  context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
   context.select_weapon = select_weapon;
   context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
   context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
@@ -330,7 +335,7 @@ auto main(int const argc, char const *const argv[])->int {
     }
     if(message) {
       darker::graphics::draw_text(display, font, darker::resources::font_face::compact,
-        text.subspan(message->offset, message->length), {.x{static_cast<int16_t>((320 - message->width) / 2)}, .y{32}}, {.ink{255}, .edge{0}});
+        message->text.subspan(message->offset, message->length), {.x{static_cast<int16_t>((320 - message->width) / 2)}, .y{32}}, {.ink{255}, .edge{0}});
     }
     if(host.hangar.returning == darker::game::hangar_return_phase::complete) {
       std::string const complete{"Mission complete"};
@@ -639,6 +644,16 @@ auto main(int const argc, char const *const argv[])->int {
           context = {.program{scenario->bytes(mission.shared)}, .text{text}, .cells{cells}, .time_multiplier{mission.time_multiplier}, .text_cursor{front->consumed_text()}};
           context.activate_reserves = activate_reserves;
           context.change_beacons = change_beacons;
+          exchange = {};
+          if(!underground && (mission.configuration >> 4)) {
+            auto const &source{campaign.supplementary()};
+            auto const index{static_cast<size_t>(mission.configuration >> 4)};
+            auto const &record{source.records()[index]};
+            exchange.alternate = darker::game::mission_context_slot{source.bytes(record.shared),
+              source.language(index,darker::resources::scenario_language::english),record.entry_offset - record.shared.offset};
+          }
+          context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
+          context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
           context.select_weapon = select_weapon;
           context.set_building_attacks = [&](uint8_t const setting){ combat->building_attacks = setting != 0; };
           context.set_aircraft_spawning = [&](uint8_t const setting){ combat->spawning.enabled = setting != 0; };
@@ -717,6 +732,10 @@ auto main(int const argc, char const *const argv[])->int {
         host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
       audio.select_music(front ? front->music_group() : -1);
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
+    }
+    if(caero && !host.briefing && !exchange.supplementary_active && combat->script_owner) {
+      // 3E93's late-frame SI is not a recovered player continuation; blackout never returns through it.
+      exchange.exchange(script,context,std::nullopt);
     }
     auto const status{host.briefing ? " - menu / presentation"
       : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete"
