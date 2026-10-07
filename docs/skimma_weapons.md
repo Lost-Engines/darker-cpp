@@ -102,3 +102,18 @@ air-target secondary weapons (13 shots for slot 0; 10 for upgraded slot 2).
 It retains actor movement, return fire, normal ammunition and reload rules;
 only player positioning/aim are controlled. This does not assert completion
 of a Halon mission or verify the supply-pad campaign flow.
+
+## Selection and supply commands
+
+Number-key selection now follows C8A7: selecting another available slot
+clears the other enable bits, enables the new slot, restores ring spread
+508 and starts a 1024-tick delay. Repeating the selected number toggles its
+enable bit without restarting that delay. Either accepted action releases
+the selected target. There are 1,024 native comparisons.
+
+The mission interpreter now retains HUD/reference and message-setting
+writes, docked output targets and monotonic progress requests. Supply
+commands invoke selected-ammunition refill and shield reset; shield reset
+also restores output target 700. Range-mask toggles preserve the original
+arithmetic. Combined command sequences match 512 native scheduler runs.
+These consumers still need binding into the connected Halon session.

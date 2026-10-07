@@ -34,3 +34,18 @@ actual free aircraft, follows its transition to ordinary AI, retires it using
 its original script, and launches the same identity again. The controlled
 mission-twenty combat test also runs the spawner while checking objectives and
 docking. These establish the exercised paths, not a full native campaign trace.
+
+## Halon sites and departure
+
+C178/35 supplies the site list and marks each referenced cell's high state
+bit. The list replaces the fixed Delphi warehouse list; it does not clear
+other cell state or existing timer values. Timer storage now grows with the
+list: one original Halon script contains nine sites.
+
+Halon launches at the cell centre, nominal height 1160 minus model height,
+speed 300 and pitch 2C00. The first departure heading is 4000; each admitted
+launch advances it by 2800 with word wrapping. Admission, timer updates,
+random sequencing and the common protected departure callback otherwise
+share the existing path. There are 384 additional native comparisons using
+bank 31, including refused launches and heading wrap. Connected campaign
+startup must select the Halon list before its first spawning update.

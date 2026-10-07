@@ -10,10 +10,36 @@
 #include "maths/sine_table.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "reference/halon_spawning_samples.h"
 
 void check_skimma_combat(darker::resources::archive_set const &archives) {
   /// Exercise the Skimma primary gun against original Halon actors, retaining their movement and return fire
   darker::resources::geometry_bank const bank{archives.load({0,31})};
+  for(auto const &v : darker::test_reference::halon_spawning_samples) {
+    darker::game::aircraft_spawning state{.sites{0x0969,0x0b6f,0x0d6f},.departure_heading{static_cast<uint16_t>(v[10])},.halon{true},.enabled{v[5] != 0}};
+    state.timers[0] = static_cast<uint16_t>(v[6]);
+    darker::game::city_map city{};
+    city[(v[0] >> 8)*128+(v[0] & 127)] = {76,static_cast<uint8_t>(v[1])};
+    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    std::vector<darker::game::scenario_actor> active, free;
+    if(v[4]) {
+      free.emplace_back();
+      free.back().script.checkpoint = 0xe800;
+      darker::game::apply_object_definition(free.back().parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
+    }
+    auto random{static_cast<uint16_t>(v[9])};
+    darker::game::advance_aircraft_spawning(state,active,free,city,bank,player,static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8]),random);
+    if(active.size() != static_cast<size_t>(v[11]) || state.timers[0] != v[12] || random != v[13] || state.departure_heading != v[14])
+      throw std::runtime_error{"Halon aircraft admission, timer or heading differs from the original"};
+    if(active.empty()) continue;
+    auto const &actor{active.front()};
+    std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+      actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,actor.selected_target,actor.target_token,
+      actor.current_cell,actor.parameters.update_entry,actor.expiry,actor.script.deadline,actor.flags,
+      static_cast<uint16_t>(actor.script.continuation == 0xe800)};
+    for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != v[i+15])
+      throw std::runtime_error{"Halon aircraft placement differs from the original: field="+std::to_string(i)};
+  }
   darker::resources::campaign_resources campaign{archives};
   auto const &scenario{campaign.scenario(103)};
   auto const &record{scenario.records()[6]};

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "game/object_definitions.h"
 #include "game/skimma_weapons.h"
+#include "reference/skimma_selection_samples.h"
 #include "reference/recoil_samples.h"
 #include "reference/skimma_firing_samples.h"
 #include "reference/skimma_gun_samples.h"
@@ -177,5 +178,25 @@ TEST_CASE("Skimma secondary firing matches native status, reload and ammunition 
       CHECK(shot->target_token == sample[14]);
       CHECK(shot->deadline == static_cast<uint16_t>(sample[11]+2560));
     }
+  }
+}
+
+TEST_CASE("Skimma selection matches native enable toggles and reload delay", "[game][weapons]") {
+  /// Compare switching, repeating and unavailable selections while retaining ammunition and unrelated ring state
+  for(auto const &s : darker::test_reference::skimma_selection_samples) {
+    CAPTURE(s);
+    auto const byte{[](int const value){ return static_cast<uint8_t>(value); }};
+    auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
+    std::array<darker::game::skimma_weapon_slot,3> slots{};
+    for(size_t i{0}; i < 3; ++i) slots[i].flags = byte(s[2+i]);
+    auto selected{byte(s[1])};
+    darker::game::weapon_ring_state ring{.reload_deadline{word(s[7])},.spread{word(s[8])},.target_spread{508}};
+    auto target{word(s[9])};
+    if(darker::game::select_skimma_weapon(slots,selected,ring,byte(s[0]),word(s[5]),word(s[6]))) target = 0xffff;
+    CHECK(selected == s[10]);
+    CHECK(ring.reload_deadline == s[11]);
+    CHECK(ring.spread == s[12]);
+    CHECK(target == s[13]);
+    for(size_t i{0}; i < 3; ++i) CHECK(slots[i].flags == s[14+i]);
   }
 }

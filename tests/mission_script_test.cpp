@@ -1,8 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
+#include <bit>
 #include <cstddef>
 #include <stdexcept>
 #include "game/mission_script.h"
+#include "game/skimma_weapons.h"
+#include "reference/supply_script_samples.h"
 #include "game/actor_activation.h"
 #include "reference/actor_retirement_samples.h"
 #include "reference/mission_script_samples.h"
@@ -125,5 +128,26 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
     CHECK(actor.parameters.update_entry == v[10]);
     CHECK(actor.expiry == v[11]);
     if(!script.stopped) CHECK(script.continuation == 0);
+  }
+}
+
+TEST_CASE("Supply script state and ammunition match the original scheduler", "[game][mission]") {
+  /// Execute combined original command sequences including monotonic progress and wrapped mask operands
+  for(auto const &s : darker::test_reference::supply_script_samples) {
+    CAPTURE(s.input);
+    std::array<std::byte,15> program;
+    for(size_t i{0}; i < program.size(); ++i) program[i] = static_cast<std::byte>(s.program[i]);
+    auto mask{static_cast<uint16_t>(s.input[1])}, shield{static_cast<uint16_t>(s.input[2])};
+    darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(s.input[4]),static_cast<uint8_t>(s.input[5])};
+    darker::game::mission_script script;
+    darker::game::mission_context context{.program{program}};
+    context.progress = static_cast<uint8_t>(s.input[0]);
+    context.toggle_weapons = [&](uint16_t const value){ mask ^= value; };
+    context.reset_shield = [&]{ shield = static_cast<uint16_t>((shield & 255) | 0xbf00); };
+    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(ammunition,static_cast<uint8_t>(s.input[3])); };
+    darker::game::advance_mission_script(script,context);
+    CHECK(script.stopped);
+    CHECK(std::array<int,8>{context.message_setting,context.hud_reference,context.transition_output,context.progress,
+      mask,shield,ammunition.working,ammunition.reserve} == s.output);
   }
 }

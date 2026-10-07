@@ -1,5 +1,6 @@
 #include "game/mission_script.h"
 #include <bit>
+#include <algorithm>
 #include <format>
 #include <stdexcept>
 
@@ -36,6 +37,7 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
   }
   auto cursor{script.continuation};
   auto const byte{[&]{ return read_byte(context.program, cursor); }};
+  auto const word{[&]{ auto const low{byte()}; return static_cast<uint16_t>(low | byte()*256); }};
   auto const delay{[&](unsigned int const duration){
     script.deadline = static_cast<std::uint16_t>(script.deadline + duration * context.time_multiplier);
     script.continuation = cursor;
@@ -114,6 +116,31 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         context.text_cursor += length;
         delay(interval);
       }
+      break;
+    case 0x0f: context.message_setting = byte(); break;
+    case 0x16: context.hud_reference = word(); break;
+    case 0x17: context.transition_output = word(); break;
+    case 0x18:
+      if(!context.reset_shield) throw std::logic_error{"Mission shield reset has no player consumer"};
+      context.reset_shield();
+      context.transition_output = 700;
+      break;
+    case 0x19:
+      if(!context.refill_weapon) throw std::logic_error{"Mission ammunition refill has no player consumer"};
+      context.refill_weapon();
+      break;
+    case 0x2d: context.progress = std::max(context.progress,byte()); break;
+    case 0x30:
+      if(!context.toggle_weapons) throw std::logic_error{"Mission weapon toggle has no player consumer"};
+      {
+        auto const range{byte()};
+        auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
+        context.toggle_weapons(std::rotl(mask,range >> 4));
+      }
+      break;
+    case 0x35:
+      if(!context.mark_aircraft_sites) throw std::logic_error{"Mission aircraft sites have no world consumer"};
+      cursor += context.mark_aircraft_sites(context.program.subspan(cursor));
       break;
     case 0x11:
     case 0x12:

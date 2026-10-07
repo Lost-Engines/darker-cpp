@@ -450,7 +450,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Warehouse aircraft failed to depart, retire at distance and return to the free list"};
     }
     player.pose().position = {21632,14584,2000};
-    combat.spawning.timers.fill(0);
+    std::ranges::fill(combat.spawning.timers,0);
     combat.spawn_aircraft(player,city,bank,5000,8);
     if(combat.actors.size() != 1 || combat.actors.front().index != identity) throw std::runtime_error{"Warehouse did not reuse the retired aircraft's native identity"};
     std::cout << "Mission twenty warehouse: launch, protected take-off, ordinary AI, distance retirement and reuse verified." << std::endl;

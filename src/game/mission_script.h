@@ -57,6 +57,14 @@ struct mission_context {
   std::function<bool(uint8_t)> adjust_objectives{};
   std::function<size_t(std::span<std::byte const>)> replace_world_objectives{};
   std::function<void(uint8_t)> set_tunnel_oscillation{};
+  uint8_t message_setting{0};
+  uint8_t progress{0};
+  uint16_t hud_reference{0xffff};
+  uint16_t transition_output{700};
+  std::function<void()> refill_weapon{};
+  std::function<void()> reset_shield{};
+  std::function<void(uint16_t)> toggle_weapons{};
+  std::function<size_t(std::span<std::byte const>)> mark_aircraft_sites{};
 };
 
 std::size_t advance_mission_script(mission_script &script, mission_context &context);

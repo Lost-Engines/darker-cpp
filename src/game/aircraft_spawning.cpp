@@ -1,20 +1,43 @@
 #include "game/aircraft_spawning.h"
 #include <algorithm>
 #include <bit>
+#include <stdexcept>
 #include <utility>
 #include "game/random.h"
 
 namespace darker::game {
 
-void prepare_delphi_aircraft_sites(aircraft_spawning &state, city_map &cells) noexcept {
+void prepare_delphi_aircraft_sites(aircraft_spawning &state, city_map &cells) {
   /// 8EEE reserves animation slot zero for HQ and opens the occupied warehouse platforms in slots one through eight
   state.platforms.fill(0);
+  state.halon = false;
+  state.sites.assign(delphi_aircraft_sites.begin(),delphi_aircraft_sites.end());
   for(size_t i{0}; i < delphi_aircraft_sites.size(); ++i) {
     auto const site{delphi_aircraft_sites[i]};
     auto &cell{cells[(site >> 8)*128 + (site & 127)]};
     ++cell.state;
     if(cell.state & 0x40) state.platforms[i] = -1;
   }
+}
+
+size_t prepare_halon_aircraft_sites(aircraft_spawning &state, city_map &cells, std::span<std::byte const> const program) {
+  /// C178 retains the scripted list and C87E marks its state bytes without clearing existing state bits
+  state.halon = true;
+  state.sites.clear();
+  size_t cursor{0};
+  while(cursor < program.size()) {
+    auto const column{std::to_integer<uint8_t>(program[cursor++])};
+    if(column >= 128) {
+      if(state.timers.size() < state.sites.size()) state.timers.resize(state.sites.size());
+      return cursor;
+    }
+    if(cursor == program.size()) break;
+    auto const row{std::to_integer<uint8_t>(program[cursor++])};
+    if(row >= 128) throw std::invalid_argument{"Aircraft site exceeds its city map"};
+    cells[row*128+column].state |= 0x80;
+    state.sites.push_back(static_cast<uint16_t>(row*256+column));
+  }
+  throw std::invalid_argument{"Aircraft site list has no terminator"};
 }
 
 void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_actor> &active,
@@ -28,7 +51,7 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
     auto const value{std::bit_cast<int8_t>(static_cast<uint8_t>(delta))};
     return static_cast<uint8_t>(value < 0 ? -value : value);
   }};
-  for(auto const site : delphi_aircraft_sites) {
+  for(auto const site : state.sites) {
     auto const column{site & 255}, row{site >> 8};
     auto const flags{cells[row*128+column].state};
     if(!(flags & 0xc0) || (flags & 0x20)) continue;
@@ -47,10 +70,11 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
     free.erase(available);
     actor.awareness = {};
     actor.attitude = {};
-    actor.pose.angles = {0x8000,0,0};
-    actor.pose.speed = 100;
-    actor.pose.position = {static_cast<uint16_t>(column*256+128),static_cast<uint16_t>(row*256+248),
-      static_cast<uint16_t>(100 - bank.header_at(actor.parameters.model_token).height)};
+    actor.pose.angles = {state.halon ? state.departure_heading : uint16_t{0x8000},state.halon ? uint16_t{0x2c00} : uint16_t{0},0};
+    if(state.halon) state.departure_heading = static_cast<uint16_t>(state.departure_heading+0x2800);
+    actor.pose.speed = state.halon ? 300 : 100;
+    actor.pose.position = {static_cast<uint16_t>(column*256+128),static_cast<uint16_t>(row*256+(state.halon ? 128 : 248)),
+      static_cast<uint16_t>((state.halon ? 1160 : 100) - bank.header_at(actor.parameters.model_token).height)};
     actor.previous_position = actor.pose.position;
     actor.current_cell = actor.target_token = site;
     actor.parameters.update_entry = 0x8ddd;

@@ -69,6 +69,22 @@ projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, 
   return shot;
 }
 
+bool select_skimma_weapon(std::span<skimma_weapon_slot> const weapons, uint8_t &selected, weapon_ring_state &ring,
+  uint8_t const selection, uint16_t const available, uint16_t const clock) {
+  /// C8A7 toggles a repeated selection; changing slots disables the others and starts the shared ring delay
+  if(selection == 0 || selection > weapons.size() || selection > 3 || !(available & (1u << (selection-1)))) return false;
+  auto const index{static_cast<uint8_t>(selection-1)};
+  if(index == selected) weapons[index].flags = static_cast<uint8_t>(~weapons[index].flags & 1);
+  else {
+    selected = index;
+    ring.spread = 508;
+    ring.reload_deadline = static_cast<uint16_t>(clock+1024);
+    for(auto &weapon : weapons) weapon.flags &= 0xfe;
+    weapons[index].flags = 1;
+  }
+  return true;
+}
+
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {
   /// 5E44–5E58 refill both counters without changing the shared reload deadline
   validate_weapon(weapon);

@@ -53,6 +53,9 @@ struct weapon_ring_display {
 
 std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t pitch_offset, uint16_t &random_state) noexcept;
 
+bool select_skimma_weapon(std::span<skimma_weapon_slot> weapons, uint8_t &selected, weapon_ring_state &ring,
+  uint8_t selection, uint16_t available, uint16_t clock);
+
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t weapon);
 bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring, std::uint8_t weapon, std::uint16_t clock);
 std::optional<weapon_ring_display> calculate_weapon_ring(weapon_ammunition ammunition, weapon_ring_state ring, std::uint16_t clock, std::uint8_t enable_flags);
