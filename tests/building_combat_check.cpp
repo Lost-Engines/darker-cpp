@@ -24,10 +24,11 @@ void check_building_combat(darker::resources::archive_set const &archives) {
   std::array<uint8_t,256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i+1] = bank.city_types()[i].variant_limit;
   struct building_case { uint8_t stage; size_t count; char const *message; unsigned int removals{0}; };
-  for(auto const test : std::array<building_case,12>{{
+  for(auto const test : std::array<building_case,15>{{
     {50,5,"Return to Hemmersan, Tolly."},{51,3,"Well done- you can return to base."},{54,7,"Make it a clean job."}, {58,5,"Return to base for a mission update."}, {65,8,"Tolly; we need you back at Hemmersan.",14}, {69,8,"Return to Hemmersan.",3},
     {73,9,"Mission accomplished. Return to base."}, {74,5,"Return to base for a mission update."},
     {75,19,"Return to Hemmersan."}, {76,16,"Mission complete- come back to base."}, {77,43,"Return to Hemmersan, Tolly."}, {80,4,"Return to Hemmersan immediately."},
+    {81,6,"all targets are clear.",13}, {82,4,"Mission accomplished. Return to base.",17}, {87,9,"Return to Hemmersan, Tolly."},
   }}) {
     auto const &scenario{campaign.scenario(test.stage)};
     auto const index{darker::resources::select_campaign_stage(test.stage).record};
@@ -39,6 +40,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     if(test.stage != 65 && test.stage != 77 && targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
     darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
     combat.reserves = darker::game::make_scenario_group(record.groups[1],bank,static_cast<uint8_t>(1+record.groups[0].objects.size()),0,record.shared.offset);
+    combat.free_actors = darker::game::make_scenario_group(record.groups[2],bank,static_cast<uint8_t>(1+record.groups[0].objects.size()+record.groups[1].objects.size()),0,record.shared.offset);
     combat.secondary_weapon = 6;
     combat.difficulty = test.stage*2;
     darker::game::player_flight player;
@@ -57,6 +59,9 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return objectives.complete(record) && combat.remaining_objectives() == 0;
     };
+    context.adjust_objectives = [&](uint8_t const operand){ combat.adjust_objectives(operand); return objectives.complete(record) && combat.remaining_objectives() == 0; };
+    context.set_aircraft_spawning = [&](uint8_t const setting){ combat.spawning.enabled = setting != 0; };
+    context.set_building_attacks = [&](uint8_t const setting){ combat.building_attacks = setting != 0; };
     darker::game::beacon_changes beacon_changes;
     context.change_beacons = [&](uint8_t const opcode,uint8_t const origin,uint8_t const count){
       beacon_changes.command(opcode,origin,count,static_cast<uint16_t>(context.clock),scenario.bytes(record.beacon_sequence));
@@ -74,21 +79,30 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     uint16_t previous_target{0xffff};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(targets,[&](auto const cell){ return !(cells[cell.row*128+cell.column].state & 0x20); })};
-      auto const aircraft{std::ranges::find_if(combat.actors,[&](auto const &actor){ return actor.category == darker::game::actor_category::air && ((actor.attributes & 1) || test.stage >= 73) && !(actor.flags & 0x20); })};
-      bool const airborne{aircraft != combat.actors.end()};
+      auto const actor_target{std::ranges::find_if(combat.actors,[&](auto const &actor){ return ((actor.attributes & 1) || (actor.category == darker::game::actor_category::air && test.stage >= 73)) && !(actor.flags & 0x20); })};
+      bool const attacking_actor{actor_target != combat.actors.end()};
       bool const warehouse{target != targets.end() && cells[target->row*128+target->column].type == 76};
-      uint8_t const weapon{static_cast<uint8_t>(airborne ? 9 : warehouse ? (combat.secondary_weapon == 4 ? 4 : 5) : 6)};
-      if(combat.secondary_weapon != weapon) combat.target.clear();
-      combat.secondary_weapon = weapon;
-      if(airborne) {
-        auto const heading{aircraft->pose.angles[0]};
+      bool const ground_actor{attacking_actor && actor_target->category != darker::game::actor_category::air};
+      uint8_t const weapon{static_cast<uint8_t>(attacking_actor ? (ground_actor ? 1 : 9) : warehouse ? (combat.secondary_weapon == 4 ? 4 : 5) : 6)};
+      if(combat.secondary_weapon != (weapon > 3 ? weapon : 0)) combat.target.clear();
+      combat.primary_weapon = weapon <= 3 ? weapon : 0;
+      combat.secondary_weapon = weapon > 3 ? weapon : 0;
+      if(attacking_actor) {
+        auto const heading{static_cast<uint16_t>(actor_target->pose.angles[0]+(ground_actor ? 0x8000 : 0))};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        player.pose().position = {static_cast<uint16_t>(aircraft->pose.position[0]+((sine*200) >> 15)),
-          static_cast<uint16_t>(aircraft->pose.position[1]+((cosine*200) >> 15)),static_cast<uint16_t>(aircraft->pose.position[2]+92)};
+        player.pose().position = {static_cast<uint16_t>(actor_target->pose.position[0]+((sine*200) >> 15)),
+          static_cast<uint16_t>(actor_target->pose.position[1]+((cosine*200) >> 15)),static_cast<uint16_t>(actor_target->pose.position[2]+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))};
         player.pose().angles = {heading,0,0};
         player.pose().speed = 496;
-        combat.targeting_basis = darker::maths::make_view_basis({.heading{heading}});
+        if(ground_actor) {
+          auto centre{actor_target->pose.position};
+          centre[2] += bank.header_at(actor_target->parameters.model_token).extent/2;
+          player.pose().position = {static_cast<uint16_t>(centre[0]+32),centre[1],static_cast<uint16_t>(centre[2]+2048)};
+          auto const direction{darker::maths::object_target_direction(player.pose().position,centre)};
+          player.pose().angles = {direction.heading,direction.pitch,0};
+        }
+        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],0});
       } else if(target != targets.end()) {
         auto const token{static_cast<uint16_t>(target->row*256+target->column)};
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
@@ -123,12 +137,19 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         if(token != previous_target) combat.target.clear();
         previous_target = token;
       }
+      if(!attacking_actor && warehouse && weapon == 4 && static_cast<uint16_t>(clock-combat.diffuser.deadline) < 0xf400) {
+        // Leave the defended roof during the gas delay; this fixture controls position rather than navigating an escape route.
+        player.pose().position[0] += 4096;
+        player.pose().position[2] += 4096;
+      }
       beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       bool const fire_building{target != targets.end() && clock%256 == 0
         && (!warehouse || weapon == 5 || static_cast<uint16_t>(clock-combat.diffuser.deadline) >= 0xf400)};
-      combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),false,
-        scenario.bytes(record.shared),record.time_multiplier,nullptr,airborne ? clock%2048 == 8 : fire_building,airborne && clock%2048 != 0);
+      combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
+      combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),ground_actor && clock%128 == 0,
+        scenario.bytes(record.shared),record.time_multiplier,nullptr,attacking_actor ? clock%2048 == 8 : fire_building,attacking_actor && clock%2048 != 0);
       shots += combat.player_fired;
+      if(player.lifecycle.crashing) throw std::runtime_error{"Building check crash stage="+std::to_string(test.stage)+" clock="+std::to_string(clock)+" removed="+std::to_string(combat.completed_objectives)+" remaining="+std::to_string(combat.remaining_objectives())};
       darker::game::charge_caero_energy(craft.energy,13056,1,1028,false);
       objectives.advance(cells,record,0x20);
       context.clock = clock;
@@ -161,6 +182,6 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     }
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"Ground mission did not complete docking"};
     std::cout << "Mission " << unsigned{test.stage} << ": " << destroyed << " building objectives, " << shots
-      << " controlled launches, " << combat.completed_objectives << " aircraft removals, final message and docking verified." << std::endl;
+      << " controlled launches, " << combat.completed_objectives << " counted actor removals, final message and docking verified." << std::endl;
   }
 }

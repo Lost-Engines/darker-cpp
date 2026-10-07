@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–80 (04/0 through 04/9), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground and Forbes Diffuser, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission eighty saves stage eighty-one and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–87 (04/0 through the first seven records of 04/10), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter, Chargeable, Brent Ground and Forbes Diffuser, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission eighty-seven saves stage eighty-eight and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -431,3 +431,23 @@ Native firing and timing checks cover 1,792 cases. The real-map combat check
 clears all four building objectives, observes the final return message and
 completes docking. See [weapon behaviour](caero_weapons.md#forbes-diffuser)
 for timing, shared-target limitations and the remaining sound-scheduler scope.
+
+### Missions 81–87
+
+The next group now connects mixed building and ground-vehicle objectives,
+Gesic defence, the Deeds fighting, the seventh underground sortie, and
+Wilston Estate. Controlled combat verifies:
+
+- 81: six building objectives and thirteen counted ground vehicles.
+- 82: four warehouse roofs and seventeen counted missile launchers.
+- 83–85: six, four and fifteen counted aircraft, with original final messages.
+- 86: ten admitted reserves, eighteen objectives and the tunnel portal return.
+- 87: nine buildings, the final message and the Hemmersan return destination.
+
+The mixed tests use Pinner Direct against vehicles, Chargeable against aircraft,
+Brent Ground against ordinary buildings and timed Diffuser pairs against
+warehouses. During the gas delay the controlled pilot leaves the defended
+roof; this is a position-controlled integration test, not an automated
+navigation/playthrough claim. No health restoration or invulnerability is
+used. Uncounted aircraft defenders are included, and mission 84's controlled
+run also clears its defending aircraft before the final bombing targets.

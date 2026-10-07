@@ -213,7 +213,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; uint8_t weapon{1}; bool aircraft_trails{true}; };
-  constexpr std::array<combat_case,53> cases{{
+  constexpr std::array<combat_case,56> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -239,6 +239,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {70,6,"Radar clear; you're safe to return.",false,9}, {71,8,"all targets are clear.",false,9},
     {72,14,"Good job, Tolly. Return to base.",false,9},
     {78,3,"Return to base, Tolly.",false,9}, {79,10,"Well done- you can return to base.",false,9},
+    {83,6,"Tolly: get back to base.",false,9}, {84,4,"Return to Hemmersan.",false,9}, {85,15,"and clear the network of enemy craft.",false,9},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -302,7 +303,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     bool message{test.message == nullptr};
     bool saw_burst{false}, saw_trail{false};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
-      auto const target{std::ranges::find_if(combat.actors, [](auto const &actor){ return (actor.attributes & 1) && !(actor.flags & 0x20); })};
+      auto const target{std::ranges::find_if(combat.actors, [&](auto const &actor){ return ((actor.attributes & 1) || test.stage == 84) && !(actor.flags & 0x20); })};
       bool const fire{target != combat.actors.end() && clock % 128 == 0};
       auto const weapon{target != combat.actors.end() && target->category != darker::game::actor_category::air ? uint8_t{1} : test.weapon};
       combat.primary_weapon = weapon <= 3 ? weapon : 0;
@@ -827,7 +828,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
     }
     struct tunnel_case { uint8_t stage; uint16_t entry; unsigned int reserves, objectives; };
-    for(auto const test : std::array<tunnel_case,6>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23},{67,0x4362,24,36}}}) {
+    for(auto const test : std::array<tunnel_case,7>{{{17,0x3064,13,16},{24,0x3f64,14,20},{36,0x3060,15,19},{46,0x1784,10,14},{55,0x1088,18,23},{67,0x4362,24,36},{86,0x693a,10,18}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};
