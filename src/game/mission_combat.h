@@ -23,6 +23,7 @@ public:
   effect_system effects;
   uint16_t random_state{0};
   uint16_t script_owner{0};
+  uint16_t weapon_charge{0};
   uint8_t primary_weapon{0};
   uint8_t secondary_weapon{0};
   uint8_t difficulty{2};
@@ -46,7 +47,7 @@ public:
   unsigned int remaining_objectives() const noexcept;
   std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false);
+    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false, bool secondary_held = false);
 
 private:
   std::array<uint8_t,256> retained_flags{};

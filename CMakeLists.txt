@@ -396,6 +396,7 @@ if(BUILD_TESTING)
     tests/mimic_test.cpp
     tests/weapon_target_test.cpp
     tests/caero_weapons_test.cpp
+    tests/chargeable_test.cpp
     tests/caero_flight_test.cpp
     tests/beacon_changes_test.cpp
     tests/beacon_energy_test.cpp

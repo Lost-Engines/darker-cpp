@@ -7,7 +7,7 @@
 
 namespace darker::game {
 
-void advance_direct_projectile(object_pose &state, object_definition const &definition, std::uint16_t frame_step);
+void advance_direct_projectile(object_pose &state, object_definition const &definition, std::uint16_t frame_step, uint16_t speed_bonus = 0);
 
 // True requests expiry handling; it does not unlink or recycle the object.
 bool update_projectile_deadline(projectile &record, std::uint16_t clock);

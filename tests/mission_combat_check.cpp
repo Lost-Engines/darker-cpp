@@ -120,7 +120,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   struct combat_case { uint8_t stage; unsigned int removals; char const *message; bool permits_survivors{false}; };
-  constexpr std::array<combat_case,24> cases{{
+  constexpr std::array<combat_case,27> cases{{
     combat_case{1,2,"Well done- you can return to base."}, {2,2,"Mission accomplished. Return to base."},
     {3,3,"Good job, Tolly. Return to base."}, {4,5,"all targets are clear."}, {5,3,"Mission complete- come back to base."},
     {6,5,"Well done- you can return to base."}, {7,8,"Return to Hemmersan."}, {8,8,"Mission complete- come back to base."},
@@ -131,6 +131,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {21,8,"all targets are clear."}, {22,7,"Return to Hemmersan."},
     {25,7,"Good job, Tolly. Return to base."}, {26,12,"Mission accomplished. Return to base."},
     {27,6,"Return to base for a mission update."}, {28,6,"You've done all you can.",true}, {29,9,"and return to base."},
+    {30,12,"they could be approaching!"}, {31,11,"Mission complete- come back to base."}, {32,6,"Well done- you can return to base."},
   }};
   for(auto const &test : cases) {
     auto const mission{test.stage - 1};
@@ -149,8 +150,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
     caero.flying = true;
     caero.energy.reserve = 0xcfff;
-    combat.primary_weapon = test.stage == 21 ? 0 : 1;
-    combat.secondary_weapon = test.stage == 21 ? 10 : 0;
+    combat.primary_weapon = test.stage == 21 || test.stage == 30 ? 0 : 1;
+    combat.secondary_weapon = test.stage == 21 ? 10 : test.stage == 30 ? 9 : 0;
     combat.difficulty = static_cast<uint8_t>((mission + 1)*2);
     darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
     auto const text{scenario.language(record_index, darker::resources::scenario_language::english)};
@@ -180,7 +181,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         player.pose().speed = 496;
       }
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.stage == 21 ? false : fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,test.stage == 21 && fire);
+      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), test.stage == 21 || test.stage == 30 ? false : fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,(test.stage == 21 && fire) || (test.stage == 30 && clock % 2048 == 8),test.stage == 30 && clock % 2048 != 0);
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();

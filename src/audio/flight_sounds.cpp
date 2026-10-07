@@ -4,6 +4,15 @@
 
 namespace darker::audio {
 
+std::optional<uint16_t> chargeable_sound_pitch(uint16_t const charge, uint16_t const clock) noexcept {
+  /// 370F raises the charge tone with stored energy and a triangular timer modulation
+  if(!charge) return std::nullopt;
+  auto const base{static_cast<uint16_t>(charge >> 5)};
+  auto const phase{static_cast<uint8_t>(clock + base)};
+  auto const triangle{static_cast<uint8_t>(phase ^ (phase & 128 ? 255 : 0))};
+  return static_cast<uint16_t>(0x362 + ((base + triangle) >> 3));
+}
+
 void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock) noexcept {
   /// Supply original player-effect records; channel assignments remain provisional until world voice allocation is connected
   std::uint8_t channel{0};
@@ -27,9 +36,10 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
   deadlines[channel] = static_cast<std::uint16_t>(clock + duration);
 }
 
-fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready, bool const cockpit_hidden) noexcept {
+fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t const clock, bool const ready, bool const cockpit_hidden, uint16_t const weapon_charge) noexcept {
   /// Reproduce player engine callbacks 3980/3914 and timed record deadlines; world attenuation and Doppler remain separate
   for(std::size_t i{1}; i < voices.size(); ++i) {
+    if(i == 5) continue;
     if(voices[i].active && std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(clock - deadlines[i])) >= 0) voices[i].active = false;
   }
   bool const caero{std::holds_alternative<game::caero_flight_state>(player.craft)};
@@ -46,6 +56,12 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
     if(!(player.engine_flags & 1)) voices[4].active = false;
     else if(ready && !shield_ready) trigger(flight_sound::shield_ready, clock);
   }
+  auto const charge_pitch{chargeable_sound_pitch(weapon_charge,clock)};
+  if(charge_pitch && !voices[5].active) ++voices[5].generation;
+  voices[5].pitch = charge_pitch.value_or(0);
+  voices[5].level = 0xd200;
+  voices[5].patch = 0;
+  voices[5].active = charge_pitch.has_value();
   return voices;
 }
 

@@ -1,6 +1,6 @@
 # Connected campaign and remaining work
 
-The playable campaign currently covers missions 1–29 (04/0 through 04/2 and the first five records of 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic and Brent Hunter, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission twenty-nine saves stage thirty and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
+The playable campaign currently covers missions 1–32 (04/0 through 04/3), using the original packs. It includes the original startup/title/briefing path, saved pilot progression, Pinner Direct, Mimic, Brent Hunter and Chargeable, enemy ray fire and homing missiles, aircraft destruction/effects, reinforcement waves, scripted aircraft destinations, flatbed routes, completion messages and automatic HQ docking. Mission thirty-two saves stage thirty-three and returns to the menu; later stages are deliberately not advertised as playable. Skimma starts remain development free-flight checkpoints rather than the connected Halon campaign.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
@@ -16,9 +16,9 @@ Continue native comparisons and focused interactive checks as these are connecte
 
 ## Evidence and limits
 
-The full suite currently has 175 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through twenty-nine with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
+The full suite currently has 179 passing tests, including an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-two with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen and twenty-three’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all twenty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+A real-window check uses the ordinary menus and Level X to traverse all thirty-two supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
@@ -105,7 +105,7 @@ two visible warnings and an empty message entry. The transfer check follows the
 destination handoff from Communications HQ and completes docking at Hemmersan.
 Mission nineteen's controlled combat check removes its three counted aircraft,
 consumes the concluding messages and docks. A real-window Level X traversal now
-covers all twenty-nine supported briefings and flight entries, including both
+covers all thirty-two supported briefings and flight entries, including both
 surface/underground bank changes and original-format save checksums.
 
 ## Warehouse launches and mission twenty
@@ -173,8 +173,6 @@ Native comparisons additionally cover twelve owner registrations and four
 consecutive context exchanges, including a displayed message surviving return
 to the other text stream. See [mission execution](mission_execution.md).
 
-Mission 30 next introduces Chargeable and requires its held/released trigger,
-changing power and impact path.
 
 ## Withdrawal with surviving aircraft
 
@@ -191,3 +189,28 @@ aircraft, receives the withdrawal message and docks with three survivors.
 Its assertion allows the original minimum rather than requiring all eleven to
 die. Mission 29 completes nine removals and docks. Windowed checks cover both
 briefing/flight entries and the stage-30 save boundary.
+
+## Chargeable and missions thirty to thirty-two
+
+Mission 30 introduces Chargeable on key 9. A secondary-fire edge pays the initial
+cost; holding accumulates energy, saturating at FFFFh. Maintaining full charge
+still drains energy at 1/32 of the charging rate. Releasing clears stored charge
+and launches only with a valid aircraft target. Projectile lifetime is charge
+shifted right four bits. CC68 steers like Hunter while deriving extra speed and
+visible spin from remaining lifetime; its retained steering roll is separate.
+CF37 derives impact strength from remaining lifetime, and makes the last timer
+page harmless. The common collision caller still stops the projectile.
+
+The firing request now names its inputs, including distinct pressed and held
+states. Charge survives weapon selection and clears on mission setup or player
+crash, matching CA80's native resets. The rising charging tone uses effect 37E2
+and callback 370F, including timer modulation. The underground initial cost's
+signed extension immediately saturates charge: this oddity is preserved.
+
+Native fixtures cover 2,048 firing/charging cases, 2,048 complete flight updates,
+1,024 impact-boundary cases and 512 charging-tone samples. The controlled mission
+30 check completes twelve counted removals using Chargeable; missions 31 and 32
+complete eleven and six respectively. These checks supply aim/position and
+beacon energy, rather than simulating an unaided player. Windowed checks cover
+the three briefings, key 9, held/released secondary fire, the weapon unlock and
+stage-33 save boundary.

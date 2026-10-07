@@ -444,6 +444,9 @@ auto main(int const argc, char const *const argv[])->int {
       case GLFW_KEY_2:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << (key - GLFW_KEY_1)))) host.combat->primary_weapon = static_cast<uint8_t>(key - GLFW_KEY_1 + 1);
         break;
+      case GLFW_KEY_9:
+        if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 8))) host.combat->secondary_weapon = 9;
+        break;
       case GLFW_KEY_0:
         if(host.combat && action == GLFW_PRESS && (host.available_weapons & (1u << 9))) host.combat->secondary_weapon = 10;
         break;
@@ -696,7 +699,7 @@ auto main(int const argc, char const *const argv[])->int {
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held);
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held);
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         objectives.advance(cells,mission,host.player.tunnel ? 0x60 : 0x20);
@@ -731,7 +734,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(caero_state && (caero_state->energy.boost >> 13) > previous_cells) host.sounds.trigger(darker::audio::flight_sound::charged, clock);
     if(audio_device) {
       auto const player_sounds{host.sounds.advance(host.player, clock, host.shield_ready,
-        host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
+        host.camera.visible_mode() == darker::game::camera_mode::cockpit || host.camera.visible_mode() == darker::game::camera_mode::fullscreen,combat->weapon_charge)};
       audio.select_music(front ? front->music_group() : -1);
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, host.player.pose()));
     }

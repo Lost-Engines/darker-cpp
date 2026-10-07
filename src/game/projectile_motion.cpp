@@ -14,10 +14,10 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
-void advance_direct_projectile(object_pose &state, object_definition const &definition, std::uint16_t const frame_step) {
+void advance_direct_projectile(object_pose &state, object_definition const &definition, std::uint16_t const frame_step, uint16_t const speed_bonus) {
   /// CC64/CC87/858F approach definition speed, integrate its midpoint, then project motion
   auto const old_speed{signed_word(state.speed)};
-  auto const target{static_cast<std::int16_t>(definition.base_speed * 16)};
+  auto const target{signed_word(definition.base_speed * 16 + speed_bonus)};
   auto const step{static_cast<std::uint16_t>(frame_step * 4)};
   auto const candidate{signed_word(old_speed < target ? old_speed + step : old_speed - step)};
   auto const speed{old_speed < target ? std::min(candidate, target) : std::max(candidate, target)};

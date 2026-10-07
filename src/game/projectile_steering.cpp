@@ -42,9 +42,11 @@ void advance_mimic_projectile(projectile &record, object_pose const &player, uin
   advance_direct_projectile(record.placement,*record.parameters.definition,frame_step);
 }
 
-void advance_homing_projectile(projectile &record, std::uint16_t const target_heading,
+namespace {
+
+uint16_t steer_homing_projectile(projectile &record, std::uint16_t const target_heading,
   std::uint16_t const target_pitch, std::uint16_t const frame_step) {
-  /// CCDB updates pitch and heading before CC64 runs the shared speed and position integration
+  /// CCDB updates pitch and heading and returns the adjusted integration step
   if(!record.parameters.definition) throw std::invalid_argument{"homing projectile requires an object definition"};
   auto &angles{record.placement.angles};
   auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(target_pitch - angles[1]),
@@ -58,7 +60,28 @@ void advance_homing_projectile(projectile &record, std::uint16_t const target_he
   auto const heading{calculate_angular_response(adjusted, record.angular_motion[2], record.parameters.angular_response, pitch.frame_step)};
   record.angular_motion[2] = heading.rate;
   angles[0] = static_cast<std::uint16_t>(angles[0] + heading.angle_delta);
-  advance_direct_projectile(record.placement, *record.parameters.definition, heading.frame_step);
+  return heading.frame_step;
+}
+
+} // namespace
+
+void advance_homing_projectile(projectile &record, uint16_t const target_heading, uint16_t const target_pitch, uint16_t const frame_step) {
+  /// CC61 steers towards the target before integrating ordinary projectile speed
+  auto const step{steer_homing_projectile(record,target_heading,target_pitch,frame_step)};
+  advance_direct_projectile(record.placement,*record.parameters.definition,step);
+}
+
+void advance_chargeable_projectile(projectile &record, object_pose const &target, uint16_t const remaining, uint16_t const frame_step) {
+  /// CC68 retains the steering roll separately and derives visible spin and extra speed from remaining charge
+  record.placement.angles[2] = record.inherited_roll;
+  auto const angles{&target == &record.placement
+    ? maths::direction_angles{.heading{record.placement.angles[0]},.pitch{record.placement.angles[1]}}
+    : maths::object_target_direction(record.placement.position,target.position)};
+  auto const step{steer_homing_projectile(record,angles.heading,angles.pitch,frame_step)};
+  record.inherited_roll = record.placement.angles[2];
+  auto const triple{static_cast<uint16_t>(remaining*3)};
+  record.placement.angles[2] = static_cast<uint16_t>((uint32_t{triple}*triple) >> 8);
+  advance_direct_projectile(record.placement,*record.parameters.definition,step,remaining);
 }
 
 void advance_object_homing_projectile(projectile &record, object_pose const &target, std::uint16_t const frame_step) {

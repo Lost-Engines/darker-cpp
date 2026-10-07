@@ -103,11 +103,12 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed) {
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
   player_fired = false;
+  if(player.lifecycle.crashing) weapon_charge = 0;
   player_hit = false;
   auto &caero{std::get<caero_flight_state>(player.craft)};
   auto const player_definition{player.tunnel ? 28u : 25u};
@@ -193,22 +194,25 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
   if(primary_weapon == 1 || primary_weapon == 2) {
-    auto const result{fire_caero_weapon(projectiles, caero.energy, emitter, primary_weapon, player.lifecycle.flags, trigger_pressed, bank.special_models()[primary_weapon - 1], clock, 0xffff, player.tunnel.has_value())};
+    auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
+      .player_flags{player.lifecycle.flags},.pressed{trigger_pressed},.model{bank.special_models()[primary_weapon - 1]},
+      .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()}})};
     weapon_ready = result.ready;
     player_fired = result.shot != nullptr;
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   secondary_ready = false;
-  if(secondary_weapon == 6 || secondary_weapon == 10) {
-    auto const result{fire_caero_weapon(projectiles,caero.energy,emitter,secondary_weapon,player.lifecycle.flags,
-      secondary_pressed,bank.special_models()[secondary_weapon - 1],clock,target.token,player.tunnel.has_value())};
+  if(secondary_weapon == 6 || secondary_weapon == 9 || secondary_weapon == 10) {
+    auto const result{fire_caero_weapon(projectiles,caero.energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
+      .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.held{secondary_held},.model{bank.special_models()[secondary_weapon - 1]},
+      .clock{clock},.frame_step{frame_step},.target{target.token},.underground{player.tunnel.has_value()}})};
     secondary_ready = result.ready;
     player_fired |= result.shot != nullptr;
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   auto const resolve_target{[&](projectile &shot)->projectile_target {
     if(shot.parameters.update_entry == 0xcbce) return &player.pose();
-    if(shot.parameters.update_entry != 0xcc61) return {};
+    if(shot.parameters.update_entry != 0xcc61 && shot.parameters.update_entry != 0xcc68) return {};
     if(shot.target_token == 0xd986) return &player.pose();
     if(!(shot.target_token & 0x8000)) return resolve_map_guidance(shot.target_token,cells,bank,damage_mask);
     if(shot.target_token == shot.native_id) return &shot.placement;
@@ -277,8 +281,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
-    if(victim) {
-      auto const reaction{hit_actor(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
+    auto const strength{shot->parameters.definition == &original_object_definitions[8]
+      ? chargeable_impact_strength(shot->deadline,clock) : std::optional<uint8_t>{shot->parameters.definition->impact_strength}};
+    if(victim && strength) {
+      auto const reaction{hit_actor(*victim, *strength, clock, random_state)};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
@@ -288,7 +294,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         actors.erase(actors.begin() + (victim - actors.data()));
       }
     }
-    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter,damage_mask);
+    else if(!victim) impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c,world_damage_counter,damage_mask);
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;
     shot->deadline = static_cast<uint16_t>(clock + 256);
