@@ -35,11 +35,13 @@ struct projectile_launch {
   std::uint16_t target_token{0xffff};
 };
 
+enum class projectile_list { player, hostile };
+
 class projectile_pool {
 public:
   static std::size_t constexpr capacity{12};
 
-  projectile_pool();
+  explicit projectile_pool(projectile_list category = projectile_list::player);
   projectile_pool(projectile_pool const &) = delete;
   projectile_pool &operator=(projectile_pool const &) = delete;
   projectile_pool(projectile_pool &&) = delete;
@@ -54,6 +56,8 @@ public:
 
 private:
   std::array<projectile, capacity> storage;
+  size_t count;
+  uint16_t first_id;
   object_list<projectile> list;
 };
 

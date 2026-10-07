@@ -61,16 +61,18 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat const &c
   }};
   for(auto i{combat.effects.sounds.rbegin()}; i != combat.effects.sounds.rend(); ++i) append(*i, nullptr, i->identity);
   for(auto i{combat.effects.gun_sounds.rbegin()}; i != combat.effects.gun_sounds.rend(); ++i) append(*i, nullptr, i->identity);
-  for(auto *shot{combat.projectiles.objects().head}; shot; shot = shot->next) {
-    if(shot->flags & 8) continue;
-    auto const &definition{*shot->parameters.definition};
-    auto level{static_cast<uint16_t>(definition.sound_level * 256 + 255)};
-    if(shot->flags & 0x20) level = static_cast<uint16_t>((static_cast<uint32_t>(level) * (shot->fade * 257)) >> 16);
-    game::effect_sound const sound{.position{shot->placement.position}, .definition{
-      .duration{0}, .pitch{definition.sound_pitch}, .level{level}, .patch{definition.fm_patch}, .flags{0}}};
-    // Pool addresses are host identities only; the expiry word distinguishes successive launches in a reused slot.
-    auto const identity{0x200000000ULL + static_cast<uint64_t>(shot->deadline) * 16 + static_cast<uint64_t>(shot - combat.projectiles.records().data())};
-    append(sound, &shot->placement, identity);
+  for(auto const *pool : {&combat.projectiles,&combat.hostile_projectiles}) {
+    for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+      if(shot->flags & 8) continue;
+      auto const &definition{*shot->parameters.definition};
+      auto level{static_cast<uint16_t>(definition.sound_level * 256 + 255)};
+      if(shot->flags & 0x20) level = static_cast<uint16_t>((static_cast<uint32_t>(level) * (shot->fade * 257)) >> 16);
+      game::effect_sound const sound{.position{shot->placement.position}, .definition{
+        .duration{0}, .pitch{definition.sound_pitch}, .level{level}, .patch{definition.fm_patch}, .flags{0}}};
+      // Native IDs distinguish the two fixed pools; expiry distinguishes successive launches in a reused slot.
+      auto const identity{0x200000000ULL + static_cast<uint64_t>(shot->deadline) * 65536 + static_cast<uint64_t>(shot->native_id)};
+      append(sound, &shot->placement, identity);
+    }
   }
   std::stable_sort(candidates.begin(), candidates.end(), [](auto const &a, auto const &b){ return a.note.level > b.note.level; });
   if(candidates.size() > 9) candidates.resize(9);

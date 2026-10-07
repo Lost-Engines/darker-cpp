@@ -228,8 +228,10 @@ auto main(int const argc, char const *const argv[])->int {
       objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
       contacts.push_back({.position{actor.pose.position[0], actor.pose.position[1]}, .group{darker::graphics::radar_group::b}});
     }
-    for(auto *shot{combat->projectiles.objects().head}; shot; shot = shot->next) {
-      if(!(shot->flags & 8)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
+    for(auto const *pool : {&combat->projectiles,&combat->hostile_projectiles}) {
+      for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+        if(!(shot->flags & 8)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
+      }
     }
     if(external) objects.push_back({.model_offset{bank.special_models()[caero ? 25 : host.player.upgraded ? 27 : 26]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
@@ -527,6 +529,7 @@ auto main(int const argc, char const *const argv[])->int {
           initial_cells = cells;
           initial_actors = darker::game::make_scenario_group(mission.groups[0],bank,1,0,mission.shared.offset);
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+          combat->difficulty = static_cast<uint8_t>(pilot.stage * 2);
           host.combat = combat.get();
           initial_script = {.continuation{*mission.player_program - mission.shared.offset}, .checkpoint{*mission.player_program - mission.shared.offset}};
           script = initial_script;
@@ -555,6 +558,7 @@ auto main(int const argc, char const *const argv[])->int {
         if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = session_exit::completed;
       }
       if(caero) {
+        combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
         combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held, scenario.bytes(mission.shared));
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         context.objectives_complete = combat->remaining_objectives() == 0;

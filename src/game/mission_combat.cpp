@@ -11,9 +11,39 @@
 #include "game/projectile_update.h"
 
 namespace darker::game {
+namespace {
+
+void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact,
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe) {
+  /// Share the reconstructed building damage path while preserving each projectile list's terrain recipe
+  if(contact.contact == city_contact::building && contact.category == 2) {
+    auto &cell{cells[contact.row * 128 + contact.column]};
+    auto const model{bank.city_model_offset(cell.type, cell.state, 0x20)};
+    auto const bytes{bank.model_pool()};
+    if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
+      cell.state = static_cast<uint8_t>(cell.state + 32);
+      auto const &type{bank.city_types()[cell.type - 1]};
+      effects.spawn(building_effect_recipes.at(type.unknown_5),
+        {static_cast<uint16_t>(contact.column * 256 + type.column_fraction), static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact[2]}, clock);
+    } else effects.spawn(0x7386, impact, clock);
+  }
+  if(!(contact.contact == city_contact::building && contact.category == 2)) {
+    effects.spawn(contact.contact == city_contact::building ? 0x7386 : terrain_recipe, impact, clock);
+  }
+}
+
+} // namespace
 
 mission_combat::mission_combat(std::vector<scenario_actor> initial) : actors{std::move(initial)} {
   /// Keep stable scenario identities while active traversal follows the source list's reverse order
+}
+
+void mission_combat::update_difficulty(uint32_t const clock) noexcept {
+  /// 3DB1–3DCB increase the scenario's firing pressure after four clock wraps, saturating after eight
+  auto const wraps{static_cast<uint8_t>(clock >> 16)};
+  if(wraps < 4) return;
+  auto const pressure{wraps >= 8 ? 255u : ((clock >> 8) - 1024) >> 2};
+  difficulty = std::max(difficulty,static_cast<uint8_t>(pressure));
 }
 
 unsigned int mission_combat::remaining_objectives() const noexcept {
@@ -52,6 +82,18 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           apply_player_damage(caero.damage, 0x15, 3, false, false, random_state);
           player_hit = true;
         }
+        if(source.selected_target == 0xd986) {
+          if(auto const slot{aircraft_projectile_definition(source,player.lifecycle.flags,course,distance,clock,difficulty)}) {
+            // CAF0 records the attempt time even if the hostile pool is exhausted.
+            source.last_shot = clock;
+            auto const &definition{original_object_definitions[*slot]};
+            launch_emitter const launcher{.position{source.pose.position},.fractions{source.pose.fractions},
+              .angles{source.pose.angles},.speed{source.pose.speed},.side_flags{source.flags},
+              .definition_strength{source.parameters.definition->impact_strength}};
+            hostile_projectiles.launch({.definition{definition},.emitter{launcher},.model_token{bank.special_models()[*slot]},
+              .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
+          }
+        }
       });
     if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
       effects.trail(actor.previous_position, *severity, random_state, clock);
@@ -75,6 +117,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot, clock)
       : update_projectile(*shot, clock, frame_step) == projectile_update_result::expired};
     if(expired) { shot = projectiles.recycle(*shot); continue; }
+    shot = shot->next;
+  }
+  for(auto *shot{hostile_projectiles.objects().head}; shot;) {
+    bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot,clock)
+      : update_projectile(*shot,clock,frame_step,&player.pose()) == projectile_update_result::expired};
+    if(expired) { shot = hostile_projectiles.recycle(*shot); continue; }
     shot = shot->next;
   }
   for(auto &actor : actors) {
@@ -106,19 +154,26 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       auto const reaction{hit_aircraft(*victim, shot->parameters.definition->impact_strength, clock, random_state)};
       effects.spawn(reaction == impact_effect::fatal ? 0x7319 : 0x72df, impact, clock);
     }
-    else if(contact.contact == city_contact::building && contact.category == 2) {
-      auto &cell{cells[contact.row * 128 + contact.column]};
-      auto const model{bank.city_model_offset(cell.type, cell.state, 0x20)};
-      auto const bytes{bank.model_pool()};
-      if(bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}) {
-        cell.state = static_cast<uint8_t>(cell.state + 32);
-        auto const &type{bank.city_types()[cell.type - 1]};
-        effects.spawn(building_effect_recipes.at(type.unknown_5),
-          {static_cast<uint16_t>(contact.column * 256 + type.column_fraction), static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact[2]}, clock);
-      } else effects.spawn(0x7386, impact, clock);
-    }
-    if(!victim && !(contact.contact == city_contact::building && contact.category == 2)) {
-      effects.spawn(contact.contact == city_contact::building ? 0x7386 : 0x721c, impact, clock);
+    else impact_projectile_world(contact,impact,cells,bank,effects,clock,0x721c);
+    shot->flags |= 0x28;
+    shot->parameters.update_entry = 0x6ed3;
+    shot->deadline = static_cast<uint16_t>(clock + 256);
+  }
+  for(auto *shot{hostile_projectiles.objects().head}; shot; shot = shot->next) {
+    if(shot->flags & 8) continue;
+    auto end{shot->placement.position};
+    auto const contact{sweep_city(bank,cells,0x20,shot->previous_position,end,2,10)};
+    bool const hit{!(player.lifecycle.flags & 0x20) && sweep_aircraft(player.pose(),player_extent,2,shot->previous_position,end)};
+    if(!hit && contact.contact == city_contact::none) continue;
+    shot->placement.position = end;
+    if(hit) {
+      // 6E95 halves definition strength and derives the angular kick from that amount.
+      uint8_t const amount{static_cast<uint8_t>(shot->parameters.definition->impact_strength >> 1)};
+      apply_player_damage(caero.damage,amount,static_cast<uint8_t>((amount >> 1) - 7),false,false,random_state);
+      effects.spawn(0x70c3,end,clock);
+      player_hit = true;
+    } else {
+      impact_projectile_world(contact,end,cells,bank,effects,clock,0x7199);
     }
     shot->flags |= 0x28;
     shot->parameters.update_entry = 0x6ed3;

@@ -3,6 +3,7 @@
 #include "game/angular_motion.h"
 #include "game/collision_sweep.h"
 #include "game/object_impact.h"
+#include "game/object_definitions.h"
 #include "game/random.h"
 #include "maths/sine_table.h"
 
@@ -60,6 +61,26 @@ void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexce
   actor.attitude.pitch_rate = pitch.rate;
   actor.pose.angles[1] = static_cast<uint16_t>(actor.pose.angles[1] + pitch.angle_delta);
   advance_actor_speed(actor.pose, 17, 64, 223, pitch.frame_step);
+}
+
+std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &actor, uint8_t const target_flags,
+  actor_course const course, uint8_t const distance, uint16_t const clock, uint8_t const difficulty) {
+  /// 8B65/8BE0/8B28 admit the object-target projectile branch independently of the Skimma ray gun
+  if(actor.selected_target != 0xd986 && (actor.flags & 2)) return std::nullopt;
+  if(!(actor.selected_target & 0x8000) || (target_flags & 0x30)) return std::nullopt;
+  auto const speed{actor.parameters.definition->base_speed};
+  auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles[1]) >> 8) + speed)};
+  if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;
+  auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles[0]) >> 8) + distance)};
+  if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
+  if(actor.definition_slot == 19 && distance < 8 && actor.behaviour[0] == 0) return std::nullopt;
+  auto const slot{actor.parameters.definition->role_data[6]};
+  auto const &weapon{original_object_definitions.at(slot)};
+  unsigned int const sum{((difficulty >> 1) | 0x80u) + actor.behaviour[0]};
+  uint16_t const bias{static_cast<uint16_t>(((sum > 255 ? 0xfd : 0xfc) << 8) | (sum & 255))};
+  uint16_t const delay{static_cast<uint16_t>((weapon.role_data[0] * 4 - bias) * 4)};
+  if(static_cast<uint16_t>(clock - actor.last_shot) < delay) return std::nullopt;
+  return slot;
 }
 
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t const player_flags,

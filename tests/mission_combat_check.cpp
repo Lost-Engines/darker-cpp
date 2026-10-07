@@ -6,6 +6,7 @@
 #include <utility>
 #include "game/hangar.h"
 #include "game/mission_combat.h"
+#include "game/object_definitions.h"
 #include "graphics/formatted_text.h"
 #include "presentation/player.h"
 #include "resources/archive_set.h"
@@ -82,6 +83,32 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
+  // Exercise mission two's missile branch through the real pool, homing callback, collision and damage response.
+  auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset).front()};
+  missile_actor.pose = {.position{10000,10700,10000},.angles{},.speed{500}};
+  missile_actor.awareness.level = 0xff00;
+  missile_actor.selected_target = missile_actor.target_token = 0xd986;
+  darker::game::mission_combat missiles{{missile_actor}};
+  missiles.difficulty = 4;
+  darker::game::city_map empty_city{};
+  darker::game::player_flight target;
+  target.pose().position = {10000,10000,10000};
+  missiles.advance(target,empty_city,bank,8192,8,0,false);
+  auto *missile{missiles.hostile_projectiles.objects().head};
+  if(!missile || missile->parameters.definition != &darker::game::original_object_definitions[10]
+    || missiles.projectiles.objects().head || missiles.actors.front().last_shot != 8192) {
+    throw std::runtime_error{"Mission-two aircraft did not launch its separate homing missile"};
+  }
+  missiles.actors.clear();
+  bool missile_hit{false};
+  for(uint16_t clock{8200}; clock < 11000 && !missile_hit; clock += 8) {
+    missiles.advance(target,empty_city,bank,clock,8,0,false);
+    missile_hit = missiles.player_hit;
+  }
+  if(!missile_hit || std::get<darker::game::caero_flight_state>(target.craft).damage.damage != 45 || missiles.effects.emitters.empty()) {
+    throw std::runtime_error{"Hostile homing missile did not reach its target with the native half-strength hit"};
+  }
+  std::cout << "Mission-two missile launched, homed, hit the player for 45 damage and emitted its original impact effect." << std::endl;
   // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
   auto const &record{scenario.records()[3]};
   auto group{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};

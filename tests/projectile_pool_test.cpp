@@ -70,3 +70,21 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
   CHECK(pool.objects().tail == allocated[0]);
   CHECK(pool.objects().free == nullptr);
 }
+
+TEST_CASE("Hostile projectile pool has six independent native slots") {
+  /// 1D47 follows the twelve player records with six records at D6E6, ending before the player craft at D986
+  darker::game::projectile_pool hostile{darker::game::projectile_list::hostile}, player;
+  darker::game::launch_emitter const emitter{.definition_strength{40}};
+  darker::game::projectile_launch const request{.definition{darker::game::original_object_definitions[10]},.emitter{emitter}};
+  REQUIRE(hostile.records().size() == 6);
+  for(unsigned int i{0}; i < 6; ++i) {
+    auto *shot{hostile.launch(request)};
+    REQUIRE(shot != nullptr);
+    CHECK(shot->native_id == 0xd6e6 + (5-i)*112);
+    CHECK(hostile.resolve(shot->native_id) == shot);
+    CHECK(player.resolve(shot->native_id) == nullptr);
+  }
+  CHECK(hostile.launch(request) == nullptr);
+  CHECK(player.launch(request) != nullptr);
+  CHECK(hostile.resolve(0xd986) == nullptr);
+}

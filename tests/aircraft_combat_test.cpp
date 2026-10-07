@@ -2,7 +2,9 @@
 #include <array>
 #include "game/aircraft_combat.h"
 #include "game/object_definitions.h"
+#include "game/mission_combat.h"
 #include "reference/aircraft_combat_samples.h"
+#include "reference/aircraft_fire_samples.h"
 
 TEST_CASE("Aircraft hit volumes match native extent sweeps", "[combat]") {
   /// Check both hit admission and native impact rounding at full altitude scale
@@ -50,5 +52,34 @@ TEST_CASE("First mission gun checks match original aim, timing and hit decisions
     CHECK(shot.has_value() == (v[13] != 0));
     CHECK((shot && shot->hit) == (v[14] != 0));
     CHECK(random == v[15]);
+  }
+}
+
+TEST_CASE("Aircraft missile eligibility matches native firing settings and timer boundaries") {
+  /// Execute the object-target branch independently from ray damage and projectile construction
+  for(auto const &v : darker::test_reference::aircraft_fire_samples) {
+    CAPTURE(v);
+    darker::game::scenario_actor actor;
+    actor.definition_slot = static_cast<uint8_t>(v[0]);
+    actor.parameters.definition = &darker::game::original_object_definitions[actor.definition_slot];
+    actor.behaviour[0] = static_cast<uint8_t>(v[1]);
+    actor.pose.angles = {static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5]),0};
+    actor.selected_target = static_cast<uint16_t>(v[8]);
+    actor.flags = static_cast<uint8_t>(v[9]);
+    actor.last_shot = static_cast<uint16_t>(v[11]);
+    auto const slot{darker::game::aircraft_projectile_definition(actor,static_cast<uint8_t>(v[10]),
+      {.heading{static_cast<uint16_t>(v[6])},.pitch{static_cast<uint16_t>(v[7])}},
+      static_cast<uint8_t>(v[3]),static_cast<uint16_t>(v[12]),static_cast<uint8_t>(v[2]))};
+    CHECK((slot ? static_cast<int>(*slot) : -1) == v[13]);
+  }
+}
+
+TEST_CASE("Mission firing pressure follows native clock-wrap thresholds") {
+  /// Check both sides of the four/eight-wrap boundaries and preservation of a higher existing pressure
+  darker::game::mission_combat combat{{}};
+  for(auto const &sample : darker::test_reference::difficulty_samples) {
+    combat.difficulty = static_cast<uint8_t>(sample[1]);
+    combat.update_difficulty(sample[0]);
+    CHECK(combat.difficulty == sample[2]);
   }
 }

@@ -2,10 +2,11 @@
 
 namespace darker::game {
 
-projectile_pool::projectile_pool() {
-  /// 1D3C/1D49 prepend twelve consecutive records to the projectile free list
-  std::uint16_t id{0xd1a6};
-  for(auto &record : storage) {
+projectile_pool::projectile_pool(projectile_list const category)
+  : count{category == projectile_list::player ? 12u : 6u}, first_id{static_cast<uint16_t>(category == projectile_list::player ? 0xd1a6 : 0xd6e6)} {
+  /// 1D3C/1D49 build separate twelve-shot player and six-shot hostile free lists
+  std::uint16_t id{first_id};
+  for(auto &record : std::span{storage}.first(count)) {
     record.native_id = id;
     id = static_cast<std::uint16_t>(id + 112);
     record.next = list.free;
@@ -41,9 +42,9 @@ projectile *projectile_pool::unlink(projectile &record) {
 
 projectile *projectile_pool::resolve(std::uint16_t const native_id) noexcept {
   /// Native IDs preserve original target references without dereferencing DOS addresses
-  if(native_id < 0xd1a6) return nullptr;
-  unsigned int const offset{static_cast<unsigned int>(native_id - 0xd1a6)};
-  if(offset % 112 != 0 || offset / 112 >= storage.size()) return nullptr;
+  if(native_id < first_id) return nullptr;
+  unsigned int const offset{static_cast<unsigned int>(native_id - first_id)};
+  if(offset % 112 != 0 || offset / 112 >= count) return nullptr;
   return &storage[offset / 112];
 }
 
@@ -54,7 +55,7 @@ object_list<projectile> const &projectile_pool::objects() const noexcept {
 
 std::span<projectile const> projectile_pool::records() const noexcept {
   /// Retain stable identities for the lifetime of this nonmoving pool
-  return storage;
+  return std::span{storage}.first(count);
 }
 
 } // namespace darker::game

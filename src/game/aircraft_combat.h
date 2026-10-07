@@ -20,6 +20,9 @@ struct gun_trace {
   bool hit{false};
 };
 
+std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &actor, uint8_t target_flags,
+  actor_course course, uint8_t distance, uint16_t clock, uint8_t difficulty);
+
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t player_flags,
   uint16_t player_extent, actor_course course, uint8_t distance, uint16_t clock, uint16_t changes, uint16_t &random_state);
 
