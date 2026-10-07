@@ -24,7 +24,7 @@ public:
   explicit mission_combat(std::vector<scenario_actor> initial);
   unsigned int remaining_objectives() const noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint16_t clock, uint16_t frame_step, uint16_t changes, bool trigger_pressed);
+    uint16_t clock, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {});
 };
 
 } // namespace darker::game

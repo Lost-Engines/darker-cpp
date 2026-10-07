@@ -31,15 +31,19 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     actor.behaviour = placement.motion;
   } else if(placement.form == resources::placement_form::compact_special) {
     actor.parameters.update_entry = 0x8f3b;
-    actor.script.deadline = 0xf000;
+    actor.route.emplace();
   } else {
     actor.parameters.update_entry = 0;
     return actor;
   }
   if(placement.program_offset) {
     if(*placement.program_offset < shared_offset) throw std::invalid_argument{"Scenario actor program precedes shared section"};
-    actor.script.continuation = *placement.program_offset - shared_offset;
-    actor.script.checkpoint = actor.script.continuation;
+    auto const cursor{*placement.program_offset - shared_offset};
+    if(actor.route) actor.route->cursor = cursor;
+    else {
+      actor.script.continuation = cursor;
+      actor.script.checkpoint = cursor;
+    }
   } else {
     if(!placement.script_or_target) throw std::invalid_argument{"Scenario actor has no script or target"};
     auto const target{static_cast<std::uint8_t>(*placement.script_or_target)};

@@ -3,6 +3,7 @@
 #include <array>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "graphics/formatted_text.h"
@@ -81,4 +82,25 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(hangar.returning != darker::game::hangar_return_phase::complete) throw std::runtime_error{"First mission did not finish docking"};
     std::cout << "Mission " << mission + 1 << " controlled combat: " << shots << " shots, " << combat.completed_objectives << " objectives removed, return message and completed HQ docking verified." << std::endl;
   }
+  // Follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check.
+  auto const &record{scenario.records()[3]};
+  auto group{darker::game::make_scenario_group(record.groups[0],bank,1,0,record.shared.offset)};
+  std::erase_if(group,[](auto const &actor){ return actor.definition_slot != 31; });
+  if(group.size() != 1 || !group.front().route) throw std::runtime_error{"Fourth mission is missing its flatbed route"};
+  darker::game::mission_combat convoy{std::move(group)};
+  darker::game::player_flight observer;
+  auto const before{cells};
+  unsigned int calls{0};
+  for(unsigned int tick{0}; tick < 200000 && !convoy.actors.empty(); tick += 50) {
+    convoy.advance(observer,cells,bank,static_cast<uint16_t>(tick),50,0,false,scenario.bytes(record.shared));
+    ++calls;
+  }
+  if(!convoy.actors.empty() || calls != 3114 || convoy.completed_objectives != 0) {
+    throw std::runtime_error{"Fourth-mission flatbed removal differs from native route timing"};
+  }
+  for(size_t i{0}; i < cells.size(); ++i) {
+    if(cells[i].type != before[i].type || cells[i].state != before[i].state) throw std::runtime_error{"Flatbed movement changed the city"};
+  }
+  std::cout << "Fourth-mission flatbed traversed its original route and removed itself after 155,650 ticks at 50-tick sampling." << std::endl;
+
 }

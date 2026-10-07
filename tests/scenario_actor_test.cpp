@@ -31,8 +31,9 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
       p.update_entry, actor.target_token, actor.current_cell, p.flags_4c, p.angular_response,
       p.motion[0], p.motion[1], p.motion[2], actor.previous_position[0], actor.previous_position[1], actor.previous_position[2],
       actor.behaviour[0], actor.behaviour[1], actor.behaviour[2], actor.behaviour[3], actor.behaviour[4], actor.behaviour[5],
-      actor.index, actor.definition_slot, static_cast<int>(actor.script.continuation), static_cast<int>(actor.script.checkpoint),
-      actor.script.stopped, actor.script.deadline} == sample.output);
+      actor.index, actor.definition_slot, static_cast<int>(actor.route ? actor.route->cursor : actor.script.continuation),
+      static_cast<int>(actor.route ? actor.route->cursor : actor.script.checkpoint),
+      actor.script.stopped, actor.route ? actor.route->origin : actor.script.deadline} == sample.output);
     CHECK(actor.pose.fractions == std::array<std::uint8_t, 3>{});
     CHECK(p.definition == &darker::game::original_object_definitions[v[2]]);
     CHECK(p.model_token == 0x400);

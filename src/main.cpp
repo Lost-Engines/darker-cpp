@@ -517,7 +517,7 @@ auto main(int const argc, char const *const argv[])->int try {
         if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = session_exit::completed;
       }
       if(caero) {
-        combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held);
+        combat->advance(host.player, cells, bank, game_clock.frame_ticks, step, game_clock.frame_changes, primary_held && !host.primary_held, scenario.bytes(mission.shared));
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
         context.objectives_complete = combat->remaining_objectives() == 0;
         context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;

@@ -69,9 +69,11 @@ ctest --test-dir build --output-on-failure
 ## Remaining scope
 
 This is a first-mission gameplay milestone, not finished retail presentation.
-Briefing artwork and transitions, music, complete spatial voice allocation/stereo,
-Nayas activity, aircraft lighting, aircraft/player ramming, original death and
-later debrief screens and mission-four ground-vehicle runtime remain outstanding.
+Briefing artwork, original music and the committal death sequence are connected.
+Remaining work includes complete spatial voice allocation/stereo, Nayas activity,
+aircraft lighting, aircraft/player ramming, later debrief screens and mission-four
+reinforcement activation. The flatbed route callback now has native comparisons;
+raised traversal, vehicle weapons and damage callbacks remain separate work.
 The first three missions now advance automatically, committing city state after docking. Player city
 collision still occurs inside its flight update; the complete original global
 collision dispatch order has not yet been reconstructed. Other scenario actor

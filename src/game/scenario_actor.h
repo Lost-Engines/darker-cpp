@@ -3,12 +3,14 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <vector>
 #include "game/actor_awareness.h"
 #include "game/actor_motion.h"
 #include "game/mission_script.h"
 #include "game/object_definition.h"
 #include "game/object_pose.h"
+#include "game/vehicle_route.h"
 #include "resources/geometry_bank.h"
 #include "resources/scenario.h"
 
@@ -20,6 +22,7 @@ struct scenario_actor {
   actor_attitude attitude{};
   actor_awareness awareness{};
   mission_script script{};
+  std::optional<vehicle_route> route{};
   std::array<std::uint16_t, 3> previous_position{};
   // Native 50–55: retained until all navigation consumers have named contracts.
   std::array<std::uint8_t, 6> behaviour{};

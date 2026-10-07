@@ -1,6 +1,7 @@
 #include "game/mission_combat.h"
 #include <algorithm>
 #include <bit>
+#include <stdexcept>
 #include <utility>
 #include "game/actor_update.h"
 #include "game/caero_weapons.h"
@@ -21,7 +22,7 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint16_t const clock, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed) {
+  uint16_t const clock, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes) {
   /// Follow air callbacks, player firing, projectile movement and collision/removal phases for the first Delphi mission
   effects.advance(clock, frame_step);
   player_fired = false;
@@ -35,6 +36,13 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   });
   for(auto &actor : actors) {
     if(actor.flags & 8) continue;
+    if(actor.parameters.update_entry == 0x8f3b) {
+      if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
+      actor.previous_position = actor.pose.position;
+      advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height);
+      continue;
+    }
+    if(actor.parameters.update_entry == 0) continue;
     if(actor.parameters.update_entry == 0x8daa) advance_falling_aircraft(actor, frame_step);
     else advance_surface_actor(actor, player.pose(), actors, cells, bank, 0x20, frame_step,
       [&](scenario_actor &source, actor_course const course, uint8_t const distance){
@@ -49,6 +57,11 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       effects.trail(actor.previous_position, *severity, random_state, clock);
     }
   }
+  std::erase_if(actors,[&](auto const &actor){
+    if(!actor.route || !actor.route->removed) return false;
+    if(actor.attributes & 1) ++completed_objectives;
+    return true;
+  });
   auto const &pose{player.pose()};
   launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[25].impact_strength}};
@@ -65,7 +78,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot = shot->next;
   }
   for(auto &actor : actors) {
-    if(actor.flags & 8) continue;
+    if((actor.flags & 8) || actor.parameters.update_entry == 0x8f3b) continue;
     auto const contact{sweep_city(bank, cells, 0x20, actor.previous_position, actor.pose.position, 12, 10)};
     if(contact.contact != city_contact::none) {
       effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199, actor.pose.position, clock);
