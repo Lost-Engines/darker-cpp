@@ -24,6 +24,8 @@ cmake --build build --parallel
 
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
+Use `--skip-intro` to open game selection directly; mission briefings still play normally.
+
 Use `--scale N` to set the initial window size to an integer multiple of the 320×240 display: `--scale 2` gives 640×480, `--scale 4` gives 1280×960. The default is 4× (1280×960). The window remains resizable.
 
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.

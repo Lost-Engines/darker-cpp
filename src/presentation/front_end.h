@@ -37,7 +37,7 @@ private:
 public:
   bool quit_requested{false};
   bool save_requested{false};
-  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save);
+  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save, bool skip_intro = false);
   bool active() const noexcept;
   bool editing_text() const noexcept;
   bool level_skip_enabled() const noexcept;

@@ -21,12 +21,13 @@ void load_image(resources::archive_set const &archives, resources::resource_id c
 
 } // namespace
 
-front_end::front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save)
+front_end::front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::scenario_resource const &mission, resources::save_file &save, bool const skip_intro)
   : archives{archives}, font{font}, mission{mission}, introduction{archives.load({4,15})}, save{save} {
   /// Startup 9CBD selects record one before the 00/14 title and 00/21 game-selection background
   load_image(archives,{0,21},menu_background,menu_palette,320,240,0,0);
   load_image(archives,{0,14},title_background,title_palette,280,100,16,65);
-  scene = std::make_unique<player>(archives,font,introduction,1);
+  if(skip_intro) current = screen::games;
+  else scene = std::make_unique<player>(archives,font,introduction,1);
 }
 
 bool front_end::active() const noexcept {
