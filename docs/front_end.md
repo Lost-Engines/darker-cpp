@@ -245,3 +245,61 @@ level 17 retains its `28 80 64 30` entry at the eastern Comms HQ hangar. Docking
 there in level 16 therefore enters the tunnels without a briefing screen.
 Loading the saved tunnel level, or using `--level=17`, still shows its briefing.
 This uses the script's conditional branch rather than a special case for level 17.
+
+### Campaign-wide entry-path audit
+
+All 116 campaign records were checked for the same conditional presentation.
+There are 18 occurrences, all reached before drawing a briefing page. These are
+campaign stage numbers, matching `--level`, and archive record indices are zero-based.
+
+| Stage | Record | Role | Setup retained before the conditional |
+| --- | --- | --- | --- |
+| 17 | 04/002, 0 | Tunnel entry | Entry site 3064, heading 80 |
+| 18 | 04/002, 1 | Surface return | Return destination 7162 |
+| 24 | 04/002, 7 | Tunnel entry | Entry site 3F64, heading 80 |
+| 25 | 04/003, 0 | Surface return | Return destination 7162 |
+| 36 | 04/004, 3 | Tunnel entry | Entry site 3060, heading 80 |
+| 37 | 04/004, 4 | Surface return | Return destination 7162 |
+| 46 | 04/005, 5 | Tunnel entry | Entry site 1784, heading 80 |
+| 47 | 04/005, 6 | Surface return | Return destination 7162 |
+| 55 | 04/006, 6 | Tunnel entry | Entry site 1088, heading 80 |
+| 56 | 04/006, 7 | Surface return | Return destination 7162 |
+| 67 | 04/008, 2 | Tunnel entry | Entry site 4362, heading 80 |
+| 68 | 04/008, 3 | Surface return | Return destination 7162 |
+| 86 | 04/010, 5 | Tunnel entry | Entry site 693A, heading 80 |
+| 87 | 04/010, 6 | Surface return | Return destination 7162 |
+| 92 | 04/011, 3 | Tunnel entry | Entry site 693E, heading 80 |
+| 93 | 04/011, 4 | Surface return | Return destination 7162 |
+| 99 | 04/012, 2 | First Halon Skimma stage | Weapon toggles A9 and 21; entry site 16FC, heading 80 |
+| 115 | 04/014, 2 | Final Delphi battle | Entry site 4258, heading C4 |
+
+Sites, headings and opcode operands in this table are hexadecimal. Opcode 28
+sets an entry pose and departure destination; opcode 29 sets only the latter.
+In particular, surface returns do not gain an invented new entry pose when their
+briefings are skipped. Stage 99's weapon changes happen before the branch, so
+skipping its text must still apply them.
+
+For all 18 stages, successful continuation omits the load-only briefing;
+fresh entry from the run menu or `--level` shows it. The preceding presentation-only
+stages 98 and 114 still play: their completion then skips the additional load-only
+pages in 99 and 115. The ending at 116 has no such branch and is not skipped.
+
+This follows native control flow as well as the script census. Successful exit
+at 3EC8 advances the stage and returns to setup at 3C14 with the previous outcome
+intact. The presentation runs before 3CBB clears that outcome. Fresh entry at
+3C0F clears it first. C2BC is the presentation reader that makes the distinction;
+this audit does not imply that loading and continuing have identical persistent
+world state, equipment or player state.
+
+The resource integration check constructs both entry paths for all 116 stages.
+For each conditional stage it also completes the fresh-load presentation and
+compares the resulting weapon toggles, entry pose, destination, difficulty and
+score with the immediate continuation. The continuation text cursor is checked
+against the stored displacement, rather than assumed equal to the cursor after
+reading the briefing: stage 17 has displacement zero and no in-flight messages,
+so its skipped cursor remains zero while reading the briefing consumes 269 bytes.
+This guards against both losing setup and accidentally consuming mission messages. The
+existing interstitial checks cover progression through all nine Halon story
+records. These are script/engine checks; only the first tunnel transition has
+also been checked live, and this is not a claim of a retail playthrough of every
+listed transition.

@@ -38,6 +38,36 @@ void check_presentations(darker::resources::archive_set const &archives) {
       +std::to_string(sample.face)+", x="+std::to_string(sample.x)+", width="+std::to_string(sample.width)};
   }
   darker::resources::campaign_resources campaign{archives};
+  // C2BC uses the previous outcome in these 18 original campaign records.
+  std::array<uint8_t,18> constexpr conditional_entries{17,18,24,25,36,37,46,47,55,56,67,68,86,87,92,93,99,115};
+  for(uint8_t stage{1}; stage <= 116; ++stage) {
+    auto const &scenario{campaign.scenario(stage)};
+    auto const record{darker::resources::select_campaign_stage(stage).record};
+    darker::presentation::player loaded{archives,font,scenario,record};
+    darker::presentation::player continued{archives,font,scenario,record,0,true};
+    bool const conditional{std::ranges::find(conditional_entries,stage) != conditional_entries.end()};
+    auto const failure{"Campaign entry differs at stage " + std::to_string(stage)};
+    if(!conditional) {
+      if(loaded.finished() != continued.finished() || loaded.input_policy != continued.input_policy
+        || loaded.consumed_text() != continued.consumed_text()) throw std::runtime_error{failure};
+      continue;
+    }
+    if(loaded.input_policy == 0 || !continued.finished() || continued.input_policy != 0) throw std::runtime_error{failure};
+    auto const language{scenario.language(record,darker::resources::scenario_language::english)};
+    auto const displacement{std::to_integer<uint8_t>(language[0]) | (std::to_integer<uint8_t>(language[1]) << 8)};
+    if(continued.consumed_text() != static_cast<size_t>(displacement)) throw std::runtime_error{failure + ": message displacement"};
+    for(unsigned int step{0}; !loaded.finished(); ++step) {
+      if(step == 4096) throw std::runtime_error{failure + ": briefing did not finish"};
+      loaded.advance(2000);
+      loaded.continue_page();
+    }
+    if(loaded.weapon_toggles != continued.weapon_toggles
+      || loaded.departure_destination != continued.departure_destination || loaded.difficulty != continued.difficulty
+      || loaded.score != continued.score || loaded.entry.has_value() != continued.entry.has_value())
+      throw std::runtime_error{failure + ": gameplay setup changed"};
+    if(loaded.entry && (loaded.entry->site != continued.entry->site || loaded.entry->heading != continued.entry->heading))
+      throw std::runtime_error{failure + ": entry pose changed"};
+  }
   darker::resources::save_file level_saves;
   darker::presentation::front_end level_entry{archives,font,campaign,level_saves,true};
   level_entry.start_level(4);
