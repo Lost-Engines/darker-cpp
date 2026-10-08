@@ -24,6 +24,7 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
     case flight_sound::caero_switch: channel = 3; patch = 4; pitch = 6928; level = 0xce00; duration = 112; break;
     case flight_sound::skimma_switch: channel = 3; patch = 37; pitch = 3464; level = 0xe000; duration = 112; break;
     case flight_sound::message: channel = 6; patch = 31; pitch = 13056; level = 0xc000; duration = 160; break;
+    case flight_sound::skimma_message: channel = 6; patch = 38; pitch = 3464; level = 0xd800; duration = 112; break;
     case flight_sound::shield_start:
       channel = 4; patch = 36; pitch = 0x302; level = 0xcc00; duration = 4080;
       shield_ready = false;

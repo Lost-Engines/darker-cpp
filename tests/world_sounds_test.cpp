@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <cmath>
 #include "audio/flight_sounds.h"
 #include "audio/world_sounds.h"
@@ -241,4 +242,28 @@ TEST_CASE("Timed player records require retained voices while continuous records
   darker::audio::world_sounds mixer;
   mixer.mix(retriggered,combat,{});
   CHECK((mixer.audible_player() & (1u << 2)) != 0);
+}
+
+TEST_CASE("Mission notification reaches PCM through the fixed voice allocator", "[audio]") {
+  darker::audio::flight_sounds sounds;
+  darker::audio::world_sounds mixer;
+  darker::audio::fm_stream stream{48000};
+  darker::game::mission_combat combat{{}};
+  darker::game::player_flight player;
+  player.engine_flags = 0;
+  std::array<float,1536> pcm{};
+  float peak{0};
+  bool const skimma{GENERATE(false,true)};
+  sounds.trigger(skimma ? darker::audio::flight_sound::skimma_message : darker::audio::flight_sound::message,0);
+  for(uint16_t clock{0}; clock < 200; clock += 8) {
+    auto const notes{sounds.advance(player,clock,false,false,0,mixer.audible_player())};
+    CHECK(notes[6].active == (clock < (skimma ? 112 : 160)));
+    CHECK(notes[6].patch == (skimma ? 38 : 31));
+    CHECK(notes[6].pitch == (skimma ? 3464 : 13056));
+    CHECK(notes[6].level == (skimma ? 0xd800 : 0xc000));
+    REQUIRE(stream.publish(mixer.mix(notes,combat,{})));
+    stream.render(pcm);
+    for(auto const sample : pcm) peak = std::max(peak,std::abs(sample));
+  }
+  CHECK(peak > 0.01f);
 }

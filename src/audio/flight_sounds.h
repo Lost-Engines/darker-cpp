@@ -8,7 +8,7 @@
 
 namespace darker::audio {
 
-enum class flight_sound { boost, charged, caero_switch, skimma_switch, shield_start, shield_ready, message };
+enum class flight_sound { boost, charged, caero_switch, skimma_switch, shield_start, shield_ready, message, skimma_message };
 
 std::optional<uint16_t> chargeable_sound_pitch(uint16_t charge, uint16_t clock) noexcept;
 

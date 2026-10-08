@@ -931,7 +931,7 @@ auto main(int const argc, char const *const argv[])->int {
         darker::game::advance_mission_script(script, context);
         for(auto const &event : context.messages) {
           messages[static_cast<size_t>(event.alignment)] = event;
-          host.sounds.trigger(darker::audio::flight_sound::message,game_clock.frame_ticks);
+          host.sounds.trigger(caero ? darker::audio::flight_sound::message : darker::audio::flight_sound::skimma_message,game_clock.frame_ticks);
         }
         for(auto &message : messages) {
           if(message && std::bit_cast<int16_t>(static_cast<uint16_t>(game_clock.frame_ticks-message->expiry)) >= 0) message.reset();

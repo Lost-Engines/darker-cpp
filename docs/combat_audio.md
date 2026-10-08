@@ -181,3 +181,21 @@ Continuous engine/weapon-charging records remain eligible to retry. The shield
 callback also follows 390E's exact engine-state comparison with one. Tests cover
 first admission, eviction, a later free channel, explicit retriggering and the
 continuous charging exception.
+
+## Message notifications by craft
+
+Native C427 requests fixed record 38BE for each nonempty, unsuppressed mission
+message. B906 keeps that address for the Caero (B91F=19h), but adds 28h for either
+Skimma, selecting 38E6. The latter now has its own notification binding and is
+visited after the Skimma switch record in fixed-record allocation order.
+
+Caero uses patch 31, pitch 13056, level C000h and 160 ticks; Skimma uses patch 38,
+pitch 3464, level D800h and 112 ticks. Both use the same logical notification
+slot, so subsequent messages retrigger it. A regression test passes each sound
+through fixed-record lifetime handling, world voice allocation and the queued
+OPL stream, checking that it emits audible PCM and expires at the original time.
+
+A live mission-80 trace confirmed the existing Caero notification is triggered
+and remains admitted for its lifetime. The reported missing chirp has therefore
+not yet been reproduced; the craft selection correction addresses the separate
+Skimma discrepancy, not an established cause of the Caero report.

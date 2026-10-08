@@ -169,8 +169,9 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
   append_player(5);
   for(auto const &sound : ambient) if((sound.identity >> 16) >= 2) append(sound,nullptr,0x400000000ULL+(sound.identity & 0xffff0000u));
   if(player[3].patch == 4) append_player(3);
-  append_player(6);
+  if(player[6].patch == 31) append_player(6);
   if(player[3].patch != 4) append_player(3);
+  if(player[6].patch != 31) append_player(6);
   append_player(4);
   for(auto *pool : {&combat.effects.sounds,&combat.effects.gun_sounds}) {
     // 363C retires a previously submitted transient when its voice was rejected or stolen.
