@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdexcept>
 #include "game/city_persistence.h"
+#include "game/hangar.h"
+#include "game/scenario_world.h"
 #include "presentation/front_end.h"
 #include "presentation/player.h"
 #include "reference/message_display_samples.h"
@@ -81,6 +83,27 @@ void check_presentations(darker::resources::archive_set const &archives) {
     }
     if(bool((level_entry.selected_pilot().weapons ^ briefing.weapon_toggles) & 4) != (stage >= 101))
       throw std::runtime_error{"Debug level entry has the wrong upgraded missile availability"};
+  }
+  {
+    darker::resources::geometry_bank const bank{archives.load({0,30})};
+    auto const fresh{darker::game::make_city_map(archives.load({0,68}),true)};
+    for(uint8_t stage{1}; stage <= 98; ++stage) {
+      auto const &record{campaign.scenario(stage).records()[darker::resources::select_campaign_stage(stage).record]};
+      if((record.configuration & 15) != 1) continue;
+      level_entry.start_level(stage);
+      auto cells{fresh};
+      darker::game::restore_city_state(cells,bank.city_types(),level_entry.selected_pilot().delphi,stage);
+      darker::game::apply_scenario_cells(cells,record);
+      darker::game::hangar_state hangar;
+      if(level_entry.selected_pilot().return_site) hangar.return_site = level_entry.selected_pilot().return_site;
+      auto const site{hangar.return_site};
+      if(stage == 68 && site != 0x4d62)
+        throw std::runtime_error{"Level 68 must depart Administration HQ after the tunnel return"};
+      if(cells[(site >> 8)*128+((site & 255) >> 1)].type != 17)
+        throw std::runtime_error{"Direct level entry lost its surface hangar at stage " + std::to_string(stage)};
+      darker::game::player_flight player;
+      darker::game::initialise_caero_hangar(player,cells,hangar,bank.header_at(bank.special_models()[25]).height);
+    }
   }
   level_entry.start_level(4);
   if(level_entry.selected_pilot().stage != 4 || level_entry.selected_record() != 3 || level_entry.selected_pilot().weapons == 0)

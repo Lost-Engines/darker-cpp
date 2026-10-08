@@ -51,6 +51,8 @@ Use `--level=4` to begin the briefing for a specific campaign level (1–116).
 This creates a debugging session with equipment and return sites reconstructed
 from preceding briefings, plus cumulative target markings, authored cell-state
 changes (including radio outages) and earlier missions' exit-time beacon failures.
+Underground visits preserve the preceding surface hangar; tunnel portal coordinates
+are used only within their own map.
 It does not assume that previous targets were destroyed, or replay conditional
 combat/script outcomes such as triggered citywide blackouts. Explicit damage in
 scenario setup lists is retained; ordinary objective targets remain intact.

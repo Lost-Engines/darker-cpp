@@ -334,7 +334,9 @@ void front_end::start_level(uint8_t const stage) {
       briefing.continue_page();
     }
     pilot.weapons ^= briefing.weapon_toggles;
-    if(briefing.departure_destination) pilot.return_site = briefing.departure_destination;
+    // Tunnel portal coordinates belong to their own map; completion retains the saved surface hangar.
+    if(record.configuration != 0xff && configuration < 4 && briefing.departure_destination)
+      pilot.return_site = briefing.departure_destination;
   }
   // Debug entry assumes the upgraded craft has completed its first pad service.
   if(stage >= 101) pilot.weapons |= 4;
