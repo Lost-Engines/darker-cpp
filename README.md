@@ -37,8 +37,11 @@ hover/click input, hides the pointer and leaves the mouse uncaptured. Arrow keys
 keyboard firing and menu navigation remain available.
 
 `--noclip` skips player collisions with terrain, buildings and solid actors.
-It leaves weapon impacts, enemies, flight physics and tunnel route assistance
-active; combine with `--cheat-life` for the original impact-damage protection.
+In tunnels it uses free Caero flight instead of route guidance or automatic portal
+landing, and draws nearby tunnel cells without requiring a connected route
+to the camera. Caero flight power and boosts stay replenished, with a constant beacon
+supply while the engine is on, even outside the city or tunnel walls. Weapon
+impacts and enemies remain active; combine with `--cheat-life` for impact-damage protection.
 Both options persist across level changes and deaths and are not saved.
 For example: `./build/darker --level=17 --no-mouse --noclip --cheat-lyndon`.
 

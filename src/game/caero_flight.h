@@ -38,6 +38,7 @@ struct caero_flight_input {
   bool altitude_hold{false};
   bool brake{false};
   bool boost_cheat{false};
+  bool unlimited_power{false};
 };
 
 bool activate_caero_boost(caero_flight_state &state) noexcept;

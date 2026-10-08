@@ -39,6 +39,12 @@ bool activate_caero_boost(caero_flight_state &state) noexcept {
 void advance_caero_flight(caero_flight_state &state, caero_flight_parameters const parameters,
   caero_flight_input const input, std::uint16_t frame_step, std::span<city_cell const, 128 * 128> const cells) {
   /// 7E7F/7EB6 order startup, steering, energy spending, movement, beacon sampling and charging within one callback
+  if(input.unlimited_power) {
+    state.energy.buffer = 0xffff;
+    state.energy.reserve = 0xcfff;
+    state.energy.boost = 0xbfff;
+    state.startup_energy = 0x5000;
+  }
   if(!state.flying) {
     if((state.active_boost >> 8) == 0) {
       if(input.engine_flags & 1) {
@@ -100,10 +106,17 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   if(demand > 65535) throw std::domain_error{"Caero forward demand exceeds the original quotient"};
   auto const forward_target{static_cast<std::uint16_t>(demand + state.forward_bias)};
   advance_horizontal_flight(state.pose, state.horizontal_velocity, forward_target, accounting_step, middle_heading, middle_pitch);
-  auto const incoming{input.engine_flags == 1 ? beacon_light(cells, state.pose.position, {state.pose.fractions[0], state.pose.fractions[1]}) : std::uint16_t{0}};
+  auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? std::uint16_t{0x1800} : beacon_light(cells, state.pose.position, {state.pose.fractions[0], state.pose.fractions[1]})) : std::uint16_t{0}};
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
   state.forward_bias = static_cast<std::uint16_t>((state.pose.speed + (input.brake ? 0 : incoming >> 1)) >> 3);
   charge_caero_energy(state.energy, incoming, input.engine_flags, accounting_step, input.boost_cheat);
+
+  if(input.unlimited_power) {
+    state.energy.buffer = 0xffff;
+    state.energy.reserve = 0xcfff;
+    state.energy.boost = 0xbfff;
+    state.energy.reserve_display = 12;
+  }
 
   auto const vertical_drive{word((word(forward_target) * sine(middle_pitch)) >> 15)};
   auto const absolute_projection{word(turn.lift_projection < 0 ? -turn.lift_projection : turn.lift_projection)};

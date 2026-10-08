@@ -50,6 +50,34 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     if(noclip && probe.pose().position != std::array<uint16_t,3>{1100,2020,0})
       throw std::runtime_error{"Noclip still clipped the player position to terrain"};
   }
+  {
+    darker::game::city_map unlit_city{};
+    darker::game::player_flight surface;
+    surface.noclip = true;
+    auto &craft{std::get<darker::game::caero_flight_state>(surface.craft)};
+    craft.flying = true;
+    craft.pose.position = {40000,40000,1536};
+    auto underground{surface};
+    underground.tunnel.emplace();
+    underground.scenario_configuration = 4;
+    for(unsigned int frame{0}; frame < 512; ++frame) {
+      darker::game::flight_controls_input const input{.right{frame < 128},.up{frame >= 128 && frame < 256}};
+      // No tunnel network is supplied: free flight must never query or follow it.
+      surface.advance_motion(input,false,8,bank,unlit_city);
+      underground.advance_motion(input,false,8,bank,unlit_city);
+      if(surface.pose().position != underground.pose().position || surface.pose().angles != underground.pose().angles)
+        throw std::runtime_error{"Underground noclip did not use free Caero steering"};
+      auto const &energy{std::get<darker::game::caero_flight_state>(underground.craft).energy};
+      if(energy.buffer != 0xffff || energy.reserve != 0xcfff || energy.boost != 0xbfff)
+        throw std::runtime_error{"Noclip flight power depleted outside beacon coverage"};
+      if(frame % 32 == 0) {
+        surface.command(darker::game::flight_command::boost);
+        underground.command(darker::game::flight_command::boost);
+      }
+    }
+    if(surface.pose().position == std::array<uint16_t,3>{40000,40000,1536})
+      throw std::runtime_error{"Noclip did not move beyond beacon coverage"};
+  }
   // B938 freezes the callback, retaining velocity for release while clearing the measured speed.
   for(unsigned int kind{0}; kind < 3; ++kind) {
     darker::game::player_flight frozen;

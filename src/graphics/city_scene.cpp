@@ -174,7 +174,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     }
     return false;
   }};
-  if(view.underground) {
+  if(view.underground && !view.unrestricted_visibility) {
     visit_tunnel_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),tunnel_visibility,place);
   } else {
     tunnel_visibility.fill(0);

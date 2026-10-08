@@ -140,7 +140,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
     ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
-    ("noclip", "disable player collisions with terrain, buildings and solid actors for debugging")
+    ("noclip", "disable player collisions and tunnel guidance; provide unlimited flight power")
     ("cheat-lyndon", "enable Z to freeze or release player motion while the world continues")
     ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
     ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
@@ -314,6 +314,7 @@ auto main(int const argc, char const *const argv[])->int {
     };
     combat->targeting_basis = darker::maths::make_view_basis(view.angles);
     view.underground = host.player.tunnel.has_value();
+    view.unrestricted_visibility = host.player.noclip;
     view.radius = view.underground ? 8 : 15;
     view.beacon_lighting = world_mode == 0;
     view.gouraud = host.gouraud;

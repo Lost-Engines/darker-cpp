@@ -29,7 +29,7 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
 void update_tunnel_portal(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t const frame_step) {
   /// C582/C5CD clear entry protection, select speed/lookahead beyond the portal and capture an aligned return
   if(!player.tunnel) throw std::invalid_argument{"Underground portal update requires tunnel player state"};
-  if(player.lifecycle.crashing || hangar.returning != hangar_return_phase::none) return;
+  if(player.noclip || player.lifecycle.crashing || hangar.returning != hangar_return_phase::none) return;
   if(player.lifecycle.flags & 0x10) {
     advance_hangar_departure(player,cells,hangar,frame_step);
     return;

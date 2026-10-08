@@ -54,6 +54,7 @@ struct city_view {
   bool beacon_lighting{true};
   bool gouraud{true};
   bool underground{false};
+  bool unrestricted_visibility{false}; // Debug cameras can leave the connected tunnel cells
 };
 
 bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept;
