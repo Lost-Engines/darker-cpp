@@ -6,6 +6,7 @@
 #include <memory>
 #include <span>
 #include <vector>
+#include "audio/fm_synth.h"
 
 namespace darker::audio {
 
@@ -26,7 +27,7 @@ private:
   std::unique_ptr<implementation> state;
 
 public:
-  explicit fm_stream(unsigned int sample_rate);
+  explicit fm_stream(unsigned int sample_rate, fm_backend backend = fm_backend::nuked);
   ~fm_stream();
   void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
   void select_music(int group) noexcept;

@@ -196,6 +196,7 @@ through fixed-record lifetime handling, world voice allocation and the queued
 OPL stream, checking that it emits audible PCM and expires at the original time.
 
 A live mission-80 trace confirmed the existing Caero notification is triggered
-and remains admitted for its lifetime. The reported missing chirp has therefore
-not yet been reproduced; the craft selection correction addresses the separate
-Skimma discrepancy, not an established cause of the Caero report.
+and remains admitted for its lifetime. The initial report was subsequently narrowed to a timbre difference rather than
+a missing event. The selectable [DOSBox synthesis path](fm_audio.md#selectable-chip-emulation)
+reproduces the isolated reference-core chirp without retuning the original patch.
+The craft-selection correction addresses the separate Skimma discrepancy.

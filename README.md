@@ -12,7 +12,7 @@ The original game's data files are required to run this.  Darker is considered a
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio and Nuked OPL3 are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW, miniaudio, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 
@@ -113,7 +113,7 @@ Source RGB and square-pixel presentation remain inspection conventions pending o
 
 ## Structure
 
-`src/game` contains platform-independent gameplay state calculations, including complete Caero and Skimma flight callbacks, capped game clocks, swept city collision and player crash handling, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Player engine, boost, recharge and shield effects now use the original FM patches through a pinned Nuked OPL3 chip emulator. `--mute` disables PCM output. Combat sources now use native distance admission and Doppler; ambience, stereo positioning and complete native voice allocation remain outstanding; the proof-of-concept oscillator lives only in test support.
+`src/game` contains platform-independent gameplay state calculations, including complete Caero and Skimma flight callbacks, capped game clocks, swept city collision and player crash handling, Skimma weapon state, typed object definitions, owned projectile creation and ordered direct/object/map guidance, expiry/reference repairs, object and player damage, shield recharge, beacon power and Caero energy accounting, intrusive object lists and the original random generator. `src/resources` reads the original packs. `src/graphics` contains game-specific palette, mask, cockpit, fixed-point camera/projection and original model-bytecode drawing logic. `src/render` contains platform-independent framebuffer types. `src/platform` isolates GLFW/OpenGL presentation and the low-level miniaudio PCM adapter. `src/main.cpp` is the sole application entry point. Player engine, boost, recharge and shield effects now use the original FM patches through a pinned DOSBox DBOPL chip emulator by default. `--mute` disables PCM output. Combat sources use native distance admission, Doppler, ambience, stereo positioning and physical voice allocation. The proof-of-concept oscillator lives only in test support.
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
@@ -141,3 +141,12 @@ The six original Sound Blaster [music groups](docs/sound_images_music.md) now pl
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 
 See [campaign status and remaining work](docs/campaign_status.md) for the current playable boundary and next integration priorities.
+
+The default `--opl=dosbox` uses DOSBox 0.74-3's DBOPL
+synthesiser at the reference 44.1 kHz rate, converted to the host PCM rate.
+`--opl=nuked` selects the previous synthesis for comparison. Neither option changes the original
+sound patches or game logic; music and effects both use the selected core.
+See [FM audio](docs/fm_audio.md) for the measured differences and verification.
+
+[Release readiness](docs/release_readiness.md) tracks the alpha boundary,
+remaining fidelity questions and distribution requirements.

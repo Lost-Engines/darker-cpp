@@ -48,17 +48,38 @@ Checkpoint retry releases old voices before publishing the new player state.
 
 ## Limits and remaining work
 
-The chip/register layer is reference-checked; the complete game's sound scene
-is not yet reproduced. This checkpoint assigns engine and player effects to
-fixed channels 0–4. Original priority ordering, competing world voices,
-distance attenuation, stereo panning and Doppler remain to be connected. In
-particular, the boost currently uses its stored level through the nonspatial
-path, not the original spatial admission path. The camera now selects the hidden-player level or the original exterior base
-level; exterior distance attenuation is still missing.
-Music and all five hardware arrangements are still separate work.
+The original world voice allocator, spatial admission, stereo, Doppler, object
+callbacks and Sound Blaster music sequencer are connected. See
+[combat audio](combat_audio.md) and [music](sound_images_music.md) for current
+coverage. Other hardware music arrangements are extracted in the analysis
+project but are not selectable in this engine. Remaining fidelity work includes
+transient-record reuse, note-gate edge cases and live listening comparisons.
 
-Nuked OPL3 is LGPL-2.1-or-later. Its unmodified source and licence are available
-in the fetched dependency directory and at
-https://github.com/nukeykt/Nuked-OPL3/tree/765ec962e473aeb767e4cba74ffdc8f588ffbfe8.
-Binary release packaging must include the applicable dependency notices and
-relinking/source materials; this commit does not package a binary release.
+## Selectable chip emulation
+
+`--opl=nuked` retains the previous output for comparison. The application defaults
+to `--opl=dosbox`, selected for its closer match to the retail playback references.
+`--opl=dosbox` uses the DBOPL core from the DOSBox 0.74-3 branch, pinned at
+`e164e788f9819d5ab898d705f863e2046baf8b03` in the DOSBox Staging GitHub mirror.
+Only the chip core is compiled; the DOSBox application and mixer are not linked.
+The build strips the unused mixer adapter into generated files, preserving the
+original chip source and copyright headers.
+
+DBOPL runs at 44,100 Hz, matching the reference DOSBox configuration. A causal
+linear conversion supplies the host's 48,000 Hz PCM stream; fractional phase
+persists across buffers. There is one source sample of interpolation delay when
+conversion is needed. This is a host audio conversion, not a change to game
+pitch, timing, patches or levels. Both emulators use the same two-chip stereo
+allocation and original register writes. Chip selection also affects music.
+
+The Caero message chirp matches an independent DOSBox 0.74-3 core capture
+byte-for-byte at 44,100 Hz, including release after 160 game ticks. Additional
+checks compare uninterrupted and split-buffer rendering at 32/48/96 kHz.
+The existing Nuked audition hashes remain unchanged. These checks isolate chip
+output; they do not establish a bit-identical recording of the entire DOSBox
+mixer or an original physical sound card. Live comparison identified the DBOPL
+chirp as closer to the retail DOSBox reference.
+
+Nuked OPL3 is LGPL-2.1-or-later; DOSBox DBOPL is GPL-2.0-or-later. Their licence
+texts and sources are retained in the pinned fetched dependency directories.
+See [release readiness](release_readiness.md) for distribution work still needed.

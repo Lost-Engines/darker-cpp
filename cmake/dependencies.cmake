@@ -20,7 +20,12 @@ FetchContent_Declare(nuked_opl3
   URL_HASH SHA256=2fad908c3904d3ef51b55e0d6a8980c7142942e2d0baa7e99bf038cf0a41199d
   SOURCE_SUBDIR unused_upstream_build
 )
-FetchContent_MakeAvailable(glfw miniaudio nuked_opl3)
+FetchContent_Declare(dosbox_opl
+  URL https://codeload.github.com/dosbox-staging/dosbox-staging/tar.gz/e164e788f9819d5ab898d705f863e2046baf8b03
+  URL_HASH SHA256=efed2dc8c2807503352e817f3160dcad6236824ba4f16347a260bb9293965c50
+  SOURCE_SUBDIR unused_upstream_build
+)
+FetchContent_MakeAvailable(glfw miniaudio nuked_opl3 dosbox_opl)
 
 if(BUILD_TESTING)
   FetchContent_Declare(catch2

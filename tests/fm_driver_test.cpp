@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include <bit>
+#include <algorithm>
 #include <vector>
 #include "audio/flight_sounds.h"
 #include "audio/fm_driver.h"
@@ -61,5 +62,42 @@ TEST_CASE("Player engine sound follows original pitch modulation and engine gate
     CHECK(voice.pitch == sample.output[0]);
     CHECK(voice.active == (sample.output[2] != 0));
     if(voice.active) CHECK(voice.level == sample.output[1]);
+  }
+}
+
+TEST_CASE("DOSBox message synthesis matches the reference core and preserves callback boundaries", "[audio]") {
+  /// Reference: DOSBox 0.74-3 DBOPL, 44100 Hz, patch 31 at C000/13056, key-off at sample 14112.
+  using namespace darker::audio;
+  fm_driver driver;
+  fm_synth synth{44100,fm_backend::dosbox};
+  synth.write(driver.program(0,31,13056,0xc000,true));
+  std::vector<float> pcm(88200);
+  synth.render(std::span{pcm}.first(28224));
+  synth.write(driver.stop(0));
+  synth.render(std::span{pcm}.subspan(28224));
+  uint64_t hash{0xcbf29ce484222325};
+  for(auto const value : pcm) {
+    auto const word{std::bit_cast<uint16_t>(static_cast<int16_t>(value*32768.0f))};
+    for(auto const byte : {word & 255,word >> 8}) hash = (hash ^ static_cast<unsigned int>(byte))*0x100000001b3;
+  }
+  CHECK(hash == 0x2670eb23a9a8df9d);
+
+  for(unsigned int const rate : {32000u,48000u,96000u}) {
+    CAPTURE(rate);
+    fm_synth whole{rate,fm_backend::dosbox}, split{rate,fm_backend::dosbox};
+    fm_driver notes;
+    auto const program{notes.program(0,31,13056,0xc000,true)};
+    whole.write(program);
+    split.write(program);
+    std::vector<float> expected(rate*2), actual(rate*2);
+    whole.render(expected);
+    size_t cursor{0};
+    while(cursor < actual.size()) {
+      auto const count{std::min<size_t>(actual.size()-cursor,274)};
+      split.render(std::span{actual}.subspan(cursor,count));
+      cursor += count;
+    }
+    CHECK(actual == expected);
+    CHECK(std::ranges::any_of(actual,[](float value){ return value > 0.01f; }));
   }
 }

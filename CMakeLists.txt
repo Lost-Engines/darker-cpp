@@ -38,6 +38,7 @@ endif()
 # Original OPL register driver and low-level chip emulation
 add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
 target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
+include(cmake/dbopl.cmake)
 add_library(darker_audio STATIC
   src/audio/ambient_sounds.cpp
   src/audio/ambient_sounds.h
@@ -61,6 +62,7 @@ target_include_directories(darker_audio PUBLIC src)
 target_link_libraries(darker_audio
   PUBLIC darker_game
   PRIVATE nuked_opl3
+  PRIVATE dosbox_opl_core
   PRIVATE Boost::headers
 )
 configure_first_party(darker_audio)

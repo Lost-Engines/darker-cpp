@@ -147,6 +147,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
+    ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
     ("seconds", boost::program_options::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
     ("output", boost::program_options::value<std::string>(), "write RGB PPM without opening a window");
@@ -162,6 +163,8 @@ auto main(int const argc, char const *const argv[])->int {
     return startup_failure(error.what());
   }
   auto const scale{arguments["scale"].as<int>()};
+  auto const opl_name{arguments["opl"].as<std::string>()};
+  if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
   constexpr int display_height{framework::render::cockpit_framebuffer::height};
   if(scale < 1 || scale > std::numeric_limits<int>::max() / std::max(display_width,display_height)) {
@@ -605,7 +608,8 @@ auto main(int const argc, char const *const argv[])->int {
     }
   });
   framework::platform::framebuffer_presenter presenter{*window};
-  darker::audio::fm_stream audio{framework::platform::audio_output::sample_rate};
+  darker::audio::fm_stream audio{framework::platform::audio_output::sample_rate,
+    opl_name == "dosbox" ? darker::audio::fm_backend::dosbox : darker::audio::fm_backend::nuked};
   glfwSetCharCallback(window.get(), [](GLFWwindow *window, unsigned int code){
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(host.front) host.front->character(code);

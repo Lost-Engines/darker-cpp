@@ -24,7 +24,7 @@ struct fm_stream::implementation {
   uint64_t phase{0}, period;
   fm_sink sink;
 
-  explicit implementation(unsigned int const sample_rate) : synth{sample_rate}, right{sample_rate}, period{static_cast<uint64_t>(sample_rate) * 23860},
+  explicit implementation(unsigned int const sample_rate, fm_backend const backend) : synth{sample_rate,backend}, right{sample_rate,backend}, period{static_cast<uint64_t>(sample_rate) * 23860},
     sink{[this](fm_write const command){ synth.write(command); right.write(command); }} {
     /// The game invokes music every ten 2386-cycle PIT interrupts; driver tempo arithmetic separately uses 5D24
   }
@@ -78,7 +78,7 @@ struct fm_stream::implementation {
   }
 };
 
-fm_stream::fm_stream(unsigned int const sample_rate) : state{std::make_unique<implementation>(sample_rate)} {
+fm_stream::fm_stream(unsigned int const sample_rate, fm_backend const backend) : state{std::make_unique<implementation>(sample_rate,backend)} {
   /// Construct chip and queue before the device starts consuming audio
 }
 
