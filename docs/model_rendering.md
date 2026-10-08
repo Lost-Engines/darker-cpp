@@ -206,10 +206,23 @@ exercise the lookup and mutable state together. Halon's `2DAC` supplies strength
 every selected model, including linked alternate/damage models.
 
 Consequently, a beacon outage changes the nearby buildings' shade selection and
-special colours as well as charging capability. The new scene fixtures set
-strengths directly to verify rendering; mission-driven outages are not connected
-to the application yet. The table generator accepts both original scene sizes,
-but this does not implement underground visibility.
+special colours as well as charging capability. **Delphi streetlights (type 11)
+go dark through this regional lighting lookup, without a separate lamp on/off
+toggle.** Each lattice position supplies an effectively 9×9-cell region; this is
+a grid lookup, not a radial lighting calculation or a search for nearby lamps.
+Intermediate beacon strengths also affect the region during a fade.
+
+Lamp destruction is independent: the lamp's own cell state selects its linked
+damaged model. Restoring the regional beacon light does not repair a destroyed
+lamp. Likewise, this visual lighting lookup does not establish whether lamps
+contribute to the player's charging rate; charging has its own routine.
+
+Mission-driven outages and restoration are connected through
+`game::beacon_changes` (`C510`), which updates the beacon state over 256 ticks;
+the city renderer reads those states each frame. Scene fixtures also set
+strengths directly to verify rendering. The table generator accepts both
+original scene sizes, but this table generation alone does not implement
+underground visibility.
 
 Regenerate lighting fixtures with `tools/generate_model_lighting_reference.py
 WORKSPACE` and composed scene fixtures with `tools/generate_city_frame_reference.py
