@@ -21,6 +21,16 @@
       "name": "player flight parameters",
       "start": "BD16",
       "end_exclusive": "BD25"
+    },
+    {
+      "name": "mission exit",
+      "start": "3EC8",
+      "end_exclusive": "3F41"
+    },
+    {
+      "name": "automatic return completion",
+      "start": "7D63",
+      "end_exclusive": "7D70"
     }
   ],
   "direct_writes": [
@@ -527,6 +537,48 @@
       "instruction": "mov word ptr [0x7f20], ax",
       "destination": "7F20",
       "size": 2
+    },
+    {
+      "region": "mission exit",
+      "writer": "3ECE",
+      "instruction": "mov word ptr [0xbfb], 0xffff",
+      "destination": "0BFB",
+      "size": 2
+    },
+    {
+      "region": "mission exit",
+      "writer": "3ED7",
+      "instruction": "mov byte ptr [0xb78e], 1",
+      "destination": "B78E",
+      "size": 1
+    },
+    {
+      "region": "mission exit",
+      "writer": "3EDF",
+      "instruction": "add byte ptr [0x3f24], al",
+      "destination": "3F24",
+      "size": 1
+    },
+    {
+      "region": "mission exit",
+      "writer": "3F10",
+      "instruction": "mov byte ptr [0x72d], 0",
+      "destination": "072D",
+      "size": 1
+    },
+    {
+      "region": "mission exit",
+      "writer": "3F31",
+      "instruction": "mov byte ptr [0x72d], ah",
+      "destination": "072D",
+      "size": 1
+    },
+    {
+      "region": "automatic return completion",
+      "writer": "7D6C",
+      "instruction": "mov byte ptr [0x3e9a], al",
+      "destination": "3E9A",
+      "size": 1
     }
   ],
   "executed_world_profiles": [
@@ -652,6 +704,38 @@
           "value": "003E"
         }
       ]
+    }
+  ],
+  "executed_return_decisions": [
+    {
+      "building_cursor": "FE",
+      "outstanding_objects": 0,
+      "outcome": 3
+    },
+    {
+      "building_cursor": "FE",
+      "outstanding_objects": 1,
+      "outcome": 3
+    },
+    {
+      "building_cursor": "FE",
+      "outstanding_objects": 255,
+      "outcome": 3
+    },
+    {
+      "building_cursor": "FF",
+      "outstanding_objects": 0,
+      "outcome": 1
+    },
+    {
+      "building_cursor": "FF",
+      "outstanding_objects": 1,
+      "outcome": 3
+    },
+    {
+      "building_cursor": "FF",
+      "outstanding_objects": 255,
+      "outcome": 3
     }
   ]
 }

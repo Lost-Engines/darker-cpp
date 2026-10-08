@@ -5,13 +5,13 @@ image is not enough: gameplay setup and the frame loop can replace its operands
 before the callback runs. Reference generators must reproduce those producers,
 or explicitly document which producer output they supply.
 
-`tools/audit_runtime_patches.py` inventories 72 direct absolute-memory writes
+`tools/audit_runtime_patches.py` inventories 78 direct absolute-memory writes
 in the bounded mission/frame setup, renderer world selection, world-profile and
-player-parameter ranges. It also executes BCA4–BCC8 for Delphi, Halon and
+player-parameter, mission-exit and automatic-return ranges. It also executes BCA4–BCC8 for Delphi, Halon and
 underground, recording all seven profile writes. The generated
 [runtime-patch-audit.json](runtime-patch-audit.json) retains addresses, widths,
 values and the input-image checksum. Some inventoried destinations are ordinary
-data; the list is not a claim that all 72 modify executable instructions.
+data; the list is not a claim that all 78 modify executable instructions.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/audit_runtime_patches.py ..
@@ -78,3 +78,24 @@ The remaining audio gate/reuse audit and reported rising-pitch death sound are
 still open. Existing recipe voice submission checks cannot establish perceptual
 parity. Likewise, controlled campaign tests do not replace natural playthroughs
 or certify every death/load/transition combination.
+
+## Automatic-return outcome and retry
+
+`7D63–7D6F` calls `C84E` through its patched objective-list cursor at `C84F`.
+Only an `FF` building-list terminator together with zero outstanding objects
+produces outcome 1. An `FE` boundary or nonzero object counter produces outcome
+3. Six native cases now record this decision in the audit output.
+
+The application previously treated the unsuccessful return as an ordinary menu
+exit. It now shows original presentation `04_015/3` (mission aborted), then
+returns to the run menu. Outcome 1 alone advances the campaign and commits
+surface city state, weapons and the return site. Outcomes 2/3 retain the last
+committed pilot; a retry reads the full load briefing. Underground success
+advances the stage without replacing either surface map or the saved surface
+hangar.
+
+The presentation integration check compares 128 abort frames with the original
+record, preserves the complete encoded save, then dismisses and retries mission
+67, checking its load briefing and unchanged history. Original `3EC8` exit and
+`BBC6` reload probes separately confirm the commit policy; this is not a natural
+end-to-end tunnel playthrough.

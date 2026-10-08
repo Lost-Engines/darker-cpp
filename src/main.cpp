@@ -64,7 +64,7 @@ int startup_failure(std::string_view const message) {
   return EXIT_FAILURE;
 }
 
-enum class session_exit { none, menu, death, completed, previous };
+enum class session_exit { none, menu, death, aborted, completed, previous };
 
 struct flight_host {
   darker::game::player_flight player{};
@@ -665,6 +665,7 @@ auto main(int const argc, char const *const argv[])->int {
       bool const previous_level{host.exit_requested == session_exit::previous};
       if(previous_level) debug_session = true;
       bool const died{host.exit_requested == session_exit::death};
+      bool const aborted{host.exit_requested == session_exit::aborted};
       auto const completed{static_cast<uint8_t>(combat->completed_objectives)};
       bool const completed_mission{host.exit_requested == session_exit::completed};
       if(front) darker::game::commit_beacon_queue(cells,scenario->bytes(mission.beacon_sequence));
@@ -697,10 +698,11 @@ auto main(int const argc, char const *const argv[])->int {
       host.engine_indicator = 0;
       host.briefing = front != nullptr;
       if(front) {
-        if(front->nightmare_selected()) front->finish_nightmare(static_cast<uint8_t>(host.score_base+completed),context.progress ? context.progress : died ? 2 : completed_mission ? 1 : 255);
+        if(front->nightmare_selected()) front->finish_nightmare(static_cast<uint8_t>(host.score_base+completed),context.progress ? context.progress : died ? 2 : aborted ? 3 : completed_mission ? 1 : 255);
         else if(previous_level) front->previous_level();
         else if(completed_mission) front->continue_campaign();
         else if(died) front->show_death(completed);
+        else if(aborted) front->show_abort(completed);
         else front->return_to_menu();
         glfwSetInputMode(window.get(),GLFW_CURSOR,host.cursor_mode(false));
       }
@@ -713,7 +715,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.clock = 0;
       host.exit_requested = session_exit::none;
       game_clock = {};
-      std::cout << (front ? (completed_mission ? (debug_session ? "Continuing the debug campaign without saving." : "Mission saved; continuing the campaign.") : died ? "Showing the Kismet committal sequence." : previous_level ? "Starting the previous playable level without saving." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
+      std::cout << (front ? (completed_mission ? (debug_session ? "Continuing the debug campaign without saving." : "Mission saved; continuing the campaign.") : died ? "Showing the Kismet committal sequence." : aborted ? "Showing the mission-aborted sequence." : previous_level ? "Starting the previous playable level without saving." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
@@ -907,7 +909,7 @@ auto main(int const argc, char const *const argv[])->int {
           {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
       } else if(!host.player.frozen) {
         darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
-        if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = context.objectives_complete ? session_exit::completed : session_exit::menu;
+        if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = context.objectives_complete ? session_exit::completed : session_exit::aborted;
       }
       if(front) {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);

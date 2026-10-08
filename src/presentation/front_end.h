@@ -39,6 +39,7 @@ private:
   void choose_game();
   void begin_briefing(bool continued_mission = false);
   void finish_briefing();
+  void show_outcome(uint8_t outcome, uint8_t completed_objects);
 
 public:
   bool quit_requested{false};
@@ -67,6 +68,7 @@ public:
   void draw(framework::render::cockpit_framebuffer &output) const;
   void return_to_menu();
   void show_death(uint8_t completed_objects);
+  void show_abort(uint8_t completed_objects);
   resources::pilot_record &selected_pilot() noexcept;
   void continue_campaign();
   void start_level(uint8_t stage);

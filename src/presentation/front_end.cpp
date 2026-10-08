@@ -368,8 +368,18 @@ void front_end::continue_campaign() {
 
 void front_end::show_death(uint8_t const completed_objects) {
   /// 3F15 forwards outcome 2 to D8D6, selecting the Kismet committal presentation in 04/15
+  show_outcome(2,completed_objects);
+}
+
+void front_end::show_abort(uint8_t const completed_objects) {
+  /// 7D63 selects outcome 3 when automatic return finishes with outstanding objectives
+  show_outcome(3,completed_objects);
+}
+
+void front_end::show_outcome(uint8_t const outcome, uint8_t const completed_objects) {
+  /// Failure presentations leave the committed pilot untouched for the next attempt
   retained_music = -1;
-  scene = std::make_unique<player>(archives,font,introduction,2,completed_objects);
+  scene = std::make_unique<player>(archives,font,introduction,outcome,completed_objects);
   current = screen::outcome;
 }
 

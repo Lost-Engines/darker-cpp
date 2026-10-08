@@ -264,6 +264,40 @@ void check_presentations(darker::resources::archive_set const &archives) {
   front.key(darker::presentation::front_key::back);
   front.draw(frame);
   if(!front.active()) throw std::runtime_error{"Dismissing death must return to the menu, not launch a mission"};
+  {
+    darker::resources::save_file retry_save;
+    auto &pilot{retry_save.pilots[0]};
+    pilot.stage = 67;
+    pilot.set_name("Tunnel retry");
+    pilot.return_site = 0x4d62;
+    pilot.weapons = 0x0367;
+    pilot.delphi.fill(std::byte{0x63});
+    pilot.halon.fill(std::byte{0x29});
+    auto const committed{darker::resources::encode_save(retry_save)};
+    darker::presentation::front_end retry{archives,font,campaign,retry_save,true};
+    retry.show_abort(7);
+    darker::presentation::player expected_abort{archives,font,startup,3,7};
+    framework::render::cockpit_framebuffer expected_frame;
+    for(unsigned int tick{0}; tick < 128; ++tick) {
+      retry.advance(32);
+      expected_abort.advance(32);
+      retry.draw(frame);
+      expected_abort.draw(expected_frame);
+      if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels})))
+        throw std::runtime_error{"Early tunnel return did not display the original abort presentation"};
+    }
+    if(retry.save_requested || darker::resources::encode_save(retry_save) != committed)
+      throw std::runtime_error{"Aborted tunnel attempt changed committed campaign state"};
+    retry.key(darker::presentation::front_key::accept);
+    retry.key(darker::presentation::front_key::accept);
+    // Retrying from the menu must use the full load briefing, not the seamless success branch.
+    darker::presentation::player expected_retry{archives,font,campaign.scenario(67),2};
+    retry.draw(frame);
+    expected_retry.draw(expected_frame);
+    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels}))
+      || darker::resources::encode_save(retry_save) != committed)
+      throw std::runtime_error{"Aborted tunnel retry lost its briefing or saved surface history"};
+  }
   // The hidden command must never be interpreted as a pilot name or a save-record setting.
   darker::resources::save_file command_saves;
   darker::presentation::front_end commands{archives,font,campaign,command_saves};

@@ -28,7 +28,9 @@ def main():
     ranges = [('mission and frame setup', 0x3c14, 0x3e96),
               ('world renderer setup', 0xbc44, 0xbc99),
               ('world profile', 0xbca4, 0xbccb),
-              ('player flight parameters', 0xbd16, 0xbd25)]
+              ('player flight parameters', 0xbd16, 0xbd25),
+              ('mission exit', 0x3ec8, 0x3f41),
+              ('automatic return completion', 0x7d63, 0x7d70)]
     for name, start, end in ranges:
         for instruction in decoder.disasm(image[start:end], start):
             for operand in instruction.operands:
@@ -60,13 +62,27 @@ def main():
         native.call(0xbca4)
         assert len(observed) == 7
         profiles.append(dict(mode=mode, name=name, writes=observed))
+    returns = []
+    for end_marker in (0xfe, 0xff):
+        for outstanding in (0, 1, 255):
+            native = Harness(image)
+            # C84F is the patched address of the current building-objective cursor.
+            native.write(0xc84f, (0xe000).to_bytes(2, 'little'))
+            native.write(0xe000, bytes([end_marker]))
+            native.write(0xc16f, bytes([outstanding]))
+            native.write(0x3e9a, b'\0')
+            native.call(0x7d63)
+            outcome = native.read(0x3e9a)[0]
+            assert outcome == (1 if end_marker == 0xff and outstanding == 0 else 3)
+            returns.append(dict(building_cursor=f'{end_marker:02X}',
+                                outstanding_objects=outstanding, outcome=outcome))
     report = dict(image_sha256=IMAGE_SHA256,
                   scope='Direct absolute writes in the listed bounded ranges; not a full self-modification census.',
                   ranges=[dict(name=n, start=f'{s:04X}', end_exclusive=f'{e:04X}') for n,s,e in ranges],
-                  direct_writes=writes, executed_world_profiles=profiles)
+                  direct_writes=writes, executed_world_profiles=profiles, executed_return_decisions=returns)
     destination = Path(__file__).resolve().parents[1] / 'docs/runtime-patch-audit.json'
     destination.write_text(json.dumps(report, indent=2) + '\n')
-    print(f'Inventoried {len(writes)} direct writes; executed all seven profile writes in each of three worlds.')
+    print(f'Inventoried {len(writes)} direct writes; executed all seven profile writes in each of three worlds and six return decisions.')
 
 
 if __name__ == '__main__':
