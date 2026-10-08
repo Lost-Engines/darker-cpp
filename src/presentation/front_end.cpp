@@ -1,6 +1,7 @@
 #include "presentation/front_end.h"
 #include <algorithm>
 #include <stdexcept>
+#include "game/city_persistence.h"
 #include "graphics/font.h"
 
 namespace darker::presentation {
@@ -309,6 +310,12 @@ void front_end::start_level(uint8_t const stage) {
   if(nightmare_selected()) selected = 0;
   resources::pilot_record pilot{.stage{stage}};
   pilot.set_name("Level test");
+  // A zero-filled save extinguishes every beacon; pack the actual fresh templates instead.
+  for(unsigned int city{0}; city < 2; ++city) {
+    resources::geometry_bank const bank{archives.load({0,30+city})};
+    auto const cells{game::make_city_map(archives.load({0,68+city}),city == 0)};
+    game::pack_city_state(cells,bank.city_types(),city == 0 ? std::span<std::byte>{pilot.delphi} : std::span<std::byte>{pilot.halon});
+  }
   for(uint8_t previous{1}; previous < stage; ++previous) {
     player briefing{archives,font,campaign.scenario(previous),resources::select_campaign_stage(previous).record};
     for(unsigned int step{0}; !briefing.finished(); ++step) {

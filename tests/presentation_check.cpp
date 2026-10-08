@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include "game/city_persistence.h"
 #include "presentation/front_end.h"
 #include "presentation/player.h"
 #include "reference/message_display_samples.h"
@@ -48,6 +49,17 @@ void check_presentations(darker::resources::archive_set const &archives) {
   level_entry.previous_level();
   if(level_entry.selected_pilot().stage != 1 || level_entry.selected_pilot().weapons != 0)
     throw std::runtime_error{"First level rewind must retain its fresh pre-briefing state"};
+  level_entry.start_level(16);
+  {
+    darker::resources::geometry_bank const bank{archives.load({0,30})};
+    auto const fresh{darker::game::make_city_map(archives.load({0,68}),true)};
+    auto restored{fresh};
+    darker::game::restore_city_state(restored,bank.city_types(),level_entry.selected_pilot().delphi,16);
+    for(size_t i{0}; i < fresh.size(); ++i) {
+      if(fresh[i].type == 1 && fresh[i].state == 255 && restored[i].state != 255)
+        throw std::runtime_error{"Direct level entry extinguished a fresh beacon"};
+    }
+  }
   level_entry.start_level(101);
   level_entry.previous_level();
   if(level_entry.selected_pilot().stage != 99) throw std::runtime_error{"Previous level did not skip the Halon interlude"};

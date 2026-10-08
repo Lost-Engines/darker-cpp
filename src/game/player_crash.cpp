@@ -14,6 +14,11 @@ bool start_player_crash(object_pose &pose, player_crash_state &state, std::uint1
   return true;
 }
 
+bool player_crash_finished(player_crash_state const &state, std::uint16_t const clock) noexcept {
+  /// 79E5 expires the player strictly after its wrapping deadline; 798C then requests outcome 2
+  return state.crashing && std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(state.deadline - clock)) < 0;
+}
+
 void advance_player_crash(object_pose &pose, std::uint16_t const frame_step) noexcept {
   /// 6EF7 rotates the destroyed craft and moves its pitch towards EC00 with the original signed scalar step
   auto const turn{static_cast<std::uint16_t>(frame_step << 5)};

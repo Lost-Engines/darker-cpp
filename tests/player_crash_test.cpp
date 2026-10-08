@@ -18,3 +18,15 @@ TEST_CASE("Player crash transition and rotation match native lifecycle updates",
     CHECK(std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} == sample.advanced);
   }
 }
+
+TEST_CASE("Player death expires strictly after its native wrapping deadline", "[game][collision]") {
+  /// A crash lasts 1536 ticks, including across the sixteen-bit clock rollover
+  for(auto const start : {uint16_t{0},uint16_t{64000},uint16_t{65535}}) {
+    darker::game::object_pose pose;
+    darker::game::player_crash_state state;
+    CHECK_FALSE(darker::game::player_crash_finished(state,start));
+    REQUIRE(darker::game::start_player_crash(pose,state,start));
+    for(unsigned int elapsed{0}; elapsed <= 1600; ++elapsed)
+      CHECK(darker::game::player_crash_finished(state,static_cast<uint16_t>(start+elapsed)) == (elapsed > 1536));
+  }
+}

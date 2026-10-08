@@ -306,7 +306,7 @@ add_library(darker_presentation STATIC
   src/presentation/front_end.h
 )
 target_include_directories(darker_presentation PUBLIC src)
-target_link_libraries(darker_presentation PUBLIC darker_graphics darker_resources)
+target_link_libraries(darker_presentation PUBLIC darker_game darker_graphics darker_resources)
 configure_first_party(darker_presentation)
 
 add_executable(darker src/main.cpp)

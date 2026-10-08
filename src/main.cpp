@@ -573,7 +573,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); Enter after a campaign crash shows the committal sequence." << std::endl;
+  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
@@ -862,6 +862,10 @@ auto main(int const argc, char const *const argv[])->int {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")
                 << "; position " << host.player.pose().position[0] << ',' << host.player.pose().position[1] << ',' << host.player.pose().position[2] << std::endl;
     }
+    if(darker::game::player_crash_finished(host.player.lifecycle,game_clock.frame_ticks)) {
+      host.exit_requested = session_exit::death;
+      continue;
+    }
     if(!front) combat->effects.advance(game_clock.frame_ticks,step);
     if(!was_crashing && host.player.lifecycle.crashing) {
       // 6F4F: recipe 7014, camera mode 2, distance 0205, largest following-distance setting.
@@ -894,7 +898,7 @@ auto main(int const argc, char const *const argv[])->int {
     }
     auto const status{host.briefing ? " - menu / presentation"
       : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete"
-      : host.player.lifecycle.crashing ? (caero ? " - crashed: Enter to continue" : " - crashed: Enter to restart") : " - flight"};
+      : host.player.lifecycle.crashing ? (caero ? " - crashed" : " - crashed: restarting") : " - flight"};
     std::string const title{"Darker - " + std::string{world_mode == 2 ? "Underground" : world_mode == 0 ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};
     glfwSetWindowTitle(window.get(), title.c_str());
     presenter.present(output);

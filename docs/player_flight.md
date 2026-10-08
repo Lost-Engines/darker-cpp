@@ -55,8 +55,7 @@ Tab redirects steering to look-around; released offsets return through the
 original vector reduction. Campaign flight connects cockpit instruments, weapons,
 world sound, landing, missile cameras and particle effects. Enter after a campaign
 crash opens the committal sequence; the explicit free-flight checkpoint restarts
-without campaign presentation. The crash deadline is retained, but automatic
-scene transition at expiry still needs retail comparison.
+without campaign presentation. The crash deadline now automatically requests death outcome 2.
 
 ## Player ramming
 
@@ -90,5 +89,15 @@ The first transition into the crash lifecycle now dispatches native `6F4F`'s
 and voice allocator. The destroyed craft is hidden (object flag `08`). The
 camera switches to mode 2 (level external view), starts at distance `0205`, and
 selects distance index 5, reproducing the original pull-back. Engine/shield and
-missile-camera selection are cleared. The existing Enter-to-committal/retry flow
-remains; automatic expiry-driven scene changes still need comparison with retail.
+missile-camera selection are cleared. The player expires strictly after the wrapping deadline (native `79E5–7A7D`),
+and the empty player list requests outcome 2 at `798C–7995`. The application now
+enters the committal/retry path automatically after 1,536 ticks (about 3.07 seconds).
+At 32 angle units per tick this covers three quarters of a full turn in total;
+the pull-back and changing pitch affect its apparent orbit. It is not a
+camera-angle trigger. Enter can still advance early.
+
+The user reports a missing loud rising-pitch sound during death. A controlled
+mixer trace retains all four recipe voices (patches 15, 16, 19, 19) with their
+original fixed pitches and lifetimes throughout the camera pull-back. This
+verifies voice submission, not perceptual parity with retail; the reported
+sound difference remains open pending a usable original audio reference.

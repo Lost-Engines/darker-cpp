@@ -27,7 +27,7 @@ The application looks for `DARKER.00` through `DARKER.04` (from the original gam
 Use `--skip-intro` to open game selection directly; mission briefings still play normally.
 
 Use `--level=4` to begin the briefing for a specific campaign level (1–116).
-This creates a fresh debugging session with equipment and return sites reconstructed
+This creates a fresh debugging session with the original energised city templates, equipment and return sites reconstructed
 from preceding briefings, rather than reproducing damage left by a particular playthrough.
 It bypasses startup menus and does not write saves. The level selects its own craft;
 do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
