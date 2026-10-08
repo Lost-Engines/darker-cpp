@@ -44,7 +44,7 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
     darker::game::caero_energy_state energy{.reserve{static_cast<uint16_t>(s[1])}};
     uint16_t charge{0};
     auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{.emitter{emitter},.selection{static_cast<uint8_t>(s[0])},
-      .player_flags{static_cast<uint8_t>(s[2])},.pressed{s[4] != 0},.target{0xec00},.trigger_mask{static_cast<uint16_t>(s[11])}})};
+      .player_flags{static_cast<uint8_t>(s[2])},.pressed{s[4] != 0},.target{0xec00},.released{s[12] != 0}})};
     CHECK(energy.reserve == s[6]);
     CHECK(result.ready == (s[7] != 0));
     CHECK((result.next_selection ? result.next_selection : s[0]) == s[8]);

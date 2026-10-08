@@ -908,7 +908,7 @@ auto main(int const argc, char const *const argv[])->int {
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
         combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held,player_start);
+          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held,player_start,host.primary_held && !primary_held);
         contact = combat->player_contact;
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;

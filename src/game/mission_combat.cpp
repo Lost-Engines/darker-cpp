@@ -240,7 +240,7 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held, std::optional<std::array<uint16_t,3>> const player_start) {
+  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held, std::optional<std::array<uint16_t,3>> const player_start, bool const trigger_released) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
@@ -361,7 +361,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   if(caero && (primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7)) {
     auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
       .player_flags{player.lifecycle.flags},.pressed{trigger_pressed},.model{bank.special_models()[primary_weapon - 1]},
-      .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()}})};
+      .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()},.released{trigger_released}})};
     weapon_ready = result.ready;
     if(result.next_selection) primary_weapon = result.next_selection;
     player_fired = result.shot != nullptr;

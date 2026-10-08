@@ -331,11 +331,12 @@ are controlled combat/script/docking checks, supplemented by real-window
 briefing/flight/Level X traversal and saved weapon-mask checks (0367h).
 
 The original Dual Launch firing, paired homing, blast-category passes, effects,
-retirement and sound pitch are connected. The native dispatcher exposes an
-apparent default input-mask defect that prevents the follow-up launch; this is
-preserved and documented with the limits of the evidence in
-[Caero weapons](caero_weapons.md#dual-launch-and-a-native-input-mask-anomaly).
-The working pair is verified separately in a controlled scene.
+retirement and sound pitch are connected. Primary press launches the capsule;
+primary release launches the homing follow-up when energy permits. The former
+apparent input-mask defect was a missed per-frame instruction patch at 3D87,
+now included in native comparisons and the application input path. See
+[Caero weapons](caero_weapons.md#dual-launch-press-for-the-capsule-release-for-the-follow-up).
+Controlled checks cover both the input sequence and the resulting paired blast.
 
 ## Hemmersan attacks and replacement objectives
 

@@ -256,6 +256,33 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   {
+    darker::game::mission_combat dual{{}};
+    darker::game::city_map empty{};
+    darker::game::player_flight player;
+    player.pose().position = {10000,10000,10000};
+    auto &craft{std::get<darker::game::caero_flight_state>(player.craft)};
+    craft.energy.reserve = 0xffff;
+    dual.primary_weapon = 3;
+    dual.advance(player,empty,bank,8,8,0,true);
+    auto *capsule{dual.projectiles.objects().tail};
+    if(!dual.player_fired || dual.primary_weapon != 7 || !capsule
+      || capsule->parameters.definition != &darker::game::original_object_definitions[2])
+      throw std::runtime_error{"Dual Launch primary press did not launch its capsule"};
+    for(uint16_t clock{16}; clock <= 512; clock += 8) {
+      dual.advance(player,empty,bank,clock,8,0,false);
+      if(dual.player_fired || dual.primary_weapon != 7)
+        throw std::runtime_error{"Dual Launch follow-up fired before primary release"};
+    }
+    dual.advance(player,empty,bank,520,8,0,false,{},50,nullptr,false,false,std::nullopt,true);
+    auto const *followup{dual.projectiles.objects().head};
+    if(!dual.player_fired || dual.primary_weapon != 3 || !followup
+      || followup->parameters.definition != &darker::game::original_object_definitions[6]
+      || followup->target_token != capsule->native_id)
+      throw std::runtime_error{"Dual Launch primary release did not launch a capsule-seeking follow-up"};
+    dual.advance(player,empty,bank,528,8,0,false);
+    if(dual.player_fired) throw std::runtime_error{"Dual Launch repeated after release"};
+  }
+  {
     // Isolate the three blast-category passes from navigation and projectile-to-surface collisions.
     std::vector<darker::game::scenario_actor> targets(4);
     for(size_t i{0}; i < targets.size(); ++i) {

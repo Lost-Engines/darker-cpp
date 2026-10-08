@@ -10,7 +10,7 @@ separate from this weapon reserve.
 The guards reject protected/crashing players, exhausted projectile pools and
 insufficient reserve. Brent Hunter requires a negative object token other than
 FFFF; Brent Ground requires a map-cell token. A valid weapon remains ready
-without a trigger edge. Ordinary trigger-edge weapons do not repeat while held; the Dual Launch follow-up has the separate mask condition described below.
+without a trigger edge. Ordinary trigger-edge weapons do not repeat while held; the Dual Launch follow-up has the release-edge condition described below.
 Primary and secondary readiness now drive their original cockpit colours.
 
 ## Acquisition and retention
@@ -59,30 +59,26 @@ These comparisons do not establish an uncontrolled retail-equivalent playthrough
 or exact camera/input ordering in every exterior view. The live synchronised
 DOSBox comparison tool remains deferred.
 
-## Dual Launch and a native input-mask anomaly
+## Dual Launch: press for the capsule, release for the follow-up
 
 Mission 57 unlocks selection 3 (number key 3) and its automatic selection 7.
-CA4A launches the primary capsule and changes primary selection to 7. CA99
-requires the **oldest active player projectile** to have definition 1956h;
-an absent or different oldest projectile returns selection to 3. A successful
-follow-up substitutes that capsule as its target and returns selection to 3.
+CA4A launches the primary capsule on primary-fire press and changes selection
+to 7. CA99 launches its homing follow-up on **primary-fire release**, provided
+there is enough reserve energy and the oldest active player projectile still
+has capsule definition 1956h. A missing or different oldest projectile resets
+selection to 3. A successful follow-up targets the capsule and also resets to 3.
+Holding fire does not launch the follow-up. If release occurs before sufficient
+energy is available, another press/release is needed; it is not a queued shot.
 
-There is an important qualification to that description. The complete native
-C8E9 dispatcher supplies DX from the configured primary action mask at C97A,
-whose unpacked default is 4016h. CA99 tests **DX & 0080h**, rather than the
-pressed-input mask. Consequently the default does not launch the follow-up,
-regardless of pressed/released input, even with enough reserve and a valid
-capsule. An action mask containing 0080h instead admits it without requiring a
-new trigger edge. The reconstruction preserves this condition. Internal firing
-requests retain the mask as an explicit argument; this does not add a control
-option to the application.
-
-This is evidence from executing the native dispatcher, not a confirmed retail
-playthrough diagnosis. Command-line action-mask handlers can alter that value;
-no later runtime patch has been established. Earlier isolated CA99 probes used
-DX=0080h and therefore demonstrated the eligible path without discovering the
-default-mask problem. Do not describe this as an ordinary second-click weapon
-until the complete retail input path has been checked interactively.
+The previous apparent default-mask defect was an incomplete probe, not a retail
+bug. Every frame, `3D7C–3D87` saves the current held-input mask, computes
+`previous & ~current`, and writes that released-input mask into the immediate
+operand at `CAAC`. CA99's `TEST DX,0080h` in the unpacked image is therefore
+self-modifying code: `0080h` is replaced before gameplay firing. DX still carries
+the configured primary-action mask, so this tests release of primary fire.
+The reconstruction now supplies that release event from keyboard or mouse input.
+Retail mission-57 playtesting confirmed a working follow-up, motivating this
+correction; it did not by itself establish the precise input edge.
 
 When admitted, CBE7 homes on the capsule, with separation-dependent speed and
 shared sound pitch. At a separation metric below 20 it makes three blast passes:
@@ -92,13 +88,13 @@ the ordinary object-impact handler. Both projectiles enter the native 256-tick
 retirement path, and recipe 71E8h appears at the capsule. A removed target causes
 self-guided straight flight through the existing target-release path.
 
-Native comparison covers 1,024 full-dispatch firing cases (including default
-and alternative masks), 1,024 separation cases, 2,048 category/strength cases
+Native comparison covers 1,024 firing cases including the native per-frame
+release-mask patch and full dispatcher (default and alternative action masks), 1,024 separation cases, 2,048 category/strength cases
 and 2,048 complete movement updates. Separation preserves the unsigned
 vertical ordering and horizontal one's-complement quirk. A controlled scene
 also exercises the three blast categories, retained distant object, counted
-removals, effects and both projectile deadlines. It constructs the pair directly
-to test the admitted path independently of the default-mask anomaly.
+removals, effects and both projectile deadlines. A further combat check presses, holds for 512 ticks and releases primary fire,
+verifying the selection changes, single follow-up launch and capsule target.
 
 ## Forbes Diffuser
 

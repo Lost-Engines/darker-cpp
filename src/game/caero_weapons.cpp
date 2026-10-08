@@ -77,7 +77,7 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
     if(selection == 7) {
       auto const *capsule{pool.objects().tail};
       if(!capsule || capsule->parameters.definition != &original_object_definitions[2]) return {.ready{true},.next_selection{3}};
-      if(!(request.trigger_mask & 0x80)) return {.ready{true}};
+      if(!request.released) return {.ready{true}};
       target = capsule->native_id;
     }
     if((selection == 8 || selection == 10) && !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {};
