@@ -117,3 +117,24 @@ commands invoke selected-ammunition refill and shield reset; shield reset
 also restores output target 700. Range-mask toggles preserve the original
 arithmetic. Combined command sequences match 512 native scheduler runs.
 These consumers still need binding into the connected Halon session.
+
+## Unlocking the upgraded craft's third missile
+
+The third green cockpit indicator does not prove number-key availability.
+`C90A` derives its ready/ammunition bit from the slot's working and reserve
+counts, independently of the selection mask at `C88C`.
+
+The Halon introduction (`04_012/2`, level 99) leaves weapons 1 and 2 enabled
+(mask 0003). The upgrade and level-105 briefing (`04_013/0`) do not add bit 0004.
+Completing the upgraded pad-service script (`04_015/6`) unlocks the third slot:
+its final `2F 03` at offset 3520 replaces the mask with 0004 and toggles the
+third selection off, then `30 21` at 3522 XORs 0003, leaving 0007. Selection
+remains blocked while the supplementary service script is running; `1E` at
+3535 returns to the mission and releases that gate. Wait for service to finish,
+then use number-row 3 and secondary fire against an acquired aircraft.
+
+A native `B793` key-dispatch probe with scan 04, craft 1B, all three indicators
+at state 2 and no active supplementary script leaves selection unchanged with
+mask 0003. With mask 0007, the same key selects slot 2 and sets its enable bit.
+This explains a green third indicator and an ineffective 3 key before servicing.
+The extra missile uses definition 12; its precise manual name remains unconfirmed.
