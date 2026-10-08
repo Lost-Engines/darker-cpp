@@ -119,11 +119,11 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
 }
 
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t const player_flags,
-  uint16_t const player_extent, actor_course const course, uint8_t const distance, uint16_t const clock, uint16_t const changes, uint16_t &random_state) {
+  uint16_t const player_extent, actor_course const course, uint8_t const distance, uint16_t const clock, uint16_t const changes, uint16_t &random_state, uint8_t const target_protection_mask) {
   /// 8B65's slot-19 close-range gun tests the original DX aim bounds and timer bits, then traces a randomised ray
   // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch.
   if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;
-  if(actor.selected_target != 0xd986 || (player_flags & 0x30)) return std::nullopt;
+  if(actor.selected_target != 0xd986 || (player_flags & target_protection_mask)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
   auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles[1]) >> 8) + speed)};
   if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;

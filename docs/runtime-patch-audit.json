@@ -1,0 +1,657 @@
+{
+  "image_sha256": "7599201a01aa24b7e6ad1ae4295d493821cde7c3a43b247c464522626c0380a4",
+  "scope": "Direct absolute writes in the listed bounded ranges; not a full self-modification census.",
+  "ranges": [
+    {
+      "name": "mission and frame setup",
+      "start": "3C14",
+      "end_exclusive": "3E96"
+    },
+    {
+      "name": "world renderer setup",
+      "start": "BC44",
+      "end_exclusive": "BC99"
+    },
+    {
+      "name": "world profile",
+      "start": "BCA4",
+      "end_exclusive": "BCCB"
+    },
+    {
+      "name": "player flight parameters",
+      "start": "BD16",
+      "end_exclusive": "BD25"
+    }
+  ],
+  "direct_writes": [
+    {
+      "region": "mission and frame setup",
+      "writer": "3C17",
+      "instruction": "mov word ptr [0xd805], 0xd00",
+      "destination": "D805",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C1D",
+      "instruction": "mov byte ptr [0xd27c], 0x3c",
+      "destination": "D27C",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C24",
+      "instruction": "mov word ptr [0x3e8c], ax",
+      "destination": "3E8C",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C27",
+      "instruction": "mov word ptr [0xca80], ax",
+      "destination": "CA80",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C2A",
+      "instruction": "mov byte ptr [0xd72b], 2",
+      "destination": "D72B",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C2F",
+      "instruction": "mov word ptr [0x5d4b], ax",
+      "destination": "5D4B",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C32",
+      "instruction": "mov byte ptr [0xb8b8], 1",
+      "destination": "B8B8",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C37",
+      "instruction": "mov byte ptr [0x78e7], al",
+      "destination": "78E7",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C3A",
+      "instruction": "mov byte ptr [0x54ca], al",
+      "destination": "54CA",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C3D",
+      "instruction": "mov byte ptr [0xd52f], al",
+      "destination": "D52F",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C40",
+      "instruction": "mov byte ptr [0x3ea5], al",
+      "destination": "3EA5",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C43",
+      "instruction": "mov byte ptr [0x7ed2], al",
+      "destination": "7ED2",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C46",
+      "instruction": "mov byte ptr [0xc21b], al",
+      "destination": "C21B",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C49",
+      "instruction": "mov byte ptr [0xc221], al",
+      "destination": "C221",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C4C",
+      "instruction": "mov byte ptr [0xb927], al",
+      "destination": "B927",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C4F",
+      "instruction": "mov byte ptr [0x8b13], al",
+      "destination": "8B13",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C52",
+      "instruction": "mov byte ptr [0xcf5b], al",
+      "destination": "CF5B",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C55",
+      "instruction": "mov word ptr [0x2659], ax",
+      "destination": "2659",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C58",
+      "instruction": "mov word ptr [0x2655], ax",
+      "destination": "2655",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C5B",
+      "instruction": "mov word ptr [0xd632], ax",
+      "destination": "D632",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C5E",
+      "instruction": "mov word ptr [0xd5cd], ax",
+      "destination": "D5CD",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C62",
+      "instruction": "mov word ptr [0x576f], ax",
+      "destination": "576F",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C65",
+      "instruction": "mov word ptr [0x5f0f], ax",
+      "destination": "5F0F",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C68",
+      "instruction": "mov word ptr [0x57b8], ax",
+      "destination": "57B8",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C6B",
+      "instruction": "mov byte ptr [0x3900], 0x12",
+      "destination": "3900",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C70",
+      "instruction": "mov byte ptr [0xb7ba], al",
+      "destination": "B7BA",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C73",
+      "instruction": "mov byte ptr [0x8eb0], al",
+      "destination": "8EB0",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3C8F",
+      "instruction": "mov word ptr [0xc88c], dx",
+      "destination": "C88C",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CA8",
+      "instruction": "mov byte ptr [0x3e9a], 1",
+      "destination": "3E9A",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CB2",
+      "instruction": "mov byte ptr [0xbf5], al",
+      "destination": "0BF5",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CB5",
+      "instruction": "mov word ptr [0xbf0], ax",
+      "destination": "0BF0",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CBB",
+      "instruction": "mov byte ptr [0x3e9a], 0",
+      "destination": "3E9A",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CC0",
+      "instruction": "inc byte ptr [0xbf5]",
+      "destination": "0BF5",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3CDF",
+      "instruction": "mov word ptr [0x3d7d], ax",
+      "destination": "3D7D",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D02",
+      "instruction": "mov word ptr [0x3b82], 0",
+      "destination": "3B82",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D0B",
+      "instruction": "sub word ptr [0x3b82], di",
+      "destination": "3B82",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D30",
+      "instruction": "mov word ptr [0xbfb], 0x50",
+      "destination": "0BFB",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D36",
+      "instruction": "mov byte ptr [0x7f0d], al",
+      "destination": "7F0D",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D39",
+      "instruction": "mov word ptr [0xc51c], ax",
+      "destination": "C51C",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D3C",
+      "instruction": "mov byte ptr [0xb78e], 0xff",
+      "destination": "B78E",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D41",
+      "instruction": "mov word ptr [0xbf8], ax",
+      "destination": "0BF8",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D44",
+      "instruction": "mov byte ptr [0x3db3], al",
+      "destination": "3DB3",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D47",
+      "instruction": "mov word ptr [0xbf0], ax",
+      "destination": "0BF0",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D4A",
+      "instruction": "mov word ptr [0x7e8e], ax",
+      "destination": "7E8E",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D4D",
+      "instruction": "mov word ptr [0x8509], ax",
+      "destination": "8509",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D52",
+      "instruction": "mov word ptr [0x7f8f], ax",
+      "destination": "7F8F",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D5C",
+      "instruction": "inc byte ptr [0x4552]",
+      "destination": "4552",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D79",
+      "instruction": "mov word ptr [0xc9f7], ax",
+      "destination": "C9F7",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D7F",
+      "instruction": "mov word ptr [0x3d7d], dx",
+      "destination": "3D7D",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3D87",
+      "instruction": "mov word ptr [0xcaac], ax",
+      "destination": "CAAC",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DC8",
+      "instruction": "mov byte ptr [0x3dc5], al",
+      "destination": "3DC5",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DD7",
+      "instruction": "mov byte ptr [0x78e7], 0",
+      "destination": "78E7",
+      "size": 1
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DEB",
+      "instruction": "mov word ptr [0xd62d], ax",
+      "destination": "D62D",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DEE",
+      "instruction": "mov word ptr [0xd5ca], ax",
+      "destination": "D5CA",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DF2",
+      "instruction": "mov word ptr [0x7eba], ax",
+      "destination": "7EBA",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DF5",
+      "instruction": "mov word ptr [0x7ecf], dx",
+      "destination": "7ECF",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DFC",
+      "instruction": "mov word ptr [0x576a], ax",
+      "destination": "576A",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3DFF",
+      "instruction": "mov word ptr [0x576c], ax",
+      "destination": "576C",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3E14",
+      "instruction": "mov word ptr [0x5f0f], 0xffff",
+      "destination": "5F0F",
+      "size": 2
+    },
+    {
+      "region": "mission and frame setup",
+      "writer": "3E23",
+      "instruction": "and byte ptr [0x257e], al",
+      "destination": "257E",
+      "size": 1
+    },
+    {
+      "region": "world renderer setup",
+      "writer": "BC62",
+      "instruction": "mov byte ptr [0x6202], ah",
+      "destination": "6202",
+      "size": 1
+    },
+    {
+      "region": "world renderer setup",
+      "writer": "BC66",
+      "instruction": "mov byte ptr [0xb91f], al",
+      "destination": "B91F",
+      "size": 1
+    },
+    {
+      "region": "world renderer setup",
+      "writer": "BC96",
+      "instruction": "mov byte ptr [0x2edc], al",
+      "destination": "2EDC",
+      "size": 1
+    },
+    {
+      "region": "world profile",
+      "writer": "BCAF",
+      "instruction": "mov word ptr [0x3597], ax",
+      "destination": "3597",
+      "size": 2
+    },
+    {
+      "region": "world profile",
+      "writer": "BCB3",
+      "instruction": "mov word ptr [0x35f5], ax",
+      "destination": "35F5",
+      "size": 2
+    },
+    {
+      "region": "world profile",
+      "writer": "BCB7",
+      "instruction": "mov byte ptr [0xc841], al",
+      "destination": "C841",
+      "size": 1
+    },
+    {
+      "region": "world profile",
+      "writer": "BCBC",
+      "instruction": "mov byte ptr [0x2e10], al",
+      "destination": "2E10",
+      "size": 1
+    },
+    {
+      "region": "world profile",
+      "writer": "BCBF",
+      "instruction": "mov byte ptr [0x192e], ah",
+      "destination": "192E",
+      "size": 1
+    },
+    {
+      "region": "world profile",
+      "writer": "BCC4",
+      "instruction": "mov byte ptr [0x8b6a], al",
+      "destination": "8B6A",
+      "size": 1
+    },
+    {
+      "region": "world profile",
+      "writer": "BCC8",
+      "instruction": "mov word ptr [0xbea7], ax",
+      "destination": "BEA7",
+      "size": 2
+    },
+    {
+      "region": "player flight parameters",
+      "writer": "BD19",
+      "instruction": "mov byte ptr [0x8006], ah",
+      "destination": "8006",
+      "size": 1
+    },
+    {
+      "region": "player flight parameters",
+      "writer": "BD22",
+      "instruction": "mov word ptr [0x7f20], ax",
+      "destination": "7F20",
+      "size": 2
+    }
+  ],
+  "executed_world_profiles": [
+    {
+      "mode": 0,
+      "name": "Delphi",
+      "writes": [
+        {
+          "destination": "3597",
+          "size": 2,
+          "value": "3792"
+        },
+        {
+          "destination": "35F5",
+          "size": 2,
+          "value": "390E"
+        },
+        {
+          "destination": "C841",
+          "size": 1,
+          "value": "20"
+        },
+        {
+          "destination": "2E10",
+          "size": 1,
+          "value": "40"
+        },
+        {
+          "destination": "192E",
+          "size": 1,
+          "value": "34"
+        },
+        {
+          "destination": "8B6A",
+          "size": 1,
+          "value": "30"
+        },
+        {
+          "destination": "BEA7",
+          "size": 2,
+          "value": "003A"
+        }
+      ]
+    },
+    {
+      "mode": 1,
+      "name": "Halon",
+      "writes": [
+        {
+          "destination": "3597",
+          "size": 2,
+          "value": "38D2"
+        },
+        {
+          "destination": "35F5",
+          "size": 2,
+          "value": "390E"
+        },
+        {
+          "destination": "C841",
+          "size": 1,
+          "value": "60"
+        },
+        {
+          "destination": "2E10",
+          "size": 1,
+          "value": "C0"
+        },
+        {
+          "destination": "192E",
+          "size": 1,
+          "value": "00"
+        },
+        {
+          "destination": "8B6A",
+          "size": 1,
+          "value": "20"
+        },
+        {
+          "destination": "BEA7",
+          "size": 2,
+          "value": "003A"
+        }
+      ]
+    },
+    {
+      "mode": 2,
+      "name": "Underground",
+      "writes": [
+        {
+          "destination": "3597",
+          "size": 2,
+          "value": "38AA"
+        },
+        {
+          "destination": "35F5",
+          "size": 2,
+          "value": "390E"
+        },
+        {
+          "destination": "C841",
+          "size": 1,
+          "value": "60"
+        },
+        {
+          "destination": "2E10",
+          "size": 1,
+          "value": "C0"
+        },
+        {
+          "destination": "192E",
+          "size": 1,
+          "value": "3B"
+        },
+        {
+          "destination": "8B6A",
+          "size": 1,
+          "value": "20"
+        },
+        {
+          "destination": "BEA7",
+          "size": 2,
+          "value": "003E"
+        }
+      ]
+    }
+  ]
+}

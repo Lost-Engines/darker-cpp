@@ -37,6 +37,6 @@ std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &acto
 projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, bool enabled, uint16_t clock, uint16_t model_token);
 
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t player_flags,
-  uint16_t player_extent, actor_course course, uint8_t distance, uint16_t clock, uint16_t changes, uint16_t &random_state);
+  uint16_t player_extent, actor_course course, uint8_t distance, uint16_t clock, uint16_t changes, uint16_t &random_state, uint8_t target_protection_mask = 0x30);
 
 } // namespace darker::game

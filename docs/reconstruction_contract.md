@@ -30,7 +30,7 @@ Use exact widths where recovered storage or arithmetic requires them. Preserve w
 
 Resource and object offsets are values within defined domains, not native addresses. Read little-endian fields explicitly; do not cast pack bytes to C++ structs. Recovered segment distinctions, especially SS-relative object state versus code/data state, become named data ownership rather than an emulated universal pointer space.
 
-Original tick sources, modulo comparisons, self-modifying accumulators and update order need explicit state. The measured source frequency is approximately 500 Hz; that is not permission to impose a fixed 500 Hz simulation loop, equate one tick to one frame, or discard fractional clock behaviour. Recorded traces supply the exact timestep sequence used by each comparison. The interrupt cap and frame-accounting contract are now reconstructed; outer-loop input polling, modal pauses and mission scheduling still need integration.
+Original tick sources, modulo comparisons, self-modifying accumulators and update order need explicit state. The measured source frequency is approximately 500 Hz; that is not permission to impose a fixed 500 Hz simulation loop, equate one tick to one frame, or discard fractional clock behaviour. Recorded traces supply the exact timestep sequence used by each comparison. The interrupt cap and frame-accounting contract are now reconstructed; outer-loop input and mission ordering still require integrated fidelity checks.
 
 Self-modifying code should become explicit parameters or state-machine transitions where understood. Startup changes, including the sine-table extension, are part of initialisation. A readable rewrite must preserve them even when the untouched executable bytes look different.
 
@@ -56,24 +56,25 @@ Ordinary Catch2 tests require no proprietary assets. Original-pack comparison is
 
 ## Progression and deferred work
 
-Original indexed assets, model/city rendering, steering, both craft flight callbacks, city collisions, flight cameras, player FM effects and several live cockpit producers are connected. Caero now starts inside its original HQ with its engine enabled, automatic boost charging and animated gate departure; Skimma starts remain airborne checkpoints.
+The executable now connects the original assets and software renderer to the
+campaign through stage 116, including Delphi, tunnels, Halon, the final battle
+and ending, plus Nightmare. Both craft families, weapons, scripted actors,
+mission messages, supply pads, automatic docking, menus, original-format saves,
+FM audio allocation and stereo have implementations and comparison coverage.
+See [campaign status](campaign_status.md) for the scope of each controlled check.
 
-The scenario reader, bitmap fonts, mission timing/wait/message scheduler and actor construction/navigation components have native comparisons but are not yet a complete connected world. The first mission's two aircraft now run their combined surface flight callback in the live scene, including pursuit and radar contacts. Native sequence comparisons cover 2,048 updates on the real Delphi map. City scans also preserve byte wrapping across the 256-cell coordinate seams. The [first-mission loop](first_mission.md) now connects original briefing text,
-Pinner Direct selection/firing, aircraft gun damage, projectile collisions,
-falling/removal, the original objective message and automatic HQ docking. A
-controlled combat integration check reaches completion; 684 docking frames match
-native execution. Original hit/destruction sprite recipes and damage trails are now connected.
-Combat sound layers and gun endpoints are connected, with native distance and Doppler comparisons.
-The first eight campaign missions now advance after docking and save city state,
-weapons and return site. Enemy missiles, reserve activation, scripted destinations,
-Pinner Mimic and missile cameras are connected, with native comparisons. Radio
-coverage and energy-tower radar dots also follow the original paths. Original SB music is connected with native register
-comparisons. Full retail presentation, ramming, complete audio allocation/stereo
-and later missions remain outstanding, along with the remaining scenario operations.
-Preserve native update order when extending these independently checked components;
-passing their isolated fixtures does not establish a complete native playthrough.
+Caero launch and tunnel entry/exit paths include their original setup and
+conditional presentation behaviour. Pause supports single stepping and consumes
+the resume key. Debugging options are explicit deviations, including noclip's
+free tunnel steering and unlimited flight power; they are not baseline evidence.
 
-Enemy behaviour, remaining weapons, other craft/cities, exceptional missions, spatial audio and menu/save integration follow with their own reference evidence. Unknown save fields, the anomalous convoy, full visibility/raster contracts and clock/pause behaviour remain open; see the existing [analysis inventory](../../docs/reconstruction-evidence-inventory.md).
+A connected campaign is not yet a verified faithful game. Priorities are
+integrated collision/update ordering, state persistence across unusual exits,
+rendering and camera differences, and remaining audio gate/event behaviour.
+Retail playtesting has exposed differences despite passing isolated native
+fixtures. In particular, [runtime instruction patches](runtime_patches.md) must
+be applied by their producers before treating a callback comparison as evidence.
+The Dual Launch release-mask and Halon enemy-gun corrections document examples.
 
 Converted assets, configurable gameplay controls, adjustable fog, alternative world renderers and the browser re-engine belong to the second project stage. They must not silently enter fidelity tests for this one.
 

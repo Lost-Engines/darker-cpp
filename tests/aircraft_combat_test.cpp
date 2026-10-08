@@ -35,7 +35,7 @@ TEST_CASE("Falling aircraft match the original destruction callback", "[combat]"
   }
 }
 
-TEST_CASE("First mission gun checks match original aim, timing and hit decisions", "[combat]") {
+TEST_CASE("Enemy gun checks match original world profiles, aim, timing and hits", "[combat]") {
   /// Native firing executes through the ray intersection, intercepting only damage application and effect spawning
   for(auto const &v : darker::test_reference::aircraft_guns) {
     CAPTURE(v);
@@ -49,7 +49,7 @@ TEST_CASE("First mission gun checks match original aim, timing and hit decisions
     darker::game::object_pose const player{.position{static_cast<uint16_t>(v[9]), static_cast<uint16_t>(v[10]), static_cast<uint16_t>(v[11])}};
     uint16_t random{static_cast<uint16_t>(v[8])};
     auto const shot{darker::game::fire_skimma_gun(actor, player, v[7], v[12],
-      {.heading{static_cast<uint16_t>(v[2])}, .pitch{static_cast<uint16_t>(v[3])}}, v[4], v[5], v[6], random)};
+      {.heading{static_cast<uint16_t>(v[2])}, .pitch{static_cast<uint16_t>(v[3])}}, v[4], v[5], v[6], random, v[17] == 0 ? 0x30 : 0x20)};
     CHECK(shot.has_value() == (v[13] != 0));
     CHECK((shot && shot->hit) == (v[14] != 0));
     CHECK(random == v[15]);

@@ -325,7 +325,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
       } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
         [&](scenario_actor &source, actor_course const course, uint8_t const distance){
-          auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
+          auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state, player_definition <= 25 ? 0x30 : 0x20)};
           if(shot) effects.gun_impact(shot->end, shot->hit, clock);
           if(shot && shot->hit) {
             apply_player_damage(damage,0x15,3,!caero,player.damage_cheat,random_state);
