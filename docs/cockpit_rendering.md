@@ -120,8 +120,9 @@ Enabling shields starts the original wrapping deadline `clock + 06FF`.
 The display passes through its startup phases, then limits the visible strength
 by the shield reserve's high byte. Its deadline correction retains the original
 mutated DX value, including the byte-only DH shift. `5845` maps strength to
-shield strips and returns an alternating first-strip index for the startup
-pulse. `5192` draws that pulse into the same shield mask; once ready, the normal
+shield strips and returns a selector for the startup pulse width.
+`51AD` turns those values into a trailing one- or two-strip pulse, rather than
+a cumulative fill from the first strip. `5192` draws that pulse into the same shield mask; once ready, the normal
 454C component takes over. The producer exposes a ready-sound request for the
 player sound consumer, which switches the original shield sound to its ready phase.
 
@@ -130,3 +131,16 @@ shields, depleted reserves, startup phases, deadline wrap and mutation, and both
 5845 strip-range outputs. Ordinary tests use captured reference data and do not
 need Unicorn. Original directional-hit effects and weapon/mission indications
 still require those systems to be integrated.
+
+## Skimma frame-edge restoration
+
+The normal Skimma view now restores all three native `54FE–5531` masks after
+copying the rectangular world image: the upper-left frame (16 rows), the raised
+instrument edge (9 rows), and the curved lower-left frame (29 rows). Source
+coordinates are independent of destination coordinates; no colour-key inference
+is involved. Both Skimma variants use the same masks with their own cockpit sheet.
+
+Whole-surface fingerprints captured from the native calls check these masks and
+all 24 shield startup phases, including the pixels that should remain unlit.
+The native blitter's returned mask pointer is preserved in the capture harness
+so two-strip pulses traverse the original records correctly.

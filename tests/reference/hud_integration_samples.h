@@ -554,4 +554,31 @@ inline constexpr auto grid_samples = std::to_array<grid_sample>({
   {12672,65408,46,1},
 });
 inline constexpr uint64_t frame_edge_fingerprint{0x89253f4f948a9efbULL};
+inline constexpr uint64_t skimma_frame_edge_fingerprint{0x261173cb7d5388e6ULL};
+inline constexpr std::array<uint64_t,24> shield_pulse_fingerprints{{
+  0x57db16682beecb25ULL,
+  0xae596b8dd6454efdULL,
+  0xae596b8dd6454efdULL,
+  0xae596b8dd6454efdULL,
+  0x4cee03de86165c45ULL,
+  0x2b511860fb1db065ULL,
+  0x05b2ef4225c3006dULL,
+  0xefeb7015d8baac6dULL,
+  0x8843ad3b783f9ffdULL,
+  0xd8be9b9fa4dba4e5ULL,
+  0x69579893d95a6635ULL,
+  0x325ae2b643269c25ULL,
+  0x6019e6cfd4ee8475ULL,
+  0x06e58dbccd39937dULL,
+  0x57f75d69afc1db45ULL,
+  0xfbe69da21b53a725ULL,
+  0x66556e0641fc4fa5ULL,
+  0x8083db06a01dbe15ULL,
+  0x4a9ed8bd4822dc05ULL,
+  0x08955767476e2035ULL,
+  0xd6c96d37e9effecdULL,
+  0xead7b50f0f192a1dULL,
+  0x96245a36c1688d15ULL,
+  0xc2e6808e439f3d15ULL,
+}};
 } // namespace darker::test_reference

@@ -104,3 +104,23 @@ TEST_CASE("Radar grid readout follows the native beacon lookup and paired invali
     CHECK(darker::game::beacon_grid_coordinates({sample.column,sample.row}) == std::array<uint8_t,2>{sample.x,sample.y});
   }
 }
+
+TEST_CASE("Skimma cockpit edges and moving shield pulse match native blits", "[graphics][cockpit]") {
+  /// Compare entire indexed surfaces, including pixels that must remain unlit during startup
+  framework::render::indexed_cockpit_framebuffer cache{}, target{};
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>(i * 37 + 11);
+  auto const fingerprint{[](auto const &pixels) {
+    uint64_t result{0xcbf29ce484222325};
+    for(auto const pixel : pixels) result = (result ^ pixel) * 0x100000001b3;
+    return result;
+  }};
+  target.pixels.fill(99);
+  darker::graphics::draw_skimma_frame_edges(cache, target);
+  CHECK(fingerprint(target.pixels) == darker::test_reference::skimma_frame_edge_fingerprint);
+  for(uint8_t phase{0}; phase < 24; ++phase) {
+    CAPTURE(phase);
+    target = cache;
+    darker::graphics::draw_skimma_shield_startup(cache, target, phase);
+    CHECK(fingerprint(target.pixels) == darker::test_reference::shield_pulse_fingerprints[phase]);
+  }
+}

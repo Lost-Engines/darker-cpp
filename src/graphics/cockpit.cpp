@@ -38,7 +38,8 @@ void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer c
   if(state > 23) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
   auto const range{skimma_shield_strips(state)};
   auto const &descriptor{components_4d70[1]};
-  for(std::size_t i{range.first}; i < range.end; ++i) {
+  // 51AD converts native BL into a pulse width, with BH selecting its final strip.
+  for(std::size_t i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
     auto const &strip{descriptor.strips[i]};
     copy_mask(cache.pixels, target.pixels, {.x{descriptor.on_source.x}, .y{descriptor.on_source.y + strip.y_offset}},
       {.x{descriptor.destination.x}, .y{descriptor.destination.y + strip.y_offset}}, strip.rows);
@@ -62,6 +63,26 @@ void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const
   copy_mask(cache.pixels,target.pixels,{.x{72},.y{51}},{.x{48},.y{169}},upper_instrument);
   std::fill_n(target.pixels.begin() + 8 * 320 + 122,76,152);
   std::fill_n(target.pixels.begin() + 175 * 320 + 182,53,21);
+}
+
+void draw_skimma_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
+  framework::render::indexed_cockpit_framebuffer &target) {
+  /// 54FE–5531 restores three source-sheet masks around the Skimma's rectangular world view
+  std::array<mask_row, 16> constexpr top{{
+    {0,78}, {0,68}, {0,58}, {0,50}, {0,43}, {0,37}, {0,31}, {0,27},
+    {0,23}, {0,19}, {0,16}, {0,13}, {0,10}, {0,7}, {0,4}, {0,1},
+  }};
+  std::array<mask_row, 9> constexpr instruments{{
+    {75,79}, {53,126}, {39,157}, {32,179}, {30,193}, {29,204}, {28,212}, {17,223}, {7,233},
+  }};
+  std::array<mask_row, 29> constexpr left{{
+    {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,8}, {0,9}, {0,10}, {0,12},
+    {0,13}, {0,15}, {0,17}, {0,18}, {0,20}, {0,22}, {0,24}, {0,26}, {0,28}, {0,30},
+    {0,32}, {0,34}, {0,37}, {0,39}, {0,42}, {0,45}, {0,48}, {0,52}, {0,58},
+  }};
+  copy_mask(cache.pixels, target.pixels, {.x{0}, .y{8}}, {.x{0}, .y{0}}, top);
+  copy_mask(cache.pixels, target.pixels, {.x{24}, .y{8}}, {.x{80}, .y{171}}, instruments);
+  copy_mask(cache.pixels, target.pixels, {.x{216}, .y{26}}, {.x{0}, .y{151}}, left);
 }
 
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,

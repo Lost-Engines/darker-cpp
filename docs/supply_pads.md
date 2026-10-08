@@ -17,7 +17,10 @@ production callback uses the previously reconstructed attitude stabiliser.
 
 The shared tail approaches the script-controlled output and stores half
 as displayed speed. Departure requires sufficient output, an inactive
-supplementary context and positive processed pitch input of at least 0C00.
+supplementary context and positive smoothed pitch reference (D5CA) of at least 0C00.
+The connected player path must pass that reference, not the much smaller
+timestep-scaled angular drive; passing the drive prevented ordinary keyboard
+and mouse departures.
 It halves output, writes vertical velocity 200, clears docking and resumes
 ordinary Skimma flight on the next frame.
 
@@ -45,3 +48,11 @@ starts level with stationary attitude rates. The C++ implementation runs
 the actual reconstructed stabiliser; those particular inputs leave it
 unchanged. These tests do not constitute interactive flight/collision
 validation at a pad. Connected Halon campaign integration remains separate.
+
+The connected control check holds each Skimma variant on a ready pad without
+input, then departs with Down through `player_flight::advance_motion`.
+A windowed level-105 check also confirmed departure: height rose from 328 to
+1009 and the docked flag cleared, with ordinary collision enabled.
+The normal supply script is silent; the upgraded craft's script provides the
+21 diagnostic messages and weapon checks. Their centring and rotation remain
+in the shared approach callback.

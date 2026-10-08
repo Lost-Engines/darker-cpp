@@ -390,6 +390,7 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
+      darker::graphics::draw_skimma_frame_edges(cache, display);
       darker::graphics::skimma_bitmap_state indicators{.bearing{darker::graphics::skimma_mission_bearing(
         context.hud_reference,pose.position[0],pose.position[1],pose.angles[0])}};
       for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;

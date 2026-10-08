@@ -21,6 +21,20 @@
 void check_skimma_combat(darker::resources::archive_set const &archives) {
   /// Exercise original Skimma combat, Halon objectives, supply exchanges and the final battle
   darker::resources::geometry_bank const bank{archives.load({0,31})};
+  for(bool const upgraded : {false, true}) {
+    // Exercise the connected keyboard path: native departure tests D5CA, not the timestep-scaled drive.
+    darker::game::player_flight pilot;
+    darker::game::initialise_skimma_pad(pilot, 0x2020, 0, 0, upgraded);
+    pilot.supply.phase = darker::game::supply_phase::docked;
+    darker::game::city_map city{};
+    for(unsigned int frame{0}; frame < 300; ++frame) pilot.advance_motion({}, false, 8, bank, city);
+    if(pilot.supply.phase != darker::game::supply_phase::docked)
+      throw std::runtime_error{"Skimma left the supply pad without pitch input"};
+    for(unsigned int frame{0}; frame < 2; ++frame) pilot.advance_motion({.down{true}}, false, 8, bank, city);
+    if(pilot.supply.phase != darker::game::supply_phase::flight || (pilot.lifecycle.flags & 0x10)
+      || std::get<darker::game::skimma_flight_state>(pilot.craft).vertical_velocity != 200)
+      throw std::runtime_error{"Down-arrow input failed to release the Skimma from its supply pad"};
+  }
   for(auto const &v : darker::test_reference::halon_spawning_samples) {
     darker::game::aircraft_spawning state{.sites{0x0969,0x0b6f,0x0d6f},.departure_heading{static_cast<uint16_t>(v[10])},.halon{true},.enabled{v[5] != 0}};
     state.timers[0] = static_cast<uint16_t>(v[6]);

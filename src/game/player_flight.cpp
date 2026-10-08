@@ -98,7 +98,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}, .boost_cheat{boost_cheat}, .unlimited_power{noclip}},
       frame_step, cells);
   } else if(supply.phase != supply_phase::flight) {
-    advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,steering.pitch,frame_step);
+    advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,controls.pitch.reference,frame_step);
   } else {
     advance_skimma_flight(std::get<skimma_flight_state>(craft), {.angular_response{gain}, .vertical_bias{bias}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .forward_setting{forward_setting}, .brake{brake}}, frame_step);

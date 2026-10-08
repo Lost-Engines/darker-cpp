@@ -60,6 +60,39 @@ class Edges(Harness):
 h=Edges();h.setreg('AX',0);h.setreg('DI',0);h.call(0x5571)
 fingerprint=0xcbf29ce484222325
 for value in h.pixels:fingerprint=((fingerprint^value)*0x100000001b3)&0xffffffffffffffff
-lines += [f'inline constexpr uint64_t frame_edge_fingerprint{{0x{fingerprint:016x}ULL}};', '} // namespace darker::test_reference','']
+lines += [f'inline constexpr uint64_t frame_edge_fingerprint{{0x{fingerprint:016x}ULL}};']
+
+class SkimmaEdges(Harness):
+    def __init__(self):
+        super().__init__(runtime);self.pixels=bytearray([99])*(320*240)
+    def hook(self,cpu,address,size,data):
+        off=address-self.BASE
+        if off==0x55a5:
+            self.setreg('IP',self.RETURN);return
+        if off==0xdfb0:
+            x,y=self.getreg('DX'),self.getreg('DI')
+            sx,sy=self.getreg('CX'),self.getreg('SI')
+            mask=self.read(self.getreg('AX'),2*(self.getreg('BX')&255))
+            for row,(skip,width) in enumerate(zip(mask[::2],mask[1::2])):
+                for dx in range(skip,skip+width):self.pixels[(y+row)*320+x+dx]=((sy+row)*320+sx+dx)*37+11&255
+            self.setreg('AX',self.getreg('AX')+len(mask)) # E0B6 returns the next mask row.
+            ret(self);return
+        super().hook(cpu,address,size,data)
+
+def fingerprint(pixels):
+    result=0xcbf29ce484222325
+    for value in pixels:result=((result^value)*0x100000001b3)&0xffffffffffffffff
+    return result
+
+h=SkimmaEdges();h.write(0xb91f,b'\x18');h.write(0xb264,b'\0');h.write(0x4540,b'\0');h.call(0x54ee)
+lines += [f'inline constexpr uint64_t skimma_frame_edge_fingerprint{{0x{fingerprint(h.pixels):016x}ULL}};',
+          'inline constexpr std::array<uint64_t,24> shield_pulse_fingerprints{{']
+for state in range(24):
+    h=SkimmaEdges()
+    # The normal frame starts from the unlit cockpit; AH is the old startup phase.
+    h.pixels=bytearray((i*37+11)&255 for i in range(320*240))
+    h.setreg('AX',state);h.call(0x5192)
+    lines.append(f'  0x{fingerprint(h.pixels):016x}ULL,')
+lines += ['}};', '} // namespace darker::test_reference','']
 (ROOT/'tests/reference/hud_integration_samples.h').write_text('\n'.join(lines))
-print('Captured 32 engine states, 512 coordinate pairs and the three native cockpit-edge blits.')
+print('Captured engine states, coordinates, both cockpit edges and all 24 shield pulse rasters.')
