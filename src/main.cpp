@@ -144,7 +144,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
     ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
     ("cheat-level-x", "enable X to advance; Shift+X starts the previous playable level without saving")
-    ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with fresh world state; do not write saves")
+    ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")

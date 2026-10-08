@@ -320,3 +320,22 @@ that gate. A level-17 window capture checks the grey contacts, unlit arc and
 dashed coordinates; unit checks cover the grey ramp over the existing native
 radar projection fixtures. See `flight_cameras.md` for the separate underground
 following/death-camera branch.
+
+
+## Deterministic history for direct level entry
+
+`start_level` begins with separate fresh Delphi/Halon maps, then processes all
+preceding campaign records. Surface records apply their original two setup cell
+lists and complete mission-exit beacon queues to the appropriate map. It does
+not add destruction bits for objective completion. Presentation and tunnel
+records leave both surface maps alone. Briefings continue to supply accumulated
+weapon changes and return destinations. The resulting eligible cell bits are
+packed through the original save representation before the requested level runs
+its own setup; its beacon exit queue has not happened yet.
+
+This is a debugging history, not a generated completed playthrough. Explicit
+setup damage/outages are retained, while conditional combat damage and triggered
+supplementary blackouts are not guessed. Regression coverage checks mission 80's
+inherited Kalvin tank markings without destruction, mission 69's earlier beacon
+failures, no premature application of the current level's queue, previous-level
+reconstruction, late radio shutdown and a clean restart at level one.

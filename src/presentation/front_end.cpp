@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "game/city_persistence.h"
+#include "game/scenario_world.h"
 #include "graphics/font.h"
 
 namespace darker::presentation {
@@ -306,19 +307,27 @@ resources::pilot_record &front_end::selected_pilot() noexcept {
 }
 
 void front_end::start_level(uint8_t const stage) {
-  /// Rebuild briefing-derived equipment and return sites for a fresh debugging entry
+  /// Rebuild guaranteed campaign setup changes without inventing completed combat
   if(stage < 1 || stage > 116) throw std::out_of_range{"Level must be between 1 and 116"};
   if(nightmare_selected()) selected = 0;
   resources::pilot_record pilot{.stage{stage}};
   pilot.set_name("Level test");
-  // A zero-filled save extinguishes every beacon; pack the actual fresh templates instead.
-  for(unsigned int city{0}; city < 2; ++city) {
-    resources::geometry_bank const bank{archives.load({0,30+city})};
-    auto const cells{game::make_city_map(archives.load({0,68+city}),city == 0)};
-    game::pack_city_state(cells,bank.city_types(),city == 0 ? std::span<std::byte>{pilot.delphi} : std::span<std::byte>{pilot.halon});
-  }
+  std::array<game::city_map,2> cities{
+    game::make_city_map(archives.load({0,68}),true),
+    game::make_city_map(archives.load({0,69}),false),
+  };
   for(uint8_t previous{1}; previous < stage; ++previous) {
-    player briefing{archives,font,campaign.scenario(previous),resources::select_campaign_stage(previous).record};
+    auto const &scenario{campaign.scenario(previous)};
+    auto const index{resources::select_campaign_stage(previous).record};
+    auto const &record{scenario.records()[index]};
+    auto const configuration{record.configuration & 15};
+    if(record.configuration != 0xff && configuration < 4) {
+      auto &city{cities[configuration == 2 || configuration == 3 ? 1 : 0]};
+      // Retain authored setup flags (including radio outages), never infer destruction from objectives.
+      game::apply_scenario_cells(city,record);
+      game::commit_beacon_queue(city,scenario.bytes(record.beacon_sequence));
+    }
+    player briefing{archives,font,scenario,index};
     for(unsigned int step{0}; !briefing.finished(); ++step) {
       if(step == 4096) throw std::runtime_error{"Level setup briefing failed to terminate"};
       briefing.advance(2000);
@@ -326,6 +335,10 @@ void front_end::start_level(uint8_t const stage) {
     }
     pilot.weapons ^= briefing.weapon_toggles;
     if(briefing.departure_destination) pilot.return_site = briefing.departure_destination;
+  }
+  for(unsigned int city{0}; city < cities.size(); ++city) {
+    resources::geometry_bank const bank{archives.load({0,30+city})};
+    game::pack_city_state(cities[city],bank.city_types(),city == 0 ? std::span<std::byte>{pilot.delphi} : std::span<std::byte>{pilot.halon});
   }
   selected_pilot() = pilot;
   save_requested = false;

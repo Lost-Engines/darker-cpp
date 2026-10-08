@@ -48,8 +48,12 @@ For example: `./build/darker --level=17 --no-mouse --noclip --cheat-lyndon`.
 Use `--skip-intro` to open game selection directly; mission briefings still play normally.
 
 Use `--level=4` to begin the briefing for a specific campaign level (1–116).
-This creates a fresh debugging session with the original energised city templates, equipment and return sites reconstructed
-from preceding briefings, rather than reproducing damage left by a particular playthrough.
+This creates a debugging session with equipment and return sites reconstructed
+from preceding briefings, plus cumulative target markings, authored cell-state
+changes (including radio outages) and earlier missions' exit-time beacon failures.
+It does not assume that previous targets were destroyed, or replay conditional
+combat/script outcomes such as triggered citywide blackouts. Explicit damage in
+scenario setup lists is retained; ordinary objective targets remain intact.
 It bypasses startup menus and does not write saves. The level selects its own craft;
 do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
 

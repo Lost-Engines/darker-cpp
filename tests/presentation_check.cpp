@@ -103,6 +103,38 @@ void check_presentations(darker::resources::archive_set const &archives) {
   level_entry.start_level(101);
   level_entry.previous_level();
   if(level_entry.selected_pilot().stage != 99) throw std::runtime_error{"Previous level did not skip the Halon interlude"};
+  level_entry.start_level(69);
+  {
+    darker::resources::geometry_bank const bank{archives.load({0,30})};
+    auto const restored{[&](uint8_t const stage){
+      auto city{darker::game::make_city_map(archives.load({0,68}),true)};
+      darker::game::restore_city_state(city,bank.city_types(),level_entry.selected_pilot().delphi,stage);
+      return city;
+    }};
+    if(restored(69)[72*128+63].state != 255)
+      throw std::runtime_error{"Level skip applied the current mission's beacon exit queue too early"};
+    level_entry.start_level(80);
+    auto const city{restored(80)};
+    for(auto const [column,row] : std::array<std::array<unsigned int,2>,3>{{{25,79},{24,80},{24,82}}}) {
+      if((city[row*128+column].state & 0x60) != 0x40)
+        throw std::runtime_error{"Level skip must retain earlier tank target markings without destroying them"};
+    }
+    if((city[68*128+66].state & 0x60) != 0x40)
+      throw std::runtime_error{"Level skip invented mission 69 house destruction"};
+    for(auto const [column,row] : std::array<std::array<unsigned int,2>,4>{{{54,63},{63,63},{63,72},{54,72}}}) {
+      if(city[row*128+column].state != 0)
+        throw std::runtime_error{"Level skip lost earlier beacon failures"};
+    }
+    level_entry.previous_level();
+    if(level_entry.selected_pilot().stage != 79 || !(restored(79)[80*128+24].state & 0x40))
+      throw std::runtime_error{"Previous-level reconstruction lost cumulative target markings"};
+    level_entry.start_level(116);
+    if((restored(116)[13*128+13].state & 0x20) == 0)
+      throw std::runtime_error{"Level skip lost authored radio-beacon shutdown"};
+    level_entry.start_level(1);
+    if(restored(1)[72*128+63].state != 255 || (restored(1)[80*128+24].state & 0x60))
+      throw std::runtime_error{"Restarting level one retained later campaign state"};
+  }
   level_entry.start_level(116);
   if(level_entry.selected_record() != 3) throw std::runtime_error{"Final level entry lost its record"};
   darker::resources::scenario_resource const mission{archives.load({4,0})};

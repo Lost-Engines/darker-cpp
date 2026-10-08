@@ -644,7 +644,12 @@ and damage flags, eight destroyed houses and four dark beacons at mission 80.
 The fresh-map comparison verifies that mission 80 alone marks the Zahner tank,
 leaves the three Kalvin tanks unmarked and starts those beacons energised.
 
-`--level` deliberately reconstructs briefing-derived equipment/destinations on
-a fresh city, not prior gameplay. Level X similarly skips unresolved combat,
-so it is not a substitute for reproducing a particular destruction history.
-No runtime persistence change was needed for this report.
+The original report needed no normal-save persistence fix. Following the user's
+request, `--level` now reconstructs cumulative setup flags and exit beacon queues
+alongside briefing-derived equipment/destinations. Thus `--level=80` includes
+mission 74's tank markings and mission 69's beacon failures, but does not assume
+the tanks or houses were destroyed. Authored first-list damage flags still
+apply, including the final Delphi radio-beacon shutdown. Tunnel/presentation
+records do not alter either surface city's saved state. Conditional combat and
+supplementary-script outcomes are not fabricated. Shift-X uses the same history
+reconstruction; ordinary X retains the current world's actual state on exit.
