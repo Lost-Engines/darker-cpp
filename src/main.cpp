@@ -90,11 +90,20 @@ struct flight_host {
   std::uint16_t shield_deadline{0};
   bool mouse_started{false};
   bool paused{false};
+  bool single_step{false};
+  int resume_key{GLFW_KEY_UNKNOWN};
+
+  bool key_down(GLFWwindow &window, int const key) const {
+    /// A resume key remains consumed through repeats and held-key polling until its release
+    return !paused && key != resume_key && glfwGetKey(&window,key) == GLFW_PRESS;
+  }
+
   double mouse_origin_x{0};
   double mouse_origin_y{0};
 
   darker::game::flight_controls_input input(GLFWwindow &window) {
     /// Supply wrapping relative mouse counters and held steering keys to the original control filter
+    if(paused) return {.mouse_x{player.controls.bank.previous_mouse},.mouse_y{player.controls.pitch.previous_mouse}};
     double x{0}, y{0};
     glfwGetCursorPos(&window, &x, &y);
     if(!mouse_started) {
@@ -102,7 +111,7 @@ struct flight_host {
       mouse_origin_y = y;
       mouse_started = true;
     }
-    auto const down{[&](int const key){ return glfwGetKey(&window, key) == GLFW_PRESS; }};
+    auto const down{[&](int const key){ return key_down(window,key); }};
     return {
       .left{down(GLFW_KEY_LEFT)}, .right{down(GLFW_KEY_RIGHT)}, .up{down(GLFW_KEY_UP)}, .down{down(GLFW_KEY_DOWN)},
       .control{down(GLFW_KEY_LEFT_CONTROL) || down(GLFW_KEY_RIGHT_CONTROL)},
@@ -416,8 +425,12 @@ auto main(int const argc, char const *const argv[])->int {
   if(glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
   glfwSetWindowUserPointer(window.get(), &host);
   glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int const modifiers){
-    if(action == GLFW_RELEASE) return;
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
+    if(action == GLFW_RELEASE) {
+      if(key == host.resume_key) host.resume_key = GLFW_KEY_UNKNOWN;
+      return;
+    }
+    if(key == host.resume_key) return;
     if(host.front && host.front->active()) {
       using darker::presentation::front_key;
       if(action != GLFW_PRESS && key != GLFW_KEY_BACKSPACE) return;
@@ -443,7 +456,10 @@ auto main(int const argc, char const *const argv[])->int {
     }
     if(host.paused || key == GLFW_KEY_PAUSE || key == GLFW_KEY_NUM_LOCK) {
       if(action != GLFW_PRESS) return;
-      host.paused = !host.paused;
+      bool const pause_key{key == GLFW_KEY_PAUSE || key == GLFW_KEY_NUM_LOCK};
+      if(host.paused && pause_key) { host.single_step = true; return; }
+      host.paused = pause_key;
+      if(!host.paused) host.resume_key = key;
       glfwSetInputMode(window,GLFW_CURSOR,host.paused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
       if(!host.paused) {
         host.mouse_started = false;
@@ -664,7 +680,8 @@ auto main(int const argc, char const *const argv[])->int {
     double const elapsed{std::chrono::duration<double>(now - start).count()};
     if(seconds > 0 && elapsed >= seconds) break;
     auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
-    if(host.paused) {
+    bool const single_step{std::exchange(host.single_step,false)};
+    if(host.paused && !single_step) {
       // Keep the last software frame intact and exclude paused wall time from the PIT clock.
       previous_interrupts = interrupts;
       if(!pause_reported) {
@@ -673,8 +690,8 @@ auto main(int const argc, char const *const argv[])->int {
           << "; heading/pitch/roll " << pose.angles[0] << ',' << pose.angles[1] << ',' << pose.angles[2]
           << "; player flags " << unsigned{host.player.lifecycle.flags}
           << "; return hangar cell " << ((host.hangar.return_site & 255) >> 1) << ',' << (host.hangar.return_site >> 8)
-          << "; objectives complete " << context.objectives_complete << std::endl;
-        glfwSetWindowTitle(window.get(),"Darker - paused (press a key to resume)");
+          << "; objectives complete " << context.objectives_complete << "; clock " << game_clock.frame_ticks << std::endl;
+        glfwSetWindowTitle(window.get(),"Darker - paused (Pause steps; another key resumes)");
         if(audio_device) audio.publish({});
         pause_reported = true;
       }
@@ -682,6 +699,7 @@ auto main(int const argc, char const *const argv[])->int {
       continue;
     }
     pause_reported = false;
+    if(single_step) previous_interrupts = interrupts;
     if(front) {
       front->advance(static_cast<uint32_t>(interrupts - previous_interrupts));
       if(front->save_requested) {
@@ -823,26 +841,26 @@ auto main(int const argc, char const *const argv[])->int {
       }
     }
     game_clock.running = !host.briefing && host.hangar.returning != darker::game::hangar_return_phase::complete;
-    darker::game::advance_game_clock(game_clock, interrupts - previous_interrupts);
+    darker::game::advance_game_clock(game_clock, single_step ? 8 : interrupts - previous_interrupts);
     previous_interrupts = interrupts;
     auto const step{darker::game::consume_game_frame(game_clock)};
     auto const *caero_state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     darker::game::city_collision_result contact;
     std::optional<std::array<uint16_t,3>> player_start;
-    bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
-    bool const secondary_held{glfwGetKey(window.get(),GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window.get(),GLFW_KEY_RIGHT_ALT) == GLFW_PRESS
-      || glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
+    bool const primary_held{host.key_down(*window,GLFW_KEY_SPACE) || (!host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)};
+    bool const secondary_held{host.key_down(*window,GLFW_KEY_LEFT_ALT) || host.key_down(*window,GLFW_KEY_RIGHT_ALT)
+      || (!host.paused && glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)};
     bool const was_crashing{host.player.lifecycle.crashing};
     if(step != 0) {
       if(front) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
         if(front) {
           player_start = host.player.pose().position;
-          host.player.advance_motion(host.input(*window),glfwGetKey(window.get(),GLFW_KEY_BACKSPACE) == GLFW_PRESS,
+          host.player.advance_motion(host.input(*window),host.key_down(*window,GLFW_KEY_BACKSPACE),
             step,bank,cells,tunnel_network ? &*tunnel_network : nullptr,
             {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
-        } else contact = host.player.advance(host.input(*window), glfwGetKey(window.get(), GLFW_KEY_BACKSPACE) == GLFW_PRESS,
+        } else contact = host.player.advance(host.input(*window), host.key_down(*window,GLFW_KEY_BACKSPACE),
           step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr,
           {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
       } else {
@@ -907,8 +925,8 @@ auto main(int const argc, char const *const argv[])->int {
       host.camera.distance = 0x0205;
       host.camera.distance_step = 5;
     }
-    bool const enlarged{caero && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
-    host.camera.update_look(host.player.look_drive, glfwGetKey(window.get(), GLFW_KEY_TAB) == GLFW_PRESS, step, (host.player.lifecycle.flags & 16) != 0);
+    bool const enlarged{caero && (host.key_down(*window,GLFW_KEY_INSERT) || host.key_down(*window,GLFW_KEY_KP_0))};
+    host.camera.update_look(host.player.look_drive, host.key_down(*window,GLFW_KEY_TAB), step, (host.player.lifecycle.flags & 16) != 0);
     auto const clock{game_clock.frame_ticks};
     host.clock = clock;
     auto const count{render(clock, enlarged, step)};
@@ -927,7 +945,7 @@ auto main(int const argc, char const *const argv[])->int {
       // 3E93's late-frame SI is not a recovered player continuation; blackout never returns through it.
       exchange.exchange(script,context,std::nullopt);
     }
-    auto const status{host.briefing ? " - menu / presentation"
+    auto const status{host.paused ? " - paused (Pause steps; another key resumes)" : host.briefing ? " - menu / presentation"
       : host.hangar.returning == darker::game::hangar_return_phase::complete ? " - mission complete"
       : host.player.lifecycle.crashing ? (caero ? " - crashed" : " - crashed: restarting") : " - flight"};
     std::string const title{"Darker - " + std::string{world_mode == 2 ? "Underground" : world_mode == 0 ? "Delphi" : "Halon"} + " - " + std::to_string(count) + " models - " + (host.gouraud ? "Gouraud" : "flat") + status};

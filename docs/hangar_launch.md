@@ -88,3 +88,7 @@ briefing. This controlled placement does not reproduce the user's actual approac
 Pause now prints the necessary live position, attitude, lifecycle flags, return
 site and mission-ready condition to obtain a reproducing case without guessing
 at changes to the original capture window.
+
+The user subsequently completed the eastern Comms HQ approach successfully.
+No hangar-admission logic changed during this investigation; the intermittent
+report is retained above rather than attributed to an unverified fix.

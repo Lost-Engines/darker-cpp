@@ -25,7 +25,9 @@ cmake --build build --parallel
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
 During flight, **Pause** (or **Num Lock**) freezes the displayed frame and releases
-the mouse. Press any key to resume; that key does not also perform a flight action.
+the mouse. Press Pause/Num Lock again to advance one simulation frame while staying
+paused (8 timer ticks, approximately 16 ms). Press any other key to resume; that key
+is ignored until release, including auto-repeat and held-key flight actions.
 The console prints the paused position, attitude, destination hangar and mission-ready
 state so a reported approach can be reproduced precisely.
 
