@@ -28,3 +28,34 @@ and suppresses the separate joystick fallback through its native input flags.
 The application now supplies GLFW relative mouse counters and held arrow/Ctrl
 keys to this filter. The former free-camera controls have been removed. Host
 mouse sensitivity still needs comparison with the original DOS input path.
+
+## Underground large mouse sweeps
+
+A reported difference remains under investigation: large captured-mouse sweeps
+can pull the reconstruction into a tunnel wall more readily than retail under
+DOSBox, particularly when travelling beyond where an uncaptured cursor would
+have reached the window edge. No speculative steering-strength reduction has
+been applied.
+
+The tunnel fixture now has 3,072 native D510/D5C9 updates. The additional 1,024
+feed sustained horizontal or vertical sweeps, holds and reversals through native
+7AD6 before the tunnel callback, over frame steps 1/2/8/16. All reconstructed
+motion fields match. This exercises D86B's 3072 steering-demand cap and its
+asymmetric approach rate, rather than only the earlier ±2048 synthetic inputs.
+It verifies controller arithmetic for supplied counters, not equivalence between
+physical mouse motion on two host input stacks.
+
+Inspection of the unmodified DOSBox 0.74-3 source archive
+(`https://deb.debian.org/debian/pool/main/d/dosbox/dosbox_0.74-3.orig.tar.gz`)
+shows another possible source of differences. `src/gui/sdlmain.cpp` passes
+captured relative movement through DOSBox sensitivity; `src/ints/mouse.cpp`
+applies its own sensitivity and mickey conversion. Its PS/2 path bypasses cursor
+bounds, but `DoPS2Callback` reduces accumulated differences modulo 256 and marks
+overflow. Darker's 1259 callback accumulates the delivered byte and sign without
+recovering overflow distance. The reconstruction instead uses GLFW raw motion
+where available. Packet loss/wrapping and host acceleration are therefore
+plausible explanations for fast-sweep differences, not evidence of a
+window-edge clamp in Darker's tunnel controller. Which input path and delivered
+counts explain the observed playtest still needs a matched live trace. A slow
+and fast sweep over the same physical distance would help distinguish speed-
+dependent packet delivery from a position limit.

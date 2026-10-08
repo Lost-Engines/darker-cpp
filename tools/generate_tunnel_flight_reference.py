@@ -63,7 +63,7 @@ def main():
                 + [value(0x7fa6),h.read(0x4551)[0],value(0x8518),value(0x8509),value(0xd27c)])
     rng = random.Random(0xd5c9)
     cases = []
-    for sequence in range(64):
+    for sequence in range(72):
         h.cpu.mem_write(h.STACK+0xd986,bytes(112))
         h.setreg('BP',0xd986);h.setreg('DX',13952);h.setreg('BX',14464);h.setreg('DI',0);h.setreg('SI',0xf000)
         h.call(0xbee7)
@@ -79,13 +79,27 @@ def main():
         h.write(0x4551,b'\0')
         h.cpu.mem_write(h.STACK+0xf40,bytes(112))
         h.cpu.mem_write(h.STACK+0xf70,word(480))
-        for frame in range(32):
+        for at in (0x7aef,0x7b4c,0x7b49,0x7afe,0x7b67,0x7b64):patch(at,0)
+        h.write(0x3b52,b'\0');h.write(0x1749,b'\0')
+        patch(0x15b0,0);h.write(0x15aa,b'\0');patch(0x7ca2,12)
+        mouse_x = mouse_y = 0
+        for frame in range(128 if sequence >= 64 else 32):
             step = (1,2,8,16)[sequence%4]
             pitch,bank = (0,0) if sequence%32<4 else (rng.randrange(-2048,2049),rng.randrange(-2048,2049))
             engine = not (sequence%3 == 1 and frame > 12)
             brake = frame%9 == 8
             forward = (248,496,744,992)[sequence%4]
             pitch_drive = (pitch*step >> 8) & 65535
+            if sequence >= 64:
+                # Sustained mouse sweeps and reversals exercise the saturated route-following limits.
+                delta = (100,0,-100,0)[(frame//32)%4]
+                mouse_x = (mouse_x + (delta if sequence%2 == 0 else 0)) & 65535
+                mouse_y = (mouse_y + (delta if sequence%2 else 0)) & 65535
+                patch(0x11da,mouse_x);patch(0x11dc,mouse_y)
+                h.setreg('CX',step);h.setreg('DS',0x1000)
+                h.cpu.ctl_remove_cache(h.BASE,h.BASE+65536);h.call(0x7ad6)
+                pitch_drive = h.getreg('DX')
+                pitch,bank = value(0xd5ca),value(0xd62d)
             patch(0x7ecf,pitch_drive)
             patch(0xd5ca,pitch);patch(0xd62d,bank);patch(0x7f20,forward)
             patch(0xb9f4,0x240 if brake else 0)
