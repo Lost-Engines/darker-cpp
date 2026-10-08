@@ -41,18 +41,17 @@ TEST_CASE("Normal radar projection matches all captured headings, clipping and g
 }
 
 TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw order") {
-  namespace hud = darker::graphics;
-  hud::world_position const player{.x{0}, .y{0}};
-  hud::radar_contact contact{.position{player}, .group{hud::radar_group::a}, .hidden{true}};
-  REQUIRE_FALSE(hud::project_radar_contact(player, 0, contact));
+  darker::graphics::world_position const player{.x{0}, .y{0}};
+  darker::graphics::radar_contact contact{.position{player}, .group{darker::graphics::radar_group::a}, .hidden{true}};
+  REQUIRE_FALSE(darker::graphics::project_radar_contact(player, 0, contact));
   contact.hidden = false;
   contact.covered = false;
-  REQUIRE_FALSE(hud::project_radar_contact(player, 0, contact));
+  REQUIRE_FALSE(darker::graphics::project_radar_contact(player, 0, contact));
   contact.covered = true;
   framework::render::indexed_cockpit_framebuffer screen;
   screen.pixels.fill(99);
-  std::array<hud::radar_contact, 2> const contacts{{contact, {.position{player}, .group{hud::radar_group::b}}}};
-  hud::draw_radar_contacts(screen, player, 0, contacts);
+  std::array<darker::graphics::radar_contact, 2> const contacts{{contact, {.position{player}, .group{darker::graphics::radar_group::b}}}};
+  darker::graphics::draw_radar_contacts(screen, player, 0, contacts);
   REQUIRE(screen.pixels[215 * 320 + 54] == 242);
   REQUIRE(screen.pixels[215 * 320 + 55] == 99);
 }
@@ -73,26 +72,25 @@ TEST_CASE("Skimma masked callbacks match independently extracted sprite coverage
 }
 
 TEST_CASE("Radar retains fractional positions and native word wrapping at world and range boundaries") {
-  namespace hud = darker::graphics;
   struct sample {
-    hud::world_position player;
-    hud::world_position contact;
+    darker::graphics::world_position player;
+    darker::graphics::world_position contact;
     std::uint16_t heading;
-    std::optional<hud::radar_pixel> expected;
+    std::optional<darker::graphics::radar_pixel> expected;
   };
   // Native 5AC9/5AE9 captures, with 59A3 coverage supplied as true and DBC1 pixel writes intercepted.
   std::array<sample, 8> const samples{{
-    {.player{15377, 15487}, .contact{15376, 15742}, .heading{1}, .expected{hud::radar_pixel{{53, 215}, 249}}},
-    {.player{15377, 15487}, .contact{15632, 15486}, .heading{8191}, .expected{hud::radar_pixel{{54, 215}, 249}}},
-    {.player{0, 0}, .contact{65279, 511}, .heading{65535}, .expected{hud::radar_pixel{{53, 216}, 249}}},
-    {.player{65520, 64}, .contact{241, 65087}, .heading{8191}, .expected{hud::radar_pixel{{56, 214}, 249}}},
-    {.player{32760, 65510}, .contact{38135, 65253}, .heading{1}, .expected{hud::radar_pixel{{74, 213}, 237}}},
+    {.player{15377, 15487}, .contact{15376, 15742}, .heading{1}, .expected{darker::graphics::radar_pixel{{53, 215}, 249}}},
+    {.player{15377, 15487}, .contact{15632, 15486}, .heading{8191}, .expected{darker::graphics::radar_pixel{{54, 215}, 249}}},
+    {.player{0, 0}, .contact{65279, 511}, .heading{65535}, .expected{darker::graphics::radar_pixel{{53, 216}, 249}}},
+    {.player{65520, 64}, .contact{241, 65087}, .heading{8191}, .expected{darker::graphics::radar_pixel{{56, 214}, 249}}},
+    {.player{32760, 65510}, .contact{38135, 65253}, .heading{1}, .expected{darker::graphics::radar_pixel{{74, 213}, 237}}},
     {.player{32760, 65510}, .contact{38136, 65253}, .heading{1}, .expected{}},
     {.player{0, 0}, .contact{60160, 511}, .heading{65535}, .expected{}},
     {.player{0, 0}, .contact{60159, 511}, .heading{65535}, .expected{}},
   }};
   for(auto const &sample : samples) {
-    auto const actual{hud::project_radar_contact(sample.player, sample.heading, {.position{sample.contact}, .group{hud::radar_group::a}})};
+    auto const actual{darker::graphics::project_radar_contact(sample.player, sample.heading, {.position{sample.contact}, .group{darker::graphics::radar_group::a}})};
     REQUIRE(actual.has_value() == sample.expected.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.expected->position.x);

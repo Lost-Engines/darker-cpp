@@ -133,11 +133,10 @@ struct flight_host {
 
 auto main(int const argc, char const *const argv[])->int {
   /// Run the reconstructed city flight path while scenario, actors and remaining presentation systems are recovered
-  namespace po = boost::program_options;
-  po::options_description options{"Darker (current flight reconstruction milestone)"};
+  boost::program_options::options_description options{"Darker (current flight reconstruction milestone)"};
   options.add_options()
     ("help,h", "show usage")
-    ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
+    ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
     ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
     ("noclip", "disable player collisions and tunnel guidance; provide unlimited flight power")
@@ -145,21 +144,21 @@ auto main(int const argc, char const *const argv[])->int {
     ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
     ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
     ("cheat-level-x", "enable X to advance; Shift+X starts the previous playable level without saving")
-    ("level", po::value<int>(), "start at campaign level 1..116 with fresh world state; do not write saves")
+    ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with fresh world state; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
-    ("scale", po::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
-    ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
-    ("seconds", po::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
-    ("output", po::value<std::string>(), "write RGB PPM without opening a window");
-  po::variables_map arguments;
+    ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
+    ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
+    ("seconds", boost::program_options::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
+    ("output", boost::program_options::value<std::string>(), "write RGB PPM without opening a window");
+  boost::program_options::variables_map arguments;
   try {
-    po::store(po::parse_command_line(argc, argv, options), arguments);
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), arguments);
     if(arguments.contains("help")) {
       std::cout << options << std::endl;
       return EXIT_SUCCESS;
     }
-    po::notify(arguments);
-  } catch(po::error const &error) {
+    boost::program_options::notify(arguments);
+  } catch(boost::program_options::error const &error) {
     return startup_failure(error.what());
   }
   auto const scale{arguments["scale"].as<int>()};
