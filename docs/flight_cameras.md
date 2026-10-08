@@ -45,3 +45,19 @@ then reject the empty half outside the 128-by-128 city. This lets buildings
 appear across the coordinate seam before the camera crosses it, in both Delphi
 and Halon. The native comparison now covers 768 scans, including outside-map
 centres, both seams and their corner, without changing the original view radius.
+
+## Underground attached views
+
+Native 24A7 tests player configuration F003 against 4. Underground behind/level
+views jump to 24E6, the full-screen pose path, before selecting a following
+distance. This preserves the player's position and roll and does not update
+255D. Death still selects level view and seeds distance 0205, but underground
+that distance is not used to displace the camera. This is not a reduced zoom
+radius or a collision clamp against tunnel walls. Dropped and missile views
+retain their separate branches.
+
+An isolated original-code check of 128 poses confirmed identical position,
+fractions, angles and retained distance for underground behind/level and the
+ordinary full-screen path. The C++ regression checks reuse native full-screen
+samples for both underground modes. Native 2BD0 also omits the separately drawn
+player craft underground; the host follows that restriction.

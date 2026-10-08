@@ -303,3 +303,20 @@ existing interstitial checks cover progression through all nine Halon story
 records. These are script/engine checks; only the first tunnel transition has
 also been checked live, and this is not a claim of a retail playthrough of every
 listed transition.
+
+## Underground cockpit differences
+
+The native 571E branch skips altitude and coordinate updates for player
+configuration 4. The left altitude arc therefore stays off and the small
+coordinate fields retain the cockpit bitmap's dashes. The host now preserves
+those defaults instead of displaying surface beacon-grid coordinates.
+
+Normal underground radar takes the 586F/5876 branch: aircraft, ground vehicles
+and both projectile lists share the grey 5C04 ramp, palette index
+`22 - (squared pixel radius >> 5)`. Surface aircraft and ground contacts retain
+their separate 249/242 bases. The common projection and clipping are unchanged.
+B8C1 rejects the enlarged-radar command underground; Insert/keypad 0 now respect
+that gate. A level-17 window capture checks the grey contacts, unlit arc and
+dashed coordinates; unit checks cover the grey ramp over the existing native
+radar projection fixtures. See `flight_cameras.md` for the separate underground
+following/death-camera branch.

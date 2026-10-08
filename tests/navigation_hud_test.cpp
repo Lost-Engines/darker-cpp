@@ -151,3 +151,18 @@ TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and al
     REQUIRE(checksum == sample.checksum);
   }
 }
+
+TEST_CASE("Underground radar shares the grey contact ramp for every actor group") {
+  /// 5876 selects 5C04 instead of the 5BFE/5C01 coloured entries; only the base colour changes
+  for(auto const &sample : darker::test_reference::radar) {
+    auto const actual{darker::graphics::project_radar_contact({.x{60*256},.y{60*256}},sample.heading,
+      {.position{.x{static_cast<uint16_t>((60+sample.x)*256)},.y{static_cast<uint16_t>((60+sample.y)*256)}},
+        .group{darker::graphics::radar_group::underground}})};
+    REQUIRE(actual.has_value() == sample.pixel.has_value());
+    if(!actual) continue;
+    CHECK(actual->position.x == sample.pixel->position.x);
+    CHECK(actual->position.y == sample.pixel->position.y);
+    auto const original_base{sample.group == darker::graphics::radar_group::a ? 249 : 242};
+    CHECK(actual->colour == sample.pixel->colour-original_base+22);
+  }
+}

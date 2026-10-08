@@ -57,7 +57,7 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, std:
 
 std::optional<radar_pixel> project_radar_contact(world_position const player, std::uint16_t const heading, radar_contact const contact, radar_scale const scale) {
   /// 5AC9–5B55 retain byte-window rejection, signed high products and word truncation
-  if(contact.group != radar_group::a && contact.group != radar_group::b) throw std::invalid_argument{"unknown radar contact group"};
+  if(contact.group != radar_group::a && contact.group != radar_group::b && contact.group != radar_group::underground) throw std::invalid_argument{"unknown radar contact group"};
   if(scale != radar_scale::normal && scale != radar_scale::enlarged) throw std::invalid_argument{"unknown radar scale"};
   if(contact.hidden || !contact.covered) return std::nullopt;
   auto const relative_x{static_cast<std::uint16_t>(contact.position.x - player.x + 21 * 256)};
@@ -81,7 +81,7 @@ std::optional<radar_pixel> project_radar_contact(world_position const player, st
     };
   }
   if(radius_squared > 441) return std::nullopt;
-  int const base_colour{contact.group == radar_group::a ? 249 : 242};
+  int const base_colour{contact.group == radar_group::underground ? 22 : contact.group == radar_group::a ? 249 : 242};
   return radar_pixel{
     .position{.x{54 + pixel_x}, .y{215 + pixel_y}},
     .colour{static_cast<std::uint8_t>(base_colour - (radius_squared >> 5))},

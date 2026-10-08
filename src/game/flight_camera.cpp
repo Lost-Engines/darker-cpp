@@ -62,7 +62,7 @@ camera_mode flight_camera::visible_mode() const noexcept {
   return mode == camera_mode::cockpit && looking ? camera_mode::behind : mode;
 }
 
-object_pose flight_camera::view(object_pose const &player, std::uint16_t const frame_step, bool const landed, camera_subject const subject) {
+object_pose flight_camera::view(object_pose const &player, std::uint16_t const frame_step, bool const landed, camera_subject const subject, bool const underground) {
   /// Translate the ordinary player views at 24A4/24A7/24E6 and the following-distance path 254D
   if(distance_step >= 6) throw std::out_of_range{"Following camera has six distance settings"};
   object_pose result{player};
@@ -74,7 +74,10 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
       result.angles = {direction.heading, direction.pitch, 0};
     }
   }
-  auto const active{visible_mode()};
+  // 24A7 sends underground player following views straight to 24E6, preserving roll and distance.
+  auto const visible{visible_mode()};
+  auto const active{underground && subject == camera_subject::player
+    && (visible == camera_mode::behind || visible == camera_mode::level) ? camera_mode::fullscreen : visible};
   bool const missile{subject != camera_subject::player};
   bool const following{active == camera_mode::behind || active == camera_mode::level || (missile && (active == camera_mode::cockpit || (subject == camera_subject::missile_effect && active == camera_mode::fullscreen)))};
   if(subject == camera_subject::missile_effect && active == camera_mode::fullscreen && (distance & 0x8000)) distance = 0x200;

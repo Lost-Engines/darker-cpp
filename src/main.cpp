@@ -292,7 +292,7 @@ auto main(int const argc, char const *const argv[])->int {
     int const height{cockpit_visible ? (caero ? 168 : 180) : 240};
     auto const &pose{host.player.pose()};
     auto const subject{!watched ? darker::game::camera_subject::player : (watched->flags & 8) ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile};
-    auto const camera{host.camera.view(watched ? watched->placement : pose,frame_step,(host.player.lifecycle.flags & 16) != 0,subject)};
+    auto const camera{host.camera.view(watched ? watched->placement : pose,frame_step,(host.player.lifecycle.flags & 16) != 0,subject,host.player.tunnel.has_value())};
     host.audio_listener = camera;
     host.audio_motion = watched ? watched->placement : pose;
     darker::graphics::city_view view{
@@ -319,16 +319,18 @@ auto main(int const argc, char const *const argv[])->int {
       objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
       if(actor.category != darker::game::actor_category::stationary) {
         contacts.push_back({.position{actor.pose.position[0],actor.pose.position[1]},
-          .group{actor.category == darker::game::actor_category::air ? darker::graphics::radar_group::a : darker::graphics::radar_group::b},
+          .group{view.underground ? darker::graphics::radar_group::underground : actor.category == darker::game::actor_category::air ? darker::graphics::radar_group::a : darker::graphics::radar_group::b},
           .covered{coverage.contains(static_cast<uint8_t>(actor.pose.position[0] >> 8),static_cast<uint8_t>(actor.pose.position[1] >> 8))}});
       }
     }
     for(auto const *pool : {&combat->projectiles,&combat->hostile_projectiles}) {
       for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+        if(view.underground && !(shot->flags & 8)) contacts.push_back({.position{shot->placement.position[0],shot->placement.position[1]},
+          .group{darker::graphics::radar_group::underground}});
         if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
       }
     }
-    if(external && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
+    if(external && !host.player.tunnel && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
     auto const count{scene.draw(world, bank, cells, view, world_mode == 0 ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
@@ -337,7 +339,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(auto const *state{std::get_if<darker::game::caero_flight_state>(&host.player.craft)}) {
       auto const measured{darker::graphics::measure_caero_instruments(*state, clock)};
       host.engine_indicator = darker::graphics::caero_engine_indicator(host.engine_indicator, host.player.engine_flags & 1, state->pose.speed);
-      instruments = {measured.altitude, measured.impact, measured.damage_lights, measured.power_cells, measured.charging,
+      instruments = {host.player.tunnel ? uint8_t{0} : measured.altitude, measured.impact, measured.damage_lights, measured.power_cells, measured.charging,
         state->energy.incoming_display, state->energy.reserve_display, host.engine_indicator,
         darker::graphics::caero_receiver_indicator(clock,messages[0].has_value(),
           script.stopped,context.objectives_complete,host.player.lifecycle.flags)};
@@ -357,7 +359,7 @@ auto main(int const argc, char const *const argv[])->int {
     auto const grid{darker::game::beacon_grid_coordinates({host.player.pose().position[0],host.player.pose().position[1]})};
     darker::graphics::radar_view_state const navigation{
       .player{.x{view.column}, .y{view.row}}, .heading{view.angles.heading},
-      .row{grid[1]}, .column{grid[0]},
+      .row{host.player.tunnel ? uint8_t{0} : grid[1]}, .column{host.player.tunnel ? uint8_t{0} : grid[0]},
     };
     if(cockpit_visible && caero) {
       darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{combat->secondary_weapon}});
@@ -940,7 +942,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.camera.distance = 0x0205;
       host.camera.distance_step = 5;
     }
-    bool const enlarged{caero && (host.key_down(*window,GLFW_KEY_INSERT) || host.key_down(*window,GLFW_KEY_KP_0))};
+    bool const enlarged{caero && !host.player.tunnel && (host.key_down(*window,GLFW_KEY_INSERT) || host.key_down(*window,GLFW_KEY_KP_0))};
     host.camera.update_look(host.player.look_drive, host.key_down(*window,GLFW_KEY_TAB), step, (host.player.lifecycle.flags & 16) != 0);
     auto const clock{game_clock.frame_ticks};
     host.clock = clock;

@@ -14,7 +14,7 @@ struct world_position {
   std::uint16_t y;
 };
 
-enum class radar_group { a, b };
+enum class radar_group { a, b, underground };
 
 struct radar_contact {
   world_position position;

@@ -73,3 +73,23 @@ TEST_CASE("Missile camera positions match native attached and impact views", "[g
       result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
   }
 }
+
+TEST_CASE("Underground following and death views retain the player position", "[game][camera]") {
+  /// Native 24A7 selects the same 24E6 path as full-screen, without advancing the following distance
+  for(auto const &sample : darker::test_reference::flight_camera_samples) {
+    if(sample.input[0] != 3) continue;
+    darker::game::object_pose player;
+    for(size_t i{0}; i < 3; ++i) {
+      player.position[i] = static_cast<uint16_t>(sample.position[i]);
+      player.angles[i] = static_cast<uint16_t>(sample.angles[i]);
+    }
+    for(size_t i{0}; i < 2; ++i) player.fractions[i] = static_cast<uint8_t>(sample.fractions[i]);
+    for(auto const mode : {darker::game::camera_mode::behind,darker::game::camera_mode::level}) {
+      darker::game::flight_camera camera{.mode{mode},.distance_step{static_cast<uint8_t>(sample.input[2])},
+        .distance{static_cast<uint16_t>(sample.input[3])}};
+      auto const result{camera.view(player,static_cast<uint16_t>(sample.input[1]),sample.input[4] != 0,darker::game::camera_subject::player,true)};
+      CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+        result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
+    }
+  }
+}
