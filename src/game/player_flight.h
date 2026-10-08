@@ -29,6 +29,7 @@ struct player_flight {
   bool boost_cheat{false};
   bool damage_cheat{false};
   bool frozen{false};
+  bool noclip{false};
   supply_pad_state supply{};
   std::optional<uint8_t> scenario_configuration;
 

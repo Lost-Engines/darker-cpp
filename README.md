@@ -32,6 +32,16 @@ is ignored until release, including auto-repeat and held-key flight actions.
 The console prints the paused position, attitude, destination hangar and mission-ready
 state so a reported approach can be reproduced precisely.
 
+For keyboard-only debugging, `--no-mouse` disables movement, buttons and menu
+hover/click input, hides the pointer and leaves the mouse uncaptured. Arrow keys,
+keyboard firing and menu navigation remain available.
+
+`--noclip` skips player collisions with terrain, buildings and solid actors.
+It leaves weapon impacts, enemies, flight physics and tunnel route assistance
+active; combine with `--cheat-life` for the original impact-damage protection.
+Both options persist across level changes and deaths and are not saved.
+For example: `./build/darker --level=17 --no-mouse --noclip --cheat-lyndon`.
+
 Use `--skip-intro` to open game selection directly; mission briefings still play normally.
 
 Use `--level=4` to begin the briefing for a specific campaign level (1–116).

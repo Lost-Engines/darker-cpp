@@ -33,6 +33,23 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
   std::array<std::uint8_t, 256> limits{};
   for(std::size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
+  for(bool const noclip : {false,true}) {
+    darker::game::city_map empty_city{};
+    darker::game::player_flight probe;
+    probe.frozen = true;
+    probe.noclip = noclip;
+    probe.pose().position = {1100,2020,0};
+    auto standalone{probe};
+    auto const contact{standalone.advance({},false,8,8,bank,empty_city)};
+    if(standalone.lifecycle.crashing == noclip || (contact.contact == darker::game::city_contact::none) != noclip)
+      throw std::runtime_error{"Noclip did not control standalone terrain collision"};
+    darker::game::mission_combat collision{{}};
+    collision.collide_player(probe,{1000,2000,100},empty_city,bank,8);
+    if(probe.lifecycle.crashing == noclip || (collision.player_contact.contact == darker::game::city_contact::none) != noclip)
+      throw std::runtime_error{"Noclip did not control campaign terrain collision"};
+    if(noclip && probe.pose().position != std::array<uint16_t,3>{1100,2020,0})
+      throw std::runtime_error{"Noclip still clipped the player position to terrain"};
+  }
   // B938 freezes the callback, retaining velocity for release while clearing the measured speed.
   for(unsigned int kind{0}; kind < 3; ++kind) {
     darker::game::player_flight frozen;

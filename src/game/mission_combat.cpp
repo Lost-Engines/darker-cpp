@@ -88,7 +88,7 @@ void mission_combat::collide_player(player_flight &player, std::array<uint16_t,3
   city_map &cells, resources::geometry_bank const &bank, uint16_t const clock) {
   /// 6F0F scans the player before other collision owners; 6ED4 damages the victim before the player
   player_contact = {};
-  if(player.lifecycle.flags & 0x20) return;
+  if(player.noclip || (player.lifecycle.flags & 0x20)) return;
   auto end{player.pose().position};
   auto const contact{sweep_city(bank,cells,player.world_damage_mask(),start,end,12,10)};
   auto *victim{sweep_actor_groups(actors,bank,start,end,12,actor_collision_groups)};

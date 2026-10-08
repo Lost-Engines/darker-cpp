@@ -92,11 +92,17 @@ struct flight_host {
   bool paused{false};
   bool single_step{false};
   bool freeze_enabled{false};
+  bool mouse_enabled{true};
   int resume_key{GLFW_KEY_UNKNOWN};
 
   bool key_down(GLFWwindow &window, int const key) const {
     /// A resume key remains consumed through repeats and held-key polling until its release
     return !paused && key != resume_key && glfwGetKey(&window,key) == GLFW_PRESS;
+  }
+
+  int cursor_mode(bool const captured) const noexcept {
+    /// Keyboard-only debugging hides the pointer without grabbing it from the desktop
+    return mouse_enabled ? (captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL) : GLFW_CURSOR_HIDDEN;
   }
 
   double mouse_origin_x{0};
@@ -106,7 +112,7 @@ struct flight_host {
     /// Supply wrapping relative mouse counters and held steering keys to the original control filter
     if(paused) return {.mouse_x{player.controls.bank.previous_mouse},.mouse_y{player.controls.pitch.previous_mouse}};
     double x{0}, y{0};
-    glfwGetCursorPos(&window, &x, &y);
+    if(mouse_enabled) glfwGetCursorPos(&window, &x, &y);
     if(!mouse_started) {
       mouse_origin_x = x;
       mouse_origin_y = y;
@@ -133,6 +139,8 @@ auto main(int const argc, char const *const argv[])->int {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
+    ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
+    ("noclip", "disable player collisions with terrain, buildings and solid actors for debugging")
     ("cheat-lyndon", "enable Z to freeze or release player motion while the world continues")
     ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
     ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
@@ -190,6 +198,8 @@ auto main(int const argc, char const *const argv[])->int {
   darker::game::assign_city_variants(cells, variant_limits);
   flight_host host;
   host.freeze_enabled = arguments.contains("cheat-lyndon");
+  host.mouse_enabled = !arguments.contains("no-mouse");
+  bool const noclip{arguments.contains("noclip")};
   bool const boost_cheat{arguments.contains("cheat-brooke")};
   bool const damage_cheat{arguments.contains("cheat-life")};
   if(caero) {
@@ -201,6 +211,7 @@ auto main(int const argc, char const *const argv[])->int {
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
   }
+  host.player.noclip = noclip;
   host.player.boost_cheat = boost_cheat;
   host.player.damage_cheat = damage_cheat;
   darker::resources::campaign_resources campaign{archives};
@@ -432,8 +443,8 @@ auto main(int const argc, char const *const argv[])->int {
   if(!window) return startup_failure("cannot create the GLFW window");
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
-  glfwSetInputMode(window.get(), GLFW_CURSOR, caero ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
-  if(glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+  glfwSetInputMode(window.get(), GLFW_CURSOR, host.cursor_mode(!caero));
+  if(host.mouse_enabled && glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
   glfwSetWindowUserPointer(window.get(), &host);
   glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int const modifiers){
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
@@ -477,7 +488,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(host.paused && pause_key) { host.single_step = true; return; }
       host.paused = pause_key;
       if(!host.paused) host.resume_key = key;
-      glfwSetInputMode(window,GLFW_CURSOR,host.paused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+      glfwSetInputMode(window,GLFW_CURSOR,host.cursor_mode(!host.paused));
       if(!host.paused) {
         host.mouse_started = false;
         host.player.controls.bank.previous_mouse = 0;
@@ -593,7 +604,7 @@ auto main(int const argc, char const *const argv[])->int {
   });
   glfwSetCursorPosCallback(window.get(), [](GLFWwindow *const window, double const x, double const y){
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
-    if(!host.front || !host.front->active()) return;
+    if(!host.mouse_enabled || !host.front || !host.front->active()) return;
     int width{0},height{0};
     glfwGetWindowSize(window,&width,&height);
     auto const viewport{framework::render::fit_viewport(width,height,320,240)};
@@ -601,7 +612,7 @@ auto main(int const argc, char const *const argv[])->int {
   });
   glfwSetMouseButtonCallback(window.get(), [](GLFWwindow *window, int button, int action, int){
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
-    if(!host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+    if(!host.mouse_enabled || !host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
     int width{0},height{0}; double x{0},y{0};
     glfwGetWindowSize(window,&width,&height); glfwGetCursorPos(window,&x,&y);
     auto const viewport{framework::render::fit_viewport(width,height,320,240)};
@@ -684,7 +695,7 @@ auto main(int const argc, char const *const argv[])->int {
         else if(completed_mission) front->continue_campaign();
         else if(died) front->show_death(completed);
         else front->return_to_menu();
-        glfwSetInputMode(window.get(),GLFW_CURSOR,GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(window.get(),GLFW_CURSOR,host.cursor_mode(false));
       }
       script = initial_script;
       context.text_cursor = 0;
@@ -732,7 +743,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(host.briefing != active) {
         host.briefing = active;
         host.mouse_started = false;
-        glfwSetInputMode(window.get(),GLFW_CURSOR,active ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(window.get(),GLFW_CURSOR,host.cursor_mode(!active));
         if(!active) {
           auto const &pilot{front->selected_pilot()};
           host.available_weapons = pilot.weapons ^ front->weapon_changes();
@@ -788,6 +799,7 @@ auto main(int const argc, char const *const argv[])->int {
             darker::game::initialise_skimma_pad(host.player,site,entry ? entry->heading : uint8_t{0},
               bank.header_at(bank.special_models()[configuration + 24]).height,configuration != 2);
           }
+          host.player.noclip = noclip;
           host.player.boost_cheat = boost_cheat;
           host.player.damage_cheat = damage_cheat;
           host.player.scenario_configuration = configuration;
@@ -871,9 +883,9 @@ auto main(int const argc, char const *const argv[])->int {
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     darker::game::city_collision_result contact;
     std::optional<std::array<uint16_t,3>> player_start;
-    bool const primary_held{host.key_down(*window,GLFW_KEY_SPACE) || (!host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)};
+    bool const primary_held{host.key_down(*window,GLFW_KEY_SPACE) || (host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)};
     bool const secondary_held{host.key_down(*window,GLFW_KEY_LEFT_ALT) || host.key_down(*window,GLFW_KEY_RIGHT_ALT)
-      || (!host.paused && glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)};
+      || (host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)};
     bool const was_crashing{host.player.lifecycle.crashing};
     if(step != 0) {
       if(front) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);

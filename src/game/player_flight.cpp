@@ -108,6 +108,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
 void player_flight::apply_city_contact(city_collision_result const contact, uint16_t const clock,
   resources::geometry_bank const &bank, city_map &cells) {
   /// Apply 6EEC/6F84 only after object contacts have had their native chance to supersede the city hit
+  if(noclip) return;
   auto const mask{world_damage_mask()};
   bool const protected_terrain{contact.contact == city_contact::terrain && (lifecycle.flags & 0x10)};
   if(contact.contact != city_contact::none && !protected_terrain && !(lifecycle.flags & 0x20)) {
@@ -125,7 +126,7 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
   uint16_t const clock, resources::geometry_bank const &bank, city_map &cells,
   tunnel_network const *const network, supply_control const supply_input) {
   /// Compose standalone flight and city collision for callers without a mission actor simulation
-  bool const collidable{frame_step != 0 && !lifecycle.crashing};
+  bool const collidable{frame_step != 0 && !lifecycle.crashing && !noclip};
   auto const previous{pose().position};
   advance_motion(input,brake,frame_step,bank,cells,network,supply_input);
   if(!collidable) return {};
