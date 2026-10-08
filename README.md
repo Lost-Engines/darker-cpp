@@ -24,6 +24,11 @@ cmake --build build --parallel
 
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
+During flight, **Pause** (or **Num Lock**) freezes the displayed frame and releases
+the mouse. Press any key to resume; that key does not also perform a flight action.
+The console prints the paused position, attitude, destination hangar and mission-ready
+state so a reported approach can be reproduced precisely.
+
 Use `--skip-intro` to open game selection directly; mission briefings still play normally.
 
 Use `--level=4` to begin the briefing for a specific campaign level (1–116).

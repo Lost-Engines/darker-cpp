@@ -74,3 +74,17 @@ that nonzero destination becomes the return site. Mission sixteen uses 3064h,
 cell (50,48), to direct the player to Communications HQ for the tunnel mission.
 The native departure fixtures include this handoff. Zero-destination automatic
 hangar selection remains a limitation; see [campaign status](campaign_status.md).
+
+## Level 16 approach investigation
+
+A reported failure to activate the eastern Comms HQ hangar remains unresolved.
+The briefing supplies `3064` (column 50, row 48), and departure hands off to that
+site. A controlled comparison of 2,000 positions and attitudes around that site
+matched native C670 admission in every case (145 admitted). In a separate live
+application check, a debugger placed the already-airborne craft at
+(12928,11740,500), heading 8000h, pitch/roll zero. The mission-ready condition was
+true, the gate admitted the craft and automatic docking reached the level-17
+briefing. This controlled placement does not reproduce the user's actual approach.
+Pause now prints the necessary live position, attitude, lifecycle flags, return
+site and mission-ready condition to obtain a reproducing case without guessing
+at changes to the original capture window.

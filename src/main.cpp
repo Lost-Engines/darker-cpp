@@ -89,6 +89,7 @@ struct flight_host {
   std::uint16_t clock{0};
   std::uint16_t shield_deadline{0};
   bool mouse_started{false};
+  bool paused{false};
   double mouse_origin_x{0};
   double mouse_origin_y{0};
 
@@ -440,6 +441,17 @@ auto main(int const argc, char const *const argv[])->int {
       }
       return;
     }
+    if(host.paused || key == GLFW_KEY_PAUSE || key == GLFW_KEY_NUM_LOCK) {
+      if(action != GLFW_PRESS) return;
+      host.paused = !host.paused;
+      glfwSetInputMode(window,GLFW_CURSOR,host.paused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+      if(!host.paused) {
+        host.mouse_started = false;
+        host.player.controls.bank.previous_mouse = 0;
+        host.player.controls.pitch.previous_mouse = 0;
+      }
+      return;
+    }
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
     if(key == GLFW_KEY_ESCAPE) {
       if(host.front) host.exit_requested = session_exit::menu;
@@ -573,7 +585,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
+  std::cout << "Pause/Num Lock pauses and releases the mouse; any key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
@@ -584,6 +596,7 @@ auto main(int const argc, char const *const argv[])->int {
   auto const display_interval{std::chrono::duration_cast<std::chrono::steady_clock::duration>(
     std::chrono::duration<double>{800.0 * 527.0 / 25'175'000.0})};
   auto next_frame{std::chrono::steady_clock::now()};
+  bool pause_reported{false};
   while(!glfwWindowShouldClose(window.get())) {
     host.weapon_selection_blocked = exchange.supplementary_active;
     glfwPollEvents();
@@ -651,6 +664,24 @@ auto main(int const argc, char const *const argv[])->int {
     double const elapsed{std::chrono::duration<double>(now - start).count()};
     if(seconds > 0 && elapsed >= seconds) break;
     auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
+    if(host.paused) {
+      // Keep the last software frame intact and exclude paused wall time from the PIT clock.
+      previous_interrupts = interrupts;
+      if(!pause_reported) {
+        auto const &pose{host.player.pose()};
+        std::cout << "Paused: position " << pose.position[0] << ',' << pose.position[1] << ',' << pose.position[2]
+          << "; heading/pitch/roll " << pose.angles[0] << ',' << pose.angles[1] << ',' << pose.angles[2]
+          << "; player flags " << unsigned{host.player.lifecycle.flags}
+          << "; return hangar cell " << ((host.hangar.return_site & 255) >> 1) << ',' << (host.hangar.return_site >> 8)
+          << "; objectives complete " << context.objectives_complete << std::endl;
+        glfwSetWindowTitle(window.get(),"Darker - paused (press a key to resume)");
+        if(audio_device) audio.publish({});
+        pause_reported = true;
+      }
+      presenter.present(output);
+      continue;
+    }
+    pause_reported = false;
     if(front) {
       front->advance(static_cast<uint32_t>(interrupts - previous_interrupts));
       if(front->save_requested) {
