@@ -152,13 +152,14 @@ void front_end::choose_game() {
   current = !nightmare_selected() && save.pilots[selected].stage == 0 ? screen::name : screen::run;
 }
 
-void front_end::begin_briefing() {
+void front_end::begin_briefing(bool const continued_mission) {
   /// Select the current supported campaign record for briefing
   if(!nightmare_selected() && (save.pilots[selected].stage < 1 || save.pilots[selected].stage > 116)) { unsupported_stage = true; return; }
   retained_music = music_group();
   if(nightmare_selected()) { challenge_pilot = {.stage{1}}; challenge_score = 0; }
-  scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record());
+  scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record(),0,continued_mission);
   current = screen::briefing;
+  if(scene->finished() && scene->input_policy == 0) finish_briefing();
 }
 
 void front_end::finish_briefing() {
@@ -172,7 +173,7 @@ void front_end::finish_briefing() {
   ++pilot.stage;
   save_requested = true;
   current = screen::run;
-  begin_briefing();
+  begin_briefing(true);
 }
 
 void front_end::key(front_key const input) {
@@ -345,7 +346,7 @@ void front_end::previous_level() {
 void front_end::continue_campaign() {
   /// Successful progression enters the next briefing directly when its runtime is supported
   current = screen::run;
-  begin_briefing();
+  begin_briefing(true);
 }
 
 void front_end::show_death(uint8_t const completed_objects) {

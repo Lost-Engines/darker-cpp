@@ -35,9 +35,9 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
 }
 
 player::player(resources::archive_set const &archives, resources::font_resource const &font,
-  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects) : archives{archives}, font{font},
+  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects, bool const continued_mission) : archives{archives}, font{font},
   program{scenario.bytes(scenario.records()[record].shared)}, text{scenario.language(record, resources::scenario_language::english)},
-  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier}, object_counter{completed_objects} {
+  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier}, object_counter{completed_objects}, continued_mission{continued_mission} {
   /// Keep the original record's shared program and language cursors separate
   if(interval == 0) throw std::invalid_argument{"Presentation interval is zero"};
   execute();
@@ -127,8 +127,17 @@ void player::execute() {
     }
     case 0x29: departure_destination = word(); break;
     case 0x2c:
-      // C2DD takes the initial-briefing branch past the language section's outcome displacement.
+      // C2BC distinguishes a fresh briefing from continuation through the language displacement.
       if(text_cursor + 2 > text.size()) throw std::invalid_argument{"Presentation message branch exceeds its language section"};
+      if(continued_mission) {
+        // C2BC follows the language displacement and stops this presentation on a nonzero prior outcome.
+        auto const displacement{std::to_integer<uint8_t>(text[text_cursor]) | (std::to_integer<uint8_t>(text[text_cursor+1]) << 8)};
+        if(static_cast<size_t>(displacement) > text.size()-text_cursor) throw std::invalid_argument{"Presentation message branch exceeds its language section"};
+        text_cursor += displacement;
+        input_policy = 0;
+        stopped = true;
+        return;
+      }
       text_cursor += 2;
       break;
     case 0x30: {

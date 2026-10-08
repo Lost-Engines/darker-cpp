@@ -37,7 +37,7 @@ private:
   bool confirmation{false};
   unsigned int ignored_character{0};
   void choose_game();
-  void begin_briefing();
+  void begin_briefing(bool continued_mission = false);
   void finish_briefing();
 
 public:

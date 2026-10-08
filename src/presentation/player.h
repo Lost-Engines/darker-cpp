@@ -28,6 +28,7 @@ private:
   uint32_t ticks{0}, pending{0}, deadline{0};
   uint8_t interval{1}, selected{7}, object_counter{0};
   bool stopped{false}, repeat_delay{false};
+  bool continued_mission{false};
   struct animation_pair { uint8_t current{160}; uint8_t target{160}; };
   std::array<animation_pair, 12> pairs{};
   std::array<std::vector<animation_frame>, 2> animations;
@@ -59,7 +60,7 @@ public:
   std::optional<uint8_t> score;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,
-    resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0);
+    resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0, bool continued_mission = false);
   void advance(uint32_t elapsed_ticks);
   bool continue_page();
   bool finished() const noexcept;

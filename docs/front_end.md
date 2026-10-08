@@ -231,3 +231,17 @@ selection, high-score erase menu, Nightmare entry and external camera controls.
 The earlier DOSBox captures confirm the selection and credits composition;
 this is not a claim that all menu pixels or display timings have been compared.
 Ordinary briefing transitions are not given an invented universal fade.
+
+## Continuous entry versus loading a mission
+
+Presentation opcode `2C` (`C2BC–C2E3`) branches on the preceding outcome at
+`3E9A`. A fresh run reads past the language displacement word and shows the
+briefing. With a nonzero previous outcome, it follows that displacement to the
+in-flight text, clears input policy and stops the presentation immediately.
+
+The front end now supplies this distinction when continuing the campaign,
+including across presentation-only records. Earlier setup opcodes still execute:
+level 17 retains its `28 80 64 30` entry at the eastern Comms HQ hangar. Docking
+there in level 16 therefore enters the tunnels without a briefing screen.
+Loading the saved tunnel level, or using `--level=17`, still shows its briefing.
+This uses the script's conditional branch rather than a special case for level 17.

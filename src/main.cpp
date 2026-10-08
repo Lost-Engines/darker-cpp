@@ -601,7 +601,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Pause/Num Lock pauses and releases the mouse; any key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
+  std::cout << "Pause/Num Lock pauses or steps; another key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};

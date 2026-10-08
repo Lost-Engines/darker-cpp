@@ -60,6 +60,16 @@ void check_presentations(darker::resources::archive_set const &archives) {
         throw std::runtime_error{"Direct level entry extinguished a fresh beacon"};
     }
   }
+  level_entry.selected_pilot().stage = 17;
+  level_entry.continue_campaign();
+  if(level_entry.active() || !level_entry.entry() || level_entry.entry()->site != 0x3064 || level_entry.entry()->heading != 0x80)
+    throw std::runtime_error{"Tunnel continuation showed its load-only briefing or lost the entry pose"};
+  auto const tunnel_language{level_entry.selected_scenario().language(0,darker::resources::scenario_language::english)};
+  auto const tunnel_cursor{std::to_integer<uint8_t>(tunnel_language[0]) | (std::to_integer<uint8_t>(tunnel_language[1]) << 8)};
+  if(level_entry.consumed_text() != static_cast<size_t>(tunnel_cursor))
+    throw std::runtime_error{"Tunnel continuation lost the language message displacement"};
+  level_entry.start_level(17);
+  if(!level_entry.active()) throw std::runtime_error{"Direct tunnel entry omitted its briefing"};
   level_entry.start_level(101);
   level_entry.previous_level();
   if(level_entry.selected_pilot().stage != 99) throw std::runtime_error{"Previous level did not skip the Halon interlude"};
