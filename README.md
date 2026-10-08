@@ -26,6 +26,12 @@ The application looks for `DARKER.00` through `DARKER.04` (from the original gam
 
 Use `--skip-intro` to open game selection directly; mission briefings still play normally.
 
+Use `--level=4` to begin the briefing for a specific campaign level (1–116).
+This creates a fresh debugging session with equipment and return sites reconstructed
+from preceding briefings, rather than reproducing damage left by a particular playthrough.
+It bypasses startup menus and does not write saves. The level selects its own craft;
+do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
+
 Use `--scale N` to set the initial window size to an integer multiple of the 320×240 display: `--scale 2` gives 640×480, `--scale 4` gives 1280×960. The default is 4× (1280×960). The window remains resizable.
 
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.
@@ -40,7 +46,7 @@ The Caero begins with the original startup/title sequence, game selection and il
 
 Mission 21 unlocks **Brent Hunter**: select it with **0**, acquire an aircraft in the target marker, and fire with **Alt / right mouse**. **Caps Lock** clears the lock for reacquisition. Mission 30 unlocks **Chargeable** on **9**: hold Alt / right mouse to charge, then release with an aircraft locked. Mission 50 adds **Brent Ground** on **6**, for designated building targets. Mission 57 adds **Dual Launch** on **3**; its native default-mask anomaly is documented in [weapon behaviour](docs/caero_weapons.md#dual-launch-and-a-native-input-mask-anomaly).
 
-The original **Level X** cheat is available: on game selection, press **Shift+8**, release Shift, then press **3** on the number row. Enter **`Level X`** exactly and press Enter. **X** during flight then advances through the normal campaign transition and saves progression. Use `--cheat-level-x` to activate it at startup instead; combine with `--skip-intro` for quicker testing. Activation lasts until the program closes; it does not unlock unimplemented missions.
+The original **Level X** cheat is available: on game selection, press **Shift+8**, release Shift, then press **3** on the number row. Enter **`Level X`** exactly and press Enter. **X** during flight then advances through the normal campaign transition and saves progression. Use `--cheat-level-x` to activate it at startup instead; combine with `--skip-intro` for quicker testing. **Shift+X** starts the previous playable level (or restarts level 1), using the same fresh setup as `--level`; from that point the session does not write saves. It has no effect in Nightmare. Activation lasts until the program closes; it does not unlock unimplemented missions.
 
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 

@@ -69,6 +69,8 @@ public:
   void show_death(uint8_t completed_objects);
   resources::pilot_record &selected_pilot() noexcept;
   void continue_campaign();
+  void start_level(uint8_t stage);
+  void previous_level();
 };
 
 } // namespace darker::presentation

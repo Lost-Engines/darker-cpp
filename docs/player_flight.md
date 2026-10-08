@@ -52,15 +52,11 @@ and mouse sensitivity require interactive comparison; the complete original
 
 Cockpit, full-screen, following, level-following and dropped cameras are live.
 Tab redirects steering to look-around; released offsets return through the
-original vector reduction. Several gauges are now live;
-weapon icons are blank. Skimma shield startup/strength and the low-altitude
-warning are live; directional hit effects, Caero stall dimming and Nayas activity
-remain separate producers. Other actors,
-weapons, world sound, landing, object/missile cameras, explosions and death/retry
-screens are not yet connected. Enter after a crash restores the temporary airborne checkpoint, including the
-initial city state and neutral steering. This is a development checkpoint retry,
-not the original campaign death/retry flow. The reconstructed deadline is retained for the future scene
-transition; no automatic retry policy has been invented.
+original vector reduction. Campaign flight connects cockpit instruments, weapons,
+world sound, landing, missile cameras and particle effects. Enter after a campaign
+crash opens the committal sequence; the explicit free-flight checkpoint restarts
+without campaign presentation. The crash deadline is retained, but automatic
+scene transition at expiry still needs retail comparison.
 
 ## Player ramming
 
@@ -86,3 +82,13 @@ Automatic script selections remain independent of that keyboard gate. The
 windowed Halon transition check passes all eight flight entries and saves
 through stage 114 after the collision-phase change; this uses Level X and does
 not replace the normal objective fixtures or manual combat testing.
+
+## Connected death presentation
+
+The first transition into the crash lifecycle now dispatches native `6F4F`'s
+`7014` recipe: ten emitters and four sound records through the normal effects
+and voice allocator. The destroyed craft is hidden (object flag `08`). The
+camera switches to mode 2 (level external view), starts at distance `0205`, and
+selects distance index 5, reproducing the original pull-back. Engine/shield and
+missile-camera selection are cleared. The existing Enter-to-committal/retry flow
+remains; automatic expiry-driven scene changes still need comparison with retail.

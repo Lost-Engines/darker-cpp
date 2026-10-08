@@ -64,7 +64,7 @@ int startup_failure(std::string_view const message) {
   return EXIT_FAILURE;
 }
 
-enum class session_exit { none, menu, death, completed };
+enum class session_exit { none, menu, death, completed, previous };
 
 struct flight_host {
   darker::game::player_flight player{};
@@ -122,7 +122,8 @@ auto main(int const argc, char const *const argv[])->int {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
-    ("cheat-level-x", "enable the Level X cheat: press X during flight to advance the mission")
+    ("cheat-level-x", "enable X to advance; Shift+X starts the previous playable level without saving")
+    ("level", po::value<int>(), "start at campaign level 1..116 with fresh world state; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", po::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("craft", po::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -145,9 +146,12 @@ auto main(int const argc, char const *const argv[])->int {
   if(scale < 1 || scale > std::numeric_limits<int>::max() / std::max(display_width,display_height)) {
     return startup_failure("--scale must be a positive integer whose window dimensions fit in an int");
   }
+  if(arguments.contains("level") && (arguments["level"].as<int>() < 1 || arguments["level"].as<int>() > 116)) return startup_failure("--level must be between 1 and 116");
+  bool debug_session{arguments.contains("level")};
   auto const name{arguments["craft"].as<std::string>()};
   if(name != "caero" && name != "skimma" && name != "upgraded") return startup_failure("unknown --craft");
   auto type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
+  if(debug_session && name != "caero") return startup_failure("--level selects its own craft; omit --craft");
   bool caero{type == darker::graphics::craft::caero};
   auto const seconds{arguments["seconds"].as<double>()};
   if(!std::isfinite(seconds) || seconds < 0) return startup_failure("--seconds must be finite and non-negative");
@@ -200,6 +204,7 @@ auto main(int const argc, char const *const argv[])->int {
   if(caero) {
     front = std::make_unique<darker::presentation::front_end>(archives,font,campaign,saves,arguments.contains("skip-intro"));
     if(arguments.contains("cheat-level-x")) front->enable_level_skip();
+    if(debug_session) front->start_level(static_cast<uint8_t>(arguments["level"].as<int>()));
     host.front = front.get();
   }
   darker::game::mission_script initial_script{
@@ -304,7 +309,7 @@ auto main(int const argc, char const *const argv[])->int {
         if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
       }
     }
-    if(external) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
+    if(external && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
     auto const count{scene.draw(world, bank, cells, view, world_mode == 0 ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
@@ -409,7 +414,7 @@ auto main(int const argc, char const *const argv[])->int {
   glfwSetInputMode(window.get(), GLFW_CURSOR, caero ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
   if(glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
   glfwSetWindowUserPointer(window.get(), &host);
-  glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int){
+  glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int const modifiers){
     if(action == GLFW_RELEASE) return;
     auto &host{*static_cast<flight_host *>(glfwGetWindowUserPointer(window))};
     if(host.front && host.front->active()) {
@@ -469,6 +474,10 @@ auto main(int const argc, char const *const argv[])->int {
     if(key == GLFW_KEY_X && action == GLFW_PRESS && host.front && host.front->level_skip_enabled()
       && !(host.player.lifecycle.flags & 0x20)) {
       // B926 restores C610 into C81E and requests the ordinary successful mission exit.
+      if(modifiers & GLFW_MOD_SHIFT) {
+        if(!host.front->nightmare_selected()) host.exit_requested = session_exit::previous;
+        return;
+      }
       host.hangar.return_site = host.hangar.next_return_site;
       host.exit_requested = session_exit::completed;
       return;
@@ -585,6 +594,8 @@ auto main(int const argc, char const *const argv[])->int {
     }
     next_frame = frame_time + display_interval;
     if(host.exit_requested != session_exit::none) {
+      bool const previous_level{host.exit_requested == session_exit::previous};
+      if(previous_level) debug_session = true;
       bool const died{host.exit_requested == session_exit::death};
       auto const completed{static_cast<uint8_t>(combat->completed_objectives)};
       bool const completed_mission{host.exit_requested == session_exit::completed};
@@ -600,7 +611,7 @@ auto main(int const argc, char const *const argv[])->int {
         auto updated_saves{saves};
         auto const slot_index{static_cast<size_t>(&front->selected_pilot() - saves.pilots.data())};
         updated_saves.pilots[slot_index] = updated;
-        darker::resources::write_save(save_path,updated_saves);
+        if(!debug_session) darker::resources::write_save(save_path,updated_saves);
         saves = updated_saves;
       }
       host.player = initial_player;
@@ -619,6 +630,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.briefing = front != nullptr;
       if(front) {
         if(front->nightmare_selected()) front->finish_nightmare(static_cast<uint8_t>(host.score_base+completed),context.progress ? context.progress : died ? 2 : completed_mission ? 1 : 255);
+        else if(previous_level) front->previous_level();
         else if(completed_mission) front->continue_campaign();
         else if(died) front->show_death(completed);
         else front->return_to_menu();
@@ -633,7 +645,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.clock = 0;
       host.exit_requested = session_exit::none;
       game_clock = {};
-      std::cout << (front ? (completed_mission ? "Mission saved; continuing the campaign." : died ? "Showing the Kismet committal sequence." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
+      std::cout << (front ? (completed_mission ? (debug_session ? "Continuing the debug campaign without saving." : "Mission saved; continuing the campaign.") : died ? "Showing the Kismet committal sequence." : previous_level ? "Starting the previous playable level without saving." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
@@ -642,7 +654,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(front) {
       front->advance(static_cast<uint32_t>(interrupts - previous_interrupts));
       if(front->save_requested) {
-        darker::resources::write_save(save_path,saves);
+        if(!debug_session) darker::resources::write_save(save_path,saves);
         front->save_requested = false;
       }
       if(front->quit_requested) break;
@@ -790,6 +802,7 @@ auto main(int const argc, char const *const argv[])->int {
     bool const primary_held{glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS};
     bool const secondary_held{glfwGetKey(window.get(),GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window.get(),GLFW_KEY_RIGHT_ALT) == GLFW_PRESS
       || glfwGetMouseButton(window.get(),GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS};
+    bool const was_crashing{host.player.lifecycle.crashing};
     if(step != 0) {
       if(front) combat->spawn_aircraft(host.player,cells,bank,game_clock.frame_ticks,step);
       if(host.hangar.returning == darker::game::hangar_return_phase::none) {
@@ -848,6 +861,16 @@ auto main(int const argc, char const *const argv[])->int {
       && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")
                 << "; position " << host.player.pose().position[0] << ',' << host.player.pose().position[1] << ',' << host.player.pose().position[2] << std::endl;
+    }
+    if(!front) combat->effects.advance(game_clock.frame_ticks,step);
+    if(!was_crashing && host.player.lifecycle.crashing) {
+      // 6F4F: recipe 7014, camera mode 2, distance 0205, largest following-distance setting.
+      combat->effects.spawn(0x7014,host.player.pose().position,game_clock.frame_ticks);
+      combat->missile_camera_enabled = false;
+      host.player.engine_flags = 0;
+      host.camera.mode = darker::game::camera_mode::level;
+      host.camera.distance = 0x0205;
+      host.camera.distance_step = 5;
     }
     bool const enlarged{caero && (glfwGetKey(window.get(), GLFW_KEY_INSERT) == GLFW_PRESS || glfwGetKey(window.get(), GLFW_KEY_KP_0) == GLFW_PRESS)};
     host.camera.update_look(host.player.look_drive, glfwGetKey(window.get(), GLFW_KEY_TAB) == GLFW_PRESS, step, (host.player.lifecycle.flags & 16) != 0);

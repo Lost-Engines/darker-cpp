@@ -66,7 +66,7 @@ off-screen effects. Exact render-list tie ordering, single-sprite subpixel detai
 and first-update scheduling need a combined native scene fixture.
 
 Enemy gun endpoints now emit the original short sprite and timed patch-22 sound.
-Player-crash recipes and other weapon callbacks remain to be connected. Combat
+Player death now dispatches recipe `7014` once on the crash transition, including its four sound records. Combat
 audio has native spatial admission and Doppler comparisons, with remaining
 allocation and stereo limits documented separately.
 

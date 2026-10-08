@@ -37,6 +37,22 @@ void check_presentations(darker::resources::archive_set const &archives) {
       +std::to_string(sample.face)+", x="+std::to_string(sample.x)+", width="+std::to_string(sample.width)};
   }
   darker::resources::campaign_resources campaign{archives};
+  darker::resources::save_file level_saves;
+  darker::presentation::front_end level_entry{archives,font,campaign,level_saves,true};
+  level_entry.start_level(4);
+  if(level_entry.selected_pilot().stage != 4 || level_entry.selected_record() != 3 || level_entry.selected_pilot().weapons == 0)
+    throw std::runtime_error{"Direct level entry lost its campaign index or preceding weapon awards"};
+  level_entry.previous_level();
+  if(level_entry.selected_pilot().stage != 3) throw std::runtime_error{"Previous level did not rewind"};
+  level_entry.start_level(1);
+  level_entry.previous_level();
+  if(level_entry.selected_pilot().stage != 1 || level_entry.selected_pilot().weapons != 0)
+    throw std::runtime_error{"First level rewind must retain its fresh pre-briefing state"};
+  level_entry.start_level(101);
+  level_entry.previous_level();
+  if(level_entry.selected_pilot().stage != 99) throw std::runtime_error{"Previous level did not skip the Halon interlude"};
+  level_entry.start_level(116);
+  if(level_entry.selected_record() != 3) throw std::runtime_error{"Final level entry lost its record"};
   darker::resources::scenario_resource const mission{archives.load({4,0})};
   darker::presentation::player briefing{archives,font,mission,0};
   framework::render::cockpit_framebuffer frame{};

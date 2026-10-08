@@ -303,6 +303,38 @@ resources::pilot_record &front_end::selected_pilot() noexcept {
   return nightmare_selected() ? challenge_pilot : save.pilots[selected];
 }
 
+void front_end::start_level(uint8_t const stage) {
+  /// Rebuild briefing-derived equipment and return sites for a fresh debugging entry
+  if(stage < 1 || stage > 116) throw std::out_of_range{"Level must be between 1 and 116"};
+  if(nightmare_selected()) selected = 0;
+  resources::pilot_record pilot{.stage{stage}};
+  pilot.set_name("Level test");
+  for(uint8_t previous{1}; previous < stage; ++previous) {
+    player briefing{archives,font,campaign.scenario(previous),resources::select_campaign_stage(previous).record};
+    for(unsigned int step{0}; !briefing.finished(); ++step) {
+      if(step == 4096) throw std::runtime_error{"Level setup briefing failed to terminate"};
+      briefing.advance(2000);
+      briefing.continue_page();
+    }
+    pilot.weapons ^= briefing.weapon_toggles;
+    if(briefing.departure_destination) pilot.return_site = briefing.departure_destination;
+  }
+  selected_pilot() = pilot;
+  save_requested = false;
+  begin_briefing();
+}
+
+void front_end::previous_level() {
+  /// Return to the preceding playable record rather than replaying an interlude into the same flight
+  if(nightmare_selected()) return;
+  auto stage{selected_pilot().stage};
+  do {
+    if(stage <= 1) break;
+    --stage;
+  } while(campaign.scenario(stage).records()[resources::select_campaign_stage(stage).record].configuration == 0xff);
+  start_level(stage);
+}
+
 void front_end::continue_campaign() {
   /// Successful progression enters the next briefing directly when its runtime is supported
   current = screen::run;
