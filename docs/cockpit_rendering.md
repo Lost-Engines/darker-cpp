@@ -48,7 +48,7 @@ Source RGB colours and square-pixel presentation retain the previous inspection 
 
 - `5429/542C`: row goes to (44,185), column to (56,185). The input is the native encoded position byte, not a displayed grid number. For bytes 1–127, the display is `floor((value - 1) / 9) + 1`, written as two digits including a leading zero. Both zero and bytes 128–255 take the cached-background restoration path: native CBW/DEC/JS makes the signed-byte distinction significant. Glyphs are 4×5 at source X=308, physical Y=`8 + 5*digit`.
 - `5484/5487`: 8×12 weapon artwork at physical source `(140 + 8*selection, 8)` is copied to (260,195) or (268,195). Allowed primary IDs are 1,2,3,7; secondary IDs are 4,5,6,8,9,10. These restrictions come from weapon selection logic, rather than the low-level rectangle callback itself.
-- Selection zero restores the corresponding cached panel. This follows the user-confirmed empty-slot behaviour. The exact original zero-selection clear/skip call chain is still unresolved; the low-level selector alone would incorrectly sample the altitude artwork. Do not treat this high-level restoration choice as newly proven native control flow.
+- Selection zero restores the corresponding cached panel. This follows the empty-slot behaviour confirmed during playtesting. The exact original zero-selection clear/skip call chain is still unresolved; the low-level selector alone would incorrectly sample the altitude artwork. Do not treat this high-level restoration choice as newly proven native control flow.
 
 The main program supplies fixed sample state until position and weapon producers are translated. No new inspection keys or command-line options were introduced. Skimma screens remain unchanged.
 

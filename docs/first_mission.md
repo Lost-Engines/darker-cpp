@@ -59,7 +59,7 @@ enabled, as do the launch and individual weapon/damage checks.
 
 Window checks advance the briefing, charge and launch, select the weapon, fire
 and close cleanly. Screenshots confirm that the briefing text fits and the Pinner
-icon appears. The user has since completed the mission interactively and confirmed seamless
+icon appears. We have since completed the mission interactively and confirmed seamless
 landing. Combat effects are now connected; see [particle effects](particle_effects.md)
 for their separate native comparisons and remaining limits. Enemy gun endpoint
 bursts and combat sound layers are now connected too.

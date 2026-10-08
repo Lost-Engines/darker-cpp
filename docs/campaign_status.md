@@ -644,8 +644,8 @@ and damage flags, eight destroyed houses and four dark beacons at mission 80.
 The fresh-map comparison verifies that mission 80 alone marks the Zahner tank,
 leaves the three Kalvin tanks unmarked and starts those beacons energised.
 
-The original report needed no normal-save persistence fix. Following the user's
-request, `--level` now reconstructs cumulative setup flags and exit beacon queues
+The original report needed no normal-save persistence fix. For convenient
+testing, `--level` reconstructs cumulative setup flags and exit beacon queues
 alongside briefing-derived equipment/destinations. Thus `--level=80` includes
 mission 74's tank markings and mission 69's beacon failures, but does not assume
 the tanks or houses were destroyed. Authored first-list damage flags still

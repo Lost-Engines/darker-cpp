@@ -18,13 +18,13 @@ The first mission now has briefing text, active aircraft and combat. Enter after
 
 ## Retail and demo charging
 
-Retail callback 7E7F tests bit 0 of 4552 before adding charge. The engine starts enabled, so charging begins immediately; switching it off pauses charging. This now agrees with the user's corrected retail observation. All native startup output comparisons are enabled, including engine-off accumulator and boost reserve values. A separate regression checks pause/resume without losing accumulated charge.
+Retail callback 7E7F tests bit 0 of 4552 before adding charge. The engine starts enabled, so charging begins immediately; switching it off pauses charging. This now agrees with our corrected retail observation. All native startup output comparisons are enabled, including engine-off accumulator and boost reserve values. A separate regression checks pause/resume without losing accumulated charge.
 
-The user reports that the demos instead start with the engine disabled and charge in the hangar regardless of engine state. The earlier contradictory observation described those demos, not retail; it is no longer an unresolved retail discrepancy. The reconstruction follows retail behaviour.
+We observed that the demos instead start with the engine disabled and charge in the hangar regardless of engine state. The earlier contradictory observation described those demos, not retail; it is no longer an unresolved retail discrepancy. The reconstruction follows retail behaviour.
 
 ## Hands-off launch trace
 
-A comparison following the user's report found another omitted outer-startup write: **3D50–3D52 sets energy buffer 7F8F to 6000h (24,576)**. This buffer contributes forward drive independently of the visible boost pips and weapon-charge reserve. Initialising only placement and boost cells left it at zero, causing the ship to lose speed and descend before reaching the wall. HQ initialisation now includes that buffer.
+A comparison following our playtest found another omitted outer-startup write: **3D50–3D52 sets energy buffer 7F8F to 6000h (24,576)**. This buffer contributes forward drive independently of the visible boost pips and weapon-charge reserve. Initialising only placement and boost cells left it at zero, causing the ship to lose speed and descend before reaching the wall. HQ initialisation now includes that buffer.
 
 The new resource integration check starts at the actual Delphi HQ, waits 3,000 timer ticks, presses boost once, then supplies no further input. **All 27 recorded fields match for all 500 flight updates**, plus initial and charged state: whole and fractional coordinates, angles, velocities, energy/boost state, damage/repair, engine state, gate extension and lifecycle flags. This uses fixed eight-tick updates over approximately eight seconds, with the original map, geometry, beacon lookup and model variants.
 
@@ -84,11 +84,11 @@ matched native C670 admission in every case (145 admitted). In a separate live
 application check, a debugger placed the already-airborne craft at
 (12928,11740,500), heading 8000h, pitch/roll zero. The mission-ready condition was
 true, the gate admitted the craft and automatic docking reached the level-17
-briefing. This controlled placement does not reproduce the user's actual approach.
+briefing. This controlled placement does not reproduce the actual playtest approach.
 Pause now prints the necessary live position, attitude, lifecycle flags, return
 site and mission-ready condition to obtain a reproducing case without guessing
 at changes to the original capture window.
 
-The user subsequently completed the eastern Comms HQ approach successfully.
+We subsequently completed the eastern Comms HQ approach successfully.
 No hangar-admission logic changed during this investigation; the intermittent
 report is retained above rather than attributed to an unverified fix.

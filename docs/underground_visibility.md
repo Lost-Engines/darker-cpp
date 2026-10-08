@@ -38,6 +38,6 @@ and sloping wall faces to overdraw the Wrecker.
 against all 33 special models in bank 32. The integration check compares all 66
 keys, including the Wrecker, against actual C++ placement. This establishes the
 missing mode-dependent bias; it does not establish pixel-perfect overlap for
-every viewpoint. User examples were immediately after the first demolished gate
+every viewpoint. Observed examples were immediately after the first demolished gate
 and left turn in level 17, and a later view from behind the roller where floor
 markings and sloping wall panels appeared in front of it.

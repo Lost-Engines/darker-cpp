@@ -70,6 +70,6 @@ Player death now dispatches recipe `7014` once on the crash transition, includin
 audio has native spatial admission and Doppler comparisons, with remaining
 allocation and stereo limits documented separately.
 
-The user completed the preceding effects-free first mission and confirmed that
+We completed the preceding effects-free first mission and confirmed that
 landing was seamless. This change adds the missing aircraft-hit feedback to that
 playable loop; it does not mark the whole reconstruction complete.

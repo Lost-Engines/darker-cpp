@@ -96,7 +96,7 @@ At 32 angle units per tick this covers three quarters of a full turn in total;
 the pull-back and changing pitch affect its apparent orbit. It is not a
 camera-angle trigger. Enter can still advance early.
 
-The user reports a missing loud rising-pitch sound during death. A controlled
+Playtesting revealed a missing loud rising-pitch sound during death. A controlled
 mixer trace retains all four recipe voices (patches 15, 16, 19, 19) with their
 original fixed pitches and lifetimes throughout the camera pull-back. This
 verifies voice submission, not perceptual parity with retail; the reported
