@@ -605,3 +605,46 @@ Presentation navigation restores the original hover palette pair and boundaries.
 Physical sound-channel allocation now matches 256 consecutive native frames,
 including saturation, ties and free-list reuse; transient effects retire when
 their voice is lost. Remaining audio limits are explicit in `combat_audio.md`.
+
+## Mission 80 retail comparison and retained city history
+
+Retail/reconstruction playtesting confirms the Forbes Diffuser's delayed gas
+window and retrigger behaviour: another gas hit restarts the wait, including
+after a missed trigger. The player reported matching behaviour in both games.
+
+The same comparison distinguished a fresh `--level=80` start from an established
+retail campaign. Three nearby Kalvin Storage tanks are explicitly marked by
+mission 74 (`04_009/1`), not mission 80:
+
+| Cell (column, row) | Type | Marking source |
+| --- | --- | --- |
+| (25, 79) | 46 | Mission 74, second cell list, OR 40h |
+| (24, 80) | 48 | Mission 74, second cell list, OR 40h |
+| (24, 82) | 48 | Mission 74, second cell list, OR 40h |
+| (16, 75) | 48 | Mission 80, second cell list, OR 40h |
+
+The Caero ground-target display requires state bit 40h. BB90/BBC6 save and
+restore both this bit and destruction bit 20h; marking a later mission's cells
+does not clear earlier markings. Mission 74's briefing names the three Kalvin
+Storage tanks and two at Central Supplies. Mission 80 names the additional
+Zahner tank. Its setup marks that tank before the later instruction message.
+
+Mission 69's beacon queue `67 77 78 68` maps to cells (54,63), (63,63),
+(63,72), (54,72). Its exit applies the whole queue, so all four remain off in
+subsequent saved surface state. Its eight targeted house cells are (66,68),
+(67,69), (68,68), (69,69), (66,71), (67,70), (68,71), (69,70); destruction there
+also persists. This matches the reported Kismet-area blackout and destroyed
+houses in the established retail campaign.
+
+The persistence integration check now carries a controlled 69→80 history
+through the actual scenario cell lists, beacon-exit queues and packed city
+stream. House/tank destruction is supplied explicitly for missions 69/74;
+this is not a combat playthrough. It verifies the three retained tank target
+and damage flags, eight destroyed houses and four dark beacons at mission 80.
+The fresh-map comparison verifies that mission 80 alone marks the Zahner tank,
+leaves the three Kalvin tanks unmarked and starts those beacons energised.
+
+`--level` deliberately reconstructs briefing-derived equipment/destinations on
+a fresh city, not prior gameplay. Level X similarly skips unresolved combat,
+so it is not a substitute for reproducing a particular destruction history.
+No runtime persistence change was needed for this report.
