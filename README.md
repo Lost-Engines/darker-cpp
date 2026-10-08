@@ -26,7 +26,8 @@ The application looks for `DARKER.00` through `DARKER.04` (from the original gam
 
 During flight, **Pause** (or **Num Lock**) freezes the displayed frame and releases
 the mouse. Press Pause/Num Lock again to advance one simulation frame while staying
-paused (8 timer ticks, approximately 16 ms). Press any other key to resume; that key
+paused (8 timer ticks, approximately 16 ms). Modifier keys alone and Alt/Windows/Meta shortcuts (including Alt+Tab) leave it paused.
+Press an ordinary key to resume; that key
 is ignored until release, including auto-repeat and held-key flight actions.
 The console prints the paused position, attitude, destination hangar and mission-ready
 state so a reported approach can be reproduced precisely.
