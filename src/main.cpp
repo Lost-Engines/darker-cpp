@@ -91,6 +91,7 @@ struct flight_host {
   bool mouse_started{false};
   bool paused{false};
   bool single_step{false};
+  bool freeze_enabled{false};
   int resume_key{GLFW_KEY_UNKNOWN};
 
   bool key_down(GLFWwindow &window, int const key) const {
@@ -132,6 +133,9 @@ auto main(int const argc, char const *const argv[])->int {
     ("help,h", "show usage")
     ("data-dir", po::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
     ("mute", "disable PCM sound output")
+    ("cheat-lyndon", "enable Z to freeze or release player motion while the world continues")
+    ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
+    ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
     ("cheat-level-x", "enable X to advance; Shift+X starts the previous playable level without saving")
     ("level", po::value<int>(), "start at campaign level 1..116 with fresh world state; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
@@ -185,6 +189,9 @@ auto main(int const argc, char const *const argv[])->int {
   for(std::size_t i{0}; i < bank.city_types().size(); ++i) variant_limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, variant_limits);
   flight_host host;
+  host.freeze_enabled = arguments.contains("cheat-lyndon");
+  bool const boost_cheat{arguments.contains("cheat-brooke")};
+  bool const damage_cheat{arguments.contains("cheat-life")};
   if(caero) {
     darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);
   } else {
@@ -194,6 +201,8 @@ auto main(int const argc, char const *const argv[])->int {
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
   }
+  host.player.boost_cheat = boost_cheat;
+  host.player.damage_cheat = damage_cheat;
   darker::resources::campaign_resources campaign{archives};
   auto const *scenario{&campaign.scenario(1)};
   auto mission{scenario->records().front()};
@@ -499,6 +508,10 @@ auto main(int const argc, char const *const argv[])->int {
       return;
     }
     if(host.player.lifecycle.crashing) return;
+    if(key == GLFW_KEY_Z && action == GLFW_PRESS && host.freeze_enabled) {
+      host.player.toggle_freeze();
+      return;
+    }
     if(key == GLFW_KEY_X && action == GLFW_PRESS && host.front && host.front->level_skip_enabled()
       && !(host.player.lifecycle.flags & 0x20)) {
       // B926 restores C610 into C81E and requests the ordinary successful mission exit.
@@ -767,6 +780,8 @@ auto main(int const argc, char const *const argv[])->int {
             darker::game::initialise_skimma_pad(host.player,site,entry ? entry->heading : uint8_t{0},
               bank.header_at(bank.special_models()[configuration + 24]).height,configuration != 2);
           }
+          host.player.boost_cheat = boost_cheat;
+          host.player.damage_cheat = damage_cheat;
           host.player.scenario_configuration = configuration;
           if(configuration == 0) host.player.supply.phase = darker::game::supply_phase::flight;
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
@@ -863,7 +878,7 @@ auto main(int const argc, char const *const argv[])->int {
         } else contact = host.player.advance(host.input(*window), host.key_down(*window,GLFW_KEY_BACKSPACE),
           step, game_clock.frame_ticks, bank, cells,tunnel_network ? &*tunnel_network : nullptr,
           {.output{context.transition_output},.supplementary_active{exchange.supplementary_active}});
-      } else {
+      } else if(!host.player.frozen) {
         darker::game::advance_hangar_return(host.player, host.hangar, step, game_clock.frame_ticks);
         if(host.hangar.returning == darker::game::hangar_return_phase::complete) host.exit_requested = context.objectives_complete ? session_exit::completed : session_exit::menu;
       }

@@ -26,6 +26,9 @@ struct player_flight {
   bool altitude_hold{false};
   bool scripted_altitude_hold{false};
   bool upgraded{false};
+  bool boost_cheat{false};
+  bool damage_cheat{false};
+  bool frozen{false};
   supply_pad_state supply{};
   std::optional<uint8_t> scenario_configuration;
 
@@ -34,6 +37,7 @@ struct player_flight {
   object_pose &pose() noexcept;
   object_pose const &pose() const noexcept;
   void command(flight_command command) noexcept;
+  void toggle_freeze() noexcept;
   void advance_motion(flight_controls_input input, bool brake, uint16_t frame_step,
     resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
   void apply_city_contact(city_collision_result contact, uint16_t clock, resources::geometry_bank const &bank, city_map &cells);

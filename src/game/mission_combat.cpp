@@ -104,7 +104,7 @@ void mission_combat::collide_player(player_flight &player, std::array<uint16_t,3
   effects.spawn(reaction.effect,reaction.at_actor ? victim->pose.position : end,clock);
   auto &damage{std::visit([](auto &craft)->player_damage_state& { return craft.damage; },player.craft)};
   auto const amount{static_cast<uint8_t>(next_random(random_state) | 0x80)};
-  apply_player_damage(damage,amount,0x3c,std::holds_alternative<skimma_flight_state>(player.craft),false,random_state);
+  apply_player_damage(damage,amount,0x3c,std::holds_alternative<skimma_flight_state>(player.craft),player.damage_cheat,random_state);
   effects.spawn(0x70f0,end,clock);
   player_hit = true;
   if(reaction.remove) {
@@ -328,7 +328,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state)};
           if(shot) effects.gun_impact(shot->end, shot->hit, clock);
           if(shot && shot->hit) {
-            apply_player_damage(damage,0x15,3,!caero,false,random_state);
+            apply_player_damage(damage,0x15,3,!caero,player.damage_cheat,random_state);
             player_hit = true;
           }
           if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
@@ -507,7 +507,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(hit) {
       // 6E95 halves definition strength and derives the angular kick from that amount.
       uint8_t const amount{static_cast<uint8_t>(shot->parameters.definition->impact_strength >> 1)};
-      apply_player_damage(damage,amount,static_cast<uint8_t>((amount >> 1) - 7),!caero,false,random_state);
+      apply_player_damage(damage,amount,static_cast<uint8_t>((amount >> 1) - 7),!caero,player.damage_cheat,random_state);
       effects.spawn(0x70c3,end,clock);
       player_hit = true;
     } else {

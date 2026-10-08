@@ -146,8 +146,8 @@ Shift+8 followed by number-row 3 opens the separate STAR THREE editor. Exact
 the selection prompt with the accepted phrase. Case changes, trailing characters
 and entering the phrase as an ordinary pilot name do not enable it. The prompt
 returns to game selection after submission or cancellation and never writes a
-pilot record. Only Level X is connected; the other three hidden commands remain
-future work.
+pilot record. Only Level X is recognised by the hidden text editor. The other three cheats
+are available through the command-line switches documented in the README.
 
 X during live, non-dying flight follows B926: copy the retained C610 destination
 into the C81E return site and request outcome 1. The existing successful exit

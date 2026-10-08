@@ -55,6 +55,16 @@ Mission 21 unlocks **Brent Hunter**: select it with **0**, acquire an aircraft i
 
 The original **Level X** cheat is available: on game selection, press **Shift+8**, release Shift, then press **3** on the number row. Enter **`Level X`** exactly and press Enter. **X** during flight then advances through the normal campaign transition and saves progression. Use `--cheat-level-x` to activate it at startup instead; combine with `--skip-intro` for quicker testing. **Shift+X** starts the previous playable level (or restarts level 1), using the same fresh setup as `--level`; from that point the session does not write saves. It has no effect in Nightmare. Activation lasts until the program closes; it does not unlock unimplemented missions.
 
+The other original cheats can be enabled for the whole process with:
+
+- `--cheat-lyndon`: **Z** toggles player-motion freeze. Enemies, weapons and external cameras remain active; this is separate from Pause. Each new flight starts unfrozen, with Z still enabled.
+- `--cheat-brooke`: Jason Brooke's accelerated Caero boost replenishment. The original engine/beacon-energy gates still apply; it does not recharge indefinitely far outside the city.
+- `--cheat-life`: the original incoming-impact damage patch. Impact kicks remain, scenery crashes are still lethal, and an unshielded Skimma remains vulnerable.
+
+For tunnel inspection, for example: `./build/darker --level=17 --cheat-lyndon --cheat-life --cheat-level-x`.
+These switches can be combined and remain enabled across deaths and level changes; they are not written to saves.
+
+
 Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
 - **Space / Enter:** advance briefing pages.

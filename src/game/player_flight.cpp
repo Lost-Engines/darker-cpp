@@ -55,6 +55,12 @@ void player_flight::command(flight_command const command) noexcept {
   }
 }
 
+void player_flight::toggle_freeze() noexcept {
+  /// B938 swaps the player motion callback with a no-op and clears speed on both transitions
+  frozen = !frozen;
+  pose().speed = 0;
+}
+
 void player_flight::advance_motion(flight_controls_input const input, bool const brake, uint16_t const frame_step,
   resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *const network, supply_control const supply_input) {
   /// Advance controls and craft motion before the campaign's common collision phase
@@ -70,6 +76,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
     controls.pitch.reference = 0;
     steering = {};
   }
+  if(frozen) return;
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
   auto const &definition{original_object_definitions[definition_slot()]};
   auto const gain{static_cast<std::uint16_t>(definition.angular_seed * 8)};
@@ -88,7 +95,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
     advance_caero_flight(std::get<caero_flight_state>(craft),
       {.angular_response{gain}, .drive_multiplier{static_cast<std::uint16_t>(definition.role_data[4] * 8)},
         .vertical_bias{bias}, .desired_height{desired_height}, .height_reference{controls.pitch.reference}},
-      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}},
+      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}, .boost_cheat{boost_cheat}},
       frame_step, cells);
   } else if(supply.phase != supply_phase::flight) {
     advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,steering.pitch,frame_step);

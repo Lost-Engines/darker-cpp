@@ -33,6 +33,38 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
   std::array<std::uint8_t, 256> limits{};
   for(std::size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
+  // B938 freezes the callback, retaining velocity for release while clearing the measured speed.
+  for(unsigned int kind{0}; kind < 3; ++kind) {
+    darker::game::player_flight frozen;
+    if(kind == 1) frozen.craft = darker::game::skimma_flight_state{};
+    if(kind == 2) frozen.tunnel.emplace();
+    frozen.pose() = {.position{128,2432,2000},.angles{123,456,789},.speed{500}};
+    frozen.toggle_freeze();
+    auto const before{frozen.pose()};
+    for(unsigned int tick{0}; tick < 100; ++tick) frozen.advance_motion({.right{true}},false,8,bank,cells);
+    if(!frozen.frozen || frozen.pose().position != before.position || frozen.pose().angles != before.angles || frozen.pose().speed != 0)
+      throw std::runtime_error{"Lyndon freeze allowed player motion"};
+    frozen.toggle_freeze();
+    if(frozen.frozen || frozen.pose().speed != 0) throw std::runtime_error{"Lyndon release did not restore the motion callback"};
+    if(kind != 2) {
+      if(kind == 0) std::get<darker::game::caero_flight_state>(frozen.craft).flying = true;
+      frozen.advance_motion({},false,8,bank,cells);
+      if(frozen.pose().position == before.position && frozen.pose().fractions == before.fractions)
+        throw std::runtime_error{"Player did not move after Lyndon release"};
+    }
+  }
+  {
+    darker::game::player_flight ordinary;
+    auto &craft{std::get<darker::game::caero_flight_state>(ordinary.craft)};
+    craft.flying = true;
+    craft.pose.position = {128,2432,500};
+    auto boosted{ordinary};
+    boosted.boost_cheat = true;
+    ordinary.advance_motion({},false,8,bank,cells);
+    boosted.advance_motion({},false,8,bank,cells);
+    if(std::get<darker::game::caero_flight_state>(boosted.craft).energy.boost <= craft.energy.boost)
+      throw std::runtime_error{"Brooke activation did not reach Caero energy accounting"};
+  }
   darker::game::player_flight player;
   darker::game::hangar_state hangar;
   darker::game::initialise_caero_hangar(player, cells, hangar, bank.header_at(bank.special_models()[25]).height);
