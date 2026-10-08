@@ -40,7 +40,7 @@ std::size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
 } // namespace
 
 attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t const roll_index,
-  std::int8_t const pitch_high, bool const alternate_colour) {
+  std::int8_t const pitch_high, bool const alternate_colour, int const centre_y) {
   /// 5E6F scales signed table words with high-word products before constructing the endpoints
   if(pitch_index >= 1024 || roll_index >= 1024) throw std::invalid_argument{"attitude table index must be below 1024"};
   int const pitch_sine{(maths::original_sine[pitch_index] * 224) >> 16};
@@ -48,7 +48,7 @@ attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t 
   int const roll_sine{maths::original_sine[roll_index]};
   int const roll_cosine{maths::original_sine[(roll_index + 256) % 1024]};
   int const x{160 + ((roll_sine * pitch_sine) >> 16)};
-  int const y{92 + ((roll_cosine * pitch_sine) >> 16)};
+  int const y{centre_y + ((roll_cosine * pitch_sine) >> 16)};
   int const dy{(roll_sine * pitch_cosine) >> 16};
   int const dx{(roll_cosine * pitch_cosine) >> 16};
   int const shade{(pitch_high * (pitch_high < 0 ? -45 : 44)) >> 8};
@@ -80,15 +80,15 @@ void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
   }
 }
 
-void draw_attitude_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t const colour_parameter) {
+void draw_attitude_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t const colour_parameter, int const centre_y) {
   /// 5ED6 draws two fixed outlines, then a pair converging vertically around the attitude centre
   std::span<std::uint8_t const> stream{attitude_outline};
-  auto consumed{draw_outline(target, stream, {.x{159}, .y{149}}, {.x{160}, .y{149}}, -1, -1, 19)};
+  auto consumed{draw_outline(target, stream, {.x{159}, .y{centre_y + 57}}, {.x{160}, .y{centre_y + 57}}, -1, -1, 19)};
   stream = stream.subspan(consumed);
-  consumed = draw_outline(target, stream, {.x{136}, .y{39}}, {.x{184}, .y{39}}, 1, 1, 19);
+  consumed = draw_outline(target, stream, {.x{136}, .y{centre_y - 53}}, {.x{184}, .y{centre_y - 53}}, 1, 1, 19);
   stream = stream.subspan(consumed);
   auto const colour{static_cast<std::uint8_t>(234 + ((colour_parameter & 255) & (colour_parameter >> 8)))};
-  draw_outline(target, stream, {.x{160}, .y{103}}, {.x{160}, .y{81}}, -1, 1, colour);
+  draw_outline(target, stream, {.x{160}, .y{centre_y + 11}}, {.x{160}, .y{centre_y - 11}}, -1, 1, colour);
 }
 
 } // namespace darker::graphics

@@ -29,7 +29,7 @@ void update_skimma_bitmaps(framework::render::indexed_cockpit_framebuffer const 
 
 void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft type,
-  std::uint8_t weapon, std::uint8_t radius, std::uint8_t remaining);
+  std::uint8_t weapon, std::uint8_t radius, std::uint8_t remaining, int baseline_y = 88);
 
 void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, weapon_icon_slot slot, std::uint8_t selection);

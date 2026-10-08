@@ -54,6 +54,9 @@ changes (including radio outages) and earlier missions' exit-time beacon failure
 It does not assume that previous targets were destroyed, or replay conditional
 combat/script outcomes such as triggered citywide blackouts. Explicit damage in
 scenario setup lists is retained; ordinary objective targets remain intact.
+For debugging, entry at level 101 or later also unlocks the upgraded Skimma’s
+third missile, as though its first pad service had finished. This convenience
+also applies to Shift+X; ordinary campaign progression and X retain the original unlock.
 It bypasses startup menus and does not write saves. The level selects its own craft;
 do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
 

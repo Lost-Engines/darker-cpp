@@ -70,6 +70,18 @@ void check_presentations(darker::resources::archive_set const &archives) {
   }
   darker::resources::save_file level_saves;
   darker::presentation::front_end level_entry{archives,font,campaign,level_saves,true};
+  for(uint8_t const stage : {uint8_t{99}, uint8_t{100}, uint8_t{101}, uint8_t{105}, uint8_t{115}}) {
+    level_entry.start_level(stage);
+    auto const &scenario{campaign.scenario(stage)};
+    darker::presentation::player briefing{archives, font, scenario, darker::resources::select_campaign_stage(stage).record};
+    for(unsigned int step{0}; !briefing.finished(); ++step) {
+      if(step == 4096) throw std::runtime_error{"Debug weapon check briefing did not finish"};
+      briefing.advance(2000);
+      briefing.continue_page();
+    }
+    if(bool((level_entry.selected_pilot().weapons ^ briefing.weapon_toggles) & 4) != (stage >= 101))
+      throw std::runtime_error{"Debug level entry has the wrong upgraded missile availability"};
+  }
   level_entry.start_level(4);
   if(level_entry.selected_pilot().stage != 4 || level_entry.selected_record() != 3 || level_entry.selected_pilot().weapons == 0)
     throw std::runtime_error{"Direct level entry lost its campaign index or preceding weapon awards"};

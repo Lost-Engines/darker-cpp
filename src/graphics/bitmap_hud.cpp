@@ -80,7 +80,7 @@ void update_skimma_bitmaps(framework::render::indexed_cockpit_framebuffer const 
 
 void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft const type,
-  std::uint8_t const weapon, std::uint8_t const radius, std::uint8_t const remaining) {
+  std::uint8_t const weapon, std::uint8_t const radius, std::uint8_t const remaining, int const baseline_y) {
   /// 5D83 uses signed sine high bytes and alignment-specific remaining/spent artwork
   if(type != craft::skimma && type != craft::upgraded_skimma) throw std::invalid_argument{"weapon ring requires a Skimma"};
   if(weapon >= (type == craft::skimma ? 2 : 3)) throw std::invalid_argument{"weapon ring index outside craft capacity"};
@@ -90,7 +90,7 @@ void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer cons
     offset |= 1;
     int const sine{maths::original_sine[offset / 2] >> 8};
     int const cosine{maths::original_sine[((offset + 512) % 2048) / 2] >> 8};
-    pixel_position const destination{.x{158 + ((sine * radius) >> 8)}, .y{88 - ((cosine * radius) >> 8)}};
+    pixel_position const destination{.x{158 + ((sine * radius) >> 8)}, .y{baseline_y - ((cosine * radius) >> 8)}};
     --count;
     copy_mask(cache.pixels, target.pixels, {.x{8 + 5 * (destination.x & 3)}, .y{count >= 0 ? 47 : 52}}, destination, ring_mask);
   }

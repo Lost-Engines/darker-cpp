@@ -138,3 +138,8 @@ at state 2 and no active supplementary script leaves selection unchanged with
 mask 0003. With mask 0007, the same key selects slot 2 and sets its enable bit.
 This explains a green third indicator and an ineffective 3 key before servicing.
 The extra missile uses definition 12; its precise manual name remains unconfirmed.
+
+Debug entry (`--level` and Shift+X) deliberately grants bit 0004 from level 101,
+the first upgraded-craft mission. This avoids requiring a pad visit solely to
+unlock the weapon during testing. It does not change ordinary saves, service
+scripts or the original forward-X cheat.

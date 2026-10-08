@@ -144,3 +144,17 @@ Whole-surface fingerprints captured from the native calls check these masks and
 all 24 shield startup phases, including the pixels that should remain unlit.
 The native blitter's returned mask pointer is preserved in the capture harness
 so two-strip pulses traverse the original records correctly.
+
+## Full-screen sights
+
+F4 now retains the Caero attitude line, surround/crosshair and acquired-target
+marker, and the Skimma sight and ammunition ring. These overlays belong to the
+player's forward view, independently of cockpit bitmap visibility. External
+cameras and missile-follow views do not acquire the player's sight overlay.
+
+Native view setup `792C–7950` selects full-screen projection centre 120.
+`5ED6` and `5F39` consume that centre for the Caero surround and target markers;
+`5D47` uses it for the Skimma sight, and `5D56` switches the ring baseline from
+88 to 118. Cockpit centres remain 92 (Caero, including its eight-row offset) and
+90 (Skimma). The software drawing functions now accept the corresponding centre
+or baseline rather than embedding cockpit-only coordinates.

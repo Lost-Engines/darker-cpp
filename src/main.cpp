@@ -372,19 +372,23 @@ auto main(int const argc, char const *const argv[])->int {
       .player{.x{view.column}, .y{view.row}}, .heading{view.angles.heading},
       .row{host.player.tunnel ? uint8_t{0} : grid[1]}, .column{host.player.tunnel ? uint8_t{0} : grid[0]},
     };
-    if(cockpit_visible && caero) {
-      darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{combat->secondary_weapon}});
-      darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
-      auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false)};
+    bool const sights_visible{!watched && (cockpit_visible || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
+    int const sight_y{cockpit_visible ? (caero ? 92 : 90) : 120};
+    if(sights_visible && caero) {
+      auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<std::int8_t>(view.angles.pitch >> 8), false, sight_y)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
-      darker::graphics::draw_attitude_surround(display, combat->weapon_ready ? 0x0019 : 0xff19);
+      darker::graphics::draw_attitude_surround(display, combat->weapon_ready ? 0x0019 : 0xff19, sight_y);
       if(combat->target.token != 0xffff) {
         bool const centred{combat->target.distance < 2};
         uint16_t const colours{static_cast<uint16_t>((combat->secondary_ready ? 0xe9f3 : 0x030c) + (centred ? 0x0606 : 0))};
         darker::graphics::draw_target_marker(display,centred ? darker::graphics::target_marker::small : darker::graphics::target_marker::large,
-          {.x{static_cast<int16_t>(160 + combat->target.horizontal)},.y{static_cast<int16_t>(92 + combat->target.vertical)}},
+          {.x{static_cast<int16_t>(160 + combat->target.horizontal)},.y{static_cast<int16_t>(sight_y + combat->target.vertical)}},
           static_cast<uint8_t>(colours),static_cast<uint8_t>(colours >> 8));
       }
+    }
+    if(cockpit_visible && caero) {
+      darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{combat->secondary_weapon}});
+      darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       if(!host.player.tunnel) darker::graphics::draw_radar_beacons(display,cells,navigation.player,navigation.heading,coverage);
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
       darker::graphics::draw_caero_frame_edges(cache, display);
@@ -395,12 +399,14 @@ auto main(int const argc, char const *const argv[])->int {
         context.hud_reference,pose.position[0],pose.position[1],pose.angles[0])}};
       for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, indicators);
+    }
+    if(sights_visible && !caero) {
       auto const &weapon{combat->skimma_weapons[combat->skimma_selection]};
       if(auto const ring{darker::game::update_weapon_ring(weapon.ammunition,combat->skimma_ring,clock,weapon.flags,frame_step)}) {
-        darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma_selection,ring->radius,ring->remaining);
+        darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma_selection,ring->radius,ring->remaining,sight_y - 2);
       }
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
-        {.x{164}, .y{static_cast<int16_t>(90 + combat->skimma_aim_offset)}}, 14, 14);
+        {.x{164}, .y{static_cast<int16_t>(sight_y + combat->skimma_aim_offset)}}, 14, 14);
     }
     for(size_t const channel : {1u,0u,2u}) if(auto const &message{messages[channel]}) {
       auto const width{static_cast<uint16_t>(message->width + (message->alignment == darker::game::message_alignment::centre

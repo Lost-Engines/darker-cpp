@@ -336,6 +336,8 @@ void front_end::start_level(uint8_t const stage) {
     pilot.weapons ^= briefing.weapon_toggles;
     if(briefing.departure_destination) pilot.return_site = briefing.departure_destination;
   }
+  // Debug entry assumes the upgraded craft has completed its first pad service.
+  if(stage >= 101) pilot.weapons |= 4;
   for(unsigned int city{0}; city < cities.size(); ++city) {
     resources::geometry_bank const bank{archives.load({0,30+city})};
     game::pack_city_state(cities[city],bank.city_types(),city == 0 ? std::span<std::byte>{pilot.delphi} : std::span<std::byte>{pilot.halon});
