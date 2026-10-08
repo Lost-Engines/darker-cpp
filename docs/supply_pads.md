@@ -56,3 +56,20 @@ A windowed level-105 check also confirmed departure: height rose from 328 to
 The normal supply script is silent; the upgraded craft's script provides the
 21 diagnostic messages and weapon checks. Their centring and rotation remain
 in the shared approach callback.
+
+## Mouse departure discrepancy
+
+Retail playtesting found that moving the mouse did not launch the Skimma,
+whereas the reconstruction did. A joined native `7AD6` control-filter and
+`7E49` docked-motion probe confirms that the departure gate is not keyboard-only:
+ordinary mouse processing writes D5CA too. With output 700, no supplementary
+script, sensitivity 12 and 8-tick frames, sustained positive pitch input of
+1, 8 or 16 mouse counts per frame did not depart within 120 frames (references
+177, 1521 and 3057). At 32 counts per frame it departed on frame 12 (reference
+3214); at 64 it departed on frame 5 (3091). The threshold is 3072.
+
+These are injected DOS mouse counts, not physical mouse distances. The observed
+retail/reconstruction difference remains unresolved at the host input boundary;
+see `flight_controls.md` for the related tunnel steering discrepancy. Do not
+infer a keyboard-only gate from the retail observation or tune the native
+threshold to compensate without a matched mouse-input trace.
