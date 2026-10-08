@@ -2,6 +2,7 @@
 #include "game/radar_coverage.h"
 #include "graphics/radar_beacons.h"
 #include "reference/radar_beacon_samples.h"
+#include "reference/radar_noise_samples.h"
 
 TEST_CASE("Radio coverage and energy tower pixels match native radar frames", "[radar]") {
   /// Compare original coverage masks, contact decisions and all tower pixels with independent native calls
@@ -25,5 +26,22 @@ TEST_CASE("Radio coverage and energy tower pixels match native radar frames", "[
     darker::graphics::draw_radar_beacons(actual,cells,{position[0],position[1]},static_cast<uint16_t>(sample[2]),coverage);
     for(size_t i{0}; i < sample[31]; ++i) expected.pixels[sample[33+i*3]*320 + sample[32+i*3]] = static_cast<uint8_t>(sample[34+i*3]);
     CHECK(actual.pixels == expected.pixels);
+  }
+}
+
+TEST_CASE("Radar interference pixels and random consumption match native frames", "[radar]") {
+  /// Cover clear, absent and partial reception, headings and wrapped off-map coordinates
+  for(auto const &sample : darker::test_reference::radar_noise_samples) {
+    CAPTURE(sample[0],sample[1],sample[2],sample[3],sample[6]);
+    darker::game::radar_coverage const coverage{
+      .centre{static_cast<uint8_t>(sample[4]),static_cast<uint8_t>(sample[5])}, .mask{static_cast<uint16_t>(sample[6])},
+    };
+    auto random{static_cast<uint16_t>(sample[3])};
+    framework::render::indexed_cockpit_framebuffer actual{}, expected{};
+    darker::graphics::draw_radar_interference(actual,{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1])},
+      static_cast<uint16_t>(sample[2]),coverage,random);
+    for(size_t i{0}; i < sample[8]; ++i) expected.pixels[sample[10+i*3]*320 + sample[9+i*3]] = static_cast<uint8_t>(sample[11+i*3]);
+    CHECK(actual.pixels == expected.pixels);
+    CHECK(random == sample[7]);
   }
 }

@@ -391,6 +391,7 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       if(!host.player.tunnel) darker::graphics::draw_radar_beacons(display,cells,navigation.player,navigation.heading,coverage);
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
+      if(!host.player.tunnel) darker::graphics::draw_radar_interference(display,navigation.player,navigation.heading,coverage,combat->random_state);
       darker::graphics::draw_caero_frame_edges(cache, display);
       if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {

@@ -1,6 +1,7 @@
 #include "graphics/radar_beacons.h"
 #include <bit>
 #include "game/beacon_light.h"
+#include "game/random.h"
 #include "maths/sine_table.h"
 
 namespace darker::graphics {
@@ -34,6 +35,28 @@ void draw_radar_beacons(framework::render::indexed_cockpit_framebuffer &target, 
     }
     vertical = signed_word(vertical + step_cosine);
     horizontal = signed_word(horizontal - step_sine);
+  }
+}
+
+void draw_radar_interference(framework::render::indexed_cockpit_framebuffer &target,
+  world_position const player, uint16_t const heading, game::radar_coverage const &coverage, uint16_t &random_state) {
+  /// 5941 emits seventeen candidate dots outside radio coverage, consuming the shared 92D2 sequence
+  if(coverage.mask == 0x777) return;
+  auto const signed_word{[](int const value){ return std::bit_cast<int16_t>(static_cast<uint16_t>(value)); }};
+  auto const index{static_cast<size_t>(heading >> 6)};
+  int const sine{maths::original_sine[index]}, cosine{maths::original_sine[(index + 256) % 1024]};
+  for(unsigned int point{0}; point < 17; ++point) {
+    auto const random{game::next_random(random_state)};
+    auto const low{static_cast<uint8_t>(random)}, high{static_cast<uint8_t>(random >> 8)};
+    int const dx{std::bit_cast<int8_t>(low) >> 3}, dy{std::bit_cast<int8_t>(high) >> 3};
+    if(coverage.contains(static_cast<uint8_t>((player.x >> 8) + dx),static_cast<uint8_t>((player.y >> 8) + dy))) continue;
+    // Retain the random low bytes during the native byte exchanges, then wrap the doubled words.
+    auto const y{signed_word(2*(static_cast<uint8_t>(dy)*256 + low))};
+    auto const x{signed_word(2*(static_cast<uint8_t>(dx)*256 + high))};
+    int const px{signed_word((x*cosine >> 16) - (y*sine >> 16)) >> 8};
+    int const py{signed_word((y*cosine >> 16) + (x*sine >> 16)) >> 8};
+    int const squared{px*px + py*py};
+    if(squared <= 441) target.pixels[(215+py)*320 + 54+px] = static_cast<uint8_t>(22 - (squared >> 5));
   }
 }
 
