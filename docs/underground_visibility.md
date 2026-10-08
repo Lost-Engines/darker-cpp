@@ -24,3 +24,20 @@ scan would incorrectly lengthen the cardinal loops.
 This is a renderer component, not a claim that the underground campaign is
 playable. Tunnel navigation, transitions and the complete player update still
 need connecting.
+
+## Moving-object ordering inside tunnels
+
+Underground setup at BC85–BC96 patches the opcode at 2EDC from `01` (ADD) to
+`29` (SUB). The moving-object placement at 2EBC therefore subtracts model extent
+from its wrapping sorting key underground; surface objects add it. City tile
+placement at 2A1A keeps its separate extent addition. The reconstruction had
+incorrectly used the surface adjustment for both, allowing nearby floor strips
+and sloping wall faces to overdraw the Wrecker.
+
+`generate_object_sorting_reference.py` executes 2EBC with both opcode values
+against all 33 special models in bank 32. The integration check compares all 66
+keys, including the Wrecker, against actual C++ placement. This establishes the
+missing mode-dependent bias; it does not establish pixel-perfect overlap for
+every viewpoint. User examples were immediately after the first demolished gate
+and left turn in level 17, and a later view from behind the roller where floor
+markings and sloping wall panels appeared in front of it.

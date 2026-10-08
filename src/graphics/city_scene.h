@@ -39,7 +39,7 @@ struct scene_object {
 };
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
-  camera_basis const &basis, camera_position camera);
+  camera_basis const &basis, camera_position camera, bool underground = false);
 
 struct city_view {
   std::uint16_t column{0};                                                     // original 1/256-cell position words

@@ -28,6 +28,7 @@
 #include "reference/city_sweep_samples.h"
 #include "reference/geometry_bank_samples.h"
 #include "reference/model_effect_samples.h"
+#include "reference/object_sorting_samples.h"
 #include "reference/original_model_samples.h"
 #include "reference/player_flight_samples.h"
 #include "resources/archive_set.h"
@@ -216,6 +217,17 @@ auto main(int const argc, char const *const argv[])->int try {
       matched = values == sample.result;
     }
     if(!matched) throw std::runtime_error{std::format("City placement differs from native reference: bank {}, type {}, state {}", sample.model[0], sample.model[1], sample.model[2])};
+  }
+  {
+    darker::resources::geometry_bank const bank{archives.load({0,32})};
+    auto const basis{darker::graphics::make_camera_basis({})};
+    for(auto const &sample : darker::test_reference::object_sorting_samples) {
+      auto const item{darker::graphics::place_scene_object(bank,
+        {.model_offset{bank.special_models()[sample.model]},.pose{.position{0x4000,0x3c00,1600}}},
+        basis,{.altitude{1800}},sample.underground)};
+      if(!item || item->placement.sorting_distance != sample.distance)
+        throw std::runtime_error{"Moving-object ordering differs from native surface/underground patch"};
+    }
   }
   for(auto const &sample : darker::test_reference::model_effect_samples) {
     darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};

@@ -71,13 +71,14 @@ bool within_object_window(city_view const &view, std::array<uint16_t,3> const &p
 }
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
-  camera_basis const &basis, camera_position camera) {
+  camera_basis const &basis, camera_position camera, bool const underground) {
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
   camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions[0] >> 6));
   camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions[1] >> 6));
   auto placement{place_model(basis, camera, {.column{object.pose.position[0]}, .row{object.pose.position[1]}, .height{word(-object.pose.position[2])}})};
   auto const header{bank.header_at(object.model_offset)};
-  placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + header.extent);
+  // BC94 patches 2EDC from ADD to SUB for underground moving objects.
+  placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + (underground ? -header.extent : header.extent));
   auto item{classify_model(placement, header)};
   if(item) {
     item->model_offset = object.model_offset;
@@ -182,7 +183,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
   }
   for(auto const &object : objects) {
     if(!within_object_window(view, object.pose.position)) continue;
-    if(auto item{place_scene_object(bank, object, basis, camera)}) items.push_back(*item);
+    if(auto item{place_scene_object(bank, object, basis, camera, view.underground)}) items.push_back(*item);
   }
   if(particles) {
     auto const append{[&](auto const &emitters){
