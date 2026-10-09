@@ -47,6 +47,19 @@ appear across the coordinate seam before the camera crosses it, in both Delphi
 and Halon. The native comparison now covers 768 scans, including outside-map
 centres, both seams and their corner, without changing the original view radius.
 
+## Missile-follow indicator
+
+The M toggle also draws the original green marker: a 4×3 rectangle at (300,0),
+palette index BEh, after cockpit composition. Native `54A3–54EE` draws it steadily
+in missile camera modes (7 and above). In ordinary views it requires the enabled
+flag at `54CA` and nonzero clock bits `0180h`: 128 ticks off, then 384 ticks on,
+repeating every 512 ticks (roughly one second). No rectangle is drawn during the
+off phase; the newly rendered scene remains visible underneath.
+
+Isolated execution of `54A3` confirmed the rectangle arguments and timer boundaries
+for modes 0, 3, 6, 7 and 8, with the toggle both off and on. Regression checks cover
+those timer boundaries, steady following and unchanged surrounding pixels.
+
 ## Underground attached views
 
 Native 24A7 tests player configuration F003 against 4. Underground behind/level

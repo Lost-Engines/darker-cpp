@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include "graphics/procedural_hud.h"
@@ -14,6 +15,27 @@ std::uint64_t checksum(framework::render::indexed_cockpit_framebuffer const &fra
 }
 
 } // namespace
+
+TEST_CASE("Missile camera marker matches native timer boundaries and remains lit when following") {
+  /// Captured at 54A3/DC65: X=300, Y=0, width=4, height=3, palette index BE
+  std::array<std::uint16_t, 10> const ticks{0,127,128,255,256,383,384,511,512,65535};
+  std::array<bool, 10> const native_blink{false,false,true,true,true,true,true,true,false,true};
+  framework::render::indexed_cockpit_framebuffer expected{};
+  expected.pixels.fill(42);
+  for(int y{0}; y < 3; ++y) {
+    for(int x{300}; x < 304; ++x) expected.pixels[y * 320 + x] = 190;
+  }
+  for(bool const enabled : {false,true}) for(bool const following : {false,true}) {
+    for(std::size_t i{0}; i < ticks.size(); ++i) {
+      INFO("clock=" << ticks[i] << " enabled=" << enabled << " following=" << following);
+      framework::render::indexed_cockpit_framebuffer frame{};
+      frame.pixels.fill(42);
+      darker::graphics::draw_missile_camera_indicator(frame, ticks[i], enabled, following);
+      if(following || (enabled && native_blink[i])) REQUIRE(frame.pixels == expected.pixels);
+      else REQUIRE(std::ranges::all_of(frame.pixels, [](auto const pixel){ return pixel == 42; }));
+    }
+  }
+}
 
 TEST_CASE("Attitude endpoint calculation and line rasterisation match 289 original-code frames") {
   for(auto const &sample : darker::test_reference::attitude) {

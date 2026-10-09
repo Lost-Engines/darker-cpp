@@ -445,6 +445,7 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
         {.x{164}, .y{static_cast<int16_t>(sight_y + combat->skimma_aim_offset)}}, 14, 14);
     }
+    darker::graphics::draw_missile_camera_indicator(display, clock, combat->missile_camera_enabled, watched != nullptr);
     for(size_t const channel : {1u,0u,2u}) if(auto const &message{messages[channel]}) {
       auto const width{static_cast<uint16_t>(message->width + (message->alignment == darker::game::message_alignment::centre
         && message->width < context.message_setting ? 256 : 0))};

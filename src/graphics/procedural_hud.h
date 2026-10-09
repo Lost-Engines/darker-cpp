@@ -9,6 +9,9 @@ namespace darker::graphics {
 
 enum class target_marker { small, large, skimma_aim };
 
+void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffer &target,
+  std::uint16_t clock, bool enabled, bool following);
+
 struct attitude_line {
   pixel_position first;
   pixel_position last;

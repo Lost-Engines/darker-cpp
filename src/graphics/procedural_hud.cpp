@@ -39,6 +39,15 @@ std::size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
 
 } // namespace
 
+void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffer &target,
+  std::uint16_t const clock, bool const enabled, bool const following) {
+  /// 54A3: missile views stay lit; other views blink using timer bits 7 and 8
+  if(!following && (!enabled || !(clock & 0x180))) return;
+  for(int y{0}; y < 3; ++y) {
+    for(int x{300}; x < 304; ++x) put_pixel(target, x, y, 0xbe);
+  }
+}
+
 attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t const roll_index,
   std::int8_t const pitch_high, bool const alternate_colour, int const centre_y) {
   /// 5E6F scales signed table words with high-word products before constructing the endpoints
