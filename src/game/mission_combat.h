@@ -41,6 +41,7 @@ public:
   bool missile_camera_enabled{false};
   bool building_attacks{false};
   projectile *camera_projectile{nullptr};
+  std::optional<uint8_t> camera_actor;
   bool weapon_ready{false};
   bool secondary_ready{false};
   weapon_target target;

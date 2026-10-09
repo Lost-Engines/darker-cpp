@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/flight_camera.h"
+#include "game/camera_target.h"
+#include "reference/object_view_samples.h"
 #include "reference/camera_look_samples.h"
 #include "reference/dropped_camera_samples.h"
 #include "reference/flight_camera_samples.h"
@@ -91,5 +93,39 @@ TEST_CASE("Underground following and death views retain the player position", "[
       CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
         result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
     }
+  }
+}
+
+TEST_CASE("F7 rays and range rejection match native camera selection", "[game][camera]") {
+  for(auto const &sample : darker::test_reference::object_camera_rays) {
+    darker::game::object_pose camera, target;
+    for(size_t axis{0}; axis < 3; ++axis) {
+      camera.position[axis] = static_cast<uint16_t>(sample.position[axis]);
+      camera.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
+      target.position[axis] = static_cast<uint16_t>(sample.target[axis]);
+    }
+    auto const end{darker::game::camera_ray_end(camera)};
+    CAPTURE(sample.position,sample.angles,sample.target);
+    CHECK(std::array<int,3>{end[0],end[1],end[2]} == sample.end);
+    CHECK(darker::game::camera_target_in_range(camera,target) == (sample.accepted[0] != 0));
+  }
+}
+
+TEST_CASE("F7 follows live and destroyed objects at the original distances", "[game][camera]") {
+  for(auto const &sample : darker::test_reference::object_camera_views) {
+    darker::game::object_pose object;
+    for(size_t axis{0}; axis < 3; ++axis) {
+      object.position[axis] = static_cast<uint16_t>(sample.position[axis]);
+      object.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
+    }
+    for(size_t axis{0}; axis < 2; ++axis) object.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
+    auto const &v{sample.input};
+    darker::game::flight_camera camera{.mode{darker::game::camera_mode::object},
+      .distance_step{static_cast<uint8_t>(v[1])},.distance{static_cast<uint16_t>(v[2])}};
+    auto const result{camera.view(object,static_cast<uint16_t>(v[0]),false,
+      v[3] ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)};
+    CAPTURE(sample.position,sample.angles,v);
+    CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+      result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
   }
 }

@@ -2,6 +2,7 @@
 #include "graphics/city_scene.h"
 #include "reference/city_scan_samples.h"
 #include "reference/object_window_samples.h"
+#include "reference/distant_points_samples.h"
 
 TEST_CASE("City scans preserve native candidate order and map boundaries", "[graphics][city]") {
   /// Match circular spans, heading halves, full-pitch scans and empty-cell skips
@@ -30,5 +31,23 @@ TEST_CASE("Moving-object visibility matches the native wrapping byte window", "[
     std::array<uint16_t,3> const position{static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[4]), 0};
     CAPTURE(sample);
     REQUIRE(darker::graphics::within_object_window(view, position) == static_cast<bool>(sample[5]));
+  }
+}
+
+TEST_CASE("Distant moving objects project to the original single pixel", "[graphics][city]") {
+  /// Native 2D32 drops fractional coordinates and rejects pixels outside the cockpit/full-screen viewport.
+  for(auto const &sample : darker::test_reference::distant_points_samples) {
+    CAPTURE(sample);
+    darker::graphics::model_placement const placement{
+      .horizontal{.whole{static_cast<uint16_t>(sample[0])}, .fraction{173}},
+      .vertical{.whole{static_cast<uint16_t>(sample[1])}, .fraction{89}},
+      .depth{.whole{static_cast<uint16_t>(sample[2])}, .fraction{255}},
+    };
+    auto const point{darker::graphics::project_distant_object(placement,{160,static_cast<int16_t>(sample[3]/2)},sample[3])};
+    REQUIRE(point.has_value() == (sample[4] >= 0));
+    if(point) {
+      CHECK(point->x == sample[4]);
+      CHECK(point->y == sample[5]);
+    }
   }
 }

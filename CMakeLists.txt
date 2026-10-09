@@ -221,6 +221,8 @@ add_library(darker_game STATIC
   src/game/angular_motion.cpp
   src/game/angular_motion.h
   src/game/flight_motion.cpp
+  src/game/camera_target.cpp
+  src/game/camera_target.h
   src/game/flight_camera.cpp
   src/game/flight_camera.h
   src/game/flight_controls.cpp
@@ -347,6 +349,8 @@ if(BUILD_TESTING)
     tests/scenario_resource_check.h
     tests/nightmare_check.cpp
     tests/nightmare_check.h
+    tests/camera_target_check.cpp
+    tests/camera_target_check.h
     tests/presentation_check.cpp
     tests/presentation_check.h
     tests/text_resource_check.cpp

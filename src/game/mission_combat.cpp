@@ -77,6 +77,7 @@ void mission_combat::release_target(uint16_t const token) noexcept {
     }
   }
   if(target.token == token) target.clear();
+  if(camera_actor && token == static_cast<uint16_t>(0xd986 + *camera_actor*112)) camera_actor.reset();
 }
 
 void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t const clock, uint16_t const frame_step) {

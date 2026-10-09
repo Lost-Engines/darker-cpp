@@ -78,8 +78,9 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
   auto const visible{visible_mode()};
   auto const active{underground && subject == camera_subject::player
     && (visible == camera_mode::behind || visible == camera_mode::level) ? camera_mode::fullscreen : visible};
-  bool const missile{subject != camera_subject::player};
-  bool const following{active == camera_mode::behind || active == camera_mode::level || (missile && (active == camera_mode::cockpit || (subject == camera_subject::missile_effect && active == camera_mode::fullscreen)))};
+  bool const missile{subject == camera_subject::missile || subject == camera_subject::missile_effect};
+  bool const object{subject == camera_subject::object || subject == camera_subject::object_effect};
+  bool const following{active == camera_mode::object || active == camera_mode::behind || active == camera_mode::level || (missile && (active == camera_mode::cockpit || (subject == camera_subject::missile_effect && active == camera_mode::fullscreen)))};
   if(subject == camera_subject::missile_effect && active == camera_mode::fullscreen && (distance & 0x8000)) distance = 0x200;
   result.angles[0] = static_cast<std::uint16_t>(result.angles[0] + look_heading);
   result.angles[1] = static_cast<std::uint16_t>(result.angles[1] + look_pitch);
@@ -90,9 +91,10 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
   for(auto &angle : result.angles) angle = static_cast<std::uint16_t>(static_cast<std::uint16_t>(angle + 15) & 0xffc0);
   if(!following) return result;
   std::array<int, 6> constexpr steps{6, 9, 13, 18, 26, 34};
+  constexpr std::array<int,6> object_effect_steps{10,11,13,18,29,34};
   constexpr std::array<int,6> missile_steps{3,5,7,10,14,18}, effect_steps{10,11,12,14,16,18};
-  auto const &distances{subject == camera_subject::missile ? missile_steps : subject == camera_subject::missile_effect ? effect_steps : steps};
-  int const target{landed && !missile ? 0x440 : distances[distance_step] * 256};
+  auto const &distances{subject == camera_subject::object_effect ? object_effect_steps : subject == camera_subject::missile ? missile_steps : subject == camera_subject::missile_effect ? effect_steps : steps};
+  int const target{landed && !missile && !object ? 0x440 : distances[distance_step] * 256};
   if(distance & 0x8000) distance = static_cast<std::uint16_t>(target);
   else {
     int const old{word(distance)};

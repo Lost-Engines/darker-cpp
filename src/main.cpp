@@ -25,6 +25,7 @@
 #include "game/actor_activation.h"
 #include "game/beacon_changes.h"
 #include "game/beacon_light.h"
+#include "game/camera_target.h"
 #include "game/city_map.h"
 #include "game/city_persistence.h"
 #include "game/flight_camera.h"
@@ -47,6 +48,7 @@
 #include "graphics/procedural_hud.h"
 #include "graphics/radar_beacons.h"
 #include "graphics/sky_ground.h"
+#include "maths/direction.h"
 #include "maths/sine_table.h"
 #include "platform/audio_output.h"
 #include "platform/framebuffer_presenter.h"
@@ -72,6 +74,7 @@ struct flight_host {
   darker::audio::world_sounds world_audio;
   darker::audio::ambient_sounds ambient_audio;
   darker::game::flight_camera camera;
+  bool pick_camera{false};
   darker::game::hangar_state hangar;
   darker::game::object_pose audio_listener, audio_motion;
   darker::game::mission_combat *combat{nullptr};
@@ -299,15 +302,46 @@ auto main(int const argc, char const *const argv[])->int {
       front->draw(output);
       return size_t{0};
     }
-    auto const *watched{combat->missile_camera_enabled ? combat->camera_projectile : nullptr};
+    auto actor{host.combat->camera_actor && *host.combat->camera_actor != 0
+      ? std::ranges::find(combat->actors,*host.combat->camera_actor,&darker::game::scenario_actor::index) : combat->actors.end()};
+    if(host.camera.mode == darker::game::camera_mode::object && (!host.combat->camera_actor
+      || (*host.combat->camera_actor != 0 && actor == combat->actors.end()))) {
+      host.combat->camera_actor.reset();
+      host.camera.mode = darker::game::camera_mode::fixed;
+    }
+    if(std::exchange(host.pick_camera,false) && !(host.player.lifecycle.flags & 16) && !host.player.tunnel) {
+      if(auto const picked{darker::game::pick_camera_target(host.audio_listener,host.player.pose(),
+        bank.header_at(bank.special_models()[host.player.definition_slot()]).extent,host.combat->camera_actor,
+        combat->actors,cells,bank,host.player.world_damage_mask())}) {
+        if(picked->actor) {
+          host.combat->camera_actor = picked->actor;
+          host.camera.mode = darker::game::camera_mode::object;
+          actor = *picked->actor == 0 ? combat->actors.end()
+            : std::ranges::find(combat->actors,*picked->actor,&darker::game::scenario_actor::index);
+        } else {
+          auto const &previous{actor != combat->actors.end() ? actor->pose : host.player.pose()};
+          host.camera.drop(darker::game::camera_mode::fixed,picked->anchor);
+          auto const direction{darker::maths::object_target_direction(picked->anchor.position,previous.position)};
+          host.camera.anchor.angles = {direction.heading,direction.pitch,0};
+          host.combat->camera_actor.reset();
+        }
+      }
+    }
+    auto const *watched{combat->missile_camera_enabled && host.camera.mode != darker::game::camera_mode::object
+      ? combat->camera_projectile : nullptr};
+    bool const watching_actor{host.camera.mode == darker::game::camera_mode::object && host.combat->camera_actor.has_value()};
     bool const cockpit_visible{!watched && host.camera.visible_mode() == darker::game::camera_mode::cockpit};
     bool const external{watched || (host.camera.visible_mode() != darker::game::camera_mode::cockpit && host.camera.visible_mode() != darker::game::camera_mode::fullscreen)};
     int const height{cockpit_visible ? (caero ? 168 : 180) : 240};
     auto const &pose{host.player.pose()};
     auto const subject{!watched ? darker::game::camera_subject::player : (watched->flags & 8) ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile};
-    auto const camera{host.camera.view(watched ? watched->placement : pose,frame_step,(host.player.lifecycle.flags & 16) != 0,subject,host.player.tunnel.has_value())};
+    auto const &camera_pose{watching_actor && actor != combat->actors.end() ? actor->pose : watched ? watched->placement : pose};
+    auto const camera_subject{watching_actor
+      ? (actor != combat->actors.end() && (actor->flags & 8) ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)
+      : subject};
+    auto const camera{host.camera.view(camera_pose,frame_step,!watching_actor && (host.player.lifecycle.flags & 16) != 0,camera_subject,host.player.tunnel.has_value())};
     host.audio_listener = camera;
-    host.audio_motion = watched ? watched->placement : pose;
+    host.audio_motion = camera_pose;
     darker::graphics::city_view view{
       .column{camera.position[0]}, .row{camera.position[1]}, .column_fraction{camera.fractions[0]}, .row_fraction{camera.fractions[1]},
       .altitude{std::bit_cast<std::int16_t>(camera.position[2])},
@@ -330,7 +364,7 @@ auto main(int const argc, char const *const argv[])->int {
     auto const coverage{darker::game::make_radar_coverage(cells,{pose.position[0],pose.position[1]},view.underground)};
     for(auto const &actor : combat->actors) {
       if(actor.flags & 8) continue;
-      objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}});
+      objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}, .light{actor.fade}});
       if(actor.category != darker::game::actor_category::stationary) {
         contacts.push_back({.position{actor.pose.position[0],actor.pose.position[1]},
           .group{view.underground ? darker::graphics::radar_group::underground : actor.category == darker::game::actor_category::air ? darker::graphics::radar_group::a : darker::graphics::radar_group::b},
@@ -341,7 +375,7 @@ auto main(int const argc, char const *const argv[])->int {
       for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
         if(view.underground && !(shot->flags & 8)) contacts.push_back({.position{shot->placement.position[0],shot->placement.position[1]},
           .group{darker::graphics::radar_group::underground}});
-        if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}});
+        if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}, .light{shot->fade}});
       }
     }
     if(external && !host.player.tunnel && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
@@ -518,6 +552,7 @@ auto main(int const argc, char const *const argv[])->int {
       return;
     }
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
+      host.combat->camera_actor.reset();
       auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
       if(key >= GLFW_KEY_F5) {
         if(!(host.player.lifecycle.flags & 16)) host.camera.drop(selected,host.combat && host.combat->missile_camera_enabled && host.combat->camera_projectile ? host.combat->camera_projectile->placement : host.player.pose());
@@ -531,6 +566,7 @@ auto main(int const argc, char const *const argv[])->int {
       }
       if(key == GLFW_KEY_F1 || key == GLFW_KEY_F4) host.camera.distance = 0x8000;
     }
+    if(action == GLFW_PRESS && (key == GLFW_KEY_F7 || key == GLFW_KEY_GRAVE_ACCENT)) host.pick_camera = true;
     if(action == GLFW_PRESS && key == GLFW_KEY_COMMA && host.camera.distance_step > 0) --host.camera.distance_step;
     if(action == GLFW_PRESS && key == GLFW_KEY_PERIOD && host.camera.distance_step < 5) ++host.camera.distance_step;
     if(key == GLFW_KEY_ENTER && host.player.lifecycle.crashing) {
@@ -645,7 +681,7 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Pause/Num Lock pauses or steps; an ordinary key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
+  std::cout << "Pause/Num Lock pauses or steps; an ordinary key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; F7/backtick object camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
   std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
   if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
@@ -690,6 +726,8 @@ auto main(int const argc, char const *const argv[])->int {
       }
       host.player = initial_player;
       host.camera = {};
+      host.combat->camera_actor.reset();
+      host.pick_camera = false;
       host.hangar = {};
       host.sounds = {};
       host.world_audio = {};
@@ -970,6 +1008,7 @@ auto main(int const argc, char const *const argv[])->int {
       combat->effects.spawn(0x7014,host.player.pose().position,game_clock.frame_ticks);
       combat->missile_camera_enabled = false;
       host.player.engine_flags = 0;
+      host.combat->camera_actor.reset();
       host.camera.mode = darker::game::camera_mode::level;
       host.camera.distance = 0x0205;
       host.camera.distance_step = 5;

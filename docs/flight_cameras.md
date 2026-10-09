@@ -34,11 +34,12 @@ six modes, distance changes, banked flight and Tab look/recentring on Caero and
 Skimma. These are reconstruction checks, not a claim of complete campaign
 camera coverage.
 
-[Missile-follow modes](pinner_mimic.md) now use the native live/impact distance tables. Remaining camera work includes F7's object selection,
-original explosion/death-camera transitions and external actor lighting updates.
-The exterior player currently receives full beacon strength; actor light updates
-will replace this with the original per-object field. Far actor point rendering
-is also pending, so a dropped camera still uses the mesh until extent culling.
+[Missile-follow modes](pinner_mimic.md) now use the native live/impact distance tables. F7/backtick object selection is connected; further camera-transition comparisons
+remain useful. Explosion/death cameras are connected,
+including the underground exception below. Actor and projectile drawing now
+consumes the native lifecycle fade byte at object +6F: the renderer advances BP
+by 0E at 2EC8, then reads +61 at 2CA1/2D22. This is lifecycle brightness, not
+regional beacon strength. The exterior player retains full strength. Distant-point rendering now follows the model thresholds, as described below.
 
 City candidate scans wrap row and column arithmetic independently at 256 cells,
 then reject the empty half outside the 128-by-128 city. This lets buildings
@@ -61,3 +62,43 @@ fractions, angles and retained distance for underground behind/level and the
 ordinary full-screen path. The C++ regression checks reuse native full-screen
 samples for both underground modes. Native 2BD0 also omits the separately drawn
 player craft underground; the host follows that restriction.
+
+## Distant objects and lifecycle brightness
+
+`2EF8` selects a single point when the projected depth minus 32 reaches the
+model header's point threshold, after the flat-shading threshold. This is only
+a moving-object path; city buildings retain their geometry. The point uses
+header byte +5 and the shade table retained from the last mesh draw, rather
+than applying its own distance/fade lookup again. Mesh draws use lifecycle
+brightness from +6F, including aircraft fade-in and projectile fade-out.
+
+512 native `2D32` comparisons cover projection and viewport rejection. The
+point projector retains projected Y's low byte in the second division, as the
+original does. **One boundary remains approximate:** the original first divide
+retains incoming AL from its linked draw traversal. The C++ point boundary
+supplies zero for that byte; its fixtures explicitly do the same. This can
+change a point by a pixel at a rounding boundary and is not a claim of complete
+frame equivalence. The shade latch persists between renderer calls; before any
+mesh draw its table starts at zero.
+
+## Pointed-object camera (F7 / backtick)
+
+`257D` casts a camera-space ray through the existing city collision sweep, then
+visits the player, ground vehicles, static objects and aircraft in native list
+order. It retains the last intersecting object; this is not a nearest-hit pick.
+The already watched object is excluded. Both the existing camera and the new
+selection must pass `841C`'s wrapping horizontal-distance check. Landed craft
+and underground configuration reject the action.
+
+A moving-object selection follows that object using mode 6. Its live distance
+table is shared with ordinary following views; after flag 08h is set it uses
+10, 11, 13, 18, 29 or 34 units. Removal clears the reference before the record
+can be reused, as at `7AA2`. Selecting a building places a fixed camera at its
+model origin, at `D089`'s height plus four model extents, facing the previously
+watched object or player. Empty terrain alone does not select a camera.
+
+512 native comparisons cover the F7 ray and asymmetric range arithmetic, and
+512 more cover live/destroyed object camera positions and distance smoothing.
+Original-pack integration checks exercise category ordering, exclusion, the
+player as a target, a beacon camera and reference retirement. These do not yet
+establish every combination of F7, missile viewing and Tab against live retail.

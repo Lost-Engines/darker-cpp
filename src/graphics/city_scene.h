@@ -22,6 +22,7 @@ struct city_draw_item {
   model_path path{model_path::direct};
   bool background{false};
   bool force_flat{false};
+  bool distant_point{false};
   std::optional<camera_basis> orientation{};
   std::uint8_t object_light{255};
   game::particle_emitter const *emitter{nullptr};
@@ -40,6 +41,7 @@ struct scene_object {
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool underground = false);
+std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex origin, int bottom);
 
 struct city_view {
   std::uint16_t column{0};                                                     // original 1/256-cell position words
@@ -70,6 +72,7 @@ private:
   std::vector<std::uint16_t> candidates;
   std::vector<city_draw_item> items;
   std::array<uint8_t,128*128> tunnel_visibility{};
+  model_colours retained_colours{};
 
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,

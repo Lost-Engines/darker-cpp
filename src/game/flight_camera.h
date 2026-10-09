@@ -6,9 +6,9 @@
 
 namespace darker::game {
 
-enum class camera_mode { cockpit, behind, level, fullscreen, tracking, fixed };
+enum class camera_mode { cockpit, behind, level, fullscreen, tracking, fixed, object };
 
-enum class camera_subject { player, missile, missile_effect };
+enum class camera_subject { player, missile, missile_effect, object, object_effect };
 
 struct flight_camera {
   camera_mode mode{camera_mode::cockpit};

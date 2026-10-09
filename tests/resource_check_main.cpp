@@ -10,6 +10,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 #include "actor_flight_check.h"
+#include "camera_target_check.h"
 #include "city_persistence_check.h"
 #include "game/city_collision.h"
 #include "game/city_sweep.h"
@@ -55,6 +56,7 @@ auto main(int const argc, char const *const argv[])->int try {
   }
   boost::program_options::notify(arguments);
   darker::resources::archive_set const archives{arguments["data-dir"].as<std::string>()};
+  check_camera_targets(archives);
   check_hangar_flight(archives, arguments.contains("launch-trace") ? arguments["launch-trace"].as<std::string>() : std::string{});
   check_mission_combat(archives);
   check_building_combat(archives);

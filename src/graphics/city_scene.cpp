@@ -4,6 +4,7 @@
 #include <ranges>
 #include <stdexcept>
 #include "graphics/particles.h"
+#include "graphics/near_clip.h"
 #include "graphics/tunnel_visibility.h"
 
 namespace darker::graphics {
@@ -84,8 +85,21 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
     item->model_offset = object.model_offset;
     item->orientation = orient_model(basis, {.heading{object.pose.angles[0]}, .pitch{object.pose.angles[1]}, .roll{object.pose.angles[2]}});
     item->object_light = object.light;
+    item->distant_point = item->force_flat
+      && static_cast<uint8_t>(static_cast<uint16_t>(placement.depth.whole-32) >> 8) >= header.point_distance;
   }
   return item;
+}
+
+std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const origin, int const bottom) {
+  /// 2D32 retains projected Y in AL for the X divide; initial AL is supplied as zero at this boundary.
+  auto point{project_vertex({.horizontal{0}, .vertical{word(placement.vertical.whole)*256},
+    .depth{word(placement.depth.whole)*256}},origin)};
+  if(point.y < 0 || point.y >= bottom) return std::nullopt;
+  point.x = project_vertex({.horizontal{word(placement.horizontal.whole)*256+static_cast<uint8_t>(point.y)},
+    .vertical{0}, .depth{word(placement.depth.whole)*256}},origin).x;
+  if(point.x < 0 || point.x >= 320 || point.y < 0 || point.y >= bottom) return std::nullopt;
+  return point;
 }
 
 void order_city_models(std::vector<city_draw_item> &items) {
@@ -207,6 +221,14 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       }
       continue;
     }
+    if(item.distant_point) {
+      if(auto const point{project_distant_object(item.placement,view.origin,view.bottom)}) {
+        auto const colour{bank.header_at(item.model_offset).point_colour};
+        // 2D71 reuses the last mesh's shade table; it does not calculate distance or fade again.
+        target.pixels[static_cast<size_t>(point->y)*320+point->x] = static_cast<uint8_t>((colour & 0xe0)+retained_colours.shades.at(colour & 31));
+      }
+      continue;
+    }
     projection_parameters const projection{
       .axes{item.orientation.value_or(basis)}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
       .depth{item.placement.depth}, .origin{view.origin},
@@ -219,6 +241,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       light = cells[row * 128 + column].state;
     }
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
+    retained_colours = colours;
     animation.cell_state = item.orientation ? 0 : cells[item.cell].state;
     draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation,
       view.gouraud && !item.force_flat ? model_shading::gouraud : model_shading::flat);

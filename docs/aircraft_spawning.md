@@ -22,8 +22,8 @@ and protection bit 10 clears.
 The shared native 79E5 deadline path now handles actor fade-in and expiry as well
 as projectile expiry. Eligible airborne records return to the free pool after
 removal, decrementing finite reuse counts by two; FE remains unlimited. Rendering
-of actor fade brightness is not yet connected. Halon's different launch helper
-8E10 and its connected campaign remain outstanding.
+now consumes the retained fade byte. Halon's launch helper 8E10 and its connected
+campaign are described below.
 
 ## Verification
 
