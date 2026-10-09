@@ -43,11 +43,27 @@ TEST_CASE("Distant moving objects project to the original single pixel", "[graph
       .vertical{.whole{static_cast<uint16_t>(sample[1])}, .fraction{89}},
       .depth{.whole{static_cast<uint16_t>(sample[2])}, .fraction{255}},
     };
-    auto const point{darker::graphics::project_distant_object(placement,{160,static_cast<int16_t>(sample[3]/2)},sample[3])};
-    REQUIRE(point.has_value() == (sample[4] >= 0));
+    auto const point{darker::graphics::project_distant_object(placement,{160,static_cast<int16_t>(sample[3]/2)},sample[3],static_cast<uint8_t>(sample[4]))};
+    REQUIRE(point.has_value() == (sample[5] >= 0));
     if(point) {
-      CHECK(point->x == sample[4]);
-      CHECK(point->y == sample[5]);
+      CHECK(point->x == sample[5]);
+      CHECK(point->y == sample[6]);
     }
+  }
+}
+
+TEST_CASE("Draw traversal supplies the native record byte after a farther subtree", "[graphics][city]") {
+  /// Captured through native 2B09 insertion and 2C38 traversal, intercepting callbacks at 2D32
+  std::array<uint16_t,6> constexpr distances{10,20,5,15,30,7};
+  std::array<uint16_t,6> constexpr records{0x8060,0x8018,0x8048,0x8000,0x8078,0x8030};
+  std::array<uint8_t,6> constexpr residues{0,0x18,0,0,0,0x30};
+  std::vector<darker::graphics::city_draw_item> items;
+  for(size_t i{0}; i < distances.size(); ++i) items.push_back({
+    .placement{.sorting_distance{distances[i]}}, .draw_record{static_cast<uint16_t>(0x8000+i*24)},
+  });
+  darker::graphics::order_city_models(items);
+  for(size_t i{0}; i < items.size(); ++i) {
+    CHECK(items[i].draw_record == records[i]);
+    CHECK(items[i].projection_residue == residues[i]);
   }
 }

@@ -27,6 +27,8 @@ struct city_draw_item {
   std::uint8_t object_light{255};
   game::particle_emitter const *emitter{nullptr};
   uint8_t phase{0};
+  uint16_t draw_record{0};
+  uint8_t projection_residue{0};
 };
 
 std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, std::uint16_t index,
@@ -37,11 +39,12 @@ struct scene_object {
   std::size_t model_offset;
   game::object_pose pose;
   std::uint8_t light{255};
+  std::uint16_t native_id{0};
 };
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool underground = false);
-std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex origin, int bottom);
+std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex origin, int bottom, uint8_t residue = 0);
 
 struct city_view {
   std::uint16_t column{0};                                                     // original 1/256-cell position words

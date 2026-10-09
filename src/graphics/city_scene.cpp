@@ -85,15 +85,16 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
     item->model_offset = object.model_offset;
     item->orientation = orient_model(basis, {.heading{object.pose.angles[0]}, .pitch{object.pose.angles[1]}, .roll{object.pose.angles[2]}});
     item->object_light = object.light;
+    item->draw_record = object.native_id ? static_cast<uint16_t>(object.native_id + 14) : 0;
     item->distant_point = item->force_flat
       && static_cast<uint8_t>(static_cast<uint16_t>(placement.depth.whole-32) >> 8) >= header.point_distance;
   }
   return item;
 }
 
-std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const origin, int const bottom) {
-  /// 2D32 retains projected Y in AL for the X divide; initial AL is supplied as zero at this boundary.
-  auto point{project_vertex({.horizontal{0}, .vertical{word(placement.vertical.whole)*256},
+std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const origin, int const bottom, uint8_t const residue) {
+  /// 2D32 consumes traversal AL for the Y divide, then projected Y's low byte for the X divide
+  auto point{project_vertex({.horizontal{0}, .vertical{word(placement.vertical.whole)*256+residue},
     .depth{word(placement.depth.whole)*256}},origin)};
   if(point.y < 0 || point.y >= bottom) return std::nullopt;
   point.x = project_vertex({.horizontal{word(placement.horizontal.whole)*256+static_cast<uint8_t>(point.y)},
@@ -104,6 +105,28 @@ std::optional<screen_vertex> project_distant_object(model_placement const placem
 
 void order_city_models(std::vector<city_draw_item> &items) {
   /// Background records use the original LIFO list; ordinary records use descending distance with insertion-stable ties
+  // 2B09 inserts a binary tree. At 2C49, AL is zero after a left descent,
+  // or the current record's low byte when returning from its farther subtree.
+  auto const absent{items.size()};
+  struct branches { size_t farther, nearer; };
+  std::vector<branches> tree(items.size(),{absent,absent});
+  size_t root{absent};
+  for(size_t index{0}; index < items.size(); ++index) {
+    items[index].projection_residue = 0;
+    if(items[index].background) continue;
+    if(root == absent) { root = index; continue; }
+    auto parent{root};
+    for(;;) {
+      bool const farther{items[index].placement.sorting_distance > items[parent].placement.sorting_distance};
+      auto &branch{farther ? tree[parent].farther : tree[parent].nearer};
+      if(branch == absent) {
+        branch = index;
+        if(farther) items[parent].projection_residue = static_cast<uint8_t>(items[parent].draw_record);
+        break;
+      }
+      parent = branch;
+    }
+  }
   auto const first_sorted{std::stable_partition(items.begin(), items.end(), [](auto const &item){ return item.background; })};
   std::reverse(items.begin(), first_sorted);
   std::stable_sort(first_sorted, items.end(), [](auto const &left, auto const &right){
@@ -195,10 +218,6 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     collect_city_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),view.angles,view.radius,candidates);
     for(auto const index : candidates) place(index);
   }
-  for(auto const &object : objects) {
-    if(!within_object_window(view, object.pose.position)) continue;
-    if(auto item{place_scene_object(bank, object, basis, camera, view.underground)}) items.push_back(*item);
-  }
   if(particles) {
     auto const append{[&](auto const &emitters){
       for(auto const &emitter : emitters | std::views::reverse) {
@@ -213,6 +232,11 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     append(particles->effects.trails);
     append(particles->effects.emitters);
   }
+  // 2BC1 scans the city, 6BF3 adds particles, then 2BD0/2BEA adds craft and projectiles.
+  for(auto const &object : objects) {
+    if(!within_object_window(view, object.pose.position)) continue;
+    if(auto item{place_scene_object(bank, object, basis, camera, view.underground)}) items.push_back(*item);
+  }
   order_city_models(items);
   for(auto const &item : items) {
     if(item.emitter) {
@@ -222,7 +246,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       continue;
     }
     if(item.distant_point) {
-      if(auto const point{project_distant_object(item.placement,view.origin,view.bottom)}) {
+      if(auto const point{project_distant_object(item.placement,view.origin,view.bottom,item.projection_residue)}) {
         auto const colour{bank.header_at(item.model_offset).point_colour};
         // 2D71 reuses the last mesh's shade table; it does not calculate distance or fade again.
         target.pixels[static_cast<size_t>(point->y)*320+point->x] = static_cast<uint8_t>((colour & 0xe0)+retained_colours.shades.at(colour & 31));

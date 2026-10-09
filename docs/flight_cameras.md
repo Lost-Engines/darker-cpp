@@ -85,14 +85,18 @@ header byte +5 and the shade table retained from the last mesh draw, rather
 than applying its own distance/fade lookup again. Mesh draws use lifecycle
 brightness from +6F, including aircraft fade-in and projectile fade-out.
 
-512 native `2D32` comparisons cover projection and viewport rejection. The
-point projector retains projected Y's low byte in the second division, as the
-original does. **One boundary remains approximate:** the original first divide
-retains incoming AL from its linked draw traversal. The C++ point boundary
-supplies zero for that byte; its fixtures explicitly do the same. This can
-change a point by a pixel at a rounding boundary and is not a claim of complete
-frame equivalence. The shade latch persists between renderer calls; before any
-mesh draw its table starts at zero.
+512 native `2D32` comparisons cover all 256 incoming low-byte values, including
+rounding boundaries, projection and viewport rejection. The draw traversal at
+`2C38` supplies zero after a farther-child descent, or the current draw-record
+address after returning from its farther subtree. The renderer reconstructs
+that tree property using native object identities, then preserves projected Y's
+low byte for the X division. An original-code tree insertion/traversal fixture
+also checks the register value at each callback.
+
+Insertion follows the native city, particle, player, air, static, ground and
+projectile order before distance sorting. Equal-distance entries retain insertion
+order. The shade latch persists between renderer calls; before any mesh draw
+its table starts at zero.
 
 ## Pointed-object camera (F7 / backtick)
 

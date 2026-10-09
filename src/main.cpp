@@ -366,9 +366,10 @@ auto main(int const argc, char const *const argv[])->int {
     objects.clear();
     contacts.clear();
     auto const coverage{darker::game::make_radar_coverage(cells,{pose.position[0],pose.position[1]},view.underground)};
-    for(auto const &actor : combat->actors) {
-      if(actor.flags & 8) continue;
-      objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}, .light{actor.fade}});
+    if(external && !host.player.tunnel && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}, .native_id{0xd986}});
+    for(auto const category : {darker::game::actor_category::air, darker::game::actor_category::stationary, darker::game::actor_category::ground}) for(auto const &actor : combat->actors) {
+      if(actor.category != category || (actor.flags & 8)) continue;
+      objects.push_back({.model_offset{actor.parameters.model_token}, .pose{actor.pose}, .light{actor.fade}, .native_id{static_cast<uint16_t>(0xd986 + actor.index * 112)}});
       if(actor.category != darker::game::actor_category::stationary) {
         contacts.push_back({.position{actor.pose.position[0],actor.pose.position[1]},
           .group{view.underground ? darker::graphics::radar_group::underground : actor.category == darker::game::actor_category::air ? darker::graphics::radar_group::a : darker::graphics::radar_group::b},
@@ -379,10 +380,9 @@ auto main(int const argc, char const *const argv[])->int {
       for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
         if(view.underground && !(shot->flags & 8)) contacts.push_back({.position{shot->placement.position[0],shot->placement.position[1]},
           .group{darker::graphics::radar_group::underground}});
-        if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}, .light{shot->fade}});
+        if(!(shot->flags & 8) && !(shot == watched && host.camera.visible_mode() == darker::game::camera_mode::fullscreen)) objects.push_back({.model_offset{shot->parameters.model_token}, .pose{shot->placement}, .light{shot->fade}, .native_id{shot->native_id}});
       }
     }
-    if(external && !host.player.tunnel && !host.player.lifecycle.crashing) objects.push_back({.model_offset{bank.special_models()[host.player.definition_slot()]}, .pose{pose}});
     darker::graphics::particle_scene const particles{.effects{combat->effects}, .sheet{cache}, .clock{clock}};
     auto const count{scene.draw(world, bank, cells, view, world_mode == 0 ? 0x20 : 0x60, lighting, animation, objects, &particles)};
     display = cockpit;
