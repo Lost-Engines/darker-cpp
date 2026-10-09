@@ -22,17 +22,29 @@ cmake --build build --parallel
 ./build/darker --data-dir ../darker
 ```
 
-The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
+The default Linux installation is `~/.local/share/darker/` (or
+`$XDG_DATA_HOME/darker/` when set). Game packs, `DARKER.SAV`, optional Roland ROMs,
+manual, map and optional `soundfont.sf2` live together in that directory.
+It can also hold the original DOS executable for use through DOSBox.
+
+An explicit `--data-dir` takes precedence. Without it, an installation in the
+current directory takes precedence over the per-user default. Saves always use
+`DARKER.SAV` beside the selected packs, so DOSBox and this engine can share the
+same installation. Run one version at a time to avoid competing save writes.
+If `DARKER.SAV` is absent, an old `darker-cpp.sav` in the working directory is
+read for migration; the next save writes `DARKER.SAV` and leaves the old file intact.
+
 
 Optional asset helper (Bash, curl and sha256sum):
 
 ```sh
-./scripts/fetch-assets.sh ./data
-./build/darker --data-dir ./data --music=lapc1 --mt32-rom-dir ./data
+./scripts/fetch-assets.sh
+./build/darker --music=lapc1
 ```
 
 This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
-and city reference map directly into the destination directory. The destination defaults to the current directory.
+and city reference map directly into the destination directory. The destination defaults to the same per-user game directory. Pass a directory
+argument to fetch into a different installation.
 
 Downloads run in three phases: missing manuals and map first, game packs second,
 and missing Roland ROMs last. If `DARKER.00` exists, the game phase is skipped.
@@ -187,13 +199,13 @@ ctest --test-dir build --output-on-failure
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
 
-The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. A Caero crash leads to the original looping Kismet committal presentation; Enter can advance the crash view. The supported missions advance automatically after docking, saving city state, weapon availability and the return site. Remaining fidelity checks are tracked in [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `DARKER.SAV` beside the selected game packs using the original save format. A Caero crash leads to the original looping Kismet committal presentation; Enter can advance the crash view. The supported missions advance automatically after docking, saving city state, weapon availability and the return site. Remaining fidelity checks are tracked in [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
 
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
 
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
 
-`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. These use SoundFont synthesis unless `--music=lapc1 --mt32-rom-dir=path/to/roms` selects Munt Roland emulation; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
+`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 

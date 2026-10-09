@@ -5,7 +5,10 @@ if [ "$#" -gt 1 ] || [ "$1" = --help ]; then
   exit 0
 fi
 script_dir=$(cd -- "$(dirname -- "$0")" && pwd) || exit 1
-destination=${1:-.}
+data_home=${XDG_DATA_HOME:-$HOME/.local/share}
+# The XDG base directory must be absolute.
+if [[ "$data_home" != /* ]]; then data_home="$HOME/.local/share"; fi
+destination=${1:-$data_home/darker}
 mkdir -p -- "$destination" || exit 1
 cd -- "$destination" || exit 1
 

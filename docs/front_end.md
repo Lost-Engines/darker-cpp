@@ -29,13 +29,14 @@ opens the next supported briefing automatically. Enter after a Caero crash opens
 Kismet committal presentation; Enter, Space, Escape or its back button then
 returns to the run menu. Escape directly from flight still leaves immediately.
 
-The four pilot slots now persist in `darker-cpp.sav` in the current working
-directory. Creating a named pilot or confirming erasure writes the file through
+The four pilot slots persist in `DARKER.SAV` beside the selected game packs. Creating a named pilot or confirming erasure writes the file through
 a temporary sibling and rename. It uses the original 6,600-byte format,
 CRC-16/XMODEM checksum, four records and two-byte Nightmare trailer. The typed
 codec preserves both packed city streams, weapon/return-site fields, opaque
 record tails and trailer bytes. A corrupt or wrongly sized file is reported,
-never silently reset. The retail `DARKER.SAV` is not automatically read or written.
+never silently reset. The retail game and reconstruction share this file; run one at a time. If it is
+absent, an old working-directory `darker-cpp.sav` is read for migration without
+modifying it; subsequent saves use the shared filename.
 
 Successful docking commits the city state, weapon mask and return site, then
 advances the selected pilot into the next briefing. The connected campaign runs

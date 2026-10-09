@@ -60,6 +60,13 @@
 
 namespace {
 
+auto default_game_directory()->std::filesystem::path {
+  if(auto const *data{std::getenv("XDG_DATA_HOME")}; data && *data && std::filesystem::path{data}.is_absolute())
+    return std::filesystem::path{data} / "darker";
+  auto const *home{std::getenv("HOME")};
+  return std::filesystem::path{home && *home ? home : "."} / ".local/share/darker";
+}
+
 int startup_failure(std::string_view const message) {
   /// Report expected launch failures without converting runtime programming errors into normal exits
   std::cerr << "ERROR: " << message << std::endl;
@@ -139,7 +146,7 @@ auto main(int const argc, char const *const argv[])->int {
   boost::program_options::options_description options{"Darker"};
   options.add_options()
     ("help,h", "show usage")
-    ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
+    ("data-dir", boost::program_options::value<std::string>(), "game directory: packs and DARKER.SAV (default: local installation, then user data directory)")
     ("language", boost::program_options::value<std::string>()->default_value("english"), "original text language: english, french or german")
     ("mute", "disable PCM sound output")
     ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
@@ -152,7 +159,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("music", boost::program_options::value<std::string>()->default_value("soundblaster"), "music arrangement: soundblaster, scc1, lapc1, gus or awe32")
-    ("mt32-rom-dir", boost::program_options::value<std::string>(), "use Munt for --music=lapc1, loading Roland control and PCM ROMs from this directory")
+    ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=lapc1)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -197,9 +204,13 @@ auto main(int const argc, char const *const argv[])->int {
   bool caero{type == darker::graphics::craft::caero};
   auto const seconds{arguments["seconds"].as<double>()};
   if(!std::isfinite(seconds) || seconds < 0) return startup_failure("--seconds must be finite and non-negative");
+  auto const user_directory{default_game_directory()};
+  auto const data_directory{arguments.contains("data-dir") ? std::filesystem::path{arguments["data-dir"].as<std::string>()}
+    : std::filesystem::is_regular_file("DARKER.00") || std::filesystem::is_regular_file("darker.00")
+      ? std::filesystem::path{"."} : user_directory};
   std::optional<darker::resources::archive_set> loaded_archives;
   try {
-    loaded_archives.emplace(arguments["data-dir"].as<std::string>());
+    loaded_archives.emplace(data_directory);
   } catch(std::runtime_error const &error) {
     return startup_failure(error.what());
   }
@@ -242,10 +253,11 @@ auto main(int const argc, char const *const argv[])->int {
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
   auto text{scenario->language(0, language)};
   std::unique_ptr<darker::presentation::front_end> front;
-  std::filesystem::path const save_path{"darker-cpp.sav"};
+  auto const save_path{data_directory / "DARKER.SAV"};
+  auto const previous_save{std::filesystem::exists(save_path) ? save_path : std::filesystem::path{"darker-cpp.sav"}};
   darker::resources::save_file saves;
   try {
-    if(caero && std::filesystem::exists(save_path)) saves = darker::resources::decode_save(darker::resources::read_binary_file(save_path,darker::resources::save_file_size));
+    if(caero && std::filesystem::exists(previous_save)) saves = darker::resources::decode_save(darker::resources::read_binary_file(previous_save,darker::resources::save_file_size));
   } catch(std::runtime_error const &error) {
     return startup_failure(error.what());
   } catch(std::invalid_argument const &error) {
@@ -690,13 +702,14 @@ auto main(int const argc, char const *const argv[])->int {
       std::array<std::vector<std::byte>,6> songs;
       for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + static_cast<unsigned int>(music_variant) + group * 5});
       if(music_variant == darker::audio::music_variant::soundblaster) audio.configure_music(archives.load({0,33}), std::move(songs));
-      else if(arguments.contains("mt32-rom-dir")) {
-        audio.configure_roland_music(arguments["mt32-rom-dir"].as<std::string>(), archives.load({0,35}), std::move(songs));
+      else if(music_variant == darker::audio::music_variant::lapc1 && !arguments.contains("soundfont")) {
+        auto const rom_directory{arguments.contains("mt32-rom-dir") ? std::filesystem::path{arguments["mt32-rom-dir"].as<std::string>()} : data_directory};
+        audio.configure_roland_music(rom_directory, archives.load({0,35}), std::move(songs));
         std::cout << "Music: LAPC-I arrangement, Munt emulation with original custom Roland timbres" << std::endl;
       } else {
         std::filesystem::path font;
         if(arguments.contains("soundfont")) font = arguments["soundfont"].as<std::string>();
-        else for(auto const &candidate : {std::filesystem::path{"soundfont.sf2"},
+        else for(auto const &candidate : {data_directory / "soundfont.sf2", std::filesystem::path{"soundfont.sf2"},
           std::filesystem::path{"/usr/share/sounds/sf2/FluidR3_GM.sf2"}, std::filesystem::path{"/usr/share/sounds/sf2/TimGM6mb.sf2"}}) {
           if(std::filesystem::is_regular_file(candidate)) { font = candidate; break; }
         }

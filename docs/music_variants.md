@@ -6,15 +6,16 @@ briefings and films; it does not change procedural flight sound effects.
 Sound Blaster remains the default, using the original FM instruments and the
 selected `--opl` emulator.
 
-The four sampled arrangements use TinySoundFont with a SoundFont 2 bank:
+SCC-1, GUS and AWE32 use TinySoundFont with a SoundFont 2 bank. LAPC-I uses
+Munt by default, or TinySoundFont when an explicit `--soundfont` is supplied:
 
 ```sh
 ./build/darker --music=scc1 --soundfont=/path/to/instruments.sf2
 ./build/darker --music=awe32 --soundfont=/path/to/instruments.sf2
 ```
 
-Without `--soundfont`, the game searches for `soundfont.sf2` in the working
-directory, then `/usr/share/sounds/sf2/FluidR3_GM.sf2` and
+Without `--soundfont`, the game searches for `soundfont.sf2` beside the selected packs, then in the
+working directory, then `/usr/share/sounds/sf2/FluidR3_GM.sf2` and
 `/usr/share/sounds/sf2/TimGM6mb.sf2`, in that order. No SoundFont is included in
 the installed game. A missing or unreadable bank produces an error rather than
 silently substituting the Sound Blaster arrangement. `--mute` skips audio setup.
@@ -67,11 +68,11 @@ comparisons still run. The test SoundFont is not installed with the game.
 ## Roland emulation with Munt
 
 ```sh
-./build/darker --music=lapc1 --mt32-rom-dir=/path/to/roms
+./build/darker --music=lapc1
 ```
 
-Munt is built automatically. Supply a compatible control ROM and PCM ROM in
-that directory; neither is included with the game. CM-32L ROMs are preferred
+Munt is built automatically. Supply a compatible control ROM and PCM ROM beside
+the game packs, or override their location with `--mt32-rom-dir=/path/to/roms`; neither is included with the game. CM-32L ROMs are preferred
 for the LAPC-I arrangement: a 64 KiB control ROM (1.00 or 1.02) and the 1 MiB
 PCM ROM in Munt format. Compatible MT-32 pairs also work. Files are identified
 by contents rather than names; CM-32L is preferred when several pairs exist.
