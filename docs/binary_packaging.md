@@ -43,7 +43,7 @@ separate working directory for any menu/save smoke test.
 ## Dependency source references
 
 The installed `third_party/source-references/dependencies.cmake` records the exact
-GitHub archives and SHA-256 hashes for GLFW, miniaudio, TinySoundFont, Nuked OPL3 and DOSBox DBOPL.
+GitHub archives and SHA-256 hashes for GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3 and DOSBox DBOPL.
 `dbopl.cmake` and the compatibility `dosbox.h` describe the adapter extraction
 used at build time. Their original licence texts are installed alongside them;
 Boost's notice is included separately. Catch2 is a test-only dependency and is

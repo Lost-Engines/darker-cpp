@@ -52,4 +52,18 @@ while read -r url; do
     fi
   fi
 done < "$script_dir/roland_rom_urls.txt"
+# 4. Fetch missing SC-55 v1.21 ROMs for --music=roland-sc55.
+while read -r url; do
+  [ -z "$url" ] && continue
+  file=$(basename "$url")
+  if [ ! -e "$file" ]; then
+    echo "Fetching $file"
+    if ! curl --fail --location --output "$file" "$url"; then
+      echo "Warning: $file is unavailable. SC-55 emulation needs all five ROMs; other music options remain available."
+    fi
+  fi
+done < "$script_dir/sc55_rom_urls.txt"
+if ! sha256sum --check "$script_dir/sc55-v121.sha256"; then
+  echo 'Warning: SC-55 ROMs do not match v1.21. Files have been left in place.'
+fi
 exit 0

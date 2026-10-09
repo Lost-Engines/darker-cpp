@@ -32,6 +32,7 @@ public:
   explicit fm_stream(unsigned int sample_rate, fm_backend backend = fm_backend::nuked);
   ~fm_stream();
   void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
+  void configure_sc55_music(std::filesystem::path const &rom_directory, std::array<std::vector<std::byte>,6> songs);
   void configure_sampled_music(music_variant variant, std::filesystem::path const &soundfont, std::array<std::vector<std::byte>,6> songs);
   void configure_roland_music(std::filesystem::path const &rom_directory, std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs, std::filesystem::path const &percussion_font = {}, std::filesystem::path const &percussion_bank = {}, std::filesystem::path const &setup_bank = {});
   void select_music(int group) noexcept;

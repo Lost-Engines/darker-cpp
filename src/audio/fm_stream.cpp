@@ -7,6 +7,7 @@
 #include "audio/fm_driver.h"
 #include "audio/fm_synth.h"
 #include "audio/roland_synth.h"
+#include "audio/sc55_synth.h"
 #include "audio/sound_images.h"
 #include "audio/soundfont.h"
 
@@ -101,6 +102,14 @@ void fm_stream::configure_music(std::span<std::byte const> const driver, std::ar
   state->sampled_music.reset();
   state->sampled_synth.reset();
   state->music = std::make_unique<sound_images>(driver);
+  state->songs = std::move(songs);
+}
+
+void fm_stream::configure_sc55_music(std::filesystem::path const &rom_directory, std::array<std::vector<std::byte>,6> songs) {
+  for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid SC-55 music resource size"};
+  state->sampled_synth = std::make_unique<sc55_synth>(rom_directory, state->sample_rate);
+  state->sampled_music = std::make_unique<midi_music>(music_variant::scc1);
+  state->music.reset();
   state->songs = std::move(songs);
 }
 

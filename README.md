@@ -12,7 +12,7 @@ The original game's data files are required to run this.  Darker is considered a
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio, TinySoundFont, Munt, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 
@@ -42,12 +42,12 @@ Optional asset helper (Bash, curl and sha256sum):
 ./build/darker --music=roland
 ```
 
-This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
+This fetches the five retail game packs, CM-32L ROM pair, five SC-55 v1.21 ROMs, multilingual manual
 and city reference map directly into the destination directory. The destination defaults to the same per-user game directory. Pass a directory
 argument to fetch into a different installation.
 
-Downloads run in three phases: missing manuals and map first, game packs second,
-and missing Roland ROMs last. If `DARKER.00` exists, the game phase is skipped.
+Downloads run in four phases: missing manuals and map first, game packs second,
+then missing CM-32L ROMs and SC-55 ROMs. If `DARKER.00` exists, the game phase is skipped.
 Otherwise all five packs are downloaded directly into the destination, replacing
 any packs already there, then checked against SHA-256. Download or checksum
 failures produce warnings; files are left in place and later phases continue.
@@ -55,8 +55,9 @@ A missing manual or map can be supplied separately. Missing Roland ROMs disable
 Roland emulation only; other sound engines remain available.
 The known retail SHA-256 values are listed in
 [darker-retail-packs.sha256](scripts/darker-retail-packs.sha256). Download addresses are kept one per line in
-[game_urls.txt](scripts/game_urls.txt), [roland_rom_urls.txt](scripts/roland_rom_urls.txt)
-and [manual_urls.txt](scripts/manual_urls.txt) (manual and map).
+[game_urls.txt](scripts/game_urls.txt), [roland_rom_urls.txt](scripts/roland_rom_urls.txt),
+[sc55_rom_urls.txt](scripts/sc55_rom_urls.txt) and [manual_urls.txt](scripts/manual_urls.txt) (manual and map).
+SC-55 files are checked against [sc55-v121.sha256](scripts/sc55-v121.sha256).
 Keep these files and the checksum file beside the script when copying it
 elsewhere. To update a download address, edit its line in the relevant text file;
 no shell code needs changing.
@@ -213,6 +214,8 @@ uses Roland’s own conversion bank on a separate emulated device; see the
 [bank download and comparison instructions](docs/music_variants.md#rolands-own-general-midi-bank-experiment).
 `--music=roland --roland-gm-bank=path/to/MTGM.MID` instead loads the whole bank
 first, then Darker’s custom instruments, on a single device for comparison.
+
+`--music=roland-sc55` plays the General MIDI arrangement through SC-55 v1.21 hardware emulation. It uses the five ROMs fetched beside the packs; `--sc55-rom-dir` overrides their location. This emulates an SC-55, not an SCC-1 card.
 
 `--music=midi|roland|gravis|soundblaster_awe32` selects the other original music arrangements. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 

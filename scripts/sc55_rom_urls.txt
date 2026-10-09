@@ -1,0 +1,5 @@
+https://archive.org/download/nuked-sc-55-clap-rom-files/Nuked-SC55-CLAP-ROM-files.zip/Nuked-SC55-CLAP-ROM-files/Nuked-SC55-Resources/ROMs/SC-55-v1.21/sc55_rom2.bin
+https://archive.org/download/nuked-sc-55-clap-rom-files/Nuked-SC55-CLAP-ROM-files.zip/Nuked-SC55-CLAP-ROM-files/Nuked-SC55-Resources/ROMs/SC-55-v1.21/sc55_rom1.bin
+https://archive.org/download/nuked-sc-55-clap-rom-files/Nuked-SC55-CLAP-ROM-files.zip/Nuked-SC55-CLAP-ROM-files/Nuked-SC55-Resources/ROMs/SC-55-v1.21/sc55_waverom1.bin
+https://archive.org/download/nuked-sc-55-clap-rom-files/Nuked-SC55-CLAP-ROM-files.zip/Nuked-SC55-CLAP-ROM-files/Nuked-SC55-Resources/ROMs/SC-55-v1.21/sc55_waverom2.bin
+https://archive.org/download/nuked-sc-55-clap-rom-files/Nuked-SC55-CLAP-ROM-files.zip/Nuked-SC55-CLAP-ROM-files/Nuked-SC55-Resources/ROMs/SC-55-v1.21/sc55_waverom3.bin

@@ -16,6 +16,27 @@
 #include "reference/music_samples.h"
 
 void check_music(darker::resources::archive_set const &archives) {
+  if(!std::string_view{DARKER_TEST_SC55_ROM_DIR}.empty()) {
+    darker::audio::fm_stream stream{48000};
+    std::array<std::vector<std::byte>,6> songs;
+    for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,39 + group * 5});
+    stream.configure_sc55_music(DARKER_TEST_SC55_ROM_DIR, std::move(songs));
+    for(int group{0}; group < 6; ++group) {
+      stream.select_music(group);
+      std::vector<float> pcm(48000 * 6);
+      stream.render(pcm);
+      double variation{0};
+      for(size_t i{2}; i < pcm.size(); ++i) {
+        if(!std::isfinite(pcm[i])) throw std::runtime_error{"SC-55 produced non-finite PCM"};
+        variation += std::abs(pcm[i]-pcm[i-2]);
+      }
+      if(variation < 1.0) throw std::runtime_error{"SC-55 music group is silent"};
+    }
+    stream.select_music(-1);
+    std::array<float,512> silence{};
+    stream.render(silence);
+    std::cout << "Six music groups and consecutive selections produce SC-55 v1.21 PCM." << std::endl;
+  }
   auto const upload{darker::audio::lapc_initialisation(archives.load({0,35}))};
   std::vector<uint8_t> bytes;
   for(auto const &message : upload) bytes.insert(bytes.end(), message.begin(), message.end());

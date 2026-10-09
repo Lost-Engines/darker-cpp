@@ -1,15 +1,16 @@
 # Music arrangements and synthesis
 
-`--music=none|soundblaster_fm|midi|roland|gravis|soundblaster_awe32` disables music or selects one of the five original
+`--music=none|soundblaster_fm|midi|roland|roland-sc55|gravis|soundblaster_awe32` disables music or selects one of the five original
 arrangements for all six music groups. Selection applies to startup, menus,
 briefings and films; it does not change procedural flight sound effects.
-The option names follow the original manual; the native driver names are:
+The original option names follow the manual; `roland-sc55` explicitly selects the new hardware backend; the native driver names are:
 
 | Option | Original driver |
 | --- | --- |
 | `none` | No music; sound effects remain enabled |
 | `soundblaster_fm` | Sound Blaster FM |
-| `midi` | Roland SCC-1 / General MIDI |
+| `midi` | Roland SCC-1 / General MIDI, SoundFont rendition |
+| `roland-sc55` | Same original General MIDI arrangement, emulated SC-55 v1.21 |
 | `roland` | Roland LAPC-I / MT-32 family |
 | `gravis` | Gravis UltraSound |
 | `soundblaster_awe32` | Sound Blaster AWE32 |
@@ -218,3 +219,42 @@ regions; Munt reports and ignores those writes. They are passed through unchange
 This is a test of a possible pre-existing hardware configuration, not evidence
 that it was the composer's setup. Compare it with the original and isolated
 percussion variants above.
+
+
+## SC-55 v1.21 hardware playback
+
+```sh
+./scripts/fetch-assets.sh
+./build/darker --music=roland-sc55
+```
+
+This mode runs the original SCC-1/General MIDI event stream through the
+Nuked-SC55 backend, pinned to J. C. Moyer's fork at
+`f3464753f64a7da5f5fd3a96fd72197628369589`. It emulates an **SC-55 v1.21**;
+it does not claim to emulate an SCC-1 card. The arrangement in the game packs
+is unchanged. Firmware, samples, envelopes, effects and voice allocation now
+come from the emulated module rather than a modern SoundFont.
+
+Five external ROMs are needed: `sc55_rom1.bin`, `sc55_rom2.bin`, and
+`sc55_waverom1.bin` through `sc55_waverom3.bin`. The fetch helper downloads
+individual files from the Internet Archive collection and checks the separate
+SHA-256 list. Existing files are preserved. Runtime identification uses hashes
+of `.bin` files in the selected directory, accepting only the complete v1.21
+set; incompatible or incomplete sets produce an actionable error.
+
+ROMs default to the game data directory. Use `--sc55-rom-dir=/path/to/roms`
+for a separate location. `--soundfont` cannot be combined with this mode.
+The existing `--music=midi` retains its SoundFont rendition, and `roland`
+retains LAPC-I/MT-32 emulation and its optional percussion experiments.
+
+Only the emulator backend is built; no SDL frontend or external MIDI service
+is used. Firmware boots before the audio device starts. Its oversampled 64 kHz
+output is converted to the host PCM rate with continuous linear interpolation,
+retaining fractional phase across callbacks. Music changes send channel sound-off
+and controller-reset messages without rebooting the device. ROMs are runtime
+assets and are not bundled in the executable. The backend's GPL-2.0-or-later
+notice is included in installed dependency notices.
+
+Set `DARKER_TEST_SC55_ROM_DIR` at CMake configuration to enable real-ROM checks
+for note output, stopping and callback-size independence. Without external ROMs,
+that integration test is explicitly skipped.

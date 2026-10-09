@@ -31,6 +31,10 @@ install(FILES
   scripts/darker-retail-packs.sha256
   scripts/game_urls.txt
   scripts/roland_rom_urls.txt
+  scripts/sc55_rom_urls.txt
+  scripts/sc55-v121.sha256
   scripts/manual_urls.txt
   DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime
 )
+
+install(FILES "${nuked_sc55_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}" RENAME nuked-sc55.txt COMPONENT Runtime)
