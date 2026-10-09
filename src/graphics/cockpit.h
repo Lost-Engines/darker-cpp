@@ -11,6 +11,8 @@ namespace darker::graphics {
 
 enum class craft { caero, skimma, upgraded_skimma };
 
+unsigned int cockpit_resource_slot(std::uint8_t configuration);
+
 struct hud_strip {
   int y_offset;
   std::span<mask_row const> rows;

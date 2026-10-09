@@ -1,6 +1,6 @@
 # Cockpit background and masked instruments
 
-`darker` reads source sheets 00/16, 00/17 and 00/18 from the original packs. It implements the background transfers and the main masked instrument updater in portable C++23. Rendering remains indexed until the existing host adapter expands the palette to RGBA.
+`darker` reads source sheets 00/15–18 from the original packs. It implements the background transfers and the main masked instrument updater in portable C++23. Rendering remains indexed until the existing host adapter expands the palette to RGBA.
 
 ## Implemented paths
 
@@ -172,3 +172,11 @@ separate from missile following and radar coverage.
 and brightness. Glyph tests also check placement, colour and untouched pixels.
 The analysis explanation is in
 [Dynamic HUD](https://lostengines.com/darker/docs/dynamic-hud.html#caero-aircraft-threat-lights).
+
+## Delphi Skimma palette
+
+Scenario configuration zero uses cockpit sheet 00/15, including its Delphi
+palette. Configurations 1–4 use 00/16, 00/17, 00/18 and 00/16 respectively;
+underground adds palette overlay 00/19. Native BC5E–BC77 probes verify all five
+selections. This selection follows mission configuration rather than craft
+alone, so mission 115 works both through normal progression and direct entry.

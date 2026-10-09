@@ -810,7 +810,7 @@ auto main(int const argc, char const *const argv[])->int {
           world_mode = underground ? 2 : configuration == 2 || configuration == 3 ? 1 : 0;
           caero = configuration == 1 || underground;
           type = caero ? darker::graphics::craft::caero : configuration == 2 ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma;
-          bitmap = darker::graphics::decode_bitmap(archives.load({0,caero ? 16u : configuration == 2 ? 17u : 18u}));
+          bitmap = darker::graphics::decode_bitmap(archives.load({0,darker::graphics::cockpit_resource_slot(configuration)}));
           cache = darker::graphics::make_cockpit_cache(bitmap.image);
           cockpit = cache;
           bank = darker::resources::geometry_bank{archives.load({0,30u + world_mode})};

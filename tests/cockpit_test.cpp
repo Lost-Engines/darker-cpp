@@ -8,6 +8,15 @@
 #include "graphics/cockpit.h"
 #include "render/framebuffer.h"
 
+TEST_CASE("Cockpit sheets follow native scenario configuration including the Delphi Skimma") {
+  /// BC5F–BC77 captured sheet selections for configurations zero through four
+  std::array<unsigned int,5> constexpr native_sheets{15,16,17,18,16};
+  for(std::uint8_t configuration{0}; configuration < native_sheets.size(); ++configuration) {
+    CHECK(darker::graphics::cockpit_resource_slot(configuration) == native_sheets[configuration]);
+    CHECK(darker::graphics::cockpit_resource_slot(configuration | 0x30) == native_sheets[configuration]);
+  }
+}
+
 TEST_CASE("Opaque blits clip source and destination together, including zero indices") {
   std::array<std::uint8_t, 640> source{};
   std::array<std::uint8_t, 640> target;
