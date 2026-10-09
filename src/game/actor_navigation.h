@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include "game/scenario_actor.h"
@@ -21,6 +22,8 @@ struct actor_manoeuvre {
   // Calls the firing eligibility helper with this distance byte; does not imply a shot is emitted.
   std::optional<std::uint8_t> firing_distance{};
 };
+
+void consider_aircraft_threat(std::array<std::uint8_t,4> &errors, scenario_actor const &actor, actor_course course) noexcept;
 
 actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course course) noexcept;
 void select_actor_target(scenario_actor &actor) noexcept;

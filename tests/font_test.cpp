@@ -5,6 +5,8 @@
 #include <vector>
 #include "graphics/font.h"
 #include "graphics/formatted_text.h"
+#include "graphics/procedural_hud.h"
+#include "reference/threat_samples.h"
 
 namespace {
 
@@ -26,6 +28,31 @@ std::vector<std::byte> font_bytes() {
 }
 
 } // namespace
+
+TEST_CASE("Aircraft warning glyphs use native brightness and strongest-left ordering", "[graphics][font]") {
+  auto bytes{font_bytes()};
+  unsigned int constexpr base{0x226a}, count{97}, index{0x81 - 33};
+  bytes[base + count + index * 2] = std::byte{2};
+  bytes[base + count + index * 2 + 1] = std::byte{1};
+  auto const table{base + count * 3};
+  unsigned int constexpr source{15800};
+  bytes[table + index * 2] = static_cast<std::byte>((source - table) & 255);
+  bytes[table + index * 2 + 1] = static_cast<std::byte>((source - table) >> 8);
+  bytes[source] = std::byte{0x23}; // Edge then ink; remaining pixels untouched
+  darker::resources::font_resource const font{std::move(bytes)};
+  for(auto const &sample : darker::test_reference::threat_samples) {
+    framework::render::indexed_cockpit_framebuffer frame;
+    frame.pixels.fill(42);
+    darker::graphics::draw_aircraft_threats(frame,font,sample.after);
+    for(std::size_t i{0}; i < 4; ++i) {
+      auto const offset{180 * 320 + 232 - i * 8};
+      auto const level{sample.levels[i]};
+      CHECK(frame.pixels[offset] == (level == 0 ? 42 : level == 1 ? 0 : level + 223));
+      CHECK(frame.pixels[offset + 1] == (level == 0 ? 42 : level + 229));
+      CHECK(frame.pixels[offset + 2] == 42);
+    }
+  }
+}
 
 TEST_CASE("Font drawing preserves transparency and clips at framebuffer edges", "[graphics][font]") {
   /// Negative positions retain their source phase while only visible coverage reaches the target

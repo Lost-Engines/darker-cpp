@@ -5,7 +5,7 @@ namespace darker::game {
 
 std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
   std::span<scenario_actor const> const active, city_map const &cells, resources::geometry_bank const &bank,
-  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire, std::function<void(scenario_actor &)> const &drop) {
+  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire, std::function<void(scenario_actor &)> const &drop, std::array<uint8_t,4> *const threat_errors) {
   /// Compose 8823's airborne navigation after its script update; report firing checks for the weapon owner
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
@@ -42,6 +42,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
       .bank_limit{actor.parameters.motion[1]}, .turn_response{actor.parameters.motion[2]}},
     manoeuvre.pitch, manoeuvre.turn_drive, frame_step);
   advance_actor_speed(actor.pose, manoeuvre.speed, definition.role_data[0], definition.role_data[1], frame_step);
+  if(threat_errors) consider_aircraft_threat(*threat_errors, actor, firing_course);
   return manoeuvre.firing_distance;
 }
 

@@ -158,3 +158,17 @@ Native view setup `792C–7950` selects full-screen projection centre 120.
 88 to 118. Cockpit centres remain 92 (Caero, including its eight-row offset) and
 90 (Skimma). The software drawing functions now accept the corresponding centre
 or baseline rather than embedding cockpit-only coordinates.
+
+## Aircraft threat lights
+
+The Caero's four red squares now consume native aircraft aim-error rankings
+(`8A58`, `574F`, `45DD`). Surface actor updates collect the four best-aligned
+aircraft targeting the player within native horizontal distance `0B00h`. The
+cockpit draws compact glyph `81h` in fourteen red brightness steps, strongest
+on the left. Empty slots retain the freshly copied cockpit artwork. This is
+separate from missile following and radar coverage.
+
+128 original-code cases check target/range rejection, angular folding, ranking
+and brightness. Glyph tests also check placement, colour and untouched pixels.
+The analysis explanation is in
+[Dynamic HUD](https://lostengines.com/darker/docs/dynamic-hud.html#caero-aircraft-threat-lights).

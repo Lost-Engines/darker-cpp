@@ -39,6 +39,19 @@ std::size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
 
 } // namespace
 
+void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &target,
+  resources::font_resource const &font, std::array<std::uint8_t,4> const &errors) {
+  /// 574F maps aim errors to brightness; 45DD draws compact-font glyph 81h, strongest on the left
+  for(std::size_t i{0}; i < errors.size(); ++i) {
+    int const x{232 - static_cast<int>(i) * 8};
+    if(errors[i] < 64) {
+      auto const level{static_cast<std::uint8_t>(14 - ((errors[i] * 56) >> 8))};
+      draw_glyph(target,font,resources::font_face::compact,0x81,{.x{x},.y{180}},
+        {.ink{static_cast<std::uint8_t>(level + 229)}, .edge{static_cast<std::uint8_t>(level == 1 ? 0 : level + 223)}});
+    }
+  }
+}
+
 void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffer &target,
   std::uint16_t const clock, bool const enabled, bool const following) {
   /// 54A3: missile views stay lit; other views blink using timer bits 7 and 8

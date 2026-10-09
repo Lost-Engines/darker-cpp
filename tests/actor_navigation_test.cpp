@@ -5,6 +5,19 @@
 #include "game/actor_navigation.h"
 #include "reference/actor_navigation_samples.h"
 #include "reference/actor_target_samples.h"
+#include "reference/threat_samples.h"
+
+TEST_CASE("Aircraft threat ranking matches native target, range and aim checks", "[game][actors]") {
+  for(auto const &sample : darker::test_reference::threat_samples) {
+    auto errors{sample.before};
+    auto const &v{sample.input};
+    darker::game::scenario_actor actor;
+    actor.pose.angles = {v[0],v[1],0};
+    actor.selected_target = v[5];
+    darker::game::consider_aircraft_threat(errors,actor,{.heading{v[2]},.pitch{v[3]},.distance{v[4]}});
+    REQUIRE(errors == sample.after);
+  }
+}
 
 TEST_CASE("Actor manoeuvres match native speed, turn and firing decisions", "[game][actors]") {
   /// Exercise pursuit, close turns, height recovery and firing eligibility requests independently of shot emission

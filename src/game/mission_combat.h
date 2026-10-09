@@ -27,6 +27,7 @@ public:
   uint16_t random_state{0};
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
+  std::array<uint8_t,4> threat_errors{64,64,64,64};
   std::array<skimma_weapon_slot,3> skimma_weapons{};
   weapon_ring_state skimma_ring{.spread{508},.target_spread{508}};
   uint8_t skimma_selection{0};

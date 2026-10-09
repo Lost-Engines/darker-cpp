@@ -1,6 +1,7 @@
 #include "game/actor_navigation.h"
 #include <algorithm>
 #include <bit>
+#include <functional>
 #include "maths/direction.h"
 
 namespace darker::game {
@@ -13,6 +14,20 @@ actor_course target_course(object_pose const &actor, std::array<std::uint16_t, 3
 }
 
 } // anonymous namespace
+
+void consider_aircraft_threat(std::array<std::uint8_t,4> &errors, scenario_actor const &actor, actor_course const course) noexcept {
+  /// 8A58 ranks the four best-aligned nearby aircraft targeting the player, worst first
+  if(actor.selected_target != 0xd986 || course.distance >= 0x0b00) return;
+  auto const error{[](std::uint16_t const desired, std::uint16_t const actual){
+    auto const high{static_cast<std::uint8_t>(static_cast<std::uint16_t>(desired - actual) >> 8)};
+    return static_cast<std::uint8_t>(high ^ (high & 128 ? 255 : 0));
+  }};
+  auto const combined{static_cast<std::uint8_t>(error(course.heading,actor.pose.angles[0]) + error(course.pitch,actor.pose.angles[1]))};
+  if(combined >= errors.front()) return;
+  for(std::size_t i{0}; i + 1 < errors.size(); ++i) errors[i] = errors[i + 1];
+  errors.back() = combined;
+  std::ranges::sort(errors, std::greater{});
+}
 
 void select_actor_target(scenario_actor &actor) noexcept {
   /// 8826 retains pursuit of the player while awareness is nonzero, otherwise resumes the scripted target

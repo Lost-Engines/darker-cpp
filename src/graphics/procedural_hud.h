@@ -1,13 +1,18 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include "graphics/blit.h"
+#include "graphics/font.h"
 #include "graphics/screen_primitives.h"
 #include "render/indexed_framebuffer.h"
 
 namespace darker::graphics {
 
 enum class target_marker { small, large, skimma_aim };
+
+void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &target,
+  resources::font_resource const &font, std::array<std::uint8_t,4> const &errors);
 
 void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffer &target,
   std::uint16_t clock, bool enabled, bool following);

@@ -423,6 +423,7 @@ auto main(int const argc, char const *const argv[])->int {
       }
     }
     if(cockpit_visible && caero) {
+      darker::graphics::draw_aircraft_threats(display,font,combat->threat_errors);
       darker::graphics::update_caero_bitmaps(cache, display, {}, {.row{navigation.row}, .column{navigation.column}, .primary_weapon{combat->primary_weapon}, .secondary_weapon{combat->secondary_weapon}});
       darker::graphics::update_compass(display, 0, darker::graphics::compass_phase(view.angles.heading));
       if(!host.player.tunnel) darker::graphics::draw_radar_beacons(display,cells,navigation.player,navigation.heading,coverage);

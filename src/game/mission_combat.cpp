@@ -245,6 +245,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
+  threat_errors.fill(64);
   player_fired = false;
   if(player.lifecycle.crashing) weapon_charge = 0;
   player_hit = false;
@@ -344,7 +345,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
                 .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
             }
           }
-        },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); });
+        },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); },&threat_errors);
       if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
         effects.trail(actor.previous_position, *severity, random_state, clock);
       }
