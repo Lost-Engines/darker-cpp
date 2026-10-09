@@ -15,7 +15,9 @@ install(FILES "${miniaudio_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}
 install(FILES "${nuked_opl3_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}" RENAME nuked-opl3.txt COMPONENT Runtime)
 install(FILES "${dosbox_opl_SOURCE_DIR}/COPYING" DESTINATION "${notice_directory}" RENAME dosbox.txt COMPONENT Runtime)
 install(FILES third_party/boost-license.txt DESTINATION "${notice_directory}" COMPONENT Runtime)
-install(FILES cmake/dependencies.cmake cmake/dbopl.cmake
+install(FILES cmake/dependencies.cmake cmake/dbopl.cmake cmake/tinysoundfont.cmake
   DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
 install(FILES src/platform/dbopl/dosbox.h
   DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
+
+install(FILES "${tinysoundfont_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}" RENAME tinysoundfont.txt COMPONENT Runtime)

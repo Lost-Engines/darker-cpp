@@ -4,8 +4,8 @@ The reconstruction plays the six **Sound Blaster** music variants directly from
 00/38, 43, 48, 53, 58 and 63. Instrument definitions, percussion mapping,
 fractional pitch and attenuation tables are read from the original driver
 00/33. No MIDI export, SoundFont, external synthesiser process or converted
-music asset is required. Other hardware variants remain available in the
-analysis browsers but are not yet runtime output choices.
+music asset is required. The other hardware arrangements have a separate
+[SoundFont playback path](music_variants.md).
 
 Presentation opcode 40 selects a group. Startup honours the delay before its
 first music command; menus use group zero. Flight stops music and returns the
@@ -56,3 +56,8 @@ including the extra driver tick performed when stopping music. Hardware analogue
 output, exact device latency and synchronisation with DOS presentation drawing
 are not established by these tests.
 OPL emulation uses the existing pinned Nuked implementation.
+
+## Other hardware arrangements
+
+See [music variants](music_variants.md) for the sampled-driver sequencers and
+SoundFont playback. Sound Blaster remains the default native FM path.

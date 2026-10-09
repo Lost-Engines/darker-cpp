@@ -13,7 +13,8 @@ work; it does not define a release procedure or CI workflow.
   Wrecker door demolition, docking, tunnel handoffs and supply pads.
 - Original software rendering, cockpits, menus, briefings, films and fonts,
   with English, French and German text selected using `--language`.
-- Sound Blaster music, procedural effects, nine-voice allocation, spatial sound
+- Five selectable music arrangements (native FM or SoundFont renditions),
+  procedural effects, nine-voice allocation, spatial sound
   and stereo. DOSBox 0.74-3 DBOPL is the default; `--opl=nuked` retains the
   previous synthesis for comparison.
 
@@ -24,9 +25,10 @@ boundaries, not an authoritative list of currently missing game features.
 
 ## Remaining implementation
 
-- Only the Sound Blaster music arrangement plays in this executable. The other
-  original hardware arrangements remain available in the separate analysis;
-  native playback support remains to be implemented.
+- All five arrangements are selectable. Sound Blaster uses native FM patches;
+  the other four currently use SoundFont synthesis. Exact SCC-1, LAPC-I, GUS and
+  AWE32 synthesis remains separate work, including LAPC-I custom timbre uploads.
+  See [music variants](music_variants.md) for the implemented boundary.
 
 ## Verification in progress
 

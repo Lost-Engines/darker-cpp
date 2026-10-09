@@ -4,8 +4,12 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <string_view>
+#include <utility>
 #include "audio/fm_stream.h"
 #include "audio/sound_images.h"
+#include "reference/midi_music_samples.h"
+#include "reference/midi_transition_samples.h"
 #include "reference/music_samples.h"
 
 void check_music(darker::resources::archive_set const &archives) {
@@ -42,6 +46,69 @@ void check_music(darker::resources::archive_set const &archives) {
     }
     if(hash != sample.fingerprint || writes != sample.writes) throw std::runtime_error{"Music selection or stop/resume differs from the native driver"};
   }
+  for(auto const &sample : darker::test_reference::midi_music_samples) {
+    darker::audio::midi_music music{static_cast<darker::audio::music_variant>(sample.variant)};
+    uint64_t hash{0xcbf29ce484222325};
+    unsigned int tick{0}, events{0};
+    darker::audio::midi_sink const sink{[&](darker::audio::midi_message const message){
+      for(unsigned int const byte : {tick & 255, tick >> 8, static_cast<unsigned int>(message.status),
+        static_cast<unsigned int>(message.first), static_cast<unsigned int>(message.second)}) hash = (hash ^ byte) * 0x100000001b3;
+      ++events;
+    }};
+    music.start(archives.load({0, 38 + sample.variant + sample.group * 5}), sink);
+    for(tick = 0; tick < sample.ticks; ++tick) music.advance(sink);
+    if(events != sample.events || hash != sample.fingerprint) throw std::runtime_error{"Sampled music differs from native driver: variant "
+      + std::to_string(sample.variant) + " group " + std::to_string(sample.group) + " events " + std::to_string(events) + "/" + std::to_string(sample.events)};
+  }
+  for(auto const &sample : darker::test_reference::midi_transition_samples) {
+    darker::audio::midi_music music{static_cast<darker::audio::music_variant>(sample.variant)};
+    uint64_t hash{0xcbf29ce484222325};
+    unsigned int tick{0}, events{0};
+    darker::audio::midi_sink const sink{[&](darker::audio::midi_message const message){
+      for(unsigned int const byte : {tick & 255, tick >> 8, static_cast<unsigned int>(message.status),
+        static_cast<unsigned int>(message.first), static_cast<unsigned int>(message.second)}) hash = (hash ^ byte) * 0x100000001b3;
+      ++events;
+    }};
+    music.start(archives.load({0, 38 + sample.variant}), sink);
+    for(tick = 0; tick < 1280; ++tick) {
+      if(tick == 512 && sample.pause) music.stop(sink);
+      if(tick == (sample.pause ? 768u : 512u)) music.start(archives.load({0, 43 + sample.variant}), sink);
+      if(!sample.pause || tick < 512 || tick >= 768) music.advance(sink);
+    }
+    if(events != sample.events || hash != sample.fingerprint) throw std::runtime_error{"Sampled music transition differs from native driver: variant " + std::to_string(sample.variant)};
+  }
+  if(std::string_view{DARKER_TEST_SOUNDFONT}.empty()) std::cout << "Sampled PCM check omitted: configure DARKER_TEST_SOUNDFONT to enable it." << std::endl;
+  else for(unsigned int variant{1}; variant < 5; ++variant) {
+    std::array<std::vector<std::byte>,6> sampled_songs;
+    for(unsigned int group{0}; group < 6; ++group) sampled_songs[group] = archives.load({0, 38 + variant + group * 5});
+    darker::audio::fm_stream stream{48000};
+    stream.configure_sampled_music(static_cast<darker::audio::music_variant>(variant), DARKER_TEST_SOUNDFONT, std::move(sampled_songs));
+    std::array<float,512> pcm{};
+    for(int group{0}; group < 6; ++group) {
+      stream.select_music(group);
+      double energy{0};
+      for(int block{0}; block < 1000; ++block) {
+        stream.render(pcm);
+        for(float const value : pcm) {
+          if(!std::isfinite(value)) throw std::runtime_error{"Sampled music produced non-finite PCM"};
+          energy += std::abs(value);
+        }
+      }
+      if(energy < 1) throw std::runtime_error{"Sampled music arrangement is silent"};
+    }
+    stream.select_music(-1);
+    darker::audio::fm_frame effect{};
+    effect[0] = {.pitch{1200}, .level{8192}, .generation{1}, .patch{1}, .active{true}};
+    if(!stream.publish(effect)) throw std::runtime_error{"Failed to enqueue effects after sampled music"};
+    double energy{0};
+    for(int block{0}; block < 100; ++block) {
+      stream.render(pcm);
+      for(float const value : pcm) energy += std::abs(value);
+    }
+    if(energy < 1) throw std::runtime_error{"OPL effects failed to resume after sampled music"};
+  }
+  std::cout << "All 24 sampled arrangements match native timed events across repeated loops." << std::endl;
+  if(!std::string_view{DARKER_TEST_SOUNDFONT}.empty()) std::cout << "All 24 arrangements render finite, audible SoundFont PCM and return to OPL effects." << std::endl;
   // Changing device block sizes must not alter music timing or sample output.
   auto const render{[&](size_t const block){
     darker::audio::fm_stream stream{48000};

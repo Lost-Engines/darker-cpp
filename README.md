@@ -12,7 +12,7 @@ The original game's data files are required to run this.  Darker is considered a
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW, miniaudio, TinySoundFont, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 
@@ -156,6 +156,8 @@ The Caero front end now includes the original startup animation, title and four-
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
 
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
+
+`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. These are SoundFont renditions, not emulations of the four original synthesis devices; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 

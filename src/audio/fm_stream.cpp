@@ -7,6 +7,7 @@
 #include "audio/fm_driver.h"
 #include "audio/fm_synth.h"
 #include "audio/sound_images.h"
+#include "audio/soundfont.h"
 
 namespace darker::audio {
 
@@ -18,15 +19,23 @@ struct fm_stream::implementation {
   fm_synth synth;
   fm_synth right;
   std::unique_ptr<sound_images> music;
+  std::unique_ptr<midi_music> sampled_music;
+  std::unique_ptr<soundfont> sampled_synth;
+  unsigned int sample_rate;
+  midi_sink sampled_sink;
   std::array<std::vector<std::byte>,6> songs;
   std::atomic<int> requested{-1};
   int playing{-1};
   uint64_t phase{0}, period;
   fm_sink sink;
 
-  explicit implementation(unsigned int const sample_rate, fm_backend const backend) : synth{sample_rate,backend}, right{sample_rate,backend}, period{static_cast<uint64_t>(sample_rate) * 23860},
+  explicit implementation(unsigned int const sample_rate, fm_backend const backend) : synth{sample_rate,backend}, right{sample_rate,backend}, sample_rate{sample_rate}, sampled_sink{[this](midi_message const message){ sampled_synth->send(message); }}, period{static_cast<uint64_t>(sample_rate) * 23860},
     sink{[this](fm_write const command){ synth.write(command); right.write(command); }} {
     /// The game invokes music every ten 2386-cycle PIT interrupts; driver tempo arithmetic separately uses 5D24
+  }
+
+  auto has_music() const->bool {
+    return music || sampled_music;
   }
 
   void effects(fm_frame const &frame) {
@@ -57,7 +66,8 @@ struct fm_stream::implementation {
   }
 
   void render(std::span<float> stereo) noexcept {
-    /// Two synchronised OPL2 paths preserve the original independent left/right carrier levels
+    /// Sampled music uses its own synthesiser; effects retain synchronised OPL2 paths for independent left/right levels
+    if(playing >= 0 && sampled_synth) { sampled_synth->render(stereo); return; }
     std::array<float,1024> right_pcm{};
     while(stereo.size() >= 2) {
       auto const count{std::min(stereo.size() & ~size_t{1},right_pcm.size())};
@@ -87,7 +97,18 @@ fm_stream::~fm_stream() = default;
 void fm_stream::configure_music(std::span<std::byte const> const driver, std::array<std::vector<std::byte>,6> songs) {
   /// Load and reserve all music storage before starting the audio device
   for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid Sound Images music resource size"};
+  state->sampled_music.reset();
+  state->sampled_synth.reset();
   state->music = std::make_unique<sound_images>(driver);
+  state->songs = std::move(songs);
+}
+
+void fm_stream::configure_sampled_music(music_variant const variant, std::filesystem::path const &font, std::array<std::vector<std::byte>,6> songs) {
+  /// Load the selected arrangement and SoundFont before starting the device; all synthesis then belongs to its callback
+  for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid sampled music resource size"};
+  state->sampled_synth = std::make_unique<soundfont>(font, state->sample_rate);
+  state->sampled_music = std::make_unique<midi_music>(variant);
+  state->music.reset();
   state->songs = std::move(songs);
 }
 
@@ -103,20 +124,25 @@ bool fm_stream::publish(fm_frame const &frame) noexcept {
 }
 
 void fm_stream::render(std::span<float> const stereo) noexcept {
-  /// Render music or effects on the same OPL chip; unexpected failures terminate at the noexcept device boundary
+  /// Render the selected music backend or flight effects; unexpected failures terminate at the noexcept device boundary
   int const requested{state->requested.load(std::memory_order_relaxed)};
   if(requested != state->playing) {
     if(requested < 0) {
       if(state->music) state->music->stop(state->sink);
+      if(state->sampled_music) { state->sampled_music->stop(state->sampled_sink); state->sampled_synth->reset(); }
       state->silence();
     }
     state->playing = requested;
     state->phase = 0;
     if(requested >= 0 && state->music) state->music->start(state->songs[static_cast<size_t>(requested)],state->sink);
+    if(requested >= 0 && state->sampled_music) {
+      state->sampled_synth->reset();
+      state->sampled_music->start(state->songs[static_cast<size_t>(requested)], state->sampled_sink);
+    }
   }
   fm_frame frame;
-  while(state->frames.pop(frame)) if(state->playing < 0 || !state->music) state->effects(frame);
-  if(state->playing >= 0 && state->music) {
+  while(state->frames.pop(frame)) if(state->playing < 0 || !state->has_music()) state->effects(frame);
+  if(state->playing >= 0 && state->has_music()) {
     size_t cursor{0};
     while(cursor + 1 < stereo.size()) {
       auto const frames{std::min<size_t>((stereo.size() - cursor) / 2,static_cast<size_t>((state->period - state->phase + implementation::pit_frequency - 1) / implementation::pit_frequency))};
@@ -125,7 +151,8 @@ void fm_stream::render(std::span<float> const stereo) noexcept {
       state->phase += frames * implementation::pit_frequency;
       if(state->phase >= state->period) {
         state->phase -= state->period;
-        state->music->advance(state->sink);
+        if(state->music) state->music->advance(state->sink);
+        else state->sampled_music->advance(state->sampled_sink);
       }
     }
   } else {

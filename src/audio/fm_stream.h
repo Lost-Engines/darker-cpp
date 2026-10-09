@@ -3,10 +3,12 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <span>
 #include <vector>
 #include "audio/fm_synth.h"
+#include "audio/midi_music.h"
 
 namespace darker::audio {
 
@@ -30,6 +32,7 @@ public:
   explicit fm_stream(unsigned int sample_rate, fm_backend backend = fm_backend::nuked);
   ~fm_stream();
   void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
+  void configure_sampled_music(music_variant variant, std::filesystem::path const &soundfont, std::array<std::vector<std::byte>,6> songs);
   void select_music(int group) noexcept;
   bool publish(fm_frame const &frame) noexcept;
   void render(std::span<float> stereo) noexcept;

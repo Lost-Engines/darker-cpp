@@ -151,6 +151,8 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
+    ("music", boost::program_options::value<std::string>()->default_value("soundblaster"), "music arrangement: soundblaster, scc1, lapc1, gus or awe32")
+    ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
     ("seconds", boost::program_options::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
@@ -171,6 +173,11 @@ auto main(int const argc, char const *const argv[])->int {
   auto const language{language_name == "english" ? darker::resources::scenario_language::english
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
+  auto const music_name{arguments["music"].as<std::string>()};
+  std::array<std::string_view,5> constexpr music_names{"soundblaster", "scc1", "lapc1", "gus", "awe32"};
+  auto const music_position{std::find(music_names.begin(), music_names.end(), music_name)};
+  if(music_position == music_names.end()) return startup_failure("--music must be soundblaster, scc1, lapc1, gus or awe32");
+  auto const music_variant{static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
@@ -676,10 +683,22 @@ auto main(int const argc, char const *const argv[])->int {
   });
   std::unique_ptr<framework::platform::audio_output> audio_device;
   if(!arguments.contains("mute")) {
-    if(caero) {
+    if(front) {
       std::array<std::vector<std::byte>,6> songs;
-      for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + group * 5});
-      audio.configure_music(archives.load({0,33}),std::move(songs));
+      for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + static_cast<unsigned int>(music_variant) + group * 5});
+      if(music_variant == darker::audio::music_variant::soundblaster) audio.configure_music(archives.load({0,33}), std::move(songs));
+      else {
+        std::filesystem::path font;
+        if(arguments.contains("soundfont")) font = arguments["soundfont"].as<std::string>();
+        else for(auto const &candidate : {std::filesystem::path{"soundfont.sf2"},
+          std::filesystem::path{"/usr/share/sounds/sf2/FluidR3_GM.sf2"}, std::filesystem::path{"/usr/share/sounds/sf2/TimGM6mb.sf2"}}) {
+          if(std::filesystem::is_regular_file(candidate)) { font = candidate; break; }
+        }
+        if(font.empty()) return startup_failure("Sampled music needs a SoundFont: supply --soundfont=path/to/bank.sf2");
+        audio.configure_sampled_music(music_variant, font, std::move(songs));
+        std::cout << "Music: " << music_name << " arrangement, SoundFont rendition using " << font
+                  << " (not original hardware synthesis)" << std::endl;
+      }
     }
     try {
       audio_device = std::make_unique<framework::platform::audio_output>([](void *const data, std::span<float> const output) noexcept {

@@ -39,9 +39,14 @@ endif()
 add_library(nuked_opl3 STATIC "${nuked_opl3_SOURCE_DIR}/opl3.c")
 target_include_directories(nuked_opl3 SYSTEM PUBLIC "${nuked_opl3_SOURCE_DIR}")
 include(cmake/dbopl.cmake)
+include(cmake/tinysoundfont.cmake)
 add_library(darker_audio STATIC
   src/audio/ambient_sounds.cpp
   src/audio/ambient_sounds.h
+  src/audio/midi_music.cpp
+  src/audio/midi_music.h
+  src/audio/soundfont.cpp
+  src/audio/soundfont.h
   src/audio/sound_images.cpp
   src/audio/sound_images.h
   src/audio/voice_allocation.cpp
@@ -63,6 +68,7 @@ target_link_libraries(darker_audio
   PUBLIC darker_game
   PRIVATE nuked_opl3
   PRIVATE dosbox_opl_core
+  PRIVATE tinysoundfont
   PRIVATE Boost::headers
 )
 configure_first_party(darker_audio)
@@ -329,6 +335,7 @@ configure_first_party(darker)
 
 set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional integration verification")
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
+set(DARKER_TEST_SOUNDFONT "" CACHE FILEPATH "Optional GM SoundFont for sampled music PCM verification")
 
 if(BUILD_TESTING)
   add_executable(resource_check
@@ -358,6 +365,7 @@ if(BUILD_TESTING)
     tests/hangar_flight_check.cpp
     tests/hangar_flight_check.h
   )
+  target_compile_definitions(resource_check PRIVATE DARKER_TEST_SOUNDFONT="${DARKER_TEST_SOUNDFONT}")
   target_link_libraries(resource_check PRIVATE darker_audio PRIVATE darker_presentation PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 

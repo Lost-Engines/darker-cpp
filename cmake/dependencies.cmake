@@ -25,7 +25,12 @@ FetchContent_Declare(dosbox_opl
   URL_HASH SHA256=efed2dc8c2807503352e817f3160dcad6236824ba4f16347a260bb9293965c50
   SOURCE_SUBDIR unused_upstream_build
 )
-FetchContent_MakeAvailable(glfw miniaudio nuked_opl3 dosbox_opl)
+FetchContent_Declare(tinysoundfont
+  URL https://codeload.github.com/schellingb/TinySoundFont/tar.gz/853a0a171759f1ddba0de1442133a75912bbeffa
+  URL_HASH SHA256=76c356df524f71f2a34f67fa0cb2cb946036fe7a65d2930a849569c5e742fa57
+  SOURCE_SUBDIR unused_upstream_build
+)
+FetchContent_MakeAvailable(glfw miniaudio nuked_opl3 dosbox_opl tinysoundfont)
 
 if(BUILD_TESTING)
   FetchContent_Declare(catch2
