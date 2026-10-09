@@ -39,7 +39,7 @@ Optional asset helper (Bash, curl and sha256sum):
 
 ```sh
 ./scripts/fetch-assets.sh
-./build/darker --music=lapc1
+./build/darker --music=roland
 ```
 
 This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
@@ -205,7 +205,7 @@ The Caero front end now includes the original startup animation, title and four-
 
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
 
-`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
+`--music=midi|roland|gravis|soundblaster_awe32` selects the other original music arrangements. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 

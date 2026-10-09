@@ -158,8 +158,8 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
-    ("music", boost::program_options::value<std::string>()->default_value("soundblaster"), "music arrangement: soundblaster, scc1, lapc1, gus or awe32")
-    ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=lapc1)")
+    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: soundblaster_fm, midi, roland, gravis or soundblaster_awe32")
+    ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -182,11 +182,11 @@ auto main(int const argc, char const *const argv[])->int {
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
   auto const music_name{arguments["music"].as<std::string>()};
-  std::array<std::string_view,5> constexpr music_names{"soundblaster", "scc1", "lapc1", "gus", "awe32"};
+  std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland", "gravis", "soundblaster_awe32"};
   auto const music_position{std::find(music_names.begin(), music_names.end(), music_name)};
-  if(music_position == music_names.end()) return startup_failure("--music must be soundblaster, scc1, lapc1, gus or awe32");
+  if(music_position == music_names.end()) return startup_failure("--music must be soundblaster_fm, midi, roland, gravis or soundblaster_awe32");
   auto const music_variant{static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
-  if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=lapc1");
+  if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland");
   if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont")) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");

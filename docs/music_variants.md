@@ -1,17 +1,27 @@
 # Music arrangements and synthesis
 
-`--music=soundblaster|scc1|lapc1|gus|awe32` selects one of the five original
+`--music=soundblaster_fm|midi|roland|gravis|soundblaster_awe32` selects one of the five original
 arrangements for all six music groups. Selection applies to startup, menus,
 briefings and films; it does not change procedural flight sound effects.
-Sound Blaster remains the default, using the original FM instruments and the
+The option names follow the original manual; the native driver names are:
+
+| Option | Original driver |
+| --- | --- |
+| `soundblaster_fm` | Sound Blaster FM |
+| `midi` | Roland SCC-1 / General MIDI |
+| `roland` | Roland LAPC-I / MT-32 family |
+| `gravis` | Gravis UltraSound |
+| `soundblaster_awe32` | Sound Blaster AWE32 |
+
+Sound Blaster FM remains the default, using the original FM instruments and the
 selected `--opl` emulator.
 
 SCC-1, GUS and AWE32 use TinySoundFont with a SoundFont 2 bank. LAPC-I uses
 Munt by default, or TinySoundFont when an explicit `--soundfont` is supplied:
 
 ```sh
-./build/darker --music=scc1 --soundfont=/path/to/instruments.sf2
-./build/darker --music=awe32 --soundfont=/path/to/instruments.sf2
+./build/darker --music=midi --soundfont=/path/to/instruments.sf2
+./build/darker --music=soundblaster_awe32 --soundfont=/path/to/instruments.sf2
 ```
 
 Without `--soundfont`, the game searches for `soundfont.sf2` beside the selected packs, then in the
@@ -68,7 +78,7 @@ comparisons still run. The test SoundFont is not installed with the game.
 ## Roland emulation with Munt
 
 ```sh
-./build/darker --music=lapc1
+./build/darker --music=roland
 ```
 
 Munt is built automatically. Supply a compatible control ROM and PCM ROM beside
@@ -78,7 +88,7 @@ PCM ROM in Munt format. Compatible MT-32 pairs also work. Files are identified
 by contents rather than names; CM-32L is preferred when several pairs exist.
 The [Munt ROM catalogue](https://github.com/munt/munt/blob/master/mt32emu/src/ROMInfo.cpp)
 records recognised versions and checksums. `--mt32-rom-dir` requires
-`--music=lapc1` and cannot be combined with `--soundfont`.
+`--music=roland` and cannot be combined with `--soundfont`.
 
 The game expands the original driver's custom instruments and uploads twelve
 Roland DT1 SysEx messages before playback. Six messages define memory timbres
