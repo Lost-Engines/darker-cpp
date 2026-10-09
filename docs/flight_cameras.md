@@ -86,14 +86,17 @@ mesh draw its table starts at zero.
 `257D` casts a camera-space ray through the existing city collision sweep, then
 visits the player, ground vehicles, static objects and aircraft in native list
 order. It retains the last intersecting object; this is not a nearest-hit pick.
-The already watched object is excluded. Both the existing camera and the new
+The previously selected object is excluded, even after switching back to F1–F4.
+F5/F6 clear that selection and take their drop origin from the player, including
+when missile viewing is enabled. Both the existing camera and the new
 selection must pass `841C`'s wrapping horizontal-distance check. Landed craft
 and underground configuration reject the action.
 
 A moving-object selection follows that object using mode 6. Its live distance
 table is shared with ordinary following views; after flag 08h is set it uses
 10, 11, 13, 18, 29 or 34 units. Removal clears the reference before the record
-can be reused, as at `7AA2`. Selecting a building places a fixed camera at its
+can be reused, as at `7AA2`. With no selected record, mode 6 reuses the stored
+fixed anchor while retaining its own look-recentring behaviour. Selecting a building places a fixed camera at its
 model origin, at `D089`'s height plus four model extents, facing the previously
 watched object or player. Empty terrain alone does not select a camera.
 

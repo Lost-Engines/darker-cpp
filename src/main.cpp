@@ -136,7 +136,7 @@ struct flight_host {
 
 auto main(int const argc, char const *const argv[])->int {
   /// Run the reconstructed city flight path while scenario, actors and remaining presentation systems are recovered
-  boost::program_options::options_description options{"Darker (current flight reconstruction milestone)"};
+  boost::program_options::options_description options{"Darker"};
   options.add_options()
     ("help,h", "show usage")
     ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
@@ -307,7 +307,6 @@ auto main(int const argc, char const *const argv[])->int {
     if(host.camera.mode == darker::game::camera_mode::object && (!host.combat->camera_actor
       || (*host.combat->camera_actor != 0 && actor == combat->actors.end()))) {
       host.combat->camera_actor.reset();
-      host.camera.mode = darker::game::camera_mode::fixed;
     }
     if(std::exchange(host.pick_camera,false) && !(host.player.lifecycle.flags & 16) && !host.player.tunnel) {
       if(auto const picked{darker::game::pick_camera_target(host.audio_listener,host.player.pose(),
@@ -338,7 +337,7 @@ auto main(int const argc, char const *const argv[])->int {
     auto const &camera_pose{watching_actor && actor != combat->actors.end() ? actor->pose : watched ? watched->placement : pose};
     auto const camera_subject{watching_actor
       ? (actor != combat->actors.end() && (actor->flags & 8) ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)
-      : subject};
+      : host.camera.mode == darker::game::camera_mode::object ? darker::game::camera_subject::absent_object : subject};
     auto const camera{host.camera.view(camera_pose,frame_step,!watching_actor && (host.player.lifecycle.flags & 16) != 0,camera_subject,host.player.tunnel.has_value())};
     host.audio_listener = camera;
     host.audio_motion = camera_pose;
@@ -552,10 +551,12 @@ auto main(int const argc, char const *const argv[])->int {
       return;
     }
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
-      host.combat->camera_actor.reset();
       auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
       if(key >= GLFW_KEY_F5) {
-        if(!(host.player.lifecycle.flags & 16)) host.camera.drop(selected,host.combat && host.combat->missile_camera_enabled && host.combat->camera_projectile ? host.combat->camera_projectile->placement : host.player.pose());
+        if(!(host.player.lifecycle.flags & 16)) {
+          host.combat->camera_actor.reset();
+          host.camera.drop(selected,host.player.pose());
+        }
       } else {
         if(host.camera.mode == darker::game::camera_mode::fixed) {
           host.camera.look_heading = 0;
@@ -682,8 +683,7 @@ auto main(int const argc, char const *const argv[])->int {
     }
   }
   std::cout << "Pause/Num Lock pauses or steps; an ordinary key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; F7/backtick object camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
-  std::cout << (caero ? "Caero HQ launch: boost cells charge with the engine on; press Enter once to launch." : "Skimma airborne checkpoint.") << std::endl;
-  if(caero) std::cout << "Space/Enter advances the briefing. Press 1 to select Pinner Direct; Space or left mouse fires. Complete the mission objectives, then approach HQ from the north to land. Docking saves progress and opens the next briefing." << std::endl;
+  std::cout << "Space/Enter advances briefings. Number keys select available weapons; Space/left mouse fires the primary, Alt/right mouse the secondary. Follow the briefing for objectives and the return destination." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;

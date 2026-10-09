@@ -54,6 +54,13 @@ TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game]
     CAPTURE(sample.anchor, sample.player, sample.mode);
     CHECK(std::array<int, 8>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
       result.angles[0], result.angles[1], result.angles[2]} == sample.output);
+    if(sample.mode[0] == 5) {
+      // Native 2448 jumps to the same fixed-anchor branch when the selected object disappears.
+      camera.mode = darker::game::camera_mode::object;
+      auto const fallback{camera.view(player,1,false,darker::game::camera_subject::absent_object)};
+      CHECK(std::array<int,8>{fallback.position[0],fallback.position[1],fallback.position[2],fallback.fractions[0],fallback.fractions[1],
+        fallback.angles[0],fallback.angles[1],fallback.angles[2]} == sample.output);
+    }
   }
 }
 
