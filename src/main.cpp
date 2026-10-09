@@ -754,8 +754,6 @@ auto main(int const argc, char const *const argv[])->int {
       std::cerr << "WARNING: continuing without sound: " << error.what() << std::endl;
     }
   }
-  std::cout << "Pause/Num Lock pauses or steps; an ordinary key resumes. Mouse/arrows steer; Ctrl adjusts arrow force; Backspace brakes; Enter boosts; E engine/shield; A altitude hold; -/= Skimma speed; Tab look around; F1 cockpit; F2/F3 following; F4 full-screen; F5/F6 drop camera; F7/backtick object camera; M missile view; ,/. camera distance; F9 shading; Insert/keypad 0 radar; Escape returns to the menu (closes free flight); A campaign crash automatically shows the committal sequence." << std::endl;
-  std::cout << "Space/Enter advances briefings. Number keys select available weapons; Space/left mouse fires the primary, Alt/right mouse the secondary. Follow the briefing for objectives and the return destination." << std::endl;
   auto const start{std::chrono::steady_clock::now()};
   std::uint64_t previous_interrupts{0};
   darker::game::game_clock game_clock;
