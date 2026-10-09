@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <array>
 #include <exception>
-#include <fstream>
 #include <stdexcept>
 #include <vector>
 #define MT32EMU_API_TYPE 1
@@ -51,14 +50,8 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
   for(auto const &message : initialisation) mt32emu_play_sysex_now(state->context, message.data(), static_cast<uint32_t>(message.size()));
   if(!percussion_font.empty() && !percussion_bank.empty()) throw std::invalid_argument{"Choose one Roland percussion fallback"};
   if(!percussion_bank.empty()) {
-    auto const size{std::filesystem::file_size(percussion_bank)};
-    if(size > 1024 * 1024) throw std::invalid_argument{"Roland percussion bank is too large"};
-    std::vector<std::byte> bytes(static_cast<size_t>(size));
-    std::ifstream input{percussion_bank, std::ios::binary};
-    if(!input.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size())))
-      throw std::runtime_error{"Cannot read Roland percussion bank: " + percussion_bank.string()};
     // A separate device prevents the GM bank's patch/channel/system changes from overwriting Darker's setup.
-    state->percussion = std::make_unique<roland_synth>(rom_directory, sample_rate, roland_setup_messages(bytes));
+    state->percussion = std::make_unique<roland_synth>(rom_directory, sample_rate, load_roland_setup(percussion_bank));
   } else if(!percussion_font.empty()) state->percussion = std::make_unique<soundfont>(percussion_font, sample_rate);
   if(state->percussion) {
     // Roland address 03 01 10 uses seven-bit address digits; each rhythm entry has four bytes.

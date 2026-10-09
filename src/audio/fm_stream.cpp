@@ -114,10 +114,16 @@ void fm_stream::configure_sampled_music(music_variant const variant, std::filesy
 }
 
 void fm_stream::configure_roland_music(std::filesystem::path const &rom_directory, std::span<std::byte const> const driver,
-  std::array<std::vector<std::byte>,6> songs, std::filesystem::path const &percussion_font, std::filesystem::path const &percussion_bank) {
+  std::array<std::vector<std::byte>,6> songs, std::filesystem::path const &percussion_font, std::filesystem::path const &percussion_bank, std::filesystem::path const &setup_bank) {
   /// Retain the verified LAPC-I event stream and initialise Munt with the original custom timbres
   for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid Roland music resource size"};
-  state->sampled_synth = std::make_unique<roland_synth>(rom_directory, state->sample_rate, lapc_initialisation(driver), percussion_font, percussion_bank);
+  if(!setup_bank.empty() && (!percussion_font.empty() || !percussion_bank.empty()))
+    throw std::invalid_argument{"Choose either a full Roland setup bank or a percussion fallback"};
+  auto initialisation{setup_bank.empty() ? sysex_messages{} : load_roland_setup(setup_bank)};
+  // Reproduce starting the game on a preconfigured device: its own timbres and patches are uploaded last.
+  auto const original{lapc_initialisation(driver)};
+  initialisation.insert(initialisation.end(), original.begin(), original.end());
+  state->sampled_synth = std::make_unique<roland_synth>(rom_directory, state->sample_rate, initialisation, percussion_font, percussion_bank);
   state->sampled_music = std::make_unique<midi_music>(music_variant::lapc1);
   state->music.reset();
   state->songs = std::move(songs);

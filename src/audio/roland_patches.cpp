@@ -1,5 +1,6 @@
 #include "audio/roland_patches.h"
 #include <array>
+#include <fstream>
 #include <stdexcept>
 #include <utility>
 
@@ -60,6 +61,16 @@ auto roland_setup_messages(std::span<std::byte const> const file)->sysex_message
   }
   if(messages.empty()) throw std::invalid_argument{"Roland setup contains no instruments"};
   return messages;
+}
+
+auto load_roland_setup(std::filesystem::path const &path)->sysex_messages {
+  auto const size{std::filesystem::file_size(path)};
+  if(size > 1024 * 1024) throw std::invalid_argument{"Roland setup bank is too large"};
+  std::vector<std::byte> bytes(static_cast<size_t>(size));
+  std::ifstream input{path, std::ios::binary};
+  if(!input.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size())))
+    throw std::runtime_error{"Cannot read Roland setup bank: " + path.string()};
+  return roland_setup_messages(bytes);
 }
 
 auto lapc_initialisation(std::span<std::byte const> const driver)->sysex_messages {

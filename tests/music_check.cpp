@@ -52,11 +52,15 @@ void check_music(darker::resources::archive_set const &archives) {
     }
     std::cout << (bank ? "Roland bank" : "SoundFont") << " fallback sounds all four missing percussion keys, preserves mapped notes and stops on reset." << std::endl;
   }
-  if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()) {
+  if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty())
+    std::cout << "Roland PCM check omitted: configure DARKER_TEST_MT32_ROM_DIR to enable it." << std::endl;
+  for(bool const full_bank : {false, true}) {
+    if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()
+      || (full_bank && std::string_view{DARKER_TEST_ROLAND_GM_BANK}.empty())) continue;
     std::array<std::vector<std::byte>,6> roland_songs;
     for(unsigned int group{0}; group < 6; ++group) roland_songs[group] = archives.load({0,40 + group * 5});
     darker::audio::fm_stream stream{48000};
-    stream.configure_roland_music(DARKER_TEST_MT32_ROM_DIR, archives.load({0,35}), std::move(roland_songs));
+    stream.configure_roland_music(DARKER_TEST_MT32_ROM_DIR, archives.load({0,35}), std::move(roland_songs), {}, {}, full_bank ? DARKER_TEST_ROLAND_GM_BANK : "");
     std::array<float,512> pcm{};
     for(int group{0}; group < 6; ++group) {
       stream.select_music(group);
@@ -70,7 +74,8 @@ void check_music(darker::resources::archive_set const &archives) {
       }
       if(energy < 1) throw std::runtime_error{"Roland arrangement is silent"};
     }
-  } else std::cout << "Roland PCM check omitted: configure DARKER_TEST_MT32_ROM_DIR to enable it." << std::endl;
+    std::cout << (full_bank ? "Full GM bank followed by Darker instruments" : "Original Roland setup") << ": six groups render finite, audible PCM." << std::endl;
+  }
   /// Compare complete timed OPL streams with native 0295 execution across repeated songs
   auto const driver{archives.load({0,33})};
   std::array<std::vector<std::byte>,6> songs;

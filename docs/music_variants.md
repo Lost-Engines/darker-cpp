@@ -191,3 +191,30 @@ The downloaded MTGM.MID is 27,607 bytes, SHA-256
 Its accompanying MT-TO-32.WRI describes the setup as the 7 December 1993 version.
 To include this optional local asset in audio integration checks, configure
 `DARKER_TEST_ROLAND_GM_BANK` with its path alongside `DARKER_TEST_MT32_ROM_DIR`.
+
+## Full GM bank followed by Darker's instruments
+
+```sh
+./build/darker --music=roland --roland-gm-bank="$HOME/.local/share/darker/MTGM.MID"
+```
+
+This separate experiment loads **every** SysEx message from MTGM.MID into the
+main Roland device, then applies Darker's complete native instrument upload.
+There is one synthesiser, no SoundFont, and no selective percussion routing.
+The order models starting Darker with a synthesiser already configured by the
+GM utility. Darker's six custom timbres and six patch assignments take precedence;
+other bank settings remain in place, including its melodic mapping, percussion,
+channel assignments and partial reserves. Music changes preserve this setup.
+
+In particular, the bank receives melodic channels 1–8 rather than the factory
+2–9. This can change which parts sound, not just their timbre. We deliberately
+retain that setting in this experiment. Missing-key warnings naturally disappear
+for keys the bank now maps; any remaining unmapped notes still generate Munt's
+diagnostics. Omit the switch to return to the original startup state. The full-bank
+option cannot be combined with either percussion fallback or `--soundfont`.
+The original bank also contains writes outside Munt’s recognised device memory
+regions; Munt reports and ignores those writes. They are passed through unchanged.
+
+This is a test of a possible pre-existing hardware configuration, not evidence
+that it was the composer's setup. Compare it with the original and isolated
+percussion variants above.
