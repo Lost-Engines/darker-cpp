@@ -158,12 +158,12 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
-    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland, roland-sc55, gravis or soundblaster_awe32")
+    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, gravis or soundblaster_awe32")
     ("roland-gm-bank", boost::program_options::value<std::string>(), "load the whole Roland MTGM.MID bank before Darker custom instruments on the same device")
     ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
     ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")
     ("sc55-rom-dir", boost::program_options::value<std::string>(), "SC-55 v1.21 ROM directory (default: game directory)")
-    ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland)")
+    ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland-lapc)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -185,18 +185,19 @@ auto main(int const argc, char const *const argv[])->int {
   auto const language{language_name == "english" ? darker::resources::scenario_language::english
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
-  auto const music_name{arguments["music"].as<std::string>()};
-  std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland", "gravis", "soundblaster_awe32"};
+  auto music_name{arguments["music"].as<std::string>()};
+  if(music_name == "roland") music_name = "roland-lapc";
+  std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland-lapc", "gravis", "soundblaster_awe32"};
   auto const music_position{std::find(music_names.begin(), music_names.end(), music_name == "roland-sc55" ? "midi" : music_name)};
-  if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland, roland-sc55, gravis or soundblaster_awe32");
+  if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland-lapc, roland-sc55, gravis or soundblaster_awe32");
   auto const music_variant{music_name == "none" ? darker::audio::music_variant::soundblaster : static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
-  if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland");
+  if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland-lapc");
   bool const full_roland_bank{arguments.contains("roland-gm-bank")};
   bool const percussion_fallback{arguments.contains("roland-gm-percussion-fallback")};
   bool const percussion_bank_enabled{arguments.contains("roland-gm-percussion-bank")};
-  if(full_roland_bank && (music_name != "roland" || percussion_fallback || percussion_bank_enabled || arguments.contains("soundfont"))) return startup_failure("--roland-gm-bank requires --music=roland without --soundfont or percussion fallback options");
-  if(percussion_bank_enabled && (music_name != "roland" || percussion_fallback || arguments.contains("soundfont"))) return startup_failure("--roland-gm-percussion-bank requires --music=roland without --soundfont or --roland-gm-percussion-fallback");
-  if(percussion_fallback && music_name != "roland") return startup_failure("--roland-gm-percussion-fallback requires --music=roland");
+  if(full_roland_bank && (music_name != "roland-lapc" || percussion_fallback || percussion_bank_enabled || arguments.contains("soundfont"))) return startup_failure("--roland-gm-bank requires --music=roland-lapc without --soundfont or percussion fallback options");
+  if(percussion_bank_enabled && (music_name != "roland-lapc" || percussion_fallback || arguments.contains("soundfont"))) return startup_failure("--roland-gm-percussion-bank requires --music=roland-lapc without --soundfont or --roland-gm-percussion-fallback");
+  if(percussion_fallback && music_name != "roland-lapc") return startup_failure("--roland-gm-percussion-fallback requires --music=roland-lapc");
   if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont") && !percussion_fallback) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
   if(arguments.contains("sc55-rom-dir") && music_name != "roland-sc55") return startup_failure("--sc55-rom-dir requires --music=roland-sc55");
   if(music_name == "roland-sc55" && arguments.contains("soundfont")) return startup_failure("--music=roland-sc55 uses ROMs, not --soundfont");

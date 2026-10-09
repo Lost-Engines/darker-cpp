@@ -1,9 +1,9 @@
 # Music arrangements and synthesis
 
-`--music=none|soundblaster_fm|midi|roland|roland-sc55|gravis|soundblaster_awe32` disables music or selects one of the five original
+`--music=none|soundblaster_fm|midi|roland-lapc|roland-sc55|gravis|soundblaster_awe32` disables music or selects one of the five original
 arrangements for all six music groups. Selection applies to startup, menus,
 briefings and films; it does not change procedural flight sound effects.
-The original option names follow the manual; `roland-sc55` explicitly selects the new hardware backend; the native driver names are:
+The Roland option names identify the hardware family; the native driver names are:
 
 | Option | Original driver |
 | --- | --- |
@@ -11,9 +11,13 @@ The original option names follow the manual; `roland-sc55` explicitly selects th
 | `soundblaster_fm` | Sound Blaster FM |
 | `midi` | Roland SCC-1 / General MIDI, SoundFont rendition |
 | `roland-sc55` | Same original General MIDI arrangement, emulated SC-55 v1.21 |
-| `roland` | Roland LAPC-I / MT-32 family |
+| `roland-lapc` | Roland LAPC-I / MT-32 family |
 | `gravis` | Gravis UltraSound |
 | `soundblaster_awe32` | Sound Blaster AWE32 |
+
+`roland-lapc` names the original LAPC-I driver, emulated with CM-32L or MT-32
+ROMs. The former name `roland` remains accepted as a compatibility alias.
+The existing ROM-directory and percussion-bank switches retain their names.
 
 Sound Blaster FM remains the default, using the original FM instruments and the
 selected `--opl` emulator. `--music=none` needs neither a SoundFont nor Roland
@@ -81,7 +85,7 @@ comparisons still run. The test SoundFont is not installed with the game.
 ## Roland emulation with Munt
 
 ```sh
-./build/darker --music=roland
+./build/darker --music=roland-lapc
 ```
 
 Munt is built automatically. Supply a compatible control ROM and PCM ROM beside
@@ -91,7 +95,7 @@ PCM ROM in Munt format. Compatible MT-32 pairs also work. Files are identified
 by contents rather than names; CM-32L is preferred when several pairs exist.
 The [Munt ROM catalogue](https://github.com/munt/munt/blob/master/mt32emu/src/ROMInfo.cpp)
 records recognised versions and checksums. `--mt32-rom-dir` requires
-`--music=roland`. It cannot be combined with `--soundfont` unless the percussion
+`--music=roland-lapc`. It cannot be combined with `--soundfont` unless the percussion
 fallback below is enabled.
 
 The game expands the original driver's custom instruments and uploads twelve
@@ -133,7 +137,7 @@ replacement drums; these diagnostics do not indicate a ROM loading failure.
 ## Optional General MIDI percussion fallback
 
 ```sh
-./build/darker --music=roland --roland-gm-percussion-fallback
+./build/darker --music=roland-lapc --roland-gm-percussion-fallback
 ```
 
 This experimental enhancement mixes General MIDI percussion into Munt playback
@@ -165,7 +169,7 @@ No additional ROM is required. The bank is an external asset, not bundled with
 the engine.
 
 ```sh
-./build/darker --music=roland --roland-gm-percussion-bank="$HOME/.local/share/darker/MTGM.MID"
+./build/darker --music=roland-lapc --roland-gm-percussion-bank="$HOME/.local/share/darker/MTGM.MID"
 ```
 
 This is an alternative to `--roland-gm-percussion-fallback`, not an additional
@@ -196,7 +200,7 @@ To include this optional local asset in audio integration checks, configure
 ## Full GM bank followed by Darker's instruments
 
 ```sh
-./build/darker --music=roland --roland-gm-bank="$HOME/.local/share/darker/MTGM.MID"
+./build/darker --music=roland-lapc --roland-gm-bank="$HOME/.local/share/darker/MTGM.MID"
 ```
 
 This separate experiment loads **every** SysEx message from MTGM.MID into the
@@ -244,7 +248,7 @@ set; incompatible or incomplete sets produce an actionable error.
 
 ROMs default to the game data directory. Use `--sc55-rom-dir=/path/to/roms`
 for a separate location. `--soundfont` cannot be combined with this mode.
-The existing `--music=midi` retains its SoundFont rendition, and `roland`
+The existing `--music=midi` retains its SoundFont rendition, and `roland-lapc`
 retains LAPC-I/MT-32 emulation and its optional percussion experiments.
 
 Only the emulator backend is built; no SDL frontend or external MIDI service
