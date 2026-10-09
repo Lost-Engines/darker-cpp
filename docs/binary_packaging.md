@@ -31,12 +31,10 @@ This is a distribution-specific binary, not a self-contained portable bundle.
 The build links Boost.Program_options, the C/C++ runtimes and platform OpenGL
 libraries. GLFW and miniaudio also load window/audio system libraries at runtime.
 Check `ldd build-release/stage/bin/darker` and test the staged executable on the
-intended distribution. A successful run on the build workstation does not
-establish compatibility with an older glibc or libstdc++. The current workstation
-build needs Boost.Program_options 1.90.0 and exports a requirement for
-`GLIBCXX_3.4.36`; it is therefore not the proposed baseline for broad binary
-distribution. No older-distribution/container toolchain was available for this
-validation pass.
+intended modern Linux environment. The current workstation build needs
+Boost.Program_options 1.90.0 and exports a requirement for `GLIBCXX_3.4.36`.
+Older-distribution compatibility is not a project target. These are local
+build and staging instructions; release automation and CI are separate work.
 
 The selected OpenGL path requires a suitable graphics driver. Test both the
 ordinary hardware path and a software-rendered window when available. Use a
