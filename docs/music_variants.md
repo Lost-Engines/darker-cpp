@@ -94,7 +94,7 @@ short-message serial delay, analogue output stage and conversion to the output
 sample rate. Procedural flight effects continue through the OPL backend.
 
 The integration test compares the entire upload byte-for-byte with native
-07DF execution, captured at 07A7. Set CMake's `DARKER_TEST_MT32_ROM_DIR` to
+the complete native initialiser at 0713 (including uploader 07DF), captured at 07A7. Set CMake's `DARKER_TEST_MT32_ROM_DIR` to
 exercise six groups through Munt and check finite, audible PCM. Without ROMs,
 that PCM check is explicitly omitted; the native upload comparison still runs.
 
@@ -105,3 +105,13 @@ are kept; game packs are replaced only when DARKER.00 is absent.
 ROMs are never embedded or included in installed packages. Both MT-32 1.07
 and CM-32L 1.02 control/PCM pairs have passed the six-group finite, non-silent
 PCM test.
+
+## Unmapped percussion diagnostics
+
+The original LAPC-I sequences emit rhythm-channel keys 52, 55, 57 and 58,
+which are OFF in the CM-32L 1.02 factory rhythm map. Munt reports these as
+`Rhythm: Attempted to play unmapped key` and ignores them. Full native
+initialisation at 0713 emits only our existing twelve custom-instrument
+messages; no percussion-map upload is missing. The native timed-event tests
+include these note events. We retain this behaviour rather than inventing
+replacement drums; these diagnostics do not indicate a ROM loading failure.

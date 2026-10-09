@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run native 07DF and intercept the MIDI byte writer at 07A7."""
+"""Run native LAPC-I initialisation at 0713; emulate MPU acknowledgement and capture MIDI at 07A7."""
 from pathlib import Path
 import argparse, hashlib, json
 parser = argparse.ArgumentParser(description="Capture the original LAPC-I instrument upload with Unicorn")
@@ -13,11 +13,19 @@ assert hashlib.sha256(b).hexdigest() == "1917abfeff3e0c8ea0cf6e6db6045ab07875e06
 c=Uc(UC_ARCH_X86,UC_MODE_16);c.mem_map(0,0x100000);c.mem_write(0x10000,b)
 for name,v in [('CS',0x1000),('DS',0x1000),('ES',0x1000),('SS',0x5000),('SP',0xfff0)]:c.reg_write(getattr(r,'UC_X86_REG_'+name),v)
 c.mem_write(0x5fff0,b'\0\xff');out=[]
+def returned(c):
+ sp=c.reg_read(r.UC_X86_REG_SP)
+ ip=int.from_bytes(c.mem_read(0x50000+sp,2),'little')
+ c.reg_write(r.UC_X86_REG_SP,sp+2);c.reg_write(r.UC_X86_REG_IP,ip)
 def hook(c,a,s,d):
- if a==0x107a7:
+ # Only MPU-401 detection/commands and its hardware delay are stubbed.
+ if a in (0x10755,0x10786,0x10771):
+  if a==0x10755:c.reg_write(r.UC_X86_REG_AX,(c.reg_read(r.UC_X86_REG_AX)&0xff00)|0xfe)
+  returned(c)
+ elif a==0x107a7:
   out.append(c.reg_read(r.UC_X86_REG_AX)&255)
-  sp=c.reg_read(r.UC_X86_REG_SP);ip=int.from_bytes(c.mem_read(0x50000+sp,2),'little');c.reg_write(r.UC_X86_REG_SP,sp+2);c.reg_write(r.UC_X86_REG_IP,ip)
-c.hook_add(UC_HOOK_CODE,hook);c.emu_start(0x107df,0x1ff00,count=100000)
+  returned(c)
+c.hook_add(UC_HOOK_CODE,hook);c.emu_start(0x10713,0x1ff00,count=100000)
 assert c.reg_read(r.UC_X86_REG_IP)==0xff00
 args.output.write_bytes(bytes(out));messages=[];start=0
 for end,x in enumerate(out):
