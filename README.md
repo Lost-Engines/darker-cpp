@@ -34,13 +34,14 @@ Optional asset helper (Bash, curl and sha256sum):
 This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
 and city reference map directly into the destination directory. The destination defaults to the current directory.
 
-Game packs are verified and installed as one set. If a pack download or
-verification fails, none is installed; a write failure removes packs created
-by that invocation. A complete local set is preserved. A partial local set is
-also preserved, but the helper refuses to fill it from another source and asks
-for a full game installation. ROM and document failures are reported individually
-while the remaining downloads continue. Existing files are never overwritten.
-Game packs are checked against SHA-256. The known retail SHA-256 values are listed in
+Downloads run in three phases: missing manuals and map first, game packs second,
+and missing Roland ROMs last. If `DARKER.00` exists, the game phase is skipped.
+Otherwise all five packs are downloaded directly into the destination, replacing
+any packs already there, then checked against SHA-256. Download or checksum
+failures produce warnings; files are left in place and later phases continue.
+A missing manual or map can be supplied separately. Missing Roland ROMs disable
+Roland emulation only; other sound engines remain available.
+The known retail SHA-256 values are listed in
 [darker-retail-packs.sha256](scripts/darker-retail-packs.sha256). Download addresses are kept one per line in
 [game_urls.txt](scripts/game_urls.txt), [roland_rom_urls.txt](scripts/roland_rom_urls.txt)
 and [manual_urls.txt](scripts/manual_urls.txt) (manual and map).
@@ -49,9 +50,8 @@ elsewhere. To update a download address, edit its line in the relevant text file
 no shell code needs changing.
 
 Installed builds provide `darker-fetch-assets`. An installer can offer this as
-an optional step, passing a writable user asset directory. Exit status is zero
-on success (including existing files), one if any asset or the game set failed;
-an installer should display the report and continue installation. No downloads
+an optional step, passing a writable user asset directory. Download and checksum warnings do not fail the installation; the helper exits
+zero after all phases. Failure to create or enter the destination returns one. No downloads
 run automatically during CMake installation or game startup. No save files are
 fetched. Local copies work without the helper.
 

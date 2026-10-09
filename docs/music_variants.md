@@ -99,7 +99,8 @@ that PCM check is explicitly omitted; the native upload comparison still runs.
 
 The optional `scripts/fetch-assets.sh ./data` helper downloads the CM-32L
 1.02 control and complete PCM ROM using direct Internet Archive member URLs.
-It also fetches the game packs, manual and map, preserving existing files.
+It also fetches the game packs, manual and map. Existing ROMs and documents
+are kept; game packs are replaced only when DARKER.00 is absent.
 ROMs are never embedded or included in installed packages. Both MT-32 1.07
 and CM-32L 1.02 control/PCM pairs have passed the six-group finite, non-silent
 PCM test.
