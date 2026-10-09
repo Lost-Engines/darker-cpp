@@ -31,6 +31,8 @@ install(FILES
   scripts/darker-retail-packs.sha256
   scripts/game_urls.txt
   scripts/roland_rom_urls.txt
+  scripts/gravis_urls.txt
+  scripts/gravis.sha256
   scripts/awe32_rom_urls.txt
   scripts/awe32.sha256
   scripts/sc55_rom_urls.txt
@@ -45,3 +47,7 @@ install(FILES "${dosbox_emu8k_SOURCE_DIR}/COPYING" DESTINATION "${notice_directo
 install(FILES "${unicorn_SOURCE_DIR}/COPYING" DESTINATION "${notice_directory}" RENAME unicorn.txt COMPONENT Runtime)
 install(FILES "${unicorn_SOURCE_DIR}/COPYING.LGPL2" DESTINATION "${notice_directory}" RENAME unicorn-lgpl.txt COMPONENT Runtime)
 install(FILES cmake/emu8k.cmake DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
+
+install(FILES cmake/gf1.cmake DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
+
+install(FILES "${unicorn_SOURCE_DIR}/COPYING_GLIB" DESTINATION "${notice_directory}" RENAME unicorn-glib.txt COMPONENT Runtime)

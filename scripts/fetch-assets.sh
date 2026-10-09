@@ -80,4 +80,21 @@ done < "$script_dir/awe32_rom_urls.txt"
 if ! sha256sum --check "$script_dir/awe32.sha256"; then
   echo 'Warning: AWE32 ROM differs from the known sample ROM. File left in place.'
 fi
+# 6. UltraMID and its 1 MiB Gravis patch set.
+mkdir -p ULTRASND/MIDI || exit 1
+while read -r url; do
+  [ -z "$url" ] && continue
+  name=$(basename "$url")
+  file="ULTRASND/MIDI/$name"
+  if [ "$name" = ULTRAMID.EXE ]; then file="ULTRASND/$name"; fi
+  if [ ! -e "$file" ]; then
+    echo "Fetching $file"
+    if ! curl --fail --location --output "$file" "$url"; then
+      echo "Warning: $file is unavailable. Please supply the original Gravis patch set; other music options still work."
+    fi
+  fi
+done < "$script_dir/gravis_urls.txt"
+if ! sha256sum --check "$script_dir/gravis.sha256"; then
+  echo 'Warning: Gravis files differ from the known patch set. Files left in place.'
+fi
 exit 0

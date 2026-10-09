@@ -42,9 +42,12 @@ include(cmake/dbopl.cmake)
 include(cmake/tinysoundfont.cmake)
 include(cmake/sc55.cmake)
 include(cmake/emu8k.cmake)
+include(cmake/gf1.cmake)
 add_library(darker_audio STATIC
   src/audio/ambient_sounds.cpp
   src/audio/ambient_sounds.h
+  src/audio/gus_synth.cpp
+  src/audio/gus_synth.h
   src/audio/awe32_synth.cpp
   src/audio/awe32_synth.h
   src/audio/sc55_synth.cpp
@@ -79,6 +82,7 @@ target_link_libraries(darker_audio
   PUBLIC darker_game
   PRIVATE nuked_opl3
   PRIVATE dosbox_opl_core
+  PRIVATE gf1_backend
   PRIVATE emu8k_backend
   PRIVATE unicorn
   PRIVATE sc55_backend
@@ -352,6 +356,7 @@ set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional int
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
 set(DARKER_TEST_MT32_ROM_DIR "" CACHE PATH "Optional Roland ROM directory for Munt PCM verification")
 set(DARKER_TEST_ROLAND_GM_BANK "" CACHE FILEPATH "Optional Roland MTGM.MID bank for percussion fallback verification")
+set(DARKER_TEST_GUS_DIR "" CACHE PATH "Optional UltraMID and patch directory for Gravis verification")
 set(DARKER_TEST_AWE32_ROM "" CACHE FILEPATH "Optional AWE32 ROM for native synthesis verification")
 set(DARKER_TEST_SC55_ROM_DIR "" CACHE PATH "Optional SC-55 v1.21 ROM directory for PCM verification")
 set(DARKER_TEST_SOUNDFONT "" CACHE FILEPATH "Optional GM SoundFont for sampled music PCM verification")
@@ -389,6 +394,7 @@ if(BUILD_TESTING)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/gus_synth_test.cpp
     tests/awe32_synth_test.cpp
     tests/sc55_synth_test.cpp
     tests/roland_patches_test.cpp
@@ -485,7 +491,7 @@ if(BUILD_TESTING)
   )
   configure_first_party(framework_tests)
   include("${catch2_SOURCE_DIR}/extras/Catch.cmake")
-  target_compile_definitions(framework_tests PRIVATE DARKER_TEST_AWE32_ROM="${DARKER_TEST_AWE32_ROM}" DARKER_TEST_RESOURCE_DIR="${DARKER_REFERENCE_DIR}" DARKER_TEST_SC55_ROM_DIR="${DARKER_TEST_SC55_ROM_DIR}")
+  target_compile_definitions(framework_tests PRIVATE DARKER_TEST_GUS_DIR="${DARKER_TEST_GUS_DIR}" DARKER_TEST_AWE32_ROM="${DARKER_TEST_AWE32_ROM}" DARKER_TEST_RESOURCE_DIR="${DARKER_REFERENCE_DIR}" DARKER_TEST_SC55_ROM_DIR="${DARKER_TEST_SC55_ROM_DIR}")
   catch_discover_tests(framework_tests)
   if(DARKER_INSTALL_DIR AND DARKER_REFERENCE_DIR)
     add_test(NAME resources.original_pack_comparison

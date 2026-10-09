@@ -97,10 +97,8 @@ void awe32_synth::send(midi_message const message) noexcept {
 }
 
 void awe32_synth::reset() noexcept {
-  state->call(0x2c08);
-  state->call(0x31b6);
-  state->phase = 0;
-  state->primed = false;
+  // the original sequencer stops voices without reinitialising channel controllers
+  for(uint8_t channel{}; channel < 16; ++channel) send({static_cast<uint8_t>(0xb0 | channel), 123, 0});
 }
 
 void awe32_synth::render(std::span<float> const stereo) noexcept {

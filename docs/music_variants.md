@@ -23,7 +23,7 @@ Sound Blaster FM remains the default, using the original FM instruments and the
 selected `--opl` emulator. `--music=none` needs neither a SoundFont nor Roland
 ROMs. Use `--mute` to disable all sound output.
 
-SCC-1 and GUS use TinySoundFont with a SoundFont 2 bank. AWE32 now uses its native synthesis library and EMU8000 emulation by default; an explicit `--soundfont` retains the comparison rendition. LAPC-I uses
+The `midi` option uses TinySoundFont with a SoundFont 2 bank. Gravis and AWE32 use their original synthesis drivers and hardware emulation by default; an explicit `--soundfont` retains the comparison rendition. LAPC-I uses
 Munt by default, or TinySoundFont when an explicit `--soundfont` is supplied:
 
 ```sh
@@ -289,3 +289,48 @@ all six arrangements and consecutive selections, verify note output and release,
 and compare identical PCM rendered in differently sized host buffers. Listening
 against a physical AWE32 remains the final reference for the emulator's analogue
 and effects behaviour.
+
+## Gravis UltraSound / UltraMID
+
+`--music=gravis` uses UltraMID 1.12 and the original Gravis patch bank through
+an isolated DOSBox GF1 core. The default layout follows a DOS installation:
+
+```text
+<game directory>/ULTRASND/ULTRAMID.EXE
+<game directory>/ULTRASND/MIDI/ULTRAMID.INI
+<game directory>/ULTRASND/MIDI/*.PAT
+```
+
+`fetch-assets.sh` supplies the driver, configuration and the 85 patches used by
+its 1 MiB preload map. `--gus-dir=/path/to/ULTRASND` selects another installation;
+a flat directory containing the executable, INI and patches also works.
+Files are loaded at runtime, not included in the executable. An explicit
+`--soundfont` retains the previous GUS-arrangement comparison rendition.
+
+UltraMID starts with `-c` against a 1 MiB GF1 at port 240, DMA 3 and IRQ 5.
+This is its documented preload mode: it loads a memory-fitting subset of the
+GM bank, substituting instruments according to the 1024K column of
+`ULTRAMID.INI`. For example, acoustic piano selects `BRITEPNO.PAT` through
+that table. Loading each GM program's individually named patch would produce
+a different instrument set. The original Darker driver forwards MIDI bytes
+through UltraMID service `0010`; it does not perform its own patch selection.
+
+A private Unicorn instance runs the resident driver. Its small DOS adapter
+supplies conventional memory, interrupt vectors, read-only patch files and
+DMA transfers; it does not boot an operating system or execute Darker's game
+logic. GF1 wave/volume interrupts run the original envelope code. The timer
+and 44.1 kHz output clock advance independently of host callback sizes. The
+GF1's per-instance state allows multiple independent synthesis instances.
+Native voice ramps continue while the driver polls for completion, including
+all-notes-off transitions. This is original driver execution, rather than a
+C++ translation of UltraMID.
+
+Tests verify finite non-silent output and releases, identical PCM across
+257- and 512-frame host blocks, and twenty seconds of every arrangement with
+consecutive group changes. They also move playback from its construction
+thread to an audio worker. Enable these with `DARKER_TEST_GUS_DIR` and
+`DARKER_REFERENCE_DIR`. The native sequencer event comparisons remain unchanged.
+
+The hardware cores are emulator implementations, so listening comparisons
+against actual AWE32/GUS recordings are still valuable; these checks establish
+working original-driver playback, not proof of bit-identical analogue output.

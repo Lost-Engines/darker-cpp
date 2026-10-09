@@ -12,7 +12,7 @@ The original game's data files are required to run this.  Darker is considered a
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, Unicorn, DOSBox DBOPL/GF1 and DOSBox-X EMU8000 are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 
@@ -217,7 +217,7 @@ first, then Darker’s custom instruments, on a single device for comparison.
 
 `--music=roland-sc55` plays the General MIDI arrangement through SC-55 v1.21 hardware emulation. It uses the five ROMs fetched beside the packs; `--sc55-rom-dir` overrides their location. This emulates an SC-55, not an SCC-1 card.
 
-`--music=midi|roland-lapc|gravis|soundblaster_awe32` selects the other original music arrangements. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
+`--music=midi|roland-lapc|roland-sc55|gravis|soundblaster_awe32` selects the other music paths. `midi` uses a SoundFont; the others default to hardware emulation with runtime ROMs or original patches supplied by `scripts/fetch-assets.sh`. LAPC-I uses Munt, SC-55 uses Nuked-SC55, AWE32 uses the original synthesis library and EMU8000, and Gravis uses UltraMID and GF1. An explicit `--soundfont` retains the comparison rendition for LAPC-I, GUS and AWE32. See [music variants](docs/music_variants.md) for device selection and optional asset paths.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 
@@ -237,8 +237,3 @@ single executable, documentation and dependency notices.
 
 Use `--language=french` or `--language=german` for the original translated menus,
 briefings and radio messages; English remains the default.
-
-AWE32 music now uses the original driver synthesis library and EMU8000 emulation:
-`--music=soundblaster_awe32`. Run `scripts/fetch-assets.sh` to obtain `awe32.raw`,
-or supply `--awe32-rom=/path/to/awe32.raw`. An explicit `--soundfont` retains the
-previous SoundFont comparison. See [music synthesis](docs/music_variants.md).

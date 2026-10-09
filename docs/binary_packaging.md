@@ -21,7 +21,7 @@ and independently decoded resource directory. These are verification inputs,
 not installed resources. Use a clean staging directory for every package.
 
 Run the staged `bin/darker` from a directory containing `DARKER.00` through
-`DARKER.04`, or supply `--data-dir`. Saves belong to the working directory.
+`DARKER.04`, or supply `--data-dir`. Saves are written beside the selected game packs for interoperability with DOS Darker.
 The application still accepts all documented debugging switches; `--level`
 suppresses save writes.
 
@@ -43,8 +43,8 @@ separate working directory for any menu/save smoke test.
 ## Dependency source references
 
 The installed `third_party/source-references/dependencies.cmake` records the exact
-GitHub archives and SHA-256 hashes for GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3 and DOSBox DBOPL.
-`dbopl.cmake` and the compatibility `dosbox.h` describe the adapter extraction
+GitHub archives and SHA-256 hashes for GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, DOSBox DBOPL/GF1, DOSBox-X EMU8000 and Unicorn.
+`dbopl.cmake`, `gf1.cmake`, `emu8k.cmake` and compatibility headers describe the adapter extraction
 used at build time. Their original licence texts are installed alongside them;
 Boost's notice is included separately. Catch2 is a test-only dependency and is
 not linked into the installed executable.
