@@ -1,12 +1,13 @@
 # Music arrangements and synthesis
 
-`--music=soundblaster_fm|midi|roland|gravis|soundblaster_awe32` selects one of the five original
+`--music=none|soundblaster_fm|midi|roland|gravis|soundblaster_awe32` disables music or selects one of the five original
 arrangements for all six music groups. Selection applies to startup, menus,
 briefings and films; it does not change procedural flight sound effects.
 The option names follow the original manual; the native driver names are:
 
 | Option | Original driver |
 | --- | --- |
+| `none` | No music; sound effects remain enabled |
 | `soundblaster_fm` | Sound Blaster FM |
 | `midi` | Roland SCC-1 / General MIDI |
 | `roland` | Roland LAPC-I / MT-32 family |
@@ -14,7 +15,8 @@ The option names follow the original manual; the native driver names are:
 | `soundblaster_awe32` | Sound Blaster AWE32 |
 
 Sound Blaster FM remains the default, using the original FM instruments and the
-selected `--opl` emulator.
+selected `--opl` emulator. `--music=none` needs neither a SoundFont nor Roland
+ROMs. Use `--mute` to disable all sound output.
 
 SCC-1, GUS and AWE32 use TinySoundFont with a SoundFont 2 bank. LAPC-I uses
 Munt by default, or TinySoundFont when an explicit `--soundfont` is supplied:
