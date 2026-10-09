@@ -68,15 +68,34 @@ Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ign
 
 Unexpected runtime exceptions are deliberately uncaught, including failures inside the `noexcept` PCM callback. They terminate the process for debugging instead of becoming a normal error exit or silent audio. Expected startup failures retain short diagnostics. To stop at the original throw site, launch with `gdb --args ./build/darker --data-dir ../darker`, then use `catch throw` and `run`.
 
-## Current milestone
+## Playable scope
 
 The application now flies the Caero over Delphi, or either Skimma over Halon, using the original fixed-point flight callbacks, keyboard/mouse steering, beacon charging, city collisions and crash response. Rendering retains the original software model drawing, Gouraud shading, distance ramps, beacon lighting and fountain animation. City visibility now also follows the original 256-cell coordinate wrap, including scenery approaching across either seam.
 
-The Caero begins with the original startup/title sequence, game selection and illustrated first-mission briefing, then starts at its **HQ launch site**: the engine starts enabled and boost cells charge while it remains on. Press **Enter** once to launch; the ship clears the first wall without steering. Gate, approach lights and hangar interior follow the original departure state changes. Explicit `--craft` Skimma starts remain airborne checkpoints; campaign progression now switches into the Halon missions. The first mission now connects Pinner Direct combat, both aircraft objectives, the original return message and automatic HQ docking. Aircraft hits, fatal damage and ground impacts now produce original sprite bursts and damage trails, with their FM sound layers. Enemy gun endpoints flash and sound; Pinner projectile audio follows motion and distance. The connected campaign now reaches the final battle and ending, including the Halon flight stages and films, as well as Caero missions through ninety-seven, including reinforcements, Oppressors, the transfer to the tunnel-entry hangar and the all eight underground missions with their Wreckers and portal returns, and the return to surface combat with warehouse aircraft launches and Brent Hunter/Chargeable targeting and Brent Ground building objectives and timed Forbes Diffuser attacks, and the beacon-powered Caero Weapon. Broader mission playthrough checks and remaining weapon/world behaviours are still in development; see [campaign status](docs/campaign_status.md). See [first mission](docs/first_mission.md) for scope and evidence. Enter after a Caero crash shows the original committal sequence before returning to the run menu. See [hangar launch](docs/hangar_launch.md) for verification and scope. Skimma shield startup/strength and low-altitude warning drive their cockpit displays; Caero stall dimming now follows the original speed thresholds; Nayas activity now follows timed messages and the completed-mission return signal.
+The campaign connects the original startup, menus, briefings and films through
+the final battle and ending. It includes both cities, all eight tunnel missions,
+Wreckers, vehicle routes, scripted attacks, weapons, hangar docking, supply pads
+and Nightmare. Explosions, smoke and damage trails use the original effects and
+FM sound layers. [Campaign status](docs/campaign_status.md) separates controlled
+verification from natural playthrough coverage; this remains a playable alpha,
+not a claim of complete retail equivalence.
+
+The first Caero mission starts in its **HQ hangar**, with the engine enabled.
+Allow a boost cell to charge, then press **Enter** once to launch. Follow each
+briefing for objectives and the required return destination. Cockpit instruments,
+Nayas messages, shields and radar reflect the corresponding craft and world.
+See [hangar launch](docs/hangar_launch.md) and [first mission](docs/first_mission.md)
+for the launch and combat checks. Explicit `--craft` starts remain development
+free-flight checkpoints.
+
+**F1–F6** select cockpit, following and dropped views. **F7 / backtick** selects
+a pointed object or building camera; comma/period change the following distance.
+**Tab** looks around. See [cameras](docs/flight_cameras.md) for original restrictions
+and verification limits.
 
 Mission 21 unlocks **Brent Hunter**: select it with **0**, acquire an aircraft in the target marker, and fire with **Alt / right mouse**. **Caps Lock** clears the lock for reacquisition. Mission 30 unlocks **Chargeable** on **9**: hold Alt / right mouse to charge, then release with an aircraft locked. Mission 50 adds **Brent Ground** on **6**, for designated building targets. Mission 57 adds **Dual Launch** on **3**; its native default-mask anomaly is documented in [weapon behaviour](docs/caero_weapons.md#dual-launch-and-a-native-input-mask-anomaly).
 
-The original **Level X** cheat is available: on game selection, press **Shift+8**, release Shift, then press **3** on the number row. Enter **`Level X`** exactly and press Enter. **X** during flight then advances through the normal campaign transition and saves progression. Use `--cheat-level-x` to activate it at startup instead; combine with `--skip-intro` for quicker testing. **Shift+X** starts the previous playable level (or restarts level 1), using the same fresh setup as `--level`; from that point the session does not write saves. It has no effect in Nightmare. Activation lasts until the program closes; it does not unlock unimplemented missions.
+The original **Level X** cheat is available: on game selection, press **Shift+8**, release Shift, then press **3** on the number row. Enter **`Level X`** exactly and press Enter. **X** during flight then advances through the normal campaign transition and saves progression. Use `--cheat-level-x` to activate it at startup instead; combine with `--skip-intro` for quicker testing. **Shift+X** starts the previous playable level (or restarts level 1), using the same fresh setup as `--level`; from that point the session does not write saves. It has no effect in Nightmare. Activation lasts until the program closes.
 
 The other original cheats can be enabled for the whole process with:
 
@@ -121,7 +140,7 @@ The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity 
 
 ## Verification
 
-The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the upcoming mission runtime.
+The [scenario reader](docs/scenarios.md) also loads all original mission/presentation records, preserving formatted multilingual text and setup groups for the mission runtime.
 The [font renderer and formatter](docs/fonts_and_text.md) consume original bitmap fonts and page controls, with native comparisons for glyph coverage, layout and cursor state.
 The [HQ launch](docs/hangar_launch.md) now supplies the original Caero start and gate departure. [Mission execution](docs/mission_execution.md) covers the deadline/checkpoint scheduler and conditional messages. [Actor construction and navigation](docs/actor_motion.md) cover placement, proximity response, targeting, clearance, manoeuvre selection and movement; the first mission’s two aircraft now fly in the live Delphi scene and appear on radar. Their combined callback matches 2,048 original updates, including pursuit. The connected first-mission combat and docking checks are described in [first mission](docs/first_mission.md).
 
@@ -132,7 +151,7 @@ ctest --test-dir build --output-on-failure
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
 
-The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. Enter after a crash plays the original looping Kismet committal presentation. The supported missions advance automatically after docking, saving city state, weapon availability and the return site. Later campaign gameplay and exact retail menu composition remain outstanding; see [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `darker-cpp.sav` in the working directory using the original save format. A Caero crash leads to the original looping Kismet committal presentation; Enter can advance the crash view. The supported missions advance automatically after docking, saving city state, weapon availability and the return site. Remaining fidelity checks are tracked in [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
 
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
 
@@ -150,3 +169,6 @@ See [FM audio](docs/fm_audio.md) for the measured differences and verification.
 
 [Release readiness](docs/release_readiness.md) tracks the alpha boundary,
 remaining fidelity questions and distribution requirements.
+
+See [binary packaging](docs/binary_packaging.md) for a clean installation of the
+single executable, documentation and dependency notices.

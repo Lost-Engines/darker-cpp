@@ -52,6 +52,6 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-Normal Catch2 cases use independently constructed tiny streams for sentinel/bit order, plain literal runs, overlapping matches, malformed/truncated data and output limits. Directory invariants are tested without external files. Integration covers all **164 resources / 8,956,602 decoded bytes** against exports already checked by the original machine-code decoder; see [format and native-verification evidence](../../docs/resources-and-city.md).
+Normal Catch2 cases use independently constructed tiny streams for sentinel/bit order, plain literal runs, overlapping matches, malformed/truncated data and output limits. Directory invariants are tested without external files. Integration covers all **164 resources / 8,956,602 decoded bytes** against exports already checked by the original machine-code decoder; see [format and native-verification evidence](https://lostengines.com/darker/docs/resources-and-city.html).
 
 The original loader's conventional-memory/EMS/XMS caches and allocator are intentionally not reproduced. Consumer-specific parsing, resource reset/lifetime behaviour, bitmap/font formats and indexed presentation are subsequent milestones.

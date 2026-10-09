@@ -463,3 +463,5 @@ if(BUILD_TESTING)
     set_tests_properties(resources.original_pack_comparison PROPERTIES LABELS integration)
   endif()
 endif()
+
+include(cmake/install.cmake)

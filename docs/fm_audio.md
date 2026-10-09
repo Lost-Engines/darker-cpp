@@ -1,4 +1,4 @@
-# FM player sound checkpoint
+# FM synthesis and audio output
 
 The PCM device now consumes reconstructed OPL sound, with no WAV/OGG playback
 or General MIDI substitution. The 39 executable-resident ten-byte patches are
@@ -12,7 +12,7 @@ carrier attenuation, retrigger and key release. A single driver owns nine voice
 caches. 1,024 sequenced native comparisons check every emitted register byte,
 including the effect of previous calls on cached writes.
 
-`fm_synth` uses Nuked OPL3 at commit
+`fm_synth` retains the selectable Nuked OPL3 core at commit
 `765ec962e473aeb767e4cba74ffdc8f588ffbfe8`, fetched from GitHub with a verified
 archive hash. This is the same OPL2-compatible setup used for the independent
 sound auditions. One-second Caero and boost PCM hashes match those native-register
@@ -53,7 +53,8 @@ callbacks and Sound Blaster music sequencer are connected. See
 [combat audio](combat_audio.md) and [music](sound_images_music.md) for current
 coverage. Other hardware music arrangements are extracted in the analysis
 project but are not selectable in this engine. Remaining fidelity work includes
-transient-record reuse, note-gate edge cases and live listening comparisons.
+integrated register timing and live listening comparisons. Transient-record reuse
+and retained-voice retriggering now have native pool and mixer checks.
 
 ## Selectable chip emulation
 

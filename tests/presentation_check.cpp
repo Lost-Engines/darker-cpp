@@ -298,6 +298,38 @@ void check_presentations(darker::resources::archive_set const &archives) {
       || darker::resources::encode_save(retry_save) != committed)
       throw std::runtime_error{"Aborted tunnel retry lost its briefing or saved surface history"};
   }
+  // Loading after death/abort must retain every pilot and reopen the full briefing.
+  for(auto const stage : {16,17,18,67,68,99,105,115}) for(bool const aborted : {false,true}) {
+    darker::resources::save_file history;
+    for(size_t slot{0}; slot < history.pilots.size(); ++slot) {
+      auto &pilot{history.pilots[slot]};
+      pilot.stage = static_cast<uint8_t>(stage);
+      pilot.set_name("Retained campaign");
+      pilot.return_site = 0x4d62;
+      pilot.weapons = 0x0367;
+      pilot.delphi.fill(static_cast<std::byte>(0x63 + slot));
+      pilot.halon.fill(static_cast<std::byte>(0x29 + slot));
+      pilot.reserved.fill(static_cast<std::byte>(0x81 + slot));
+    }
+    history.trailer = {std::byte{0x37},std::byte{0xa5}};
+    auto const committed{darker::resources::encode_save(history)};
+    auto restored{darker::resources::decode_save(committed)};
+    darker::presentation::front_end retry{archives,font,campaign,restored,true};
+    if(aborted) retry.show_abort(7);
+    else retry.show_death(7);
+    retry.advance(60000);
+    retry.key(darker::presentation::front_key::accept);
+    retry.key(darker::presentation::front_key::accept);
+    auto const saved_stage{static_cast<uint8_t>(stage)};
+    darker::presentation::player expected{archives,font,campaign.scenario(saved_stage),
+      darker::resources::select_campaign_stage(saved_stage).record};
+    framework::render::cockpit_framebuffer expected_frame;
+    retry.draw(frame);
+    expected.draw(expected_frame);
+    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels}))
+      || retry.save_requested || darker::resources::encode_save(restored) != committed)
+      throw std::runtime_error{"Campaign retry lost its full briefing or changed a committed pilot record at stage " + std::to_string(stage)};
+  }
   // The hidden command must never be interpreted as a pilot name or a save-record setting.
   darker::resources::save_file command_saves;
   darker::presentation::front_end commands{archives,font,campaign,command_saves};

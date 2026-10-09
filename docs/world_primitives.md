@@ -224,8 +224,8 @@ accumulator, damage, callback, deadline, flags, RNG state and selected effect.
 The ordinary aircraft update also reduces this damage word towards zero:
 `8AC0–8AD5` subtracts `frame_ticks << definition.role_data[3]`. The field called
 `actor.awareness.cooldown` is therefore a recovering damage accumulator, not
-merely a firing timer. See the analysis [enemy damage and recovery explanation](../../docs/weapon-behaviour.md#enemy-resistance-damage-and-recovery)
-for the exact formula, definition values and [minimum-hits chart](../../docs/weapon-behaviour.md#minimum-hits-to-destroy-an-enemy).
+merely a firing timer. See the analysis [enemy damage and recovery explanation](https://lostengines.com/darker/docs/weapon-behaviour.html#enemy-resistance-damage-and-recovery)
+for the exact formula, definition values and [minimum-hits chart](https://lostengines.com/darker/docs/weapon-behaviour.html#minimum-hits-to-destroy-an-enemy).
 
 ## Player damage, shield recharge and repair
 

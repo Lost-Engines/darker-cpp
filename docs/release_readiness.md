@@ -23,14 +23,15 @@ boundaries, not an authoritative list of currently missing game features.
 
 ## Known fidelity limits
 
-- F7 object-camera selection has not been connected. F1–F6, Tab and missile
-  views are available; further camera-mode comparisons are still useful.
+- F1–F7/backtick, Tab and missile views are connected; combinations of object,
+  missile and temporary look views still benefit from retail comparison.
 - Distant-object points have a supplied-zero initial AL boundary; original
   traversal residue can shift a point by one pixel. See [cameras](flight_cameras.md).
 - Only the Sound Blaster music arrangement plays in this executable. The other
   original hardware arrangements remain available in the separate analysis.
-- Transient sound-record reuse and note-gate edge cases still need an exhaustive
-  native audit. A DOSBox-matching chip does not prove an identical full mixer.
+- Transient sound-record reuse and retained-voice retriggering are checked.
+  Exhaustive event coverage and integrated register timing remain open; a
+  DOSBox-matching chip does not prove an identical full mixer.
 - Controlled fixtures cover selected runtime patches, update ordering and
   mission exits; indirect writes and every death/load/exit combination are not
   exhaustively verified. There is no completed unassisted retail comparison of
@@ -49,9 +50,9 @@ boundaries, not an authoritative list of currently missing game features.
 3. Check the default DBOPL audio through the release build. It matches the
    preferred playback references; physical-hardware accuracy remains unverified.
    Do not compensate for chip differences by editing game patches.
-4. Choose and add the first-party source licence and release notices. The build
-   currently includes GPL-2.0-or-later DBOPL and LGPL-2.1-or-later Nuked OPL3;
-   retain their licences and exact dependency source/reconstruction instructions.
+4. Preserve dependency notices and exact source/build references. Project
+   licensing and ownership decisions remain with the project maintainers; this
+   preparation does not add a first-party licence or ownership claim.
 5. Build and test on the oldest supported Linux distribution. A local build
    currently links the workstation's Boost Program_options, libstdc++, glibc and
    OpenGL; it is not a portable Linux binary merely because it is x86-64.
@@ -74,3 +75,23 @@ ctest --test-dir build --output-on-failure
 
 `--level` does not write pilot saves. For normal menu/save testing, launch from
 a temporary working directory with `--data-dir` pointing to the retail packs.
+
+See [binary packaging](binary_packaging.md) for the repeatable local staging procedure.
+
+## Validation completed on 9 October 2026
+
+- Optimised Linux x86-64 build: all **228 CTest checks passed**, including the
+  original-pack integration test (about 27 seconds for the full release suite).
+- Windowed staged-binary checks: Caero, underground, upgraded Skimma, final-battle
+  entry and Nightmare launch/death, with DBOPL PCM output and a separate working
+  directory. F7/backtick and return-to-cockpit were also exercised after launch.
+- Native runtime-patch inventory: 78 direct writes, seven world-profile writes
+  in each of three worlds, and six return decisions checked.
+- Installation contents checked against an allowlist: one game executable,
+  documentation, its validation reports and dependency notices/source references. No game
+  packs, pilot saves or verification executables were included.
+
+The remaining interactive priorities are busy-combat audio, natural late-game
+objective completion and the ending, and Nightmare scoring/retry. Save/load
+playtesting has been successful; the additional automated retry checks are
+recorded in [campaign status](campaign_status.md#release-preparation-validation).

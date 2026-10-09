@@ -9,9 +9,9 @@ The connected campaign now reaches the final battle (115) and ending (116), incl
 1. **Runtime patch coverage:** continue the [setup/frame audit](runtime_patches.md), especially indirect, renderer and audio-driver writes.
 2. **Collision/update fidelity:** audit remaining weapon-ray and collision-response edge cases. Native list ordering and player/object ramming are now connected.
 3. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
-4. **Presentation and rendering:** remaining camera transitions, actor lighting/distant dots and exact presentation ordering/input policies. Native menu/score layout, shaded panels, title/credits fades and Nightmare are now connected.
-5. **Audio fidelity:** transient pool reuse/note-gate details, remaining event bindings and exhaustive camera-mode listening comparisons. Stereo placement and rendered-camera listening are connected. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
-5. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
+4. **Presentation and rendering:** remaining camera transitions and exact presentation ordering/input policies; actor lifecycle brightness and distant dots are now connected. Native menu/score layout, shaded panels, title/credits fades and Nightmare are now connected.
+5. **Audio fidelity:** integrated register timing, remaining event bindings and exhaustive camera-mode listening comparisons. Stereo placement and rendered-camera listening are connected. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
+6. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
 
 Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.
 
@@ -384,9 +384,9 @@ That connection resolves the Administration tunnel’s stalled Pinner test:
 mission 67 admits 24 reinforcements, removes all 36 counted targets and completes
 portal return, with 1,101 controlled launches. The five earlier tunnel missions
 also pass with their changed impact trajectories. Mission 68 completes the
-return transfer from Administration to Hemmersan. Player-to-object collision
-remains separate outstanding work; neither enemy resistance nor Pinner strength
-has been weakened to achieve these results.
+return transfer from Administration to Hemmersan. Player-to-object collision is now connected as described under ordered object
+collision sweeps below; neither enemy resistance nor Pinner strength has been
+weakened to achieve these results.
 
 All 188 tests pass with the corrected underground response. Windowed Level X
 checks cover mission 67’s underground entry, mission 68’s return briefing and
@@ -477,9 +477,9 @@ return after seventeen removals; it must not require destroying every
 remaining enemy. These counts describe controlled runs, not universal
 requirements for every playthrough.
 
-Stage 98 is a presentation-only transition into Halon. It and the connected
-Skimma campaign remain the next boundary; free-flight Skimma starts still do
-not constitute that campaign.
+Stage 98 is a presentation-only transition into Halon. The connected Skimma
+campaign is described below; free-flight Skimma starts remain separate debugging
+checkpoints.
 
 
 ### Halon campaign connection, 98–113
@@ -574,9 +574,8 @@ its glyph coverage and rectangle writes are executed, with indexed colours
 24/18 assigned to the two native coverage classes.
 
 Nonempty flight messages trigger original effect 38BE (patch 31, pitch 13056,
-level C000, 160 ticks). Voice allocation is still provisional as noted in the
-audio backlog; this restores the notification event without claiming the
-entire original sound scheduler has been reproduced.
+level C000, 160 ticks). Skimma messages instead select 38E6. Physical voice allocation is connected;
+remaining gate/reuse and synthesis comparisons are described in [combat audio](combat_audio.md).
 
 ## Ordered object collision sweeps
 
@@ -610,7 +609,7 @@ their voice is lost. Remaining audio limits are explicit in `combat_audio.md`.
 
 Retail/reconstruction playtesting confirms the Forbes Diffuser's delayed gas
 window and retrigger behaviour: another gas hit restarts the wait, including
-after a missed trigger. The player reported matching behaviour in both games.
+after a missed trigger. Matching behaviour was observed in both games.
 
 The same comparison distinguished a fresh `--level=80` start from an established
 retail campaign. Three nearby Kalvin Storage tanks are explicitly marked by
@@ -653,3 +652,18 @@ apply, including the final Delphi radio-beacon shutdown. Tunnel/presentation
 records do not alter either surface city's saved state. Conditional combat and
 supplementary-script outcomes are not fabricated. Shift-X uses the same history
 reconstruction; ordinary X retains the current world's actual state on exit.
+
+
+## Release-preparation validation
+
+Death/abort front-end checks now reopen full load briefings at stages 16, 17, 18,
+67, 68, 99, 105 and 115 after serialising and decoding four populated pilot
+records. They compare the rendered first briefing frame and verify that all
+pilot fields, unused bytes and the Nightmare trailer remain unchanged. These
+exercise retry presentation and save preservation, not a new claim of complete
+campaign playthrough coverage.
+
+F7/backtick selection, actor/projectile lifecycle brightness and distant-object
+points are connected. See [cameras](flight_cameras.md) for native comparisons
+and the retained one-pixel point-projection boundary. Transient audio record
+reuse is checked separately in [combat audio](combat_audio.md).

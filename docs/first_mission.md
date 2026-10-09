@@ -71,15 +71,11 @@ ctest --test-dir build --output-on-failure
 ./build/resource_check --data-dir ../darker
 ```
 
-## Remaining scope
+## Current scope
 
-This is a first-mission gameplay milestone, not finished retail presentation.
-Briefing artwork, original music and the committal death sequence are connected.
-Remaining work includes complete spatial voice allocation/stereo, Nayas activity,
-aircraft lighting, aircraft/player ramming, later debrief screens and the remaining mission-specific operations. Reinforcement activation, enemy missiles, Mimic and missile cameras are now connected. The flatbed route callback now has native comparisons;
-raised traversal, vehicle weapons and damage callbacks remain separate work.
-The first eight missions now advance automatically, committing city state after docking. Player city
-collision still occurs inside its flight update; the complete original global
-collision dispatch order has not yet been reconstructed. Other scenario actor
-callbacks, weapons and campaign setup blocks must not be inferred to work from
-this first-mission path. Skimma sessions remain free-flight checkpoints.
+This document records the first-mission milestone. The campaign now connects
+through the ending, with spatial voice allocation/stereo, Nayas activity,
+aircraft/player ramming, vehicle routes/weapons and later mission operations.
+See [campaign status](campaign_status.md) for the current implementation and
+validation limits, rather than treating the original milestone as the playable
+boundary. Controlled comparisons do not replace an unassisted full playthrough.
