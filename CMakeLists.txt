@@ -342,6 +342,7 @@ configure_first_party(darker)
 set(DARKER_INSTALL_DIR "" CACHE PATH "Original DOS installation for optional integration verification")
 set(DARKER_REFERENCE_DIR "" CACHE PATH "Independently extracted resources for optional integration verification")
 set(DARKER_TEST_MT32_ROM_DIR "" CACHE PATH "Optional Roland ROM directory for Munt PCM verification")
+set(DARKER_TEST_ROLAND_GM_BANK "" CACHE FILEPATH "Optional Roland MTGM.MID bank for percussion fallback verification")
 set(DARKER_TEST_SOUNDFONT "" CACHE FILEPATH "Optional GM SoundFont for sampled music PCM verification")
 
 if(BUILD_TESTING)
@@ -372,11 +373,12 @@ if(BUILD_TESTING)
     tests/hangar_flight_check.cpp
     tests/hangar_flight_check.h
   )
-  target_compile_definitions(resource_check PRIVATE DARKER_TEST_MT32_ROM_DIR="${DARKER_TEST_MT32_ROM_DIR}" DARKER_TEST_SOUNDFONT="${DARKER_TEST_SOUNDFONT}")
+  target_compile_definitions(resource_check PRIVATE DARKER_TEST_ROLAND_GM_BANK="${DARKER_TEST_ROLAND_GM_BANK}" DARKER_TEST_MT32_ROM_DIR="${DARKER_TEST_MT32_ROM_DIR}" DARKER_TEST_SOUNDFONT="${DARKER_TEST_SOUNDFONT}")
   target_link_libraries(resource_check PRIVATE darker_audio PRIVATE darker_presentation PRIVATE darker_game PRIVATE darker_resources PRIVATE darker_graphics PRIVATE Boost::program_options)
   configure_first_party(resource_check)
 
   add_executable(framework_tests
+    tests/roland_patches_test.cpp
     tests/save_file_test.cpp
     tests/world_sounds_test.cpp
     tests/ambient_sounds_test.cpp

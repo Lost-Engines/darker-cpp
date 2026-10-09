@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <fstream>
 #include <stdexcept>
 #include <vector>
 #define MT32EMU_API_TYPE 1
@@ -12,7 +13,7 @@ namespace darker::audio {
 
 struct roland_synth::implementation {
   mt32emu_context context{mt32emu_create_context({}, nullptr)};
-  std::unique_ptr<soundfont> percussion;
+  std::unique_ptr<midi_synth> percussion;
   std::array<bool,128> unmapped{};
   ~implementation() {
     mt32emu_free_context(context);
@@ -20,7 +21,7 @@ struct roland_synth::implementation {
 };
 
 roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned int const sample_rate,
-  sysex_messages const &initialisation, std::filesystem::path const &percussion_font) : state{std::make_unique<implementation>()} {
+  sysex_messages const &initialisation, std::filesystem::path const &percussion_font, std::filesystem::path const &percussion_bank) : state{std::make_unique<implementation>()} {
   if(!state->context) throw std::runtime_error{"Cannot create Munt synthesiser"};
   if(!std::filesystem::is_directory(rom_directory)) throw std::invalid_argument{"Roland ROM directory does not exist: " + rom_directory.string()};
   std::vector<std::filesystem::path> files;
@@ -48,8 +49,18 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
   mt32emu_set_midi_delay_mode(state->context, MT32EMU_MDM_DELAY_SHORT_MESSAGES_ONLY);
   // Hardware initialisation finishes before music starts; immediate uploads retain timbres throughout song changes
   for(auto const &message : initialisation) mt32emu_play_sysex_now(state->context, message.data(), static_cast<uint32_t>(message.size()));
-  if(!percussion_font.empty()) {
-    state->percussion = std::make_unique<soundfont>(percussion_font, sample_rate);
+  if(!percussion_font.empty() && !percussion_bank.empty()) throw std::invalid_argument{"Choose one Roland percussion fallback"};
+  if(!percussion_bank.empty()) {
+    auto const size{std::filesystem::file_size(percussion_bank)};
+    if(size > 1024 * 1024) throw std::invalid_argument{"Roland percussion bank is too large"};
+    std::vector<std::byte> bytes(static_cast<size_t>(size));
+    std::ifstream input{percussion_bank, std::ios::binary};
+    if(!input.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size())))
+      throw std::runtime_error{"Cannot read Roland percussion bank: " + percussion_bank.string()};
+    // A separate device prevents the GM bank's patch/channel/system changes from overwriting Darker's setup.
+    state->percussion = std::make_unique<roland_synth>(rom_directory, sample_rate, roland_setup_messages(bytes));
+  } else if(!percussion_font.empty()) state->percussion = std::make_unique<soundfont>(percussion_font, sample_rate);
+  if(state->percussion) {
     // Roland address 03 01 10 uses seven-bit address digits; each rhythm entry has four bytes.
     // Only supplement explicitly OFF keys within the General MIDI percussion range.
     for(unsigned int key{35}; key <= 81; ++key) {

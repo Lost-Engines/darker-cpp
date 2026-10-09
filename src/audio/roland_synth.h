@@ -13,7 +13,7 @@ private:
   std::unique_ptr<implementation> state;
 
 public:
-  roland_synth(std::filesystem::path const &rom_directory, unsigned int sample_rate, sysex_messages const &initialisation, std::filesystem::path const &percussion_font = {});
+  roland_synth(std::filesystem::path const &rom_directory, unsigned int sample_rate, sysex_messages const &initialisation, std::filesystem::path const &percussion_font = {}, std::filesystem::path const &percussion_bank = {});
   ~roland_synth() override;
   void reset() noexcept override;
   void send(midi_message message) noexcept override;

@@ -159,6 +159,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland, gravis or soundblaster_awe32")
+    ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
     ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")
     ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
@@ -189,6 +190,8 @@ auto main(int const argc, char const *const argv[])->int {
   auto const music_variant{music_name == "none" ? darker::audio::music_variant::soundblaster : static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
   if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland");
   bool const percussion_fallback{arguments.contains("roland-gm-percussion-fallback")};
+  bool const percussion_bank_enabled{arguments.contains("roland-gm-percussion-bank")};
+  if(percussion_bank_enabled && (music_name != "roland" || percussion_fallback || arguments.contains("soundfont"))) return startup_failure("--roland-gm-percussion-bank requires --music=roland without --soundfont or --roland-gm-percussion-fallback");
   if(percussion_fallback && music_name != "roland") return startup_failure("--roland-gm-percussion-fallback requires --music=roland");
   if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont") && !percussion_fallback) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
   auto const opl_name{arguments["opl"].as<std::string>()};
@@ -717,7 +720,8 @@ auto main(int const argc, char const *const argv[])->int {
         auto const rom_directory{arguments.contains("mt32-rom-dir") ? std::filesystem::path{arguments["mt32-rom-dir"].as<std::string>()} : data_directory};
         auto const percussion_font{percussion_fallback ? find_soundfont() : std::filesystem::path{}};
         if(percussion_fallback && percussion_font.empty()) return startup_failure("Roland percussion fallback needs a SoundFont: supply --soundfont=path/to/bank.sf2");
-        audio.configure_roland_music(rom_directory, archives.load({0,35}), std::move(songs), percussion_font);
+        audio.configure_roland_music(rom_directory, archives.load({0,35}), std::move(songs), percussion_font, percussion_bank_enabled ? std::filesystem::path{arguments["roland-gm-percussion-bank"].as<std::string>()} : std::filesystem::path{});
+        if(percussion_bank_enabled) std::cout << "Unmapped Roland percussion: separate Munt device using " << arguments["roland-gm-percussion-bank"].as<std::string>() << std::endl;
         if(percussion_fallback) std::cout << "Unmapped Roland percussion: General MIDI fallback using " << percussion_font << std::endl;
         std::cout << "Music: LAPC-I arrangement, Munt emulation with original custom Roland timbres" << std::endl;
       } else {

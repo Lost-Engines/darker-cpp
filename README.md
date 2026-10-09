@@ -208,6 +208,9 @@ The six original Sound Blaster [music groups](docs/sound_images_music.md) now pl
 `--music=none` disables music while keeping sound effects enabled.
 For an optional listening experiment, `--music=roland --roland-gm-percussion-fallback`
 adds General MIDI percussion for unmapped Roland keys, retaining Munt’s warnings.
+Alternatively, `--music=roland --roland-gm-percussion-bank=path/to/MTGM.MID`
+uses Roland’s own conversion bank on a separate emulated device; see the
+[bank download and comparison instructions](docs/music_variants.md#rolands-own-general-midi-bank-experiment).
 
 `--music=midi|roland|gravis|soundblaster_awe32` selects the other original music arrangements. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 

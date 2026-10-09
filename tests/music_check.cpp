@@ -21,10 +21,12 @@ void check_music(darker::resources::archive_set const &archives) {
   for(auto const &message : upload) bytes.insert(bytes.end(), message.begin(), message.end());
   if(!std::ranges::equal(bytes, darker::test_reference::roland_initialisation))
     throw std::runtime_error{"Roland instrument upload differs from native driver"};
-  if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty() && !std::string_view{DARKER_TEST_SOUNDFONT}.empty()) {
+  for(bool const bank : {false, true}) {
+    if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()
+      || std::string_view{bank ? DARKER_TEST_ROLAND_GM_BANK : DARKER_TEST_SOUNDFONT}.empty()) continue;
     for(uint8_t const key : {uint8_t{42}, uint8_t{52}, uint8_t{55}, uint8_t{57}, uint8_t{58}}) {
       darker::audio::roland_synth original{DARKER_TEST_MT32_ROM_DIR, 48000, upload};
-      darker::audio::roland_synth supplemented{DARKER_TEST_MT32_ROM_DIR, 48000, upload, DARKER_TEST_SOUNDFONT};
+      darker::audio::roland_synth supplemented{DARKER_TEST_MT32_ROM_DIR, 48000, upload, bank ? "" : DARKER_TEST_SOUNDFONT, bank ? DARKER_TEST_ROLAND_GM_BANK : ""};
       original.send({0x99, key, 110});
       supplemented.send({0x99, key, 110});
       std::array<float,512> original_pcm{}, supplemented_pcm{};
@@ -42,13 +44,13 @@ void check_music(darker::resources::archive_set const &archives) {
       original.reset();
       supplemented.reset();
       // Allow the SoundFont quick-release envelope to finish after all-sounds-off.
-      for(int block{0}; block < 20; ++block) {
+      for(int block{0}; block < (bank ? 2000 : 20); ++block) {
         original.render(original_pcm);
         supplemented.render(supplemented_pcm);
       }
       if(original_pcm != supplemented_pcm) throw std::runtime_error{"Roland percussion fallback leaves voices active after reset"};
     }
-    std::cout << "Roland fallback sounds all four missing percussion keys, preserves mapped notes and stops on reset." << std::endl;
+    std::cout << (bank ? "Roland bank" : "SoundFont") << " fallback sounds all four missing percussion keys, preserves mapped notes and stops on reset." << std::endl;
   }
   if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()) {
     std::array<std::vector<std::byte>,6> roland_songs;

@@ -5,6 +5,63 @@
 
 namespace darker::audio {
 
+auto roland_setup_messages(std::span<std::byte const> const file)->sysex_messages {
+  /// Setup banks contain metadata and complete SysEx events, not a playable note sequence
+  size_t cursor{0};
+  auto const read{[&]()->uint8_t {
+    if(cursor >= file.size()) throw std::invalid_argument{"Truncated Roland setup MIDI file"};
+    return std::to_integer<uint8_t>(file[cursor++]);
+  }};
+  auto const big_endian{[&](unsigned int const count) {
+    uint32_t value{0};
+    for(unsigned int i{0}; i < count; ++i) value = (value << 8) | read();
+    return value;
+  }};
+  auto const variable{[&] {
+    uint32_t value{0};
+    for(unsigned int i{0}; i < 4; ++i) {
+      auto const byte{read()};
+      value = (value << 7) | (byte & 127);
+      if(!(byte & 128)) return value;
+    }
+    throw std::invalid_argument{"Invalid Roland setup MIDI event length"};
+  }};
+  if(big_endian(4) != 0x4d546864 || big_endian(4) != 6 || big_endian(2) != 0 || big_endian(2) != 1)
+    throw std::invalid_argument{"Roland setup requires a format-0 single-track MIDI file"};
+  big_endian(2); // Timing is irrelevant: upload the complete bank before playback.
+  if(big_endian(4) != 0x4d54726b) throw std::invalid_argument{"Missing Roland setup MIDI track"};
+  auto const track_size{big_endian(4)};
+  if(track_size != file.size() - cursor) throw std::invalid_argument{"Invalid Roland setup MIDI track size"};
+  sysex_messages messages;
+  while(cursor < file.size()) {
+    variable(); // Delta time.
+    auto const status{read()};
+    if(status == 0xff) {
+      read(); // Metadata type.
+      auto const length{variable()};
+      if(length > file.size() - cursor) throw std::invalid_argument{"Truncated Roland setup metadata"};
+      cursor += length;
+      continue;
+    }
+    if(status != 0xf0) throw std::invalid_argument{"Roland setup must contain complete SysEx events only"};
+    auto const length{variable()};
+    if(length < 9 || length > file.size() - cursor) throw std::invalid_argument{"Truncated Roland setup SysEx"};
+    std::vector<uint8_t> message{0xf0};
+    for(uint32_t i{0}; i < length; ++i) message.push_back(read());
+    if(message[1] != 0x41 || message[2] != 0x10 || message[3] != 0x16 || message[4] != 0x12 || message.back() != 0xf7)
+      throw std::invalid_argument{"Roland setup requires MT-32 device-17 DT1 messages"};
+    unsigned int checksum{0};
+    for(size_t i{5}; i + 1 < message.size(); ++i) {
+      if(message[i] > 127) throw std::invalid_argument{"Invalid Roland setup SysEx data"};
+      checksum += message[i];
+    }
+    if(checksum & 127) throw std::invalid_argument{"Invalid Roland setup SysEx checksum"};
+    messages.push_back(std::move(message));
+  }
+  if(messages.empty()) throw std::invalid_argument{"Roland setup contains no instruments"};
+  return messages;
+}
+
 auto lapc_initialisation(std::span<std::byte const> const driver)->sysex_messages {
   /// Native 07DF loads the directory at 1A94; 080E expands timbres and 07F7 assigns patch slots
   auto const read{[&](size_t const offset)->uint8_t {

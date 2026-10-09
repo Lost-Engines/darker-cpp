@@ -153,3 +153,41 @@ It follows rhythm-channel controllers and is stopped on music changes.
 This is a listening experiment, not an established reconstruction of the intended
 instrumentation. It is disabled by default; omit the switch for unmodified Roland
 playback.
+
+## Roland's own General MIDI bank experiment
+
+Roland still supplies [MT-32 to General MIDI](https://www.roland.com/de/support/by_product/all/general_apps_tools/508451ba-ab7a-44bb-979c-a4097dfe1142/)
+as [MT2GM.EXE](https://static.roland.com/assets/media/exe/MT2GM.EXE).
+Despite the filename, this download can be extracted with `unzip`; it need not
+be executed. Extract `MTGM.MID` and place it beside the ROMs or elsewhere locally.
+No additional ROM is required. The bank is an external asset, not bundled with
+the engine.
+
+```sh
+./build/darker --music=roland --roland-gm-percussion-bank="$HOME/.local/share/darker/MTGM.MID"
+```
+
+This is an alternative to `--roland-gm-percussion-fallback`, not an additional
+switch to use with it. It does not use a SoundFont. The engine loads the MIDI
+file's checked Roland SysEx messages into a second Munt instance using the same
+ROMs. Only otherwise-unmapped GM-range percussion notes and rhythm controllers
+reach that instance. The main instance still receives the original events,
+retains Darker's custom instruments, and prints the unmapped-key warnings.
+
+Isolation matters: MTGM.MID replaces all 64 writable timbres, remaps melodic
+programmes and receive channels, and changes system settings. Loading it over
+Darker's own device would change much more than the missing percussion. The
+second device runs at normal Munt output gain, so balance may differ from the
+SoundFont experiment. Its reverb tails may continue briefly after note release.
+
+The bank's standard rhythm map assigns keys 52, 55 and 57 to writable timbres
+63, 61 and 60 respectively; key 58 uses rhythm timbre 92. These are zero-based
+internal timbre numbers. All four produce sound in the integration checks;
+mapped notes remain unchanged with either fallback. This demonstrates a viable
+alternative sound source, not evidence that Darker's composer used this bank.
+
+The downloaded MTGM.MID is 27,607 bytes, SHA-256
+`0d0308e00f9045241013f4943c21ba97cb59c3e4e723251ee05f9431b96fdc3c`.
+Its accompanying MT-TO-32.WRI describes the setup as the 7 December 1993 version.
+To include this optional local asset in audio integration checks, configure
+`DARKER_TEST_ROLAND_GM_BANK` with its path alongside `DARKER_TEST_MT32_ROM_DIR`.
