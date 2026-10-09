@@ -6,6 +6,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include "audio/fm_driver.h"
 #include "audio/fm_synth.h"
+#include "audio/roland_synth.h"
 #include "audio/sound_images.h"
 #include "audio/soundfont.h"
 
@@ -20,7 +21,7 @@ struct fm_stream::implementation {
   fm_synth right;
   std::unique_ptr<sound_images> music;
   std::unique_ptr<midi_music> sampled_music;
-  std::unique_ptr<soundfont> sampled_synth;
+  std::unique_ptr<midi_synth> sampled_synth;
   unsigned int sample_rate;
   midi_sink sampled_sink;
   std::array<std::vector<std::byte>,6> songs;
@@ -108,6 +109,16 @@ void fm_stream::configure_sampled_music(music_variant const variant, std::filesy
   for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid sampled music resource size"};
   state->sampled_synth = std::make_unique<soundfont>(font, state->sample_rate);
   state->sampled_music = std::make_unique<midi_music>(variant);
+  state->music.reset();
+  state->songs = std::move(songs);
+}
+
+void fm_stream::configure_roland_music(std::filesystem::path const &rom_directory, std::span<std::byte const> const driver,
+  std::array<std::vector<std::byte>,6> songs) {
+  /// Retain the verified LAPC-I event stream and initialise Munt with the original custom timbres
+  for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid Roland music resource size"};
+  state->sampled_synth = std::make_unique<roland_synth>(rom_directory, state->sample_rate, lapc_initialisation(driver));
+  state->sampled_music = std::make_unique<midi_music>(music_variant::lapc1);
   state->music.reset();
   state->songs = std::move(songs);
 }

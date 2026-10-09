@@ -152,6 +152,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("music", boost::program_options::value<std::string>()->default_value("soundblaster"), "music arrangement: soundblaster, scc1, lapc1, gus or awe32")
+    ("mt32-rom-dir", boost::program_options::value<std::string>(), "use Munt for --music=lapc1, loading Roland control and PCM ROMs from this directory")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
     ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
@@ -178,6 +179,8 @@ auto main(int const argc, char const *const argv[])->int {
   auto const music_position{std::find(music_names.begin(), music_names.end(), music_name)};
   if(music_position == music_names.end()) return startup_failure("--music must be soundblaster, scc1, lapc1, gus or awe32");
   auto const music_variant{static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
+  if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=lapc1");
+  if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont")) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
@@ -687,7 +690,10 @@ auto main(int const argc, char const *const argv[])->int {
       std::array<std::vector<std::byte>,6> songs;
       for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + static_cast<unsigned int>(music_variant) + group * 5});
       if(music_variant == darker::audio::music_variant::soundblaster) audio.configure_music(archives.load({0,33}), std::move(songs));
-      else {
+      else if(arguments.contains("mt32-rom-dir")) {
+        audio.configure_roland_music(arguments["mt32-rom-dir"].as<std::string>(), archives.load({0,35}), std::move(songs));
+        std::cout << "Music: LAPC-I arrangement, Munt emulation with original custom Roland timbres" << std::endl;
+      } else {
         std::filesystem::path font;
         if(arguments.contains("soundfont")) font = arguments["soundfont"].as<std::string>();
         else for(auto const &candidate : {std::filesystem::path{"soundfont.sf2"},

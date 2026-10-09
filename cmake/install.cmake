@@ -21,3 +21,6 @@ install(FILES src/platform/dbopl/dosbox.h
   DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
 
 install(FILES "${tinysoundfont_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}" RENAME tinysoundfont.txt COMPONENT Runtime)
+
+install(FILES "${munt_SOURCE_DIR}/mt32emu/COPYING.txt" DESTINATION "${notice_directory}" RENAME munt-gpl.txt COMPONENT Runtime)
+install(FILES "${munt_SOURCE_DIR}/mt32emu/COPYING.LESSER.txt" DESTINATION "${notice_directory}" RENAME munt-lgpl.txt COMPONENT Runtime)

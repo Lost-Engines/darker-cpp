@@ -3,17 +3,18 @@
 #include <memory>
 #include <span>
 #include "audio/midi_synth.h"
+#include "audio/roland_patches.h"
 
 namespace darker::audio {
 
-class soundfont final : public midi_synth {
+class roland_synth final : public midi_synth {
 private:
   struct implementation;
   std::unique_ptr<implementation> state;
 
 public:
-  soundfont(std::filesystem::path const &path, unsigned int sample_rate);
-  ~soundfont() override;
+  roland_synth(std::filesystem::path const &rom_directory, unsigned int sample_rate, sysex_messages const &initialisation);
+  ~roland_synth() override;
   void reset() noexcept override;
   void send(midi_message message) noexcept override;
   void render(std::span<float> stereo) noexcept override;

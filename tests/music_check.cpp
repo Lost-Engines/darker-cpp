@@ -7,12 +7,38 @@
 #include <string_view>
 #include <utility>
 #include "audio/fm_stream.h"
+#include "audio/roland_patches.h"
+#include "reference/roland_initialisation.h"
 #include "audio/sound_images.h"
 #include "reference/midi_music_samples.h"
 #include "reference/midi_transition_samples.h"
 #include "reference/music_samples.h"
 
 void check_music(darker::resources::archive_set const &archives) {
+  auto const upload{darker::audio::lapc_initialisation(archives.load({0,35}))};
+  std::vector<uint8_t> bytes;
+  for(auto const &message : upload) bytes.insert(bytes.end(), message.begin(), message.end());
+  if(!std::ranges::equal(bytes, darker::test_reference::roland_initialisation))
+    throw std::runtime_error{"Roland instrument upload differs from native driver"};
+  if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()) {
+    std::array<std::vector<std::byte>,6> roland_songs;
+    for(unsigned int group{0}; group < 6; ++group) roland_songs[group] = archives.load({0,40 + group * 5});
+    darker::audio::fm_stream stream{48000};
+    stream.configure_roland_music(DARKER_TEST_MT32_ROM_DIR, archives.load({0,35}), std::move(roland_songs));
+    std::array<float,512> pcm{};
+    for(int group{0}; group < 6; ++group) {
+      stream.select_music(group);
+      double energy{0};
+      for(int block{0}; block < 1000; ++block) {
+        stream.render(pcm);
+        for(float const value : pcm) {
+          if(!std::isfinite(value)) throw std::runtime_error{"Roland music produced non-finite PCM"};
+          energy += std::abs(value);
+        }
+      }
+      if(energy < 1) throw std::runtime_error{"Roland arrangement is silent"};
+    }
+  } else std::cout << "Roland PCM check omitted: configure DARKER_TEST_MT32_ROM_DIR to enable it." << std::endl;
   /// Compare complete timed OPL streams with native 0295 execution across repeated songs
   auto const driver{archives.load({0,33})};
   std::array<std::vector<std::byte>,6> songs;

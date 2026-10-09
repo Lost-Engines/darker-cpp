@@ -37,7 +37,7 @@ FM variant. Command 97's stored auxiliary field is not used by their note path.
 ## SoundFont rendition versus original hardware
 
 The arrangement selector chooses the original composition and driver event
-behaviour. It does **not** emulate the SCC-1, LAPC-I, GUS or AWE32 synthesis
+behaviour. SoundFont playback does **not** emulate the SCC-1, LAPC-I, GUS or AWE32 synthesis
 hardware. Instrument numbers are interpreted by the supplied SoundFont; its
 samples, envelopes and supported controllers determine the sound. [TinySoundFont](https://github.com/schellingb/TinySoundFont)
 does not implement the original units' reverb and chorus processing.
@@ -46,8 +46,7 @@ LAPC-I is particularly dependent on its hardware: its driver uploads custom
 Roland timbres and patch assignments during device initialisation. Those SysEx
 uploads cannot be represented by selecting GM programs in a SoundFont. Its
 SoundFont rendition is useful for comparing arrangements, but is not faithful
-MT-32/LAPC-I instrumentation. An MT-32-compatible synthesis backend with its ROMs
-and the original uploads remains separate work. Likewise, choosing a SoundFont
+MT-32/LAPC-I instrumentation. Use the Munt backend below to hear the original custom instruments. Choosing a SoundFont
 for GUS or AWE32 does not reproduce their original sample banks or voice engines.
 
 The terminal identifies sampled playback as a SoundFont rendition explicitly.
@@ -64,3 +63,36 @@ with a GM SoundFont supplied using CMake’s `DARKER_TEST_SOUNDFONT`, checks fin
 changes groups and verifies that OPL flight effects resume after music stops.
 If no test bank is supplied, PCM checks are explicitly skipped; native event
 comparisons still run. The test SoundFont is not installed with the game.
+
+## Roland emulation with Munt
+
+```sh
+./build/darker --music=lapc1 --mt32-rom-dir=/path/to/roms
+```
+
+Munt is built automatically. Supply a compatible control ROM and PCM ROM in
+that directory; neither is included with the game. CM-32L ROMs are preferred
+for the LAPC-I arrangement: a 64 KiB control ROM (1.00 or 1.02) and the 1 MiB
+PCM ROM in Munt format. Compatible MT-32 pairs also work. Files are identified
+by contents rather than names; CM-32L is preferred when several pairs exist.
+The [Munt ROM catalogue](https://github.com/munt/munt/blob/master/mt32emu/src/ROMInfo.cpp)
+records recognised versions and checksums. `--mt32-rom-dir` requires
+`--music=lapc1` and cannot be combined with `--soundfont`.
+
+The game expands the original driver's custom instruments and uploads twelve
+Roland DT1 SysEx messages before playback. Six messages define memory timbres
+0–5; six assign them to zero-based programs 28–31 and 66–67. The upload is
+824 bytes, including addresses and checksums. Five timbres enable two partials;
+one enables a single partial. The driver leaves the ten-byte timbre names
+untouched. Each patch uses neutral transposition and fine tuning, a twelve
+semitone bend range and disables reverb. These are synthesis parameters,
+not replacement PCM samples.
+
+Music changes retain these instruments. Munt handles the device synthesis,
+short-message serial delay, analogue output stage and conversion to the output
+sample rate. Procedural flight effects continue through the OPL backend.
+
+The integration test compares the entire upload byte-for-byte with native
+07DF execution, captured at 07A7. Set CMake's `DARKER_TEST_MT32_ROM_DIR` to
+exercise six groups through Munt and check finite, audible PCM. Without ROMs,
+that PCM check is explicitly omitted; the native upload comparison still runs.

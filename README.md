@@ -12,7 +12,7 @@ The original game's data files are required to run this.  Darker is considered a
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio, TinySoundFont, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW, miniaudio, TinySoundFont, Munt, Nuked OPL3 and the DOSBox DBOPL core are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 

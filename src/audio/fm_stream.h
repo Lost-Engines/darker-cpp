@@ -33,6 +33,7 @@ public:
   ~fm_stream();
   void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
   void configure_sampled_music(music_variant variant, std::filesystem::path const &soundfont, std::array<std::vector<std::byte>,6> songs);
+  void configure_roland_music(std::filesystem::path const &rom_directory, std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
   void select_music(int group) noexcept;
   bool publish(fm_frame const &frame) noexcept;
   void render(std::span<float> stereo) noexcept;
