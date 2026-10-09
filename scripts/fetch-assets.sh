@@ -12,8 +12,6 @@ trap 'rm -rf -- "$stage"' EXIT
 trap 'exit 1' INT TERM
 failed=0
 
-game_url='https://archive.org/download/darker-cdrom/Darker%20%281995%29%28Psygnosis%29.iso'
-rom_url='https://archive.org/download/mame-versioned-roland-mt-32-and-cm-32l-rom-files/MT-32_and_CM-32L_MAME-Versioned_ROM_files..zip'
 packs=(DARKER.0{0..4})
 
 download() {
@@ -22,18 +20,21 @@ download() {
 }
 
 fetch_game() {
-  local present=0 file
+  local present=0 file url
   local created=()
   for file in "${packs[@]}"; do
     if [ -e "$file" ] || [ -L "$file" ]; then present=$((present + 1)); fi
   done
   if [ "$present" -eq 5 ]; then echo 'Keeping existing game packs'; return 0; fi
   if [ "$present" -ne 0 ]; then echo 'Partial local game installation; leaving it untouched'; return 1; fi
-  if [ ! -r "$checksums" ]; then
-    echo 'Missing darker-retail-packs.sha256. Please keep it beside this script.' >&2
+  if [ ! -r "$checksums" ] || [ ! -r "$script_dir/game_urls.txt" ]; then
+    echo 'Keep game_urls.txt and darker-retail-packs.sha256 beside this script.' >&2
     return 1
   fi
-  for file in "${packs[@]}"; do download "$game_url/$file" "$file" || return 1; done
+  while IFS= read -r url || [ -n "$url" ]; do
+    [ -z "$url" ] && continue
+    download "$url" "${url##*/}" || return 1
+  done < "$script_dir/game_urls.txt" || return 1
   (cd "$stage" && sha256sum --check "$checksums") || return 1
   for file in "${packs[@]}"; do
     # Link within the destination filesystem: never overwrite a local file.
@@ -51,16 +52,20 @@ if ! fetch_game; then
   failed=1
 fi
 
-for url in \
-  "$rom_url/cm32l_ctrl_1_02.rom" \
-  "$rom_url/cm32l_pcm.rom" \
-  'https://d1.xp.myabandonware.com/f/m49q/Darker_Manual_DOS_EN-FR-DE-ES-IT.pdf' \
-  'https://d1.xp.myabandonware.com/f/m49o/Darker_Map_DOS_EN_City-Reference-Map.jpg'; do
-  file=${url##*/}
-  if [ -e "$file" ] || [ -L "$file" ]; then echo "Keeping $file"; continue; fi
-  if ! download "$url" "$file" || ! ln -T -- "$stage/$file" "$file"; then
-    echo "Failed: $file — please obtain a copy yourself." >&2
+for list in roland_rom_urls.txt manual_urls.txt; do
+  if [ ! -r "$script_dir/$list" ]; then
+    echo "Missing $list. Please keep it beside this script." >&2
     failed=1
+    continue
   fi
+  while IFS= read -r url || [ -n "$url" ]; do
+    [ -z "$url" ] && continue
+    file=${url##*/}
+    if [ -e "$file" ] || [ -L "$file" ]; then echo "Keeping $file"; continue; fi
+    if ! download "$url" "$file" || ! ln -T -- "$stage/$file" "$file"; then
+      echo "Failed: $file — please obtain a copy yourself." >&2
+      failed=1
+    fi
+  done < "$script_dir/$list"
 done
 exit "$failed"

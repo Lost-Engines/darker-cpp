@@ -41,8 +41,12 @@ also preserved, but the helper refuses to fill it from another source and asks
 for a full game installation. ROM and document failures are reported individually
 while the remaining downloads continue. Existing files are never overwritten.
 Game packs are checked against SHA-256. The known retail SHA-256 values are listed in
-[darker-retail-packs.sha256](scripts/darker-retail-packs.sha256). Keep that file
-beside the script when copying it elsewhere; no editing is needed to run it.
+[darker-retail-packs.sha256](scripts/darker-retail-packs.sha256). Download addresses are kept one per line in
+[game_urls.txt](scripts/game_urls.txt), [roland_rom_urls.txt](scripts/roland_rom_urls.txt)
+and [manual_urls.txt](scripts/manual_urls.txt) (manual and map).
+Keep these files and the checksum file beside the script when copying it
+elsewhere. To update a download address, edit its line in the relevant text file;
+no shell code needs changing.
 
 Installed builds provide `darker-fetch-assets`. An installer can offer this as
 an optional step, passing a writable user asset directory. Exit status is zero
