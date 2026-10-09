@@ -24,22 +24,38 @@ cmake --build build --parallel
 
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
-Optional download helper (Python 3; game CD extraction also needs `7zz` or `7z`):
+Optional asset helper (Python 3, no additional packages):
 
 ```sh
-python3 scripts/fetch_data.py game ./data
-python3 scripts/fetch_data.py roland ./roms
-./build/darker --data-dir ./data --music=lapc1 --mt32-rom-dir ./roms
+python3 scripts/fetch_assets.py ./data
+./build/darker --data-dir ./data --music=lapc1 --mt32-rom-dir ./data
 ```
 
-The helper fetches the retail CD image or the two CM-32L ROM files from Internet
-Archive, verifies checksums, and refuses to overwrite existing files. Only the
-five game packs are extracted: existing saves are never imported or replaced.
-Downloads are explicitly requested; neither building nor launching the game
-fetches data. Installed builds include the helper as `darker-fetch-data`.
-Local game files and ROMs work without using it. Archive availability does not
-grant redistribution rights: these files remain external and are not included
-in our executable or release packages. See [Internet Archive's rights guidance](https://help.archive.org/help/rights/).
+This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
+and city reference map directly into the destination directory. Use
+`--only game`, `--only roland` or `--only documents` to select groups; multiple
+groups can follow `--only`. The destination defaults to the current directory.
+
+Game packs are verified and installed as one set. If a pack download or
+verification fails, none is installed; a write failure removes packs created
+by that invocation. A complete local set is preserved. A partial local set is
+also preserved, but the helper refuses to fill it from another source and asks
+for a full game installation. ROM and document failures are reported individually
+while the remaining downloads continue. Existing files are never overwritten.
+Game packs are checked against SHA-256; ROMs use Munt’s SHA-1
+identifiers. Documents have format checks. The known retail file sizes and
+SHA-256 values are listed in [the checksum manifest](docs/retail-pack-checksums.json).
+
+Installed builds provide `darker-fetch-assets`. An installer can offer this as
+an optional step, passing a writable user asset directory. Exit status is zero
+on success (including existing files), one if any asset or the game set failed;
+an installer should display the report and continue installation. No downloads
+run automatically during CMake installation or game startup. No save files are
+fetched. Local copies work without the helper.
+
+Archive availability does not grant redistribution rights: assets remain
+external to our executable and release packages. See
+[Internet Archive's rights guidance](https://help.archive.org/help/rights/).
 
 
 During flight, **Pause** (or **Num Lock**) freezes the displayed frame and releases
