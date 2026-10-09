@@ -159,6 +159,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
     ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland, gravis or soundblaster_awe32")
+    ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")
     ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
@@ -187,7 +188,9 @@ auto main(int const argc, char const *const argv[])->int {
   if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland, gravis or soundblaster_awe32");
   auto const music_variant{music_name == "none" ? darker::audio::music_variant::soundblaster : static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
   if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland");
-  if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont")) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
+  bool const percussion_fallback{arguments.contains("roland-gm-percussion-fallback")};
+  if(percussion_fallback && music_name != "roland") return startup_failure("--roland-gm-percussion-fallback requires --music=roland");
+  if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont") && !percussion_fallback) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
@@ -701,18 +704,24 @@ auto main(int const argc, char const *const argv[])->int {
     if(front && music_name != "none") {
       std::array<std::vector<std::byte>,6> songs;
       for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,38 + static_cast<unsigned int>(music_variant) + group * 5});
+      auto const find_soundfont{[&]()->std::filesystem::path {
+        if(arguments.contains("soundfont")) return arguments["soundfont"].as<std::string>();
+        for(auto const &candidate : {data_directory / "soundfont.sf2", std::filesystem::path{"soundfont.sf2"},
+          std::filesystem::path{"/usr/share/sounds/sf2/FluidR3_GM.sf2"}, std::filesystem::path{"/usr/share/sounds/sf2/TimGM6mb.sf2"}}) {
+          if(std::filesystem::is_regular_file(candidate)) return candidate;
+        }
+        return {};
+      }};
       if(music_variant == darker::audio::music_variant::soundblaster) audio.configure_music(archives.load({0,33}), std::move(songs));
-      else if(music_variant == darker::audio::music_variant::lapc1 && !arguments.contains("soundfont")) {
+      else if(music_variant == darker::audio::music_variant::lapc1 && (!arguments.contains("soundfont") || percussion_fallback)) {
         auto const rom_directory{arguments.contains("mt32-rom-dir") ? std::filesystem::path{arguments["mt32-rom-dir"].as<std::string>()} : data_directory};
-        audio.configure_roland_music(rom_directory, archives.load({0,35}), std::move(songs));
+        auto const percussion_font{percussion_fallback ? find_soundfont() : std::filesystem::path{}};
+        if(percussion_fallback && percussion_font.empty()) return startup_failure("Roland percussion fallback needs a SoundFont: supply --soundfont=path/to/bank.sf2");
+        audio.configure_roland_music(rom_directory, archives.load({0,35}), std::move(songs), percussion_font);
+        if(percussion_fallback) std::cout << "Unmapped Roland percussion: General MIDI fallback using " << percussion_font << std::endl;
         std::cout << "Music: LAPC-I arrangement, Munt emulation with original custom Roland timbres" << std::endl;
       } else {
-        std::filesystem::path font;
-        if(arguments.contains("soundfont")) font = arguments["soundfont"].as<std::string>();
-        else for(auto const &candidate : {data_directory / "soundfont.sf2", std::filesystem::path{"soundfont.sf2"},
-          std::filesystem::path{"/usr/share/sounds/sf2/FluidR3_GM.sf2"}, std::filesystem::path{"/usr/share/sounds/sf2/TimGM6mb.sf2"}}) {
-          if(std::filesystem::is_regular_file(candidate)) { font = candidate; break; }
-        }
+        auto const font{find_soundfont()};
         if(font.empty()) return startup_failure("Sampled music needs a SoundFont: supply --soundfont=path/to/bank.sf2");
         audio.configure_sampled_music(music_variant, font, std::move(songs));
         std::cout << "Music: " << music_name << " arrangement, SoundFont rendition using " << font

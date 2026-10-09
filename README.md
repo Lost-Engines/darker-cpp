@@ -206,6 +206,8 @@ The Caero front end now includes the original startup animation, title and four-
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
 
 `--music=none` disables music while keeping sound effects enabled.
+For an optional listening experiment, `--music=roland --roland-gm-percussion-fallback`
+adds General MIDI percussion for unmapped Roland keys, retaining Munt’s warnings.
 
 `--music=midi|roland|gravis|soundblaster_awe32` selects the other original music arrangements. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. LAPC-I defaults to Munt using ROMs beside the packs; an explicit `--soundfont` selects its SoundFont rendition. `--mt32-rom-dir` can override the ROM location; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 

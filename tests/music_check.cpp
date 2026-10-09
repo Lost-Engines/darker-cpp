@@ -8,6 +8,7 @@
 #include <utility>
 #include "audio/fm_stream.h"
 #include "audio/roland_patches.h"
+#include "audio/roland_synth.h"
 #include "reference/roland_initialisation.h"
 #include "audio/sound_images.h"
 #include "reference/midi_music_samples.h"
@@ -20,6 +21,35 @@ void check_music(darker::resources::archive_set const &archives) {
   for(auto const &message : upload) bytes.insert(bytes.end(), message.begin(), message.end());
   if(!std::ranges::equal(bytes, darker::test_reference::roland_initialisation))
     throw std::runtime_error{"Roland instrument upload differs from native driver"};
+  if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty() && !std::string_view{DARKER_TEST_SOUNDFONT}.empty()) {
+    for(uint8_t const key : {uint8_t{42}, uint8_t{52}, uint8_t{55}, uint8_t{57}, uint8_t{58}}) {
+      darker::audio::roland_synth original{DARKER_TEST_MT32_ROM_DIR, 48000, upload};
+      darker::audio::roland_synth supplemented{DARKER_TEST_MT32_ROM_DIR, 48000, upload, DARKER_TEST_SOUNDFONT};
+      original.send({0x99, key, 110});
+      supplemented.send({0x99, key, 110});
+      std::array<float,512> original_pcm{}, supplemented_pcm{};
+      double difference{0};
+      for(int block{0}; block < 100; ++block) {
+        original.render(original_pcm);
+        supplemented.render(supplemented_pcm);
+        for(size_t i{0}; i < original_pcm.size(); ++i) {
+          if(!std::isfinite(supplemented_pcm[i])) throw std::runtime_error{"Roland percussion fallback produced non-finite PCM"};
+          difference += std::abs(supplemented_pcm[i] - original_pcm[i]);
+        }
+      }
+      if(key == 42 && difference != 0) throw std::runtime_error{"Roland percussion fallback alters mapped notes"};
+      if(key != 42 && difference < 1) throw std::runtime_error{"Roland percussion fallback did not sound an unmapped note"};
+      original.reset();
+      supplemented.reset();
+      // Allow the SoundFont quick-release envelope to finish after all-sounds-off.
+      for(int block{0}; block < 20; ++block) {
+        original.render(original_pcm);
+        supplemented.render(supplemented_pcm);
+      }
+      if(original_pcm != supplemented_pcm) throw std::runtime_error{"Roland percussion fallback leaves voices active after reset"};
+    }
+    std::cout << "Roland fallback sounds all four missing percussion keys, preserves mapped notes and stops on reset." << std::endl;
+  }
   if(!std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()) {
     std::array<std::vector<std::byte>,6> roland_songs;
     for(unsigned int group{0}; group < 6; ++group) roland_songs[group] = archives.load({0,40 + group * 5});

@@ -90,7 +90,8 @@ PCM ROM in Munt format. Compatible MT-32 pairs also work. Files are identified
 by contents rather than names; CM-32L is preferred when several pairs exist.
 The [Munt ROM catalogue](https://github.com/munt/munt/blob/master/mt32emu/src/ROMInfo.cpp)
 records recognised versions and checksums. `--mt32-rom-dir` requires
-`--music=roland` and cannot be combined with `--soundfont`.
+`--music=roland`. It cannot be combined with `--soundfont` unless the percussion
+fallback below is enabled.
 
 The game expands the original driver's custom instruments and uploads twelve
 Roland DT1 SysEx messages before playback. Six messages define memory timbres
@@ -127,3 +128,28 @@ initialisation at 0713 emits only our existing twelve custom-instrument
 messages; no percussion-map upload is missing. The native timed-event tests
 include these note events. We retain this behaviour rather than inventing
 replacement drums; these diagnostics do not indicate a ROM loading failure.
+
+## Optional General MIDI percussion fallback
+
+```sh
+./build/darker --music=roland --roland-gm-percussion-fallback
+```
+
+This experimental enhancement mixes General MIDI percussion into Munt playback
+for rhythm keys explicitly marked OFF in the loaded Roland mapping. It reads the
+mapping after the original instrument upload and restricts supplementation to
+GM percussion keys 35–81. This includes the soundtrack's missing keys 52 (Chinese
+cymbal), 55 (splash cymbal), 57 (crash cymbal 2) and 58 (vibraslap).
+Mapped Roland notes and custom melodic instruments continue through Munt.
+All original messages still reach Munt, so its “Attempted to play unmapped key”
+diagnostics remain visible when these notes occur.
+
+The fallback uses the normal SoundFont search. With this switch, `--soundfont`
+selects only the additional percussion bank, rather than replacing Munt for the
+whole arrangement; it may also be combined with `--mt32-rom-dir`. Percussion
+uses the existing SoundFont gain of −6 dB and is added to the Roland output.
+It follows rhythm-channel controllers and is stopped on music changes.
+
+This is a listening experiment, not an established reconstruction of the intended
+instrumentation. It is disabled by default; omit the switch for unmodified Roland
+playback.
