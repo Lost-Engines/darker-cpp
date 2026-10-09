@@ -24,17 +24,15 @@ cmake --build build --parallel
 
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
-Optional asset helper (Python 3, no additional packages):
+Optional asset helper (Bash, curl and sha256sum):
 
 ```sh
-python3 scripts/fetch_assets.py ./data
+./scripts/fetch-assets.sh ./data
 ./build/darker --data-dir ./data --music=lapc1 --mt32-rom-dir ./data
 ```
 
 This fetches the five retail game packs, CM-32L ROM pair, multilingual manual
-and city reference map directly into the destination directory. Use
-`--only game`, `--only roland` or `--only documents` to select groups; multiple
-groups can follow `--only`. The destination defaults to the current directory.
+and city reference map directly into the destination directory. The destination defaults to the current directory.
 
 Game packs are verified and installed as one set. If a pack download or
 verification fails, none is installed; a write failure removes packs created
@@ -42,8 +40,7 @@ by that invocation. A complete local set is preserved. A partial local set is
 also preserved, but the helper refuses to fill it from another source and asks
 for a full game installation. ROM and document failures are reported individually
 while the remaining downloads continue. Existing files are never overwritten.
-Game packs are checked against SHA-256; ROMs use Munt’s SHA-1
-identifiers. Documents have format checks. The known retail file sizes and
+Game packs are checked against SHA-256. The known retail file sizes and
 SHA-256 values are listed in [the checksum manifest](docs/retail-pack-checksums.json).
 
 Installed builds provide `darker-fetch-assets`. An installer can offer this as
