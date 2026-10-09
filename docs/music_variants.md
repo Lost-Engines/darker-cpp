@@ -96,3 +96,10 @@ The integration test compares the entire upload byte-for-byte with native
 07DF execution, captured at 07A7. Set CMake's `DARKER_TEST_MT32_ROM_DIR` to
 exercise six groups through Munt and check finite, audible PCM. Without ROMs,
 that PCM check is explicitly omitted; the native upload comparison still runs.
+
+The optional `scripts/fetch_data.py roland ./roms` helper downloads the CM-32L
+1.02 control and complete PCM ROM using direct Internet Archive member URLs.
+It checks Munt's SHA-1 identifiers and refuses to replace existing files.
+ROMs are never embedded or included in installed packages. Both MT-32 1.07
+and CM-32L 1.02 control/PCM pairs have passed the six-group finite, non-silent
+PCM test.

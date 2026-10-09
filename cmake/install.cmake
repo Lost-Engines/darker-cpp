@@ -24,3 +24,5 @@ install(FILES "${tinysoundfont_SOURCE_DIR}/LICENSE" DESTINATION "${notice_direct
 
 install(FILES "${munt_SOURCE_DIR}/mt32emu/COPYING.txt" DESTINATION "${notice_directory}" RENAME munt-gpl.txt COMPONENT Runtime)
 install(FILES "${munt_SOURCE_DIR}/mt32emu/COPYING.LESSER.txt" DESTINATION "${notice_directory}" RENAME munt-lgpl.txt COMPONENT Runtime)
+
+install(PROGRAMS scripts/fetch_data.py DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME darker-fetch-data COMPONENT Runtime)

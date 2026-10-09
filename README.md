@@ -24,6 +24,24 @@ cmake --build build --parallel
 
 The application looks for `DARKER.00` through `DARKER.04` (from the original game data) in the **current working directory** by default. Run it from the directory containing those files without any flags, or use `--data-dir` to select another directory.
 
+Optional download helper (Python 3; game CD extraction also needs `7zz` or `7z`):
+
+```sh
+python3 scripts/fetch_data.py game ./data
+python3 scripts/fetch_data.py roland ./roms
+./build/darker --data-dir ./data --music=lapc1 --mt32-rom-dir ./roms
+```
+
+The helper fetches the retail CD image or the two CM-32L ROM files from Internet
+Archive, verifies checksums, and refuses to overwrite existing files. Only the
+five game packs are extracted: existing saves are never imported or replaced.
+Downloads are explicitly requested; neither building nor launching the game
+fetches data. Installed builds include the helper as `darker-fetch-data`.
+Local game files and ROMs work without using it. Archive availability does not
+grant redistribution rights: these files remain external and are not included
+in our executable or release packages. See [Internet Archive's rights guidance](https://help.archive.org/help/rights/).
+
+
 During flight, **Pause** (or **Num Lock**) freezes the displayed frame and releases
 the mouse. Press Pause/Num Lock again to advance one simulation frame while staying
 paused (8 timer ticks, approximately 16 ms). Modifier keys alone and Alt/Windows/Meta shortcuts (including Alt+Tab) leave it paused.
@@ -157,7 +175,7 @@ The Caero front end now includes the original startup animation, title and four-
 
 The six original Sound Blaster [music groups](docs/sound_images_music.md) now play through the same OPL synthesiser in startup, menus, briefings and the committal presentation. Their timed register streams match the original driver across repeated playback.
 
-`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. These are SoundFont renditions, not emulations of the four original synthesis devices; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
+`--music=scc1|lapc1|gus|awe32` selects the other original arrangements for SoundFont playback. Supply `--soundfont=path/to/bank.sf2`, or use an installed system bank. These use SoundFont synthesis unless `--music=lapc1 --mt32-rom-dir=path/to/roms` selects Munt Roland emulation; see [music variants](docs/music_variants.md), especially the LAPC-I instrument distinction.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 
