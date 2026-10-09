@@ -132,9 +132,17 @@ objects are excluded by the native list range. Transient effect pools now follow
 restarting later if a channel becomes available.
 
 Fixed records retain their identity when retriggered; note generation is tracked
-separately from physical ownership. The host uses wider source identities instead
-of native byte-sized pool identities. This preserves retention within their
-lifetimes but does not establish identical transient pool reuse or all note-gate flags. Low-level gate behaviour and remaining event coverage are still open.
+separately from physical ownership. Transient effects and gun impacts now each recycle sixteen stable record
+identities. Native `1CBF` takes the free-list head or evicts the oldest active
+record; `1CD4` retires records newest first and pushes them onto the free list.
+512 consecutive native allocation/retirement operations agree, including full
+pools, multiple simultaneous retirements and reuse. A separate note generation
+forces a fresh attack when a recycled record still owns a physical voice, without
+moving that voice to a different channel. A mixer regression checks this case.
+
+The host identity labels are wider than the original bytes, but preserve the
+record relationships. This closes the identified transient reuse gap; integrated
+hardware-write timing and exhaustive event coverage remain separate checks.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_voice_allocation_reference.py ..
@@ -165,7 +173,8 @@ notification at 38BE, after the Caero switch at 38AA and before Skimma switches.
 
 This does not claim hardware-identical analogue output or exhaustive validation
 of every dropped-camera/missile-camera combination. Low-level note-gate flags,
-transient pool reuse and remaining event bindings still warrant review.
+transient pool reuse now has the native checks above; remaining event bindings
+and complete register-stream timing still warrant review.
 
 ```sh
 PYTHONPATH=/tmp/darker-python python3 tools/generate_stereo_reference.py ..

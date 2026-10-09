@@ -47,13 +47,33 @@ particle_emitter make_damage_trail(std::array<uint16_t, 3> position, uint8_t sev
 
 class effect_system {
 private:
-  uint32_t next_sound_identity{1};
+  struct sound_slots {
+    std::array<uint8_t,16> free{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
+    std::array<uint16_t,16> generations{};
+    size_t count{16};
+  };
+  sound_slots effect_slots, gun_slots;
+  void append_sound(std::vector<effect_sound> &pool, sound_slots &slots, uint32_t first_identity, effect_sound sound);
 
 public:
   std::vector<particle_emitter> emitters;
   std::vector<particle_emitter> trails;
   std::vector<effect_sound> sounds;
   std::vector<effect_sound> gun_sounds;
+
+  template<typename Predicate> void retire_sounds(Predicate const &expired) {
+    /// Native 1CD4 prepends retired records to the free list in newest-first traversal order.
+    auto const retire{[&](auto &pool, auto &slots, uint32_t const first_identity){
+      for(size_t i{pool.size()}; i != 0; --i) {
+        auto const index{i-1};
+        if(!expired(pool[index])) continue;
+        slots.free[slots.count++] = static_cast<uint8_t>(pool[index].identity-first_identity);
+        pool.erase(pool.begin()+static_cast<ptrdiff_t>(index));
+      }
+    }};
+    retire(sounds,effect_slots,1);
+    retire(gun_sounds,gun_slots,17);
+  }
 
   void spark(std::array<uint16_t,3> position, uint8_t phase, uint16_t sound_level, uint16_t clock);
   void gun_impact(std::array<uint16_t, 3> position, bool hit, uint16_t clock);

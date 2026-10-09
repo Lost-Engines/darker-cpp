@@ -50,6 +50,19 @@ particle_emitter make_damage_trail(std::array<uint16_t, 3> position, uint8_t con
   return {.position{position}, .start{clock}, .flags{static_cast<uint8_t>(0x88 + (severity >> 3))}};
 }
 
+void effect_system::append_sound(std::vector<effect_sound> &pool, sound_slots &slots, uint32_t const first_identity, effect_sound sound) {
+  /// 1CBF takes a free record or recycles the oldest active record, preserving its physical identity.
+  uint8_t slot;
+  if(slots.count != 0) slot = slots.free[--slots.count];
+  else {
+    slot = static_cast<uint8_t>(pool.front().identity-first_identity);
+    pool.erase(pool.begin());
+  }
+  sound.identity = first_identity+slot;
+  sound.generation = ++slots.generations[slot];
+  pool.push_back(sound);
+}
+
 void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const position, uint16_t const clock) {
   /// 6820 expands the executable recipe into independently delayed, moving emitter records
   auto const found{std::ranges::find(original_effect_recipes, recipe, &effect_recipe::address)};
@@ -65,8 +78,7 @@ void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const p
     emitters.push_back(emitter);
   }
   for(auto const &sound : found->sounds) {
-    if(sounds.size() == 16) sounds.erase(sounds.begin());
-    sounds.push_back({.position{position}, .definition{sound}, .deadline{static_cast<uint16_t>(clock + sound.duration)}, .identity{next_sound_identity++}});
+    append_sound(sounds,effect_slots,1,{.position{position}, .definition{sound}, .deadline{static_cast<uint16_t>(clock + sound.duration)}});
   }
 }
 
@@ -74,9 +86,8 @@ void effect_system::spark(std::array<uint16_t,3> const position, uint8_t const p
   /// 6742 emits a stationary sprite plus a short patch-22 sound, also used by the Wrecker's cutting effects
   if(trails.size() == 20) trails.erase(trails.begin());
   trails.push_back({.position{position},.start{clock},.flags{phase}});
-  if(gun_sounds.size() == 16) gun_sounds.erase(gun_sounds.begin());
-  gun_sounds.push_back({.position{position},.definition{.duration{256},.pitch{0x203},.level{sound_level},.patch{22},.flags{1}},
-    .deadline{static_cast<uint16_t>(clock + 256)},.identity{next_sound_identity++}});
+  append_sound(gun_sounds,gun_slots,17,{.position{position},.definition{.duration{256},.pitch{0x203},.level{sound_level},.patch{22},.flags{1}},
+    .deadline{static_cast<uint16_t>(clock + 256)}});
 }
 
 void effect_system::gun_impact(std::array<uint16_t, 3> position, bool const hit, uint16_t const clock) {
@@ -97,8 +108,7 @@ void effect_system::advance(uint16_t const clock, uint16_t const step) {
     return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - emitter.start)) > (emitter.flags & 127) * 64;
   }};
   auto const sound_expired{[&](auto const &sound){ return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - sound.deadline)) >= 0; }};
-  std::erase_if(sounds, sound_expired);
-  std::erase_if(gun_sounds, sound_expired);
+  retire_sounds(sound_expired);
   std::erase_if(emitters, expired);
   std::erase_if(trails, expired);
   for(auto &emitter : emitters) advance_emitter(emitter, clock, step);

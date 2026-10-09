@@ -18,6 +18,7 @@ struct effect_sound {
   effect_sound_definition definition{};
   uint16_t deadline{0};
   uint32_t identity{0};
+  uint16_t generation{0};
 };
 
 } // namespace darker::game

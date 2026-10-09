@@ -114,7 +114,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     if(!level) return;
     auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion, listener_motion)};
     candidates.push_back({identity, {.pitch{pitch}, .level{*level},
-      .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : 0)},.patch{definition.patch}, .active{true}}});
+      .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : sound.generation)},.patch{definition.patch}, .active{true}}});
     if(definition.flags & 1) candidates.back().note.attenuation = stereo_attenuation({
       static_cast<uint16_t>(sound.position[0]-listener.position[0]),static_cast<uint16_t>(sound.position[1]-listener.position[1]),
       static_cast<uint16_t>(sound.position[2]-listener.position[2])},basis,*level);
@@ -173,11 +173,11 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
   if(player[3].patch != 4) append_player(3);
   if(player[6].patch != 31) append_player(6);
   append_player(4);
+  // 363C retires a previously submitted transient when its voice was rejected or stolen.
+  combat.effects.retire_sounds([&](auto const &sound){
+    return (sound.definition.flags & 0x20) && std::ranges::find(voices.identities(),sound.identity) == voices.identities().end();
+  });
   for(auto *pool : {&combat.effects.sounds,&combat.effects.gun_sounds}) {
-    // 363C retires a previously submitted transient when its voice was rejected or stolen.
-    std::erase_if(*pool,[&](auto const &sound){
-      return (sound.definition.flags & 0x20) && std::ranges::find(voices.identities(),sound.identity) == voices.identities().end();
-    });
     for(auto i{pool->rbegin()}; i != pool->rend(); ++i) {
       append(*i,nullptr,i->identity);
       i->definition.flags |= 0x28;

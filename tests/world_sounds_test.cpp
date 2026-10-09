@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include "reference/sound_pool_samples.h"
 #include <catch2/generators/catch_generators.hpp>
 #include <cmath>
 #include "audio/flight_sounds.h"
@@ -266,4 +267,31 @@ TEST_CASE("Mission notification reaches PCM through the fixed voice allocator", 
     for(auto const sample : pcm) peak = std::max(peak,std::abs(sample));
   }
   CHECK(peak > 0.01f);
+}
+
+TEST_CASE("Transient sound slots follow native oldest eviction and free-list reuse", "[audio]") {
+  darker::game::effect_system effects;
+  for(auto const &sample : darker::test_reference::sound_pool_samples) {
+    if(sample[0]) effects.spark({},3,40000,0);
+    else effects.retire_sounds([&](auto const &sound){ return (sample[1] & (1u << (sound.identity-17))) != 0; });
+    REQUIRE(effects.gun_sounds.size() == sample[2]);
+    for(size_t i{0}; i < effects.gun_sounds.size(); ++i) CHECK(effects.gun_sounds[i].identity == sample[3+i]);
+  }
+}
+
+TEST_CASE("Recycled transient records retrigger a retained physical voice", "[audio]") {
+  darker::game::mission_combat combat{{}};
+  darker::audio::world_sounds mixer;
+  combat.effects.spark({},3,50000,0);
+  auto const first{mixer.mix({},combat,{})};
+  auto const active{std::ranges::find_if(first,[](auto const &note){ return note.active; })};
+  REQUIRE(active != first.end());
+  auto const channel{static_cast<size_t>(active-first.begin())};
+  auto const identity{combat.effects.gun_sounds.front().identity};
+  combat.effects.retire_sounds([](auto const &){ return true; });
+  combat.effects.spark({},3,50000,1);
+  REQUIRE(combat.effects.gun_sounds.front().identity == identity);
+  auto const second{mixer.mix({},combat,{})};
+  CHECK(second[channel].active);
+  CHECK(second[channel].generation != first[channel].generation);
 }
