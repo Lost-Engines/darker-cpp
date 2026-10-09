@@ -4,6 +4,8 @@ if [ "$#" -gt 1 ] || [ "${1:-}" = --help ]; then
   echo "Usage: $0 [destination]"
   exit 0
 fi
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd) || exit 1
+checksums="$script_dir/darker-retail-packs.sha256"
 mkdir -p -- "${1:-.}" && cd -- "${1:-.}" || exit 1
 stage=$(mktemp -d .fetch-assets.XXXXXX) || exit 1
 trap 'rm -rf -- "$stage"' EXIT
@@ -27,15 +29,12 @@ fetch_game() {
   done
   if [ "$present" -eq 5 ]; then echo 'Keeping existing game packs'; return 0; fi
   if [ "$present" -ne 0 ]; then echo 'Partial local game installation; leaving it untouched'; return 1; fi
+  if [ ! -r "$checksums" ]; then
+    echo 'Missing darker-retail-packs.sha256. Please keep it beside this script.' >&2
+    return 1
+  fi
   for file in "${packs[@]}"; do download "$game_url/$file" "$file" || return 1; done
-  (cd "$stage" && sha256sum -c <<'SUMS'
-86bdffa2ba15edab7431c1b056feabf6dd68a70f2f0fa99ad7a96e449ad82c4f  DARKER.00
-17652afc7219497704292a4234d57a3ff3c01705f7b67f811e4ea09dc1daf8a8  DARKER.01
-32f32eb8d6a80e6d02b680a571abd8aa01df10772126dd6d9450120e43d1c917  DARKER.02
-9982884a26927b59896b329cf1dea3c7cdd428d9a7ab70e8ac71a8754fad8ea6  DARKER.03
-d72342a09edc9aa5abfb941fe27d8c81117564f15a981766ef6c5a9b8a5e6cee  DARKER.04
-SUMS
-  ) || return 1
+  (cd "$stage" && sha256sum --check "$checksums") || return 1
   for file in "${packs[@]}"; do
     # Link within the destination filesystem: never overwrite a local file.
     if ! ln -T -- "$stage/$file" "$file"; then

@@ -40,8 +40,9 @@ by that invocation. A complete local set is preserved. A partial local set is
 also preserved, but the helper refuses to fill it from another source and asks
 for a full game installation. ROM and document failures are reported individually
 while the remaining downloads continue. Existing files are never overwritten.
-Game packs are checked against SHA-256. The known retail file sizes and
-SHA-256 values are listed in [the checksum manifest](docs/retail-pack-checksums.json).
+Game packs are checked against SHA-256. The known retail SHA-256 values are listed in
+[darker-retail-packs.sha256](scripts/darker-retail-packs.sha256). Keep that file
+beside the script when copying it elsewhere; no editing is needed to run it.
 
 Installed builds provide `darker-fetch-assets`. An installer can offer this as
 an optional step, passing a writable user asset directory. Exit status is zero

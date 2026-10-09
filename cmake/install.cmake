@@ -27,4 +27,4 @@ install(FILES "${munt_SOURCE_DIR}/mt32emu/COPYING.LESSER.txt" DESTINATION "${not
 
 install(PROGRAMS scripts/fetch-assets.sh DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME darker-fetch-assets COMPONENT Runtime)
 
-install(FILES docs/retail-pack-checksums.json DESTINATION "${CMAKE_INSTALL_DOCDIR}/docs" COMPONENT Runtime)
+install(FILES scripts/darker-retail-packs.sha256 DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
