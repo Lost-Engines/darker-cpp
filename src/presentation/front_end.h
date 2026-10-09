@@ -17,6 +17,7 @@ private:
   resources::font_resource const &font;
   resources::campaign_resources &campaign;
   resources::scenario_resource introduction;
+  resources::scenario_language language;
   std::unique_ptr<player> scene;
   screen current{screen::introduction};
   screen previous{screen::games};
@@ -44,7 +45,8 @@ private:
 public:
   bool quit_requested{false};
   bool save_requested{false};
-  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool skip_intro = false);
+  front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool skip_intro = false,
+    resources::scenario_language language = resources::scenario_language::english);
   bool active() const noexcept;
   bool nightmare_selected() const noexcept;
   resources::scenario_resource const &selected_scenario();

@@ -1,4 +1,5 @@
 #include "presentation/front_end.h"
+#include "presentation/menu_text.h"
 #include <algorithm>
 #include <stdexcept>
 #include "game/city_persistence.h"
@@ -24,8 +25,8 @@ void load_image(resources::archive_set const &archives, resources::resource_id c
 
 } // namespace
 
-front_end::front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool const skip_intro)
-  : archives{archives}, font{font}, campaign{campaign}, introduction{archives.load({4,15})}, save{save} {
+front_end::front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool const skip_intro, resources::scenario_language const language)
+  : archives{archives}, font{font}, campaign{campaign}, introduction{archives.load({4,15})}, language{language}, save{save} {
   /// Startup 9CBD selects record one before the 00/14 title and 00/21 game-selection background
   load_image(archives,{0,21},menu_background,menu_palette,320,240,0,0);
   // 03F4/DF1D copy the lower palette; AFB1 supplies separate gains and DAC offsets for shaded panels.
@@ -54,8 +55,9 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   auto const credit_page{graphics::lay_out_text(std::as_bytes(std::span{credits}),font,resources::font_face::interface,{.y{96},.colour{0x7d00}})};
   for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{125},.edge{0}});
 
+  selection_prompt = original_menu_text.at(static_cast<size_t>(language)).select;
   if(skip_intro) current = screen::games;
-  else scene = std::make_unique<player>(archives,font,introduction,1);
+  else scene = std::make_unique<player>(archives,font,introduction,1,0,false,language);
 }
 
 bool front_end::active() const noexcept {
@@ -89,7 +91,7 @@ void front_end::finish_nightmare(uint8_t const completed_objects, uint8_t const 
   current = screen::run;
   if(outcome == 4) {
     retained_music = -1;
-    scene = std::make_unique<player>(archives,font,introduction,4,completed_objects);
+    scene = std::make_unique<player>(archives,font,introduction,4,completed_objects,false,language);
     current = screen::outcome;
   }
 }
@@ -158,7 +160,7 @@ void front_end::begin_briefing(bool const continued_mission) {
   if(!nightmare_selected() && (save.pilots[selected].stage < 1 || save.pilots[selected].stage > 116)) { unsupported_stage = true; return; }
   retained_music = music_group();
   if(nightmare_selected()) { challenge_pilot = {.stage{1}}; challenge_score = 0; }
-  scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record(),0,continued_mission);
+  scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record(),0,continued_mission,language);
   current = screen::briefing;
   if(scene->finished() && scene->input_policy == 0) finish_briefing();
 }
@@ -379,7 +381,7 @@ void front_end::show_abort(uint8_t const completed_objects) {
 void front_end::show_outcome(uint8_t const outcome, uint8_t const completed_objects) {
   /// Failure presentations leave the committed pilot untouched for the next attempt
   retained_music = -1;
-  scene = std::make_unique<player>(archives,font,introduction,outcome,completed_objects);
+  scene = std::make_unique<player>(archives,font,introduction,outcome,completed_objects,false,language);
   current = screen::outcome;
 }
 
@@ -396,12 +398,13 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
     framework::render::expand_palette(credits_background,graphics::fade_palette(menu_palette.colours,static_cast<uint16_t>(title_ticks*2)),output);
     return;
   }
+  auto const &labels{original_menu_text.at(static_cast<size_t>(language))};
   auto frame{menu_background};
-  auto const text{[&](std::string const &value, int const x, int const y, uint8_t const colour = 125){
+  auto const text{[&](std::string_view const value, int const x, int const y, uint8_t const colour = 125){
     graphics::draw_text(frame,font,resources::font_face::interface,std::as_bytes(std::span{value}),
       {.x{static_cast<int16_t>(x)},.y{static_cast<int16_t>(y)}},{.ink{colour},.edge{0}});
   }};
-  auto const centred{[&](std::string const &value, int const y, uint8_t const colour){
+  auto const centred{[&](std::string_view const value, int const y, uint8_t const colour){
     unsigned int width{0};
     for(auto const code : value) width += code == ' ' ? 4 : font.glyph(resources::font_face::interface,static_cast<uint8_t>(code)).width;
     text(value,(320-static_cast<int>(width))/2,y,colour);
@@ -416,7 +419,7 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
     if(slot == 4) {
       text("NIGHTMARE",112,y,colour);
       graphics::text_cursor cursor{.x{52},.y{static_cast<uint16_t>(y+11)},.colour{static_cast<uint16_t>(colour << 8)},.runtime_number{challenge_score}};
-      for(auto const value : {"\4\4Score: \7%","\4High score: \7%"}) {
+      for(auto const value : {labels.score,labels.best_score}) {
         std::string const bytes{std::string{value}+'\0'};
         auto const page{graphics::lay_out_text(std::as_bytes(std::span{bytes}),font,resources::font_face::interface,cursor)};
         for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{colour},.edge{0}});
@@ -424,12 +427,12 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
         cursor.runtime_number = std::to_integer<uint8_t>(save.trailer[0]);
       }
     } else {
-      text("Game "+std::to_string(slot+1),112,y,colour);
+      text(std::string{labels.game}+std::to_string(slot+1),112,y,colour);
       auto const &pilot{save.pilots[slot]};
       if(pilot.stage) {
-        text("Level "+std::to_string(pilot.stage),162,y,colour);
+        text(std::string{labels.level}+std::to_string(pilot.stage),162,y,colour);
         centred(pilot.display_name(),y+11,colour);
-      } else centred("Start a new game",y+10,colour);
+      } else centred(labels.new_game,y+10,colour);
     }
   }};
   if(current == screen::games) {
@@ -443,34 +446,30 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   } else if(editing_text()) {
     bool const hidden{current == screen::hidden_command};
     panel(48,hidden ? 91 : 171,224,54);
-    text(hidden ? "STAR THREE" : "START NEW GAME",hidden ? 122 : 104,hidden ? 96 : 176);
-    text(hidden ? "What do you want?" : "Please enter your name",hidden ? 102 : 88,hidden ? 112 : 192);
+    text(hidden ? "STAR THREE" : labels.name_title.text,hidden ? 122 : labels.name_title.x,hidden ? 96 : 176);
+    text(hidden ? "What do you want?" : labels.name_prompt.text,hidden ? 102 : labels.name_prompt.x,hidden ? 112 : 192);
     text(draft_name + "_",56,hidden ? 128 : 208,126);
   } else if(current == screen::run) {
     game_row(selected,60,125);
     panel(70,155,180,70);
     if(unsupported_stage) text("This stage is not implemented yet",32,120);
-    auto const action{[&](std::string const &label, int const x, int const y){
+    auto const action{[&](std::string_view const label, int const x, int const y){
       bool const hover{pointer[0] >= 70 && pointer[0] < 250 && pointer[1] >= y && pointer[1] < y+16};
       text(label,x,y,hover ? 126 : 125);
     }};
-    action("ENTER: Run this game",76,160);
-    action("S: Select a different game",83,176);
-    action("E: Erase this game",83,192);
-    action("ESC: Quit to DOS",76,208);
+    for(size_t i{0}; i < labels.actions.size(); ++i) action(labels.actions[i].text,labels.actions[i].x,160+static_cast<int>(i)*16);
   } else {
     game_row(selected,60,125);
     if(current == screen::erase) {
       panel(70,147,180,86);
-      centred(nightmare_selected() ? "ERASE HIGH SCORE" : "ERASE GAME",152,125);
-      centred(nightmare_selected() ? "It will be reset to 0%" : "It will be permanently lost",168,125);
-      centred("- - -",184,125);
-    } else { panel(60,83,200,102); text("QUIT TO DOS",121,136); }
+      auto const &lines{nightmare_selected() ? labels.erase_score : labels.erase};
+      for(size_t i{0}; i < lines.size(); ++i) text(lines[i].text,lines[i].x,152+static_cast<int>(i)*16);
+    } else { panel(60,83,200,102); text(labels.quit.text,labels.quit.x,136); }
     int const question_y{current == screen::erase ? 200 : 152};
-    centred("Do you wish to proceed?",question_y,125);
-    text("YES",133,question_y+16,confirmation ? 126 : 125);
+    centred(labels.question,question_y,125);
+    text(labels.yes,133,question_y+16,confirmation ? 126 : 125);
     text("/",157,question_y+16,125);
-    text("NO",169,question_y+16,confirmation ? 125 : 126);
+    text(labels.no,169,question_y+16,confirmation ? 125 : 126);
   }
   framework::render::expand_palette(frame,menu_palette.colours,output);
 }

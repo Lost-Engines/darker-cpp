@@ -21,7 +21,10 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     auto const add{[&](std::uint32_t const value){
       for(unsigned int shift{0}; shift < 32; shift += 8) fingerprint = (fingerprint ^ ((value >> shift) & 255)) * 0x100000001b3;
     }};
-    for(unsigned int code{32}; code < 33 + sample.count; ++code) {
+    std::vector<unsigned int> codes;
+    for(unsigned int code{32}; code < 33 + sample.count; ++code) codes.push_back(code);
+    if(sample.face == 0) { codes.push_back(151); codes.push_back(153); }
+    for(auto const code : codes) {
       framework::render::indexed_cockpit_framebuffer frame{};
       auto const cursor{darker::graphics::draw_glyph(frame, fonts, static_cast<darker::resources::font_face>(sample.face),
         static_cast<std::uint8_t>(code), {.x{static_cast<std::int16_t>(8 + sample.phase)}, .y{9}}, {.ink{2}, .edge{1}})};
@@ -37,7 +40,7 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     }
     if(fingerprint != sample.fingerprint) throw std::runtime_error{std::format("Font {} alignment {} differs from native drawing", sample.face, sample.phase)};
   }
-  std::cout << "All 300 glyphs and space advances match native coverage and two-colour patterns at all four alignments." << std::endl;
+  std::cout << "All 300 glyphs, two German out-of-directory glyphs and space advances match native coverage and two-colour patterns at all four alignments." << std::endl;
   std::array<std::vector<std::byte>, 16> resources;
   for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({.archive{4}, .slot{slot}});
   std::array<std::span<std::uint8_t const>, 3> const extra{
@@ -46,14 +49,7 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   for(auto const &sample : darker::test_reference::text_samples) {
     std::span<std::byte const> const bytes{sample.resource == 16 ? std::as_bytes(extra.at(sample.offset))
       : std::span<std::byte const>{resources.at(sample.resource)}.subspan(sample.offset, sample.size)};
-    darker::graphics::formatted_page page;
-    try {
-      page = darker::graphics::lay_out_text(bytes, fonts, darker::resources::font_face::interface, {.colour{0x3456}, .runtime_number{195}});
-      if(!sample.supported) throw std::runtime_error{"Invalid source glyph was silently accepted"};
-    } catch(std::out_of_range const&) {
-      if(!sample.supported) continue;
-      throw;
-    }
+    auto const page{darker::graphics::lay_out_text(bytes, fonts, darker::resources::font_face::interface, {.colour{0x3456}, .runtime_number{195}})};
     std::uint64_t fingerprint{0xcbf29ce484222325};
     auto const add{[&](std::uint32_t const value){
       for(unsigned int shift{0}; shift < 32; shift += 8) fingerprint = (fingerprint ^ ((value >> shift) & 255)) * 0x100000001b3;
@@ -73,5 +69,5 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     }
     if(fingerprint != sample.fingerprint) throw std::runtime_error{std::format("Formatted text resource {}, offset {} differs from native layout", sample.resource, sample.offset)};
   }
-  std::cout << "544 original pages and three additional control cases match native layout; two original out-of-font glyph pages are explicitly rejected." << std::endl;
+  std::cout << "546 original pages and three additional control cases match native layout, including the two German out-of-directory glyphs." << std::endl;
 }

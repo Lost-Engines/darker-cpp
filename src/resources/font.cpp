@@ -1,5 +1,6 @@
 #include "resources/font.h"
 #include <array>
+#include <bit>
 #include <stdexcept>
 #include <utility>
 
@@ -31,17 +32,21 @@ font_glyph font_resource::glyph(font_face const face, std::uint8_t const code, u
   if(alignment > 3) throw std::out_of_range{"Font alignment must be between zero and three"};
   if(code < 33) return {.advance{4}};
   unsigned int const index{code - 33u};
-  if(index >= font.count) throw std::out_of_range{"Glyph code is outside the original font"};
+  // E1FE does not bound the glyph index by the directory count. Two German
+  // pages reach the following table bytes; preserve those reads.
+  auto const doubled_index{static_cast<std::uint8_t>(index * 2)};
   auto const byte{[&](std::size_t const offset){
     if(offset >= data.size()) throw std::invalid_argument{"Truncated original font resource"};
     return std::to_integer<std::uint8_t>(data[offset]);
   }};
-  auto const width{byte(font.offset + font.count + index * 2)};
-  auto const height{byte(font.offset + font.count + index * 2 + 1)};
+  auto const width{byte(font.offset + font.count + doubled_index)};
+  auto const height{byte(font.offset + font.count + doubled_index + 1)};
   auto const top{byte(font.offset + index)};
   auto const table{font.offset + font.count * (3 + alignment * 2)};
-  auto const source{table + byte(table + index * 2) + (byte(table + index * 2 + 1) << 8)};
-  auto const stride{(width + alignment + 3) / 4};
+  auto const source{table + byte(table + doubled_index) + (byte(table + doubled_index + 1) << 8)};
+  // E243 selects one of four fixed planar loops, even for out-of-directory widths.
+  auto const adjusted{static_cast<std::uint8_t>(width + alignment - 4)};
+  unsigned int const stride{std::bit_cast<std::int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8 ? 3u : 4u};
   auto const size{stride * height};
   if(source > data.size() || size > data.size() - source) throw std::invalid_argument{"Font glyph exceeds its resource"};
   return {

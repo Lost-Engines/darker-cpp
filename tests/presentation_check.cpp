@@ -42,11 +42,11 @@ void check_presentations(darker::resources::archive_set const &archives) {
   darker::resources::campaign_resources campaign{archives};
   // C2BC uses the previous outcome in these 18 original campaign records.
   std::array<uint8_t,18> constexpr conditional_entries{17,18,24,25,36,37,46,47,55,56,67,68,86,87,92,93,99,115};
-  for(uint8_t stage{1}; stage <= 116; ++stage) {
+  for(auto const selected_language : {darker::resources::scenario_language::english, darker::resources::scenario_language::french, darker::resources::scenario_language::german}) for(uint8_t stage{1}; stage <= 116; ++stage) {
     auto const &scenario{campaign.scenario(stage)};
     auto const record{darker::resources::select_campaign_stage(stage).record};
-    darker::presentation::player loaded{archives,font,scenario,record};
-    darker::presentation::player continued{archives,font,scenario,record,0,true};
+    darker::presentation::player loaded{archives,font,scenario,record,0,false,selected_language};
+    darker::presentation::player continued{archives,font,scenario,record,0,true,selected_language};
     bool const conditional{std::ranges::find(conditional_entries,stage) != conditional_entries.end()};
     auto const failure{"Campaign entry differs at stage " + std::to_string(stage)};
     if(!conditional) {
@@ -55,7 +55,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
       continue;
     }
     if(loaded.input_policy == 0 || !continued.finished() || continued.input_policy != 0) throw std::runtime_error{failure};
-    auto const language{scenario.language(record,darker::resources::scenario_language::english)};
+    auto const language{scenario.language(record,selected_language)};
     auto const displacement{std::to_integer<uint8_t>(language[0]) | (std::to_integer<uint8_t>(language[1]) << 8)};
     if(continued.consumed_text() != static_cast<size_t>(displacement)) throw std::runtime_error{failure + ": message displacement"};
     for(unsigned int step{0}; !loaded.finished(); ++step) {

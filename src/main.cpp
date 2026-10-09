@@ -140,6 +140,7 @@ auto main(int const argc, char const *const argv[])->int {
   options.add_options()
     ("help,h", "show usage")
     ("data-dir", boost::program_options::value<std::string>()->default_value("."), "directory containing DARKER.00 through DARKER.04 (default: current working directory)")
+    ("language", boost::program_options::value<std::string>()->default_value("english"), "original text language: english, french or german")
     ("mute", "disable PCM sound output")
     ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
     ("noclip", "disable player collisions and tunnel guidance; provide unlimited flight power")
@@ -165,6 +166,10 @@ auto main(int const argc, char const *const argv[])->int {
   } catch(boost::program_options::error const &error) {
     return startup_failure(error.what());
   }
+  auto const language_name{arguments["language"].as<std::string>()};
+  if(language_name != "english" && language_name != "french" && language_name != "german") return startup_failure("--language must be english, french or german");
+  auto const language{language_name == "english" ? darker::resources::scenario_language::english
+    : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
@@ -225,7 +230,7 @@ auto main(int const argc, char const *const argv[])->int {
   darker::game::beacon_changes beacon_changes;
   darker::game::world_objectives objectives{.list{mission.objective_cell_list}};
   darker::resources::font_resource const font{archives.load({.archive{0}, .slot{29}})};
-  auto text{scenario->language(0, darker::resources::scenario_language::english)};
+  auto text{scenario->language(0, language)};
   std::unique_ptr<darker::presentation::front_end> front;
   std::filesystem::path const save_path{"darker-cpp.sav"};
   darker::resources::save_file saves;
@@ -237,7 +242,7 @@ auto main(int const argc, char const *const argv[])->int {
     return startup_failure(error.what());
   }
   if(caero) {
-    front = std::make_unique<darker::presentation::front_end>(archives,font,campaign,saves,arguments.contains("skip-intro"));
+    front = std::make_unique<darker::presentation::front_end>(archives,font,campaign,saves,arguments.contains("skip-intro"),language);
     if(arguments.contains("cheat-level-x")) front->enable_level_skip();
     if(debug_session) front->start_level(static_cast<uint8_t>(arguments["level"].as<int>()));
     host.front = front.get();
@@ -804,7 +809,7 @@ auto main(int const argc, char const *const argv[])->int {
           scenario = &front->selected_scenario();
           auto const record{front->selected_record()};
           mission = scenario->records()[record];
-          text = scenario->language(record,darker::resources::scenario_language::english);
+          text = scenario->language(record,language);
           auto const configuration{static_cast<uint8_t>(mission.configuration & 15)};
           bool const underground{configuration == 4};
           world_mode = underground ? 2 : configuration == 2 || configuration == 3 ? 1 : 0;
@@ -898,7 +903,7 @@ auto main(int const argc, char const *const argv[])->int {
             auto const index{static_cast<size_t>(mission.configuration >> 4)};
             auto const &record{source.records()[index]};
             exchange.alternate = darker::game::mission_context_slot{source.bytes(record.shared),
-              source.language(index,darker::resources::scenario_language::english),record.entry_offset - record.shared.offset};
+              source.language(index,language),record.entry_offset - record.shared.offset};
           }
           context.register_owner = [&]{ return std::exchange(combat->script_owner,uint16_t{0xd986}); };
           context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };

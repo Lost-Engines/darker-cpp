@@ -9,9 +9,9 @@ The layout retains colour words rather than guessing their final palette indices
 ## Checks
 
 - All **300 glyphs at four alignments**, plus spaces, match native E29C/E1FE coverage, plane-pattern selection and advances. This verifies the font decoder and software drawing; it does not assert the palette conversion performed by VGA latch setup.
-- **544 extracted formatted pages** match B292 glyph positions, colour tokens, final cursor/margin state and consumed length, using the interface font as a controlled test configuration. Three additional native cases exercise centring, tabs, signed line spacing and runtime numbers.
-- Two structurally exported German pages contain codes outside all three font directories: **04_009 / 3**, page offset 2796h, contains code 99h within `…rtlichkeiten`; **04_010 / 6**, offset 3A09h, is `97 00`. The safe reader rejects these explicitly. Their exact original visual behaviour and any intended correction remain unresolved; source bytes are retained. These are separate from the earlier French counted-message length anomaly.
-- Focused tests check transparency, negative/right-edge clipping, missing font data, invalid codes, truncated controls and page boundaries.
+- **546 extracted formatted pages** match B292 glyph positions, colour tokens, final cursor/margin state and consumed length, using the interface font as a controlled test configuration. Three additional native cases exercise centring, tabs, signed line spacing and runtime numbers.
+- Two German pages use codes beyond the declared font directory: **04_009 / 3**, offset 2796h, uses code 99h; **04_010 / 6**, offset 3A09h, uses code 97h. E1FE does not reject them: it reads the following directory bytes. The decoder reproduces those reads, including the byte-sized doubled index. Native raster captures now verify both glyphs at all four alignments. No replacement characters or editorial corrections are introduced. These are separate from the French counted-message length anomaly.
+- Focused tests check transparency, negative/right-edge clipping, missing font data, out-of-directory codes, truncated controls and page boundaries.
 
 Regenerate native references with:
 
@@ -20,4 +20,4 @@ PYTHONPATH=/tmp/darker-python python3 tools/generate_font_reference.py ..
 PYTHONPATH=/tmp/darker-python python3 tools/generate_text_reference.py ..
 ```
 
-The formatter probe intercepts glyph and colour calls: its results establish layout and token propagation, not a complete original presentation frame. The separate font probe executes the actual drawing path and records VGA plane choices. The application continues to start at the airborne checkpoint until mission presentation and launch are connected.
+The formatter probe intercepts glyph and colour calls: its results establish layout and token propagation, not a complete original presentation frame. The separate font probe executes the actual drawing path and records VGA plane choices.

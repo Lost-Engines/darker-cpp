@@ -67,7 +67,7 @@ TEST_CASE("Font drawing preserves transparency and clips at framebuffer edges", 
     CHECK(frame.pixels[0] == 7);
   }
   CHECK_THROWS_AS(darker::resources::font_resource{std::vector<std::byte>(10)}, std::invalid_argument);
-  CHECK_THROWS_AS(font.glyph(darker::resources::font_face::interface, 153), std::out_of_range);
+  CHECK(font.glyph(darker::resources::font_face::interface, 153).width == 0);
 }
 
 TEST_CASE("Text formatter rejects truncated controls and stops at a page boundary", "[graphics][font]") {

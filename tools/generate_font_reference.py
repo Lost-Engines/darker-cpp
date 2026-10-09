@@ -54,7 +54,7 @@ def main():
         cpu.ctl_remove_cache(0x1e1fe,0x1e29c)
         for phase in range(4):
             fingerprint = 0xcbf29ce484222325
-            for code in range(32,33+count):
+            for code in list(range(32,33+count)) + ([151,153] if face == 0 else []):
                 pixels.clear()
                 call(0xe1fe,{UC_X86_REG_AX:code,UC_X86_REG_DX:8+phase,UC_X86_REG_DI:9,UC_X86_REG_ES:0x5000})
                 values = [cpu.reg_read(UC_X86_REG_DX),len(pixels)]
@@ -70,7 +70,7 @@ def main():
     lines += [f'  {{{face}, {phase}, {count}, 0x{fingerprint:016x}}},' for face,phase,count,fingerprint in rows]
     lines += ['}};','','} // namespace darker::test_reference','']
     (Path(__file__).resolve().parents[1]/'tests/reference/font_samples.h').write_text('\n'.join(lines))
-    print('Captured 1,200 glyphs and 12 spaces from the native drawing routine.')
+    print('Captured 1,208 glyphs and 12 spaces from the native drawing routine.')
 
 
 if __name__ == '__main__':

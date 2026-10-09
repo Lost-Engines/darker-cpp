@@ -60,7 +60,8 @@ public:
   std::optional<uint8_t> score;
   uint8_t input_policy{5};
   player(resources::archive_set const &archives, resources::font_resource const &font,
-    resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0, bool continued_mission = false);
+    resources::scenario_resource const &scenario, size_t record, uint8_t completed_objects = 0, bool continued_mission = false,
+    resources::scenario_language language = resources::scenario_language::english);
   void advance(uint32_t elapsed_ticks);
   bool continue_page();
   bool finished() const noexcept;

@@ -172,3 +172,6 @@ remaining fidelity questions and distribution requirements.
 
 See [binary packaging](docs/binary_packaging.md) for a clean installation of the
 single executable, documentation and dependency notices.
+
+Use `--language=french` or `--language=german` for the original translated menus,
+briefings and radio messages; English remains the default.

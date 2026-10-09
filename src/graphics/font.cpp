@@ -12,11 +12,11 @@ std::uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target,
   for(unsigned int y{0}; y < glyph.height; ++y) {
     int const row{position.y + glyph.top + static_cast<int>(y)};
     if(row < 0 || row >= 240) continue;
-    for(unsigned int x{0}; x < glyph.width; ++x) {
-      int const column{position.x + static_cast<int>(x)};
+    for(unsigned int x{0}; x < glyph.stride * 4; ++x) {
+      int const column{position.x + static_cast<int>(x) - static_cast<int>(phase)};
       if(column < 0 || column >= 320) continue;
-      auto const bits{std::to_integer<std::uint8_t>(glyph.planes[y * glyph.stride + (x + phase) / 4])};
-      auto const plane{(x + phase) & 3};
+      auto const bits{std::to_integer<std::uint8_t>(glyph.planes[y * glyph.stride + x / 4])};
+      auto const plane{x & 3};
       if(bits & (1 << plane)) target.pixels[static_cast<std::size_t>(row * 320 + column)] = bits & (16 << plane) ? colours.ink : colours.edge;
     }
   }

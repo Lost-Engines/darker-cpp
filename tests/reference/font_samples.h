@@ -10,10 +10,10 @@ namespace darker::test_reference {
 
 struct font_sample { unsigned int face, phase, count; std::uint64_t fingerprint; };
 inline constexpr std::array<font_sample, 12> font_samples{{
-  {0, 0, 107, 0xbe9f1ea223f6679b},
-  {0, 1, 107, 0x8e28b578e89ca465},
-  {0, 2, 107, 0x184ff78a8eb39fab},
-  {0, 3, 107, 0x6b68c08e91b695e1},
+  {0, 0, 107, 0x9cf03f8a20018127},
+  {0, 1, 107, 0x2aec33e507720743},
+  {0, 2, 107, 0x5e947b23508ce417},
+  {0, 3, 107, 0x90c8971df1d903a8},
   {1, 0, 97, 0xf919d65a4dbfe2d2},
   {1, 1, 97, 0xcf649287388960f7},
   {1, 2, 97, 0xcc73717c428d1db0},

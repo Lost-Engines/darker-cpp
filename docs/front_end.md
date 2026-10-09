@@ -50,8 +50,11 @@ the first briefing grants Pinner Direct and the fifth grants Pinner Mimic. Save 
 Menu composition now follows the native row positions, palette shading, score
 formatting and original interface font. Nightmare is available through N, with
 its independent high-score erase action. Original Sound Blaster
-[music playback](sound_images_music.md) is connected. The interpreter rejects
-unsupported opcodes and currently selects English. Remaining limits include
+[music playback](sound_images_music.md) is connected. The interpreter selects the original English, French or German sections through
+`--language=english|french|german`, including presentations, counted flight messages
+and supplementary scripts. Menu text retains the executable’s original glyph
+bytes and authored positions; `tools/generate_menu_text.py` reproduces its three
+language tables. Remaining limits include
 some input-policy details and exact presentation tick/display ordering.
 
 ## Evidence and verification

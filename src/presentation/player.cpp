@@ -35,8 +35,8 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
 }
 
 player::player(resources::archive_set const &archives, resources::font_resource const &font,
-  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects, bool const continued_mission) : archives{archives}, font{font},
-  program{scenario.bytes(scenario.records()[record].shared)}, text{scenario.language(record, resources::scenario_language::english)},
+  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects, bool const continued_mission, resources::scenario_language const language) : archives{archives}, font{font},
+  program{scenario.bytes(scenario.records()[record].shared)}, text{scenario.language(record, language)},
   cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier}, object_counter{completed_objects}, continued_mission{continued_mission} {
   /// Keep the original record's shared program and language cursors separate
   if(interval == 0) throw std::invalid_argument{"Presentation interval is zero"};
