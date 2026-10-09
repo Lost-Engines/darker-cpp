@@ -237,3 +237,8 @@ single executable, documentation and dependency notices.
 
 Use `--language=french` or `--language=german` for the original translated menus,
 briefings and radio messages; English remains the default.
+
+AWE32 music now uses the original driver synthesis library and EMU8000 emulation:
+`--music=soundblaster_awe32`. Run `scripts/fetch-assets.sh` to obtain `awe32.raw`,
+or supply `--awe32-rom=/path/to/awe32.raw`. An explicit `--soundfont` retains the
+previous SoundFont comparison. See [music synthesis](docs/music_variants.md).

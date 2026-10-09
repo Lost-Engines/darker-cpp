@@ -52,3 +52,18 @@ if(BUILD_TESTING)
   )
   FetchContent_MakeAvailable(catch2)
 endif()
+
+set(UNICORN_ARCH x86 CACHE STRING "Only the AWE32 driver's processor")
+set(UNICORN_BUILD_TESTS OFF CACHE BOOL "Disable emulator tests")
+set(UNICORN_INSTALL OFF CACHE BOOL "Do not install emulator tools")
+FetchContent_Declare(unicorn
+  URL https://codeload.github.com/unicorn-engine/unicorn/tar.gz/refs/tags/2.1.4
+  URL_HASH SHA256=ea8863f095a0136388694e5a6063afd9bb7650e30243dd6251af59c5ce5601f4
+  EXCLUDE_FROM_ALL
+)
+FetchContent_Declare(dosbox_emu8k
+  URL https://codeload.github.com/joncampbell123/dosbox-x/tar.gz/b60936a716c72e0978e940f813bab2cd40d43868
+  URL_HASH SHA256=1298f0a2500d928dc13f68ee029232b05acea6288d0c808298abdb7e384d9b2d
+  SOURCE_SUBDIR unused_upstream_build
+)
+FetchContent_MakeAvailable(unicorn dosbox_emu8k)

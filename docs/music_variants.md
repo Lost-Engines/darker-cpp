@@ -23,7 +23,7 @@ Sound Blaster FM remains the default, using the original FM instruments and the
 selected `--opl` emulator. `--music=none` needs neither a SoundFont nor Roland
 ROMs. Use `--mute` to disable all sound output.
 
-SCC-1, GUS and AWE32 use TinySoundFont with a SoundFont 2 bank. LAPC-I uses
+SCC-1 and GUS use TinySoundFont with a SoundFont 2 bank. AWE32 now uses its native synthesis library and EMU8000 emulation by default; an explicit `--soundfont` retains the comparison rendition. LAPC-I uses
 Munt by default, or TinySoundFont when an explicit `--soundfont` is supplied:
 
 ```sh
@@ -262,3 +262,30 @@ notice is included in installed dependency notices.
 Set `DARKER_TEST_SC55_ROM_DIR` at CMake configuration to enable real-ROM checks
 for note output, stopping and callback-size independence. Without external ROMs,
 that integration test is explicitly skipped.
+
+## AWE32 / EMU8000
+
+`--music=soundblaster_awe32` uses the original embedded synthesis library from
+resource `00/37`, the AWE32 sample ROM, and the DOSBox-X EMU8000 core (derived
+from 86Box). Supply `awe32.raw` beside the packs, run `fetch-assets.sh`, or use
+`--awe32-rom=/path/to/awe32.raw`. The ROM is loaded at runtime, never built in.
+
+The verified C++ sequencer calls the original library's note, program,
+controller and pitch functions. A small isolated Unicorn x86 instance executes
+that library against emulated I/O ports; it does not execute the game, its DOS
+services or its sequencer. This preserves the native ROM preset tables, voice
+allocation, envelopes and register programming while the EMU8000 supplies
+samples, filtering, chorus and reverb. It is an emulated original library,
+not yet a C++ translation of that library.
+
+The device reports revision `0x0c`. The upstream emulator reports `0x1c`, but
+Darker's library at `2B8E` tests for exactly `0x0c` and otherwise returns success
+without initialising the synthesis hardware. The adapter changes only that
+identification value. Hardware advances during port reads so native sample
+counter waits can finish. Output is resampled from 44.1 kHz to the host rate.
+
+With `DARKER_TEST_AWE32_ROM` and `DARKER_REFERENCE_DIR` configured, tests exercise
+all six arrangements and consecutive selections, verify note output and release,
+and compare identical PCM rendered in differently sized host buffers. Listening
+against a physical AWE32 remains the final reference for the emulator's analogue
+and effects behaviour.

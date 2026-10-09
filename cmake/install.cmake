@@ -31,6 +31,8 @@ install(FILES
   scripts/darker-retail-packs.sha256
   scripts/game_urls.txt
   scripts/roland_rom_urls.txt
+  scripts/awe32_rom_urls.txt
+  scripts/awe32.sha256
   scripts/sc55_rom_urls.txt
   scripts/sc55-v121.sha256
   scripts/manual_urls.txt
@@ -38,3 +40,8 @@ install(FILES
 )
 
 install(FILES "${nuked_sc55_SOURCE_DIR}/LICENSE" DESTINATION "${notice_directory}" RENAME nuked-sc55.txt COMPONENT Runtime)
+
+install(FILES "${dosbox_emu8k_SOURCE_DIR}/COPYING" DESTINATION "${notice_directory}" RENAME dosbox-x.txt COMPONENT Runtime)
+install(FILES "${unicorn_SOURCE_DIR}/COPYING" DESTINATION "${notice_directory}" RENAME unicorn.txt COMPONENT Runtime)
+install(FILES "${unicorn_SOURCE_DIR}/COPYING.LGPL2" DESTINATION "${notice_directory}" RENAME unicorn-lgpl.txt COMPONENT Runtime)
+install(FILES cmake/emu8k.cmake DESTINATION "${notice_directory}/source-references" COMPONENT Runtime)
