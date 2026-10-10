@@ -13,26 +13,33 @@ namespace darker::audio {
 std::optional<uint16_t> audible_level(maths::world_position const source, maths::world_position const listener,
   uint16_t const level, uint8_t const flags) noexcept {
   /// 3488 rejects distant sources before subtracting the original squared-distance attenuation
-  if(flags & 2) return level;
+  uint8_t constexpr unattenuated_sound_flag{2};
+  uint32_t constexpr horizontal_range_squared{0x1000000};
+  uint64_t constexpr vertical_range_squared{0x100000000ULL};
+  unsigned int constexpr vertical_distance_weight{4};
+  unsigned int constexpr maximum_attenuation_distance{0x4000};
+  unsigned int constexpr attenuation_per_distance_unit{4};
+  if(flags & unattenuated_sound_flag) return level;
   maths::world_coordinates<int32_t> delta{};
-  for(size_t axis{0}; axis < 3; ++axis) delta[axis] = std::bit_cast<int16_t>(static_cast<uint16_t>(source[axis] - listener[axis]));
+  for(unsigned int axis{0}; axis < 3; ++axis) delta[axis] = std::bit_cast<int16_t>(static_cast<uint16_t>(source[axis] - listener[axis]));
   auto const x{static_cast<uint32_t>(delta.column * delta.column)};
   auto const y{static_cast<uint32_t>(delta.row * delta.row)};
-  if(x >= 0x1000000 || y >= 0x1000000) return std::nullopt;
-  auto const z{static_cast<uint64_t>(delta.height * delta.height) * 4};
-  if(z >= 0x100000000ULL) return std::nullopt;
+  if(x >= horizontal_range_squared || y >= horizontal_range_squared) return std::nullopt;
+  auto const z{static_cast<uint64_t>(delta.height * delta.height) * vertical_distance_weight};
+  if(z >= vertical_range_squared) return std::nullopt;
   auto const distance{(x >> 8) + (y >> 8) + (z >> 16)};
-  if(distance >= 0x4000 || distance * 4 >= level) return std::nullopt;
-  return static_cast<uint16_t>(level - distance * 4);
+  if(distance >= maximum_attenuation_distance || distance * attenuation_per_distance_unit >= level) return std::nullopt;
+  return static_cast<uint16_t>(level - distance * attenuation_per_distance_unit);
 }
 
 uint16_t doppler_factor(game::object_pose const *const motion, uint16_t const heading, uint16_t const pitch) noexcept {
   /// 3ACD projects wrapping speed onto the source bearing using two cosine table products
-  if(!motion) return 0x39d0;
+  int constexpr stationary_doppler_factor{0x39d0};
+  if(!motion) return stationary_doppler_factor;
   auto const cosine{[](uint16_t const angle){ return maths::original_sine[((angle >> 6) + 256) % 1024]; }};
   auto const product{(cosine(static_cast<uint16_t>(motion->angles.pitch - pitch)) * cosine(static_cast<uint16_t>(motion->angles.heading - heading))) >> 16};
   auto const speed{std::bit_cast<int16_t>(static_cast<uint16_t>(motion->speed * 4))};
-  return static_cast<uint16_t>(0x39d0 - ((speed * product) >> 16));
+  return static_cast<uint16_t>(stationary_doppler_factor - ((speed * product) >> 16));
 }
 
 uint16_t spatial_pitch(uint16_t const pitch, maths::world_position const source, game::object_pose const &listener,

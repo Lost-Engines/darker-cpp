@@ -479,7 +479,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   bool const reloading{std::bit_cast<int16_t>(static_cast<uint16_t>(clock-skimma.ring.reload_deadline)) < 0};
   if(caero ? !secondary_weapon : (!(skimma.slots.at(skimma.selection).flags & 1) || reloading)) target.clear();
   else {
-    if(target.token == 0xffff) target.token = acquire_caero_target(player.pose(),actors,cells,bank,damage_mask);
+    if(target.token == weapon_target::no_target) target.token = acquire_caero_target(player.pose(),actors,cells,bank,damage_mask);
     if(target.token != 0xffff) {
       if(target.token & 0x8000) {
         auto const found{std::ranges::find_if(actors,[&](auto const &actor){ return 0xd986 + actor.index*112 == target.token; })};

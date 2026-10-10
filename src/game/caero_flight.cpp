@@ -37,7 +37,7 @@ bool activate_caero_boost(caero_flight_state &state) noexcept {
 }
 
 void advance_caero_flight(caero_flight_state &state, caero_flight_parameters const parameters,
-  caero_flight_input const input, std::uint16_t frame_step, std::span<city_cell const, 128 * 128> const cells) {
+  caero_flight_input const input, std::uint16_t frame_step, std::span<city_cell const, city_map_cell_count> const cells) {
   /// 7E7F/7EB6 order startup, steering, energy spending, movement, beacon sampling and charging within one callback
   if(input.unlimited_power) {
     state.energy.buffer = 0xffff;

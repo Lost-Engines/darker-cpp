@@ -1,6 +1,7 @@
 #include "game/player_flight.h"
 #include <cstddef>
 #include <stdexcept>
+#include "game/city_map.h"
 #include "game/object_definitions.h"
 
 namespace darker::game {
@@ -84,7 +85,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   if(tunnel && !noclip) {
     if(!caero || !network) throw std::logic_error{"Tunnel player flight requires a Caero and its route network"};
     auto const cell{tunnel->connection.cell};
-    auto const type{cells.at((cell >> 8)*128 + (cell & 127)).type};
+    auto const type{cells.at((cell >> 8) * city_map_size.column + (cell & 127)).type};
     auto const marker{type ? bank.city_types()[type - 1].collision_marker : uint8_t{0}};
     advance_tunnel_flight(std::get<caero_flight_state>(craft),*tunnel,
       {
@@ -141,7 +142,7 @@ void player_flight::apply_city_contact(city_collision_result const contact, uint
   bool const protected_terrain{contact.contact == city_contact::terrain && (lifecycle.flags & 0x10)};
   if(contact.contact != city_contact::none && !protected_terrain && !(lifecycle.flags & 0x20)) {
     if(contact.contact == city_contact::building && contact.category == 2) {
-      auto &cell{cells[contact.row * 128 + contact.column]};
+      auto &cell{cells[contact.row * city_map_size.column + contact.column]};
       auto const model{bank.city_model_offset(cell.type, cell.state, mask)};
       auto const pool{bank.model_pool()};
       if(pool[model] != std::byte{0} || pool[model + 1] != std::byte{0}) cell.state = static_cast<std::uint8_t>(cell.state + 32);

@@ -4,10 +4,13 @@
 
 namespace darker::graphics {
 
-void visit_tunnel_cells(std::span<game::city_cell const,128*128> const cells, uint8_t const column, uint8_t const row,
-  std::span<uint8_t,128*128> const visibility, std::function<bool(uint16_t)> const &visit) {
+void visit_tunnel_cells(std::span<game::city_cell const,game::city_map_cell_count> const cells, uint8_t const column, uint8_t const row,
+  std::span<uint8_t,game::city_map_cell_count> const visibility, std::function<bool(uint16_t)> const &visit) {
   /// 2778 propagates model acceptance through the original cardinal, diagonal and eightfold outward visits
-  if(column >= 128 || row >= 128) throw std::out_of_range{"Underground camera cell exceeds its map"};
+  unsigned int constexpr cardinal_reach_cells{8};
+  unsigned int constexpr diagonal_reach_cells{7};
+  unsigned int constexpr outer_edge_width_cells{3};
+  if(column >= game::city_map_size.column || row >= game::city_map_size.row) throw std::out_of_range{"Underground camera cell exceeds its map"};
   uint16_t const centre{static_cast<uint16_t>(row*256 + column*2)};
   auto const occupied{[&](uint16_t const address){ return address / 2 < cells.size() && cells[address / 2].type != 0; }};
   auto const visible{[&](uint16_t const address){ return address / 2 < visibility.size() && (visibility[address / 2] & 1) != 0; }};
@@ -19,11 +22,11 @@ void visit_tunnel_cells(std::span<game::city_cell const,128*128> const cells, ui
   }
   for(int const step : {256,-256,-2,2}) {
     auto address{centre};
-    for(unsigned int count{0}; count < 8; ++count) {
+    for(unsigned int count{0}; count < cardinal_reach_cells; ++count) {
       address = offset(address,step);
       if(!occupied(address)) {
         // 29AB clears the remainder of a blocked cardinal ray, retaining the empty cell's own bit.
-        for(++count; count < 8; ++count) {
+        for(++count; count < cardinal_reach_cells; ++count) {
           address = offset(address,step);
           if(address / 2 < visibility.size()) visibility[address / 2] = 0;
         }
@@ -72,12 +75,12 @@ void visit_tunnel_cells(std::span<game::city_cell const,128*128> const cells, ui
     }
   }};
   diagonals(1);
-  for(unsigned int distance{2}; distance <= 7; ++distance) {
+  for(unsigned int distance{2}; distance <= diagonal_reach_cells; ++distance) {
     sides(distance,distance - 1);
     diagonals(distance);
   }
-  sides(7,6);
-  sides(8,3);
+  sides(diagonal_reach_cells,diagonal_reach_cells - 1);
+  sides(cardinal_reach_cells,outer_edge_width_cells);
 }
 
 } // namespace darker::graphics

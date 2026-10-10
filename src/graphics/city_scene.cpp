@@ -3,8 +3,9 @@
 #include <bit>
 #include <ranges>
 #include <stdexcept>
-#include "graphics/particles.h"
+#include "game/beacon_light.h"
 #include "graphics/near_clip.h"
+#include "graphics/particles.h"
 #include "graphics/tunnel_visibility.h"
 #include "maths/world_coordinates.h"
 
@@ -47,14 +48,14 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
   std::uint8_t const damage_mask, camera_basis const &basis, camera_position const camera) {
   /// 2A1A selects the linked model, places its origin, chooses its drawing path and applies the extent cull
   if(!cell.type) return std::nullopt;
-  if(index >= 128 * 128) throw std::invalid_argument{"City model position exceeds the map"};
+  if(index >= game::city_map_cell_count) throw std::invalid_argument{"City model position exceeds the map"};
   auto const offset{bank.city_model_offset(cell.type, cell.state, damage_mask)};
   auto const type{bank.city_types()[cell.type - 1]};
   auto const header{bank.header_at(offset)};
   bool const background{type.collision_marker == 255};
   auto placement{place_model(basis, camera, {
-    .column{static_cast<std::uint16_t>((index % 128) * 256 + type.column_fraction)},
-    .row{static_cast<std::uint16_t>((index / 128) * 256 + type.row_fraction)},
+    .column{static_cast<std::uint16_t>((index % game::city_map_size.column) * 256 + type.column_fraction)},
+    .row{static_cast<std::uint16_t>((index / game::city_map_size.column) * 256 + type.row_fraction)},
     .height{word(header.height - (background ? 0 : type.collision_marker * 256))},
   })};
   if(!background) placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + header.extent);
@@ -148,10 +149,12 @@ void order_city_models(std::vector<city_draw_item> &items) {
   });
 }
 
-void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells, std::uint8_t const column, std::uint8_t const row,
+void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> const cells, std::uint8_t const column, std::uint8_t const row,
   camera_angles const angles, unsigned int const radius, std::vector<std::uint16_t> &output) {
   /// 26EE traverses circular row spans, selecting the heading half unless pitch requires the full circle
-  if(radius < 2 || radius > 32) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
+  unsigned int constexpr minimum_scan_radius_cells{2};
+  unsigned int constexpr maximum_scan_radius_cells{32};
+  if(radius < minimum_scan_radius_cells || radius > maximum_scan_radius_cells) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
   output.clear();
   auto const heading_phase{static_cast<std::uint16_t>(angles.heading + 15) >> 6};
   auto const pitch_phase{static_cast<std::uint16_t>(angles.pitch + 15) >> 6};
@@ -160,11 +163,11 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
   bool const full{pitch_quadrant == 1 || pitch_quadrant == 2};
   auto const span{[&](int const y, int const left, int const right){
     auto const wrapped_row{static_cast<std::uint8_t>(y)};
-    if(wrapped_row >= 128) return;
+    if(wrapped_row >= game::city_map_size.row) return;
     for(int x{left}; x <= right; ++x) {
       auto const wrapped_column{static_cast<std::uint8_t>(x)};
-      if(wrapped_column >= 128) continue;
-      auto const index{static_cast<std::uint16_t>(wrapped_row * 128 + wrapped_column)};
+      if(wrapped_column >= game::city_map_size.column) continue;
+      auto const index{static_cast<std::uint16_t>(wrapped_row * game::city_map_size.column + wrapped_column)};
       if(cells[index].type) output.push_back(index);
     }
   }};
@@ -209,7 +212,7 @@ void collect_city_cells(std::span<game::city_cell const, 128 * 128> const cells,
 }
 
 std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
-  std::span<game::city_cell const, 128 * 128> const cells, city_view const view, std::uint8_t const damage_mask,
+  std::span<game::city_cell const, game::city_map_cell_count> const cells, city_view const view, std::uint8_t const damage_mask,
   distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects, particle_scene const *const particles) {
   /// Assemble the selected native visibility path before sorting world geometry, actors and particle effects
   auto const basis{make_camera_basis(view.angles)};
@@ -286,9 +289,9 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     std::uint8_t light{item.orientation ? item.object_light : std::uint8_t{255}};
     if(view.beacon_lighting && !item.orientation) {
       // 2D85 samples the nearest lattice cell's state without the charging routine's type check
-      auto const column{((item.cell % 128 + 4) / 9) * 9};
-      auto const row{((item.cell / 128 + 4) / 9) * 9};
-      light = cells[row * 128 + column].state;
+      auto const column{((item.cell % game::city_map_size.column + game::beacon_spacing_cells / 2) / game::beacon_spacing_cells) * game::beacon_spacing_cells};
+      auto const row{((item.cell / game::city_map_size.column + game::beacon_spacing_cells / 2) / game::beacon_spacing_cells) * game::beacon_spacing_cells};
+      light = cells[row * game::city_map_size.column + column].state;
     }
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     retained_colours = colours;

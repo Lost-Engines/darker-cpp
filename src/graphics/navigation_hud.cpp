@@ -57,35 +57,42 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, std:
 
 std::optional<radar_pixel> project_radar_contact(world_position const &player, std::uint16_t const heading, radar_contact const contact, radar_scale const scale) {
   /// 5AC9–5B55 retain byte-window rejection, signed high products and word truncation
+  int constexpr contact_window_radius_cells{21};
+  int constexpr contact_window_width_cells{2 * contact_window_radius_cells};
+  int constexpr enlarged_scale{3};
+  int constexpr enlarged_radius_squared{3965};
+  pixel_position constexpr enlarged_centre{73, 105};
+  int constexpr group_a_centre_colour{249};
+  int constexpr group_b_centre_colour{242};
   if(contact.group != radar_group::a && contact.group != radar_group::b && contact.group != radar_group::underground) throw std::invalid_argument{"unknown radar contact group"};
   if(scale != radar_scale::normal && scale != radar_scale::enlarged) throw std::invalid_argument{"unknown radar scale"};
   if(contact.hidden || !contact.covered) return std::nullopt;
-  auto const relative_x{static_cast<std::uint16_t>(contact.position.x - player.x + 21 * 256)};
-  auto const relative_y{static_cast<std::uint16_t>(contact.position.y - player.y + 21 * 256)};
-  if((relative_x >> 8) >= 42 || (relative_y >> 8) >= 42) return std::nullopt;
-  auto const x{signed_word((relative_x - 21 * 256) * 2)};
-  auto const y{signed_word((relative_y - 21 * 256) * 2)};
+  auto const relative_x{static_cast<std::uint16_t>(contact.position.x - player.x + contact_window_radius_cells * 256)};
+  auto const relative_y{static_cast<std::uint16_t>(contact.position.y - player.y + contact_window_radius_cells * 256)};
+  if((relative_x >> 8) >= contact_window_width_cells || (relative_y >> 8) >= contact_window_width_cells) return std::nullopt;
+  auto const x{signed_word((relative_x - contact_window_radius_cells * 256) * 2)};
+  auto const y{signed_word((relative_y - contact_window_radius_cells * 256) * 2)};
   unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
   int const sine{maths::original_sine[angle]};
   int const cosine{maths::original_sine[(angle + 256) % 1024]};
-  int const multiplier{scale == radar_scale::enlarged ? 3 : 1};
+  int const multiplier{scale == radar_scale::enlarged ? enlarged_scale : 1};
   int const pixel_y{signed_word(signed_word(((x * sine) >> 16) + ((y * cosine) >> 16)) * multiplier) >> 8};
   int const pixel_x{signed_word(signed_word(((x * cosine) >> 16) - ((y * sine) >> 16)) * multiplier) >> 8};
   pixel_position const offset{pixel_x, pixel_y};
   int const radius_squared{offset.dot(offset)};
   if(scale == radar_scale::enlarged) {
-    if(radius_squared >= 3965) return std::nullopt;
+    if(radius_squared >= enlarged_radius_squared) return std::nullopt;
     int const shift{contact.group == radar_group::a ? 8 : 9};
     return radar_pixel{
-      .position{pixel_position{73, 105} + offset},
-      .colour{static_cast<std::uint8_t>(7 - ((radius_squared - 3965) >> shift))},
+      .position{enlarged_centre + offset},
+      .colour{static_cast<std::uint8_t>(7 - ((radius_squared - enlarged_radius_squared) >> shift))},
     };
   }
-  if(radius_squared > 441) return std::nullopt;
-  int const base_colour{contact.group == radar_group::underground ? 22 : contact.group == radar_group::a ? 249 : 242};
+  if(radius_squared > radar_layout::radius_squared) return std::nullopt;
+  int const base_colour{contact.group == radar_group::underground ? radar_layout::grey_centre_colour : contact.group == radar_group::a ? group_a_centre_colour : group_b_centre_colour};
   return radar_pixel{
-    .position{pixel_position{54, 215} + offset},
-    .colour{static_cast<std::uint8_t>(base_colour - (radius_squared >> 5))},
+    .position{radar_layout::centre + offset},
+    .colour{static_cast<std::uint8_t>(base_colour - (radius_squared >> radar_layout::brightness_distance_shift))},
   };
 }
 

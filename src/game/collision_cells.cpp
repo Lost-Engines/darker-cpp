@@ -1,6 +1,7 @@
 #include "game/collision_cells.h"
 #include <bit>
 #include <utility>
+#include "game/city_map.h"
 
 namespace darker::game {
 
@@ -13,7 +14,7 @@ std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::ui
     .row{static_cast<std::uint8_t>(y >> 8)}
   };
   auto const visit{[&]{
-    if(cell.column < 128 && cell.row < 128) result.push_back(cell);
+    if(cell.column < city_map_size.column && cell.row < city_map_size.row) result.push_back(cell);
   }};
   if((x >> 8) == (end_x >> 8) && (y >> 8) == (end_y >> 8)) {
     visit();

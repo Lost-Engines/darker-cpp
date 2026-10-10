@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <functional>
 #include <stdexcept>
+#include "game/city_map.h"
 #include "maths/direction.h"
 #include "maths/sine_table.h"
 #include "maths/world_coordinates.h"
@@ -166,8 +167,8 @@ tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connecti
   /// D136/D159 cross a boundary and choose a connected segment by endpoint, height and heading error
   auto const type_at{[&](uint16_t const cell){
     auto const x{cell & 255}, y{cell >> 8};
-    if(x >= 128 || y >= 128) throw std::out_of_range{"Tunnel connection leaves its map"};
-    return cells[y*128+x].type;
+    if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel connection leaves its map"};
+    return cells[y * city_map_size.column+x].type;
   }};
   struct selection { tunnel_connection connection; uint8_t entry; };
   unsigned int visits{0};
@@ -221,8 +222,8 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
   if(source.route & 0x40) return std::nullopt;
   auto const type_at{[&](uint16_t const cell){
     auto const x{cell & 255}, y{cell >> 8};
-    if(x >= 128 || y >= 128) throw std::out_of_range{"Tunnel projection leaves its map"};
-    return cells[y*128+x].type;
+    if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel projection leaves its map"};
+    return cells[y * city_map_size.column+x].type;
   }};
   unsigned int visits{0};
   int progress{0};
@@ -265,8 +266,8 @@ std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells
   uint8_t route{0};
   auto const search{[&](int const x_offset, int const y_offset){
     auto const column{static_cast<uint8_t>(cell + x_offset)}, row{static_cast<uint8_t>((cell >> 8) + y_offset)};
-    if(row >= 128) return;
-    auto const type{cells[row*128 + (column & 127)].type};
+    if(row >= city_map_size.row) return;
+    auto const type{cells[row * city_map_size.column + (column & 127)].type};
     if(type == 0) return;
     for(uint8_t i{0}; i < 3; ++i) {
       auto const edge{segment(type,i)};

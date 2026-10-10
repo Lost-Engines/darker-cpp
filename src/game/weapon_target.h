@@ -11,8 +11,12 @@
 namespace darker::game {
 
 struct weapon_target {
-  uint16_t token{0xffff};
-  uint16_t spread{508};
+  static uint16_t constexpr no_target{0xffff};
+  static uint16_t constexpr aircraft_token_bit{0x8000};
+  static uint16_t constexpr untracked_spread{508};
+
+  uint16_t token{no_target};
+  uint16_t spread{untracked_spread};
   int16_t horizontal{0};
   int16_t vertical{0};
   uint8_t distance{0};

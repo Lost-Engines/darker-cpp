@@ -1,13 +1,14 @@
 #include "game/tunnel_portal.h"
 #include <array>
 #include <stdexcept>
+#include "game/city_map.h"
 #include "game/object_definitions.h"
 
 namespace darker::game {
 
 void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t const heading, int16_t const model_height) {
   /// BD65 starts underground above the entry portal, with the original heading-dependent cell fractions and supplied energy
-  if((site & 1) || (site >> 8) >= 128 || (heading & 63)) throw std::invalid_argument{"Invalid underground entry site or orientation"};
+  if((site & 1) || (site >> 8) >= city_map_size.row || (heading & 63)) throw std::invalid_argument{"Invalid underground entry site or orientation"};
   constexpr std::array<std::array<uint8_t,2>,4> offsets{{{128,40},{216,128},{128,216},{40,128}}};
   auto const fraction{offsets[heading >> 6]};
   player = {};

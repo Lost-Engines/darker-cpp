@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -12,7 +13,13 @@ struct city_cell {
   std::uint8_t state{0};
 };
 
-using city_map = std::array<city_cell, 128 * 128>;
+inline maths::map_coordinates<int> constexpr city_map_size{
+  .column{128},
+  .row{128},
+};
+inline int constexpr city_map_cell_count{city_map_size.column * city_map_size.row};
+
+using city_map = std::array<city_cell, city_map_cell_count>;
 
 city_map make_city_map(std::span<std::byte const> types, bool energise_beacons);
 void assign_city_variants(city_map &cells, std::span<std::uint8_t const, 256> limits);

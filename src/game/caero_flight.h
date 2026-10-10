@@ -43,6 +43,6 @@ struct caero_flight_input {
 
 bool activate_caero_boost(caero_flight_state &state) noexcept;
 void advance_caero_flight(caero_flight_state &state, caero_flight_parameters parameters,
-  caero_flight_input input, std::uint16_t frame_step, std::span<city_cell const, 128 * 128> cells);
+  caero_flight_input input, std::uint16_t frame_step, std::span<city_cell const, city_map_cell_count> cells);
 
 } // namespace darker::game

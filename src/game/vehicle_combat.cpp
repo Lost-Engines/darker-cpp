@@ -2,6 +2,7 @@
 #include <array>
 #include <bit>
 #include <utility>
+#include "game/city_map.h"
 #include "game/object_definitions.h"
 #include "maths/direction.h"
 
@@ -33,7 +34,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     row = static_cast<uint8_t>(row - rows.at(direction/2));
     // Native TEST clears carry, so 9210 treats an off-map probe as unobstructed.
     if((column | row) & 128) continue;
-    auto const type{cells[row*128+column].type};
+    auto const type{cells[row * city_map_size.column+column].type};
     if(type && types[type-1].collision_marker != 255) return nullptr;
   }
   vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);

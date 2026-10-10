@@ -22,6 +22,14 @@ struct radar_contact {
 
 enum class radar_scale { normal, enlarged };
 
+namespace radar_layout {
+inline pixel_position constexpr centre{54, 215};
+inline int constexpr radius_pixels{21};
+inline int constexpr radius_squared{radius_pixels * radius_pixels};
+inline int constexpr brightness_distance_shift{5};
+inline int constexpr grey_centre_colour{22};
+} // namespace radar_layout
+
 struct radar_view_state {
   world_position player;
   std::uint16_t heading;

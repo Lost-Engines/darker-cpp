@@ -75,16 +75,16 @@ class city_renderer {
 private:
   std::vector<std::uint16_t> candidates;
   std::vector<city_draw_item> items;
-  std::array<uint8_t,128*128> tunnel_visibility{};
+  std::array<uint8_t,game::city_map_cell_count> tunnel_visibility{};
   model_colours retained_colours{};
 
 public:
   std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
-    std::span<game::city_cell const, 128 * 128> cells, city_view view, std::uint8_t damage_mask,
+    std::span<game::city_cell const, game::city_map_cell_count> cells, city_view view, std::uint8_t damage_mask,
     distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {}, particle_scene const *particles = nullptr);
 };
 
-void collect_city_cells(std::span<game::city_cell const, 128 * 128> cells, std::uint8_t column, std::uint8_t row,
+void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> cells, std::uint8_t column, std::uint8_t row,
   camera_angles angles, unsigned int radius, std::vector<std::uint16_t> &output);
 
 } // namespace darker::graphics

@@ -1,5 +1,6 @@
 #include "game/actor_update.h"
 #include <algorithm>
+#include "game/city_map.h"
 
 namespace darker::game {
 
@@ -26,7 +27,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   } else {
     auto const column{static_cast<uint8_t>(actor.selected_target)};
     auto const row{static_cast<uint8_t>(actor.selected_target >> 8)};
-    auto const type{column < 128 && row < 128 ? cells[row * 128 + column].type : 0};
+    auto const type{column < city_map_size.column && row < city_map_size.row ? cells[row * city_map_size.column + column].type : 0};
     resources::city_type descriptor{
       .collision_marker{255}
     };

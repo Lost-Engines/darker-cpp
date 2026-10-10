@@ -16,7 +16,7 @@ int signed_word(std::uint16_t const value) noexcept {
 
 } // namespace
 
-city_collision_result sweep_city(resources::geometry_bank const &bank, std::span<city_cell const, 128 * 128> const cells,
+city_collision_result sweep_city(resources::geometry_bank const &bank, std::span<city_cell const, city_map_cell_count> const cells,
   std::uint8_t const damage_mask, maths::world_position const &start, maths::world_position &end,
   std::uint16_t const expansion, std::int16_t const terrain_height) {
   /// 6527 clips a below-ground endpoint, walks map cells and retains the final primitive hit within the first colliding cell
@@ -35,7 +35,7 @@ city_collision_result sweep_city(resources::geometry_bank const &bank, std::span
   previous[2] = static_cast<std::uint16_t>(old_height >> 2);
   clipped.height = static_cast<std::uint16_t>(height >> 2);
   for(auto const cell : swept_collision_cells(start.column, start.row, clipped.column, clipped.row)) {
-    auto const object{cells[cell.row * 128 + cell.column]};
+    auto const object{cells[cell.row * city_map_size.column + cell.column]};
     if(object.type == 0) continue;
     auto const model{bank.city_model_offset(object.type, object.state, damage_mask)};
     auto const &descriptor{bank.city_types()[object.type - 1]};
