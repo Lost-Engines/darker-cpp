@@ -19,11 +19,22 @@ find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 include(cmake/dependencies.cmake)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT darker_ipo_supported LANGUAGES CXX)
+option(DARKER_IPO "Enable supported link-time optimisation in optimised builds" ${darker_ipo_supported})
+
 function(configure_first_party target)
   target_compile_features(${target} PUBLIC cxx_std_23)
   target_include_directories(${target} PUBLIC "${PROJECT_SOURCE_DIR}")
   target_link_libraries(${target} PUBLIC Boost::headers)
   set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
+  if(DARKER_IPO AND darker_ipo_supported)
+    set_target_properties(${target} PROPERTIES
+      INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
+      INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE
+      INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE
+    )
+  endif()
   target_compile_options(${target} PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall;-Wextra;-Wpedantic;-Wconversion>
   )

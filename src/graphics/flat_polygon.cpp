@@ -29,7 +29,7 @@ size_t clip(std::span<screen_vertex const> const input, polygon_buffer &output, 
   }};
   for(size_t i{0}; i < input.size(); ++i) {
     auto const a{input[i]};
-    auto const b{input[(i + 1) % input.size()]};
+    auto const b{input[i + 1 == input.size() ? 0 : i + 1]};
     bool const a_inside{inside(a)};
     bool const b_inside{inside(b)};
     if(a_inside) output.at(count++) = a;
@@ -63,7 +63,8 @@ void start_edge(edge_walker &edge, std::span<screen_vertex const> const points, 
   auto a{points[edge.index]};
   screen_vertex b{};
   do {
-    edge.index = edge.direction > 0 ? (edge.index + 1) % points.size() : (edge.index + points.size() - 1) % points.size();
+    if(edge.direction > 0) edge.index = edge.index + 1 == points.size() ? 0 : edge.index + 1;
+    else edge.index = edge.index == 0 ? points.size() - 1 : edge.index - 1;
     b = points[edge.index];
     if(b.y > y) break;
     a = b;
@@ -138,8 +139,8 @@ void draw_flat_polygon(framework::render::indexed_surface target, std::span<scre
   if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
   if(top->y == lowest->y) return; // no scanlines, including subpixel distant faces
   auto const index{static_cast<size_t>(top - vertices.begin())};
-  auto const next{vertices[(index + 1) % vertices.size()]};
-  auto const previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
+  auto const next{vertices[index + 1 == vertices.size() ? 0 : index + 1]};
+  auto const previous{vertices[index == 0 ? vertices.size() - 1 : index - 1]};
   if(back_facing(*top, next, previous)) return;
 
   // Interior polygons need neither clipping nor temporary copies. Distant faces

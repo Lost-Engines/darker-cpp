@@ -26,7 +26,7 @@ size_t clip(std::span<shaded_vertex const> const input, polygon_buffer &output, 
     return maximum ? coordinate(point) <= boundary : coordinate(point) >= boundary;
   }};
   for(size_t i{0}; i < input.size(); ++i) {
-    auto const &a{input[i]}, &b{input[(i + 1) % input.size()]};
+    auto const &a{input[i]}, &b{input[i + 1 == input.size() ? 0 : i + 1]};
     bool const a_inside{inside(a)}, b_inside{inside(b)};
     if(a_inside) output.at(count++) = a;
     if(a_inside == b_inside) continue;
@@ -65,7 +65,8 @@ void start_edge(edge_walker &edge, std::span<shaded_vertex const> const points, 
   auto a{points[edge.index]};
   shaded_vertex b{};
   do {
-    edge.index = edge.direction > 0 ? (edge.index + 1) % points.size() : (edge.index + points.size() - 1) % points.size();
+    if(edge.direction > 0) edge.index = edge.index + 1 == points.size() ? 0 : edge.index + 1;
+    else edge.index = edge.index == 0 ? points.size() - 1 : edge.index - 1;
     b = points[edge.index];
     if(b.position.y > y) break;
     a = b;
@@ -169,7 +170,7 @@ void draw_gouraud_polygon(framework::render::indexed_surface target,
   if(rightmost->position.x < 0 || lowest->position.y < 0 || leftmost->position.x > right || top->position.y >= bottom) return;
   if(top->position.y == lowest->position.y) return; // no scanlines, including subpixel distant faces
   auto const index{static_cast<size_t>(top - vertices.begin())};
-  auto const &next{vertices[(index + 1) % vertices.size()]}, &previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
+  auto const &next{vertices[index + 1 == vertices.size() ? 0 : index + 1]}, &previous{vertices[index == 0 ? vertices.size() - 1 : index - 1]};
   if(back_facing(top->position, next.position, previous.position)) return;
   // Interior polygons need neither clipping nor temporary copies. Distant faces
   // often occupy only a few pixels, so buffer housekeeping otherwise dominates.

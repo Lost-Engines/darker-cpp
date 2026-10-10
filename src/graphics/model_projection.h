@@ -32,8 +32,11 @@ struct projected_vertex {
 class model_projection {
 private:
   struct contribution {
-    projection_term horizontal{};
-    projection_term depth{};
+    // Cache complete fixed-point contributions once per bytecode update.
+    // Unsigned addition/negation preserves wrapping; transform retains the
+    // renderer's coordinate width when it produces the final camera vertex.
+    render_geometry::accumulator_bits horizontal{0};
+    render_geometry::accumulator_bits depth{0};
     render_geometry::coordinate_bits vertical{0};
   };
 

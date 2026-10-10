@@ -175,3 +175,16 @@ Angles similarly have more than one representation. A native angle word spans
 whereas `view_angle_phase` adds 15 and wraps the word before truncating. Neither
 is a general floating-point angle conversion. The independently encoded
 2048-step direction table retains its own arithmetic.
+
+## Software rendering optimisation
+
+The sky renderer fills constant-colour spans between the original projected band
+boundaries. Model projection stores packed fixed-point contributions when a
+bytecode instruction updates an axis, avoiding repeated reconstruction for every
+emitted vertex. Polygon edge traversal wraps indices with endpoint checks rather
+than division. These paths retain native rounding, palette indices and draw order.
+
+Optimised builds enable first-party link-time optimisation when CMake confirms
+compiler support. Debug builds retain ordinary separate compilation; configure
+with `-DDARKER_IPO=OFF` to disable link-time optimisation for comparison. No
+fast-maths options or host-specific instruction-set requirements are introduced.

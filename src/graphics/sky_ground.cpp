@@ -51,10 +51,22 @@ void draw_sky_ground(framework::render::indexed_surface target, camera_angles co
       std::fill_n(target.pixels.begin() + y * target.stride, target.width, outer_colour);
       continue;
     }
-    for(int x{0}; x < target.width; ++x) {
-      int const coordinate{sine == 0 ? row : x + (((row - first_row) * slope + 255) >> 8)};
-      auto const band{static_cast<size_t>(std::upper_bound(boundaries.begin(), boundaries.end(), coordinate) - boundaries.begin())};
-      target.pixels[y * target.stride + x] = colours[reverse ? 16 - band : band];
+    // Along a scanline the band coordinate increases by exactly one per pixel.
+    // Find the first band once, then fill up to each boundary instead of doing
+    // a binary search for every pixel. A level horizon has one colour per row.
+    int const coordinate{sine == 0 ? row : ((row - first_row) * slope + 255) >> 8};
+    auto band{static_cast<unsigned int>(std::upper_bound(boundaries.begin(), boundaries.end(), coordinate) - boundaries.begin())};
+    auto pixels{target.row(y)};
+    if(sine == 0) {
+      std::ranges::fill(pixels, colours[reverse ? 16 - band : band]);
+      continue;
+    }
+    int x{0};
+    while(x < target.width) {
+      int const end{band == boundaries.size() ? target.width : std::min(target.width, boundaries[band] - coordinate)};
+      std::fill(pixels.begin() + x, pixels.begin() + end, colours[reverse ? 16 - band : band]);
+      x = end;
+      ++band;
     }
   }
 }

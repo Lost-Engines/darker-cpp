@@ -13,12 +13,6 @@ projection_term product(int16_t const value, int16_t const coefficient) noexcept
   };
 }
 
-void negate(projection_term &term) noexcept {
-  /// Negate the cached 24-bit contribution rather than recomputing an unrounded product
-  term.whole = static_cast<render_geometry::coordinate_bits>(-term.whole - (term.fraction != 0 ? 1 : 0));
-  term.fraction = static_cast<render_geometry::fraction>(-term.fraction);
-}
-
 render_geometry::accumulator_bits bits(projection_term const term) noexcept {
   /// Join the original coordinate word and fractional byte
   return static_cast<render_geometry::accumulator_bits>(term.whole) * render_geometry::fraction_scale + term.fraction;
@@ -34,8 +28,8 @@ void model_projection::set_component(size_t const axis, int16_t const value) {
   /// Replace one transformed component, retaining the native shared A/B vertical fraction
   auto &cached{contributions.at(axis)};
   auto const coefficients{parameters.axes.at(axis)};
-  cached.horizontal = product(value, coefficients.horizontal);
-  cached.depth = product(value, coefficients.depth);
+  cached.horizontal = bits(product(value, coefficients.horizontal));
+  cached.depth = bits(product(value, coefficients.depth));
   auto const vertical{product(value, coefficients.vertical)};
   cached.vertical = vertical.whole;
   (axis == 2 ? vertical_c_fraction : vertical_ab_fraction) = vertical.fraction;
@@ -50,8 +44,8 @@ void model_projection::zero_component(size_t const axis) {
 void model_projection::negate_component(size_t const axis) {
   /// FF59/FF82/FFB0 retain the rounding already present in the cached products
   auto &cached{contributions.at(axis)};
-  negate(cached.horizontal);
-  negate(cached.depth);
+  cached.horizontal = -cached.horizontal;
+  cached.depth = -cached.depth;
   auto &fraction{axis == 2 ? vertical_c_fraction : vertical_ab_fraction};
   cached.vertical = static_cast<render_geometry::coordinate_bits>(-cached.vertical - (fraction != 0 ? 1 : 0));
   fraction = static_cast<render_geometry::fraction>(-fraction);
@@ -63,8 +57,8 @@ camera_vertex model_projection::transform() const noexcept {
   auto depth{bits(parameters.depth)};
   auto vertical{bits(parameters.vertical) + vertical_ab_fraction + vertical_c_fraction};
   for(auto const &cached : contributions) {
-    horizontal += bits(cached.horizontal);
-    depth += bits(cached.depth);
+    horizontal += cached.horizontal;
+    depth += cached.depth;
     vertical += static_cast<render_geometry::accumulator_bits>(cached.vertical) * render_geometry::fraction_scale;
   }
   return {
