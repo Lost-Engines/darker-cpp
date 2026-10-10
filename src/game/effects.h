@@ -13,7 +13,7 @@ namespace darker::game {
 
 struct emitter_definition {
   uint16_t delay{0};
-  vector3<int16_t> offset{};
+  vec3<int16_t> offset{};
   uint16_t radius{0};
   uint16_t angle{0};
   uint16_t sampling{0};

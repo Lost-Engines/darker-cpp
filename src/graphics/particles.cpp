@@ -9,13 +9,13 @@ namespace darker::graphics {
 std::vector<particle_point> project_emitter(game::particle_emitter const &emitter, model_placement const centre,
   camera_basis const &basis, screen_vertex const &origin) {
   /// 689F projects each ring sample and walks both arcs from the farthest accepted point towards the nearest
-  vector3<int> const offsets{
+  vec3<int> const offsets{
     std::bit_cast<int16_t>(centre.horizontal.whole) * 256 + centre.horizontal.fraction,
     std::bit_cast<int16_t>(centre.vertical.whole) * 256 + centre.vertical.fraction,
     std::bit_cast<int16_t>(centre.depth.whole) * 256 + centre.depth.fraction,
   };
   std::array<int16_t projection_axis::*, 3> const members{&projection_axis::horizontal, &projection_axis::vertical, &projection_axis::depth};
-  std::array<vector2<int>, 3> coefficients{};
+  std::array<vec2<int>, 3> coefficients{};
   for(unsigned int i{0}; i < 3; ++i) {
     coefficients[i] = {((basis[1].*members[i] * std::bit_cast<int16_t>(emitter.radius)) >> 16) >> 2,
       ((basis[0].*members[i] * std::bit_cast<int16_t>(emitter.radius)) >> 16) >> 2};
@@ -28,7 +28,7 @@ std::vector<particle_point> project_emitter(game::particle_emitter const &emitte
     index &= 2046;
     auto const sine{maths::original_sine[index >> 1]};
     auto const cosine{maths::original_sine[((index >> 1) + 256) % 1024]};
-    vector3<int> v{};
+    vec3<int> v{};
     for(unsigned int i{0}; i < 3; ++i) v[i] = wrap24(offsets[i] + ((coefficients[i][0] * sine) >> 8) + ((coefficients[i][1] * cosine) >> 8));
     auto const depth{v[2] >> 8};
     if(depth >= 32) {

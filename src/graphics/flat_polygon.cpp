@@ -61,7 +61,7 @@ void start_edge(edge_walker &edge, std::span<screen_vertex const> const points, 
     if(b.y > y) break;
     a = b;
   } while(true);
-  auto const delta{vector2<int>{b} - vector2<int>{a}};
+  auto const delta{vec2<int>{b} - vec2<int>{a}};
   int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
   edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
   edge.x = a.x + (right ? 1 : 0);

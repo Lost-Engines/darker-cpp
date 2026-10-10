@@ -13,8 +13,8 @@ void copy_rectangle(std::span<std::uint8_t const> const source, std::span<std::u
     throw std::invalid_argument{"blit surfaces must contain complete 320-pixel rows, at most 240"};
   }
   if(width < 0 || height < 0) throw std::invalid_argument{"negative blit dimensions"};
-  vector2<std::int64_t> const source_offset{source_origin};
-  vector2<std::int64_t> const target_offset{destination};
+  vec2<std::int64_t> const source_offset{source_origin};
+  vec2<std::int64_t> const target_offset{destination};
   auto const left{std::max({std::int64_t{0}, -source_offset.x, -target_offset.x})};
   auto const top{std::max({std::int64_t{0}, -source_offset.y, -target_offset.y})};
   auto const right{std::min({static_cast<std::int64_t>(width), 320 - source_offset.x, 320 - target_offset.x})};

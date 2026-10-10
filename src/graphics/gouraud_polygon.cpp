@@ -64,7 +64,7 @@ void start_edge(edge_walker &edge, std::span<shaded_vertex const> const points, 
     if(b.y > y) break;
     a = b;
   } while(true);
-  auto const delta{vector2<int>{b.x, b.y} - vector2<int>{a.x, a.y}};
+  auto const delta{vec2<int>{b.x, b.y} - vec2<int>{a.x, a.y}};
   int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
   edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
   edge.x = a.x + (right ? 1 : 0);

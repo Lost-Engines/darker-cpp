@@ -6,7 +6,7 @@
 
 namespace darker::graphics {
 
-using pixel_position = vector2<int>;
+using pixel_position = vec2<int>;
 
 struct mask_row {
   std::uint8_t skip;

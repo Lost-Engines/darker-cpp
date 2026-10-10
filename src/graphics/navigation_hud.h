@@ -9,7 +9,7 @@
 
 namespace darker::graphics {
 
-using world_position = vector2<std::uint16_t>;
+using world_position = vec2<std::uint16_t>;
 
 enum class radar_group { a, b, underground };
 

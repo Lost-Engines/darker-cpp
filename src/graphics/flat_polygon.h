@@ -7,7 +7,7 @@
 
 namespace darker::graphics {
 
-using screen_vertex = vector2<std::int16_t>;
+using screen_vertex = vec2<std::int16_t>;
 
 bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_vertex const &previous) noexcept;
 

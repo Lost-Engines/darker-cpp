@@ -43,7 +43,7 @@ camera_basis orient_model(camera_basis const &camera, camera_angles const angles
   auto const rs{maths::original_sine[roll]}, rc{maths::original_sine[(roll + 256) % 1024]};
   auto const hsrs{multiply(hs, rs)}, hcrs{multiply(hc, rs)};
   auto const hsrc{multiply(hs, rc)}, hcrc{multiply(hc, rc)};
-  matrix3<std::int16_t> const axes{
+  mat3<std::int16_t> const axes{
     multiply(hc, pc), multiply(hs, pc), ps,
     word(multiply(ps, hcrs) - hsrc), word(hcrc + multiply(ps, hsrs)), word(-multiply(rs, pc)),
     word(-word(multiply(ps, hcrc) + hsrs)), word(hcrs - multiply(ps, hsrc)), multiply(rc, pc),

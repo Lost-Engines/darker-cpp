@@ -7,9 +7,9 @@
 namespace framework::render {
 
 // RGBA byte layout consumed directly by the framebuffer upload; pixels default to opaque.
-struct rgba_pixel : vector4<std::uint8_t> {
+struct rgba_pixel : vec4<std::uint8_t> {
   constexpr rgba_pixel(std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0, std::uint8_t alpha = 255) noexcept
-    : vector4<std::uint8_t>{red, green, blue, alpha} {}
+    : vec4<std::uint8_t>{red, green, blue, alpha} {}
   explicit constexpr rgba_pixel(rgba_pixel const &) = default;
   constexpr rgba_pixel(rgba_pixel &&) = default;
   constexpr rgba_pixel &operator=(rgba_pixel const &) = default;
