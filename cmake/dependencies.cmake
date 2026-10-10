@@ -70,5 +70,5 @@ FetchContent_MakeAvailable(unicorn dosbox_emu8k)
 
 # Native audio drivers must remain real-time when the game itself is a Debug build.
 foreach(backend IN ITEMS unicorn unicorn-common x86_64-softmmu)
-  target_compile_options(${backend} PRIVATE $<$<C_COMPILER_ID:GNU,Clang>:-O2>)
+  target_compile_options(${backend} PRIVATE $<$<C_COMPILER_ID:GNU,Clang,AppleClang>:-O2>)
 endforeach()

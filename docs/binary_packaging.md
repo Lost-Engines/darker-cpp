@@ -1,53 +1,101 @@
-# Building and staging a Linux binary
+# Builds, packages and automatic releases
 
-The installation contains one executable, documentation with its small validation
-reports/launch chart, and the
-third-party notices. It contains no original game packs, pilot saves, extracted
-assets or verification executables. It does not add a project licence or claim
-ownership of the original game.
+The workflow is [`.github/workflows/build.yml`](../.github/workflows/build.yml).
+It builds and tests this matrix once, then publishes those same packages:
 
-From the repository root:
+| Platform | Runner | Compiler | Configurations |
+| --- | --- | --- | --- |
+| Linux x86-64 | Ubuntu 24.04 | GCC 14 | Debug, Release |
+| Windows x86-64 | Windows 2025 / MSYS2 UCRT64 | GCC | Debug, Release |
+| macOS Apple Silicon | macOS 15 | Apple Clang | Debug, Release |
+
+Linux builds Boost 1.90.0 Program_options from a checksum-verified archive;
+macOS and Windows use their package managers' Boost. Third-party engine
+libraries use the pinned archives in `cmake/dependencies.cmake`.
+
+## Triggers and cost control
+
+Pushes to `master`, pull requests and manual dispatch can run CI. Automatic
+runs are filtered to `src/`, `tests/`, `cmake/`, `CMakeLists.txt`,
+`CMakePresets.json`, `third_party/`, `scripts/`, `tools/` and workflow files.
+README and documentation-only changes do not start builds. Pull requests run
+once through the pull-request event, rather than also building every branch push.
+
+Only a push to `master` that changes `src/`, `CMakeLists.txt` or `cmake/`
+(excluding `cmake/package.cmake`) is eligible for an automatic release.
+These include compiler and linked-dependency changes that alter the executable.
+Tests, docs, workflow files, packaging scripts and asset-fetch helper updates
+alone do not produce releases. Manual dispatch checks a build without publishing.
+The release comparison covers the complete pushed commit range, not just its
+last commit, including deletions.
+
+All six jobs must succeed before publishing. Compiler caches are limited to
+500 MB per platform/configuration, and Linux's Boost installation is cached.
+Packages and test reports are retained as workflow artifacts for seven days.
+Publication reuses these artifacts; there is no second release compilation.
+Obsolete pull-request runs are cancelled; master pushes have distinct groups.
+
+Each release is tagged `release-<full commit SHA>`. Packages are uploaded to a
+draft before it is published, with a `SHA256SUMS` file. Rerunning the workflow
+for the same commit updates the same release rather than creating another tag.
+After publishing all six replacement packages, the job deletes older published
+releases and their assets. Drafts and lightweight Git tags are retained.
+Publication is serialised, and an older commit finishing late cannot replace a
+newer published descendant. A failed build or upload leaves the existing release
+available.
+
+Release publication alone receives `contents: write`; build jobs are read-only.
+GitHub's repository settings must permit its workflow token to create releases.
+
+## Package contents and use
+
+Each archive contains a `darker/` directory with:
+
+- `bin/darker` (or `bin/darker.exe`), plus required non-system Windows DLLs;
+- the optional Bash asset-fetch helper and its URL/checksum lists;
+- documentation, dependency notices and source/build references;
+- `BUILD.txt`, recording the commit, platform and configuration.
+
+No retail packs, synthesiser ROMs, saves, reference executable or test binaries
+are included. CI runs asset-independent tests; original-pack and ROM-dependent
+checks remain available locally when their CMake paths are supplied.
+
+Unpack the archive and launch `bin/darker --data-dir /path/to/darker`, or run it
+with the game installation as the current directory. Saves are written beside
+the packs, interoperably with the DOS game. AWE32 music requires its separately
+supplied sample ROM; the asset helper can fetch it, or `--music=soundblaster_fm`
+uses the game's own FM data. Windows users can supply a local installation;
+the fetch helper currently requires Bash, curl and sha256sum (for example MSYS2).
+On macOS, sha256sum is provided by GNU coreutils.
+
+Linux packages target a modern Ubuntu 24.04-compatible runtime and require the
+system windowing and OpenGL drivers. Boost and GCC's C++ runtimes are linked
+statically in CI. Windows packages bundle non-system DLLs discovered at install
+time. macOS packages target macOS 15 or newer on Apple Silicon, with static
+Boost and the system C++ runtime/frameworks. They are command-line archives,
+not signed/notarised application bundles or installers.
+
+Debug packages include `--screenshot` and `--seconds`. Release packages omit
+both. `--level` remains available and suppresses save writes in either build.
+
+## Local build and staging
 
 ```sh
 cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --parallel
 ctest --test-dir build-release --output-on-failure
-cmake --install build-release --prefix "$PWD/build-release/stage" --component Runtime
+cmake --install build-release --prefix "$PWD/build-release/stage/darker" --component Runtime
+cmake -DPACKAGE_ROOT="$PWD/build-release/stage" \
+  -DOUTPUT_DIR="$PWD/build-release/dist" -DPLATFORM=linux-x86_64 \
+  -DCONFIGURATION=Release -DCOMMIT="$(git rev-parse HEAD)" -P cmake/package.cmake
 ```
 
-To include original-pack integration checks, supply `DARKER_INSTALL_DIR` and
-`DARKER_REFERENCE_DIR` at configuration time, pointing to the retail install
-and independently decoded resource directory. These are verification inputs,
-not installed resources. Use a clean staging directory for every package.
+Use a clean staging directory. Local builds use the libraries/toolchain selected
+at configuration time, so their runtime requirements can differ from CI.
+For example, inspect Linux dependencies with `ldd stage/darker/bin/darker`.
+Configure `DARKER_INSTALL_DIR` and `DARKER_REFERENCE_DIR` for original-pack
+integration tests; optional sound-device verification has separate asset paths.
+A local install/package operation never publishes a release.
 
-Run the staged `bin/darker` from a directory containing `DARKER.00` through
-`DARKER.04`, or supply `--data-dir`. Saves are written beside the selected game packs for interoperability with DOS Darker.
-The application still accepts all documented debugging switches; `--level`
-suppresses save writes.
-
-## Runtime dependencies
-
-This is a distribution-specific binary, not a self-contained portable bundle.
-The build links Boost.Program_options, the C/C++ runtimes and platform OpenGL
-libraries. GLFW and miniaudio also load window/audio system libraries at runtime.
-Check `ldd build-release/stage/bin/darker` and test the staged executable on the
-intended modern Linux environment. The current workstation build needs
-Boost.Program_options 1.90.0 and exports a requirement for `GLIBCXX_3.4.36`.
-Older-distribution compatibility is not a project target. These are local
-build and staging instructions; release automation and CI are separate work.
-
-The selected OpenGL path requires a suitable graphics driver. Test both the
-ordinary hardware path and a software-rendered window when available. Use a
-separate working directory for any menu/save smoke test.
-
-## Dependency source references
-
-The installed `third_party/source-references/dependencies.cmake` records the exact
-GitHub archives and SHA-256 hashes for GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, DOSBox DBOPL/GF1, DOSBox-X EMU8000 and Unicorn.
-`dbopl.cmake`, `gf1.cmake`, `emu8k.cmake` and compatibility headers describe the adapter extraction
-used at build time. Their original licence texts are installed alongside them;
-Boost's notice is included separately. Catch2 is a test-only dependency and is
-not linked into the installed executable.
-
-Maintainers handle release publication and licensing decisions separately.
-Staging a local installation does not publish a release or create a Git tag.
+Packaging preserves upstream dependency notices and does not introduce a
+first-party licence or ownership claim.

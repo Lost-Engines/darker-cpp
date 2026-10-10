@@ -55,8 +55,9 @@ its independent high-score erase action. Original Sound Blaster
 `--language=english|french|german`, including presentations, counted flight messages
 and supplementary scripts. Menu text retains the executable’s original glyph
 bytes and authored positions; `tools/generate_menu_text.py` reproduces its three
-language tables. Remaining limits include
-some input-policy details and exact presentation tick/display ordering.
+language tables. Native fixtures and integrated playback checks are described
+below; they cover specific timings and input policies rather than every possible
+interactive sequence.
 
 ## Evidence and verification
 

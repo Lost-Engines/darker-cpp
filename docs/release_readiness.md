@@ -1,99 +1,82 @@
-# Alpha release readiness
+# Release status
 
-The target is a complete, faithful native Linux x86-64 reconstruction using
-the original retail packs. The browser engine and optional rendering extensions
-remain separate work. This page tracks current implementation and verification
-work; it does not define a release procedure or CI workflow.
+The reconstruction implements the original campaign through stage 116, both
+cities, tunnels and Nightmare, using the original retail packs. Optional
+rendering extensions and the later browser engine are separate projects.
 
 ## Implemented scope
 
-- Campaign entry and progression through stage 116, both surface cities, tunnels
-  and Nightmare; original-format pilot saves and retained world state.
-- Caero and both Skimmas, weapons, enemies, scripted ground attacks, vehicles,
-  Wrecker door demolition, docking, tunnel handoffs and supply pads.
-- Original software rendering, cockpits, menus, briefings, films and fonts,
-  with English, French and German text selected using `--language`.
-- Five selectable music arrangements (native FM or SoundFont renditions),
-  procedural effects, nine-voice allocation, spatial sound
-  and stereo. DOSBox 0.74-3 DBOPL is the default; `--opl=nuked` retains the
-  previous synthesis for comparison.
+- Caero and both Skimmas; weapons, enemies, scripted ground attacks, vehicles,
+  Wrecker demolition, docking, tunnel handoffs and supply pads.
+- Original software rendering, cockpits, menus, presentations and effects.
+- English, French and German menus, credits, briefings and radio messages.
+- Original-format saves, campaign progression and retained world state.
+- Sound Blaster FM, AWE32/EMU8000, Gravis/GF1, LAPC-I/Munt, SC-55 and SCC-1A
+  hardware paths, plus General MIDI SoundFont playback. AWE32 is the default
+  music selection. Procedural effects use DOSBox DBOPL by default; Nuked OPL
+  remains selectable. See [music variants](music_variants.md).
 
-See [campaign status](campaign_status.md) for evidence. Many checks position
-the craft and aim shots deliberately; they do not constitute a natural full
-playthrough. The old subsystem checkpoint notes describe their original test
-boundaries, not an authoritative list of currently missing game features.
+There is no currently identified missing gameplay subsystem. Earlier subsystem
+notes describe checkpoints in development, not a current list of absent
+features. [Campaign status](campaign_status.md) records the evidence and scope
+of individual comparisons.
 
-## Remaining implementation
+## Recorded exceptions and deferred testing
 
-- All five arrangements are selectable. Sound Blaster uses native FM patches;
-  the other four currently use SoundFont synthesis. Exact SCC-1, LAPC-I, GUS and
-  AWE32 synthesis remains separate work, including LAPC-I custom timbre uploads.
-  See [music variants](music_variants.md) for the implemented boundary.
+The German level 76 briefing contains an undefined glyph. Retail displays
+flickering corruption; the reconstruction substitutes `?` where the lookup
+would leave the font resource. A proper Ö is deferred to the expanded version.
+Mission 80's convoy passing through buildings is confirmed original behaviour
+and is retained.
 
-## Verification in progress
+Save/load playtesting has been successful. Natural endgame and Nightmare
+completion comparisons are deferred: neither has yet been completed in the
+retail reference during this round of testing. Controlled ending and Nightmare
+checks are separate evidence, not a claim that those playthroughs happened.
+These comparisons can resume later without blocking CI setup.
 
-- F1–F7/backtick, Tab and missile views are connected; combinations of object,
-  missile and temporary look views still benefit from retail comparison.
-- Transient sound-record reuse and retained-voice retriggering are checked.
-  Exhaustive event coverage and integrated register timing remain open; a
-  DOSBox-matching chip does not prove an identical full mixer.
-- Controlled fixtures cover selected runtime patches, update ordering and
-  mission exits; indirect writes and every death/load/exit combination are not
-  exhaustively verified. Endgame playtesting is underway; record its results
-  here as testing progresses.
-- The original fixed-width coordinate and painter-order behaviour is retained.
-  Mission 80's convoy passing through buildings is confirmed retail behaviour.
+`--level` is a development convenience with documented cumulative unlock/state
+behaviour and suppressed save writes, not a limitation of normal progression.
+Requiring separately supplied original game data is inherent to this engine
+reconstruction.
 
-## Build and package checks
+## Automated builds and releases
 
-1. Run the complete unit/native-reference and original-pack integration suite
-   in the proposed release build. Keep the results with the release notes.
-2. Smoke-test the actual executable through ordinary menus and a Caero launch,
-   tunnel entry, Skimma entry and Nightmare, using a separate save directory.
-3. Check the default DBOPL audio through the release build. It matches the
-   preferred playback references; physical-hardware accuracy remains unverified.
-   Do not compensate for chip differences by editing game patches.
-4. Preserve dependency notices and exact source/build references. Project
-   licensing and ownership decisions remain with the project maintainers; this
-   preparation does not add a first-party licence or ownership claim.
-5. Record the supported modern Linux runtime dependencies and test the packaged
-   executable in that environment. Older-distribution compatibility is not a target.
-6. Package only the engine and its required notices/instructions, with no retail
-   packs, reference executable, analysis captures or personal saves. Check the
-   archive contents and test from an unpacked copy before publishing.
+[Build and release CI](../.github/workflows/build.yml) builds Debug and Release
+for Linux x86-64, Windows x86-64 and macOS arm64. Every job runs the available
+asset-independent CTest suite and checks its installed executable's `--help`.
+CI does not download game packs or synthesiser ROMs to run private-asset tests.
 
-No public release, tag or deployment is produced by these preparation notes.
+A code-changing push to `master` publishes the six tested packages after every
+job succeeds. Documentation-only pushes do not run the workflow. Workflow,
+test and helper-script changes can exercise the builds but do not alone publish
+a release. See [binary packaging](binary_packaging.md) for exact filters,
+package contents, prerequisites and reruns.
 
-## Useful focused checks
+The workflows define the checks; their presence does not itself establish that
+a platform passed. Use the run attached to the release commit as the build and
+test record. No endgame playtest result is inferred from a successful CI run.
+
+## Existing validation evidence
+
+On 9 October 2026, the optimised Linux x86-64 build passed 233 CTest checks,
+including original-pack integration (about 27 seconds for that run).
+Earlier staged-binary checks covered Caero, underground, upgraded Skimma,
+final-battle entry and Nightmare launch/death, with DBOPL PCM output and isolated
+save data. F7/backtick and return-to-cockpit were exercised after launch.
+
+The native runtime-patch inventory covers 78 direct writes, seven world-profile
+writes in each of three worlds, and six return decisions. Installation contents
+were checked to exclude game packs, saves and verification executables.
+Following the German glyph fix, all 116 campaign briefings were rendered and
+advanced in all three languages; native text comparison fixtures also passed.
+
+For a local check with separately available reference assets:
 
 ```sh
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
-./build/darker --data-dir ../darker --level=80 --opl=dosbox
-./build/darker --data-dir ../darker --level=80 --opl=nuked
-./build/darker --data-dir ../darker --level=17 --no-mouse
-./build/darker --data-dir ../darker --level=105
 ```
 
-`--level` does not write pilot saves. For normal menu/save testing, launch from
-a temporary working directory with `--data-dir` pointing to the retail packs.
-
-See [binary packaging](binary_packaging.md) for the repeatable local staging procedure.
-
-## Validation completed on 9 October 2026
-
-- Optimised Linux x86-64 build: all **233 CTest checks passed**, including the
-  original-pack integration test (about 27 seconds for the full release suite).
-- Earlier windowed staged-binary checks: Caero, underground, upgraded Skimma, final-battle
-  entry and Nightmare launch/death, with DBOPL PCM output and a separate working
-  directory. F7/backtick and return-to-cockpit were also exercised after launch.
-- Native runtime-patch inventory: 78 direct writes, seven world-profile writes
-  in each of three worlds, and six return decisions checked.
-- Installation contents checked against an allowlist: one game executable,
-  documentation, its validation reports and dependency notices/source references. No game
-  packs, pilot saves or verification executables were included.
-
-Current interactive testing covers busy-combat audio, natural late-game
-objective completion and the ending, and Nightmare scoring/retry. Save/load
-playtesting has been successful; the additional automated retry checks are
-recorded in [campaign status](campaign_status.md#release-preparation-validation).
+Use a separate copy of the packs for save-writing smoke tests: saves live beside
+the selected packs, so changing only the working directory does not isolate them.

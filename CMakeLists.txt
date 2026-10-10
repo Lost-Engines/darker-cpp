@@ -11,7 +11,7 @@ function(configure_first_party target)
   target_compile_features(${target} PUBLIC cxx_std_23)
   set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
   target_compile_options(${target} PRIVATE
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall;-Wextra;-Wpedantic;-Wconversion>
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall;-Wextra;-Wpedantic;-Wconversion>
   )
 endfunction()
 

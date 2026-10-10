@@ -45,4 +45,4 @@ target_include_directories(sc55_backend SYSTEM PUBLIC
 )
 target_compile_features(sc55_backend PRIVATE cxx_std_23)
 # Real-time processor emulation must remain optimised in Debug builds too.
-target_compile_options(sc55_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang>:-O2>)
+target_compile_options(sc55_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O2>)

@@ -9,4 +9,4 @@ target_include_directories(emu8k_backend SYSTEM PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/emu8k"
   "${CMAKE_CURRENT_BINARY_DIR}/emu8k"
 )
-target_compile_options(emu8k_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang>:-O2;-Wno-write-strings;-Wno-register>)
+target_compile_options(emu8k_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O2;-Wno-write-strings;-Wno-register>)

@@ -23,4 +23,4 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp"
 add_library(gf1_backend STATIC "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp")
 target_include_directories(gf1_backend PRIVATE src)
 target_compile_features(gf1_backend PRIVATE cxx_std_23)
-target_compile_options(gf1_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang>:-O2>)
+target_compile_options(gf1_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O2>)

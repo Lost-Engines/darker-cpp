@@ -126,8 +126,8 @@ the final battle and ending. It includes both cities, all eight tunnel missions,
 Wreckers, vehicle routes, scripted attacks, weapons, hangar docking, supply pads
 and Nightmare. Explosions, smoke and damage trails use the original effects and
 FM sound layers. [Campaign status](docs/campaign_status.md) separates controlled
-verification from natural playthrough coverage; this remains a playable alpha,
-not a claim of complete retail equivalence.
+verification from natural playthrough coverage. Endgame and Nightmare completion
+comparisons are deferred; their implemented paths have controlled test coverage.
 
 The first Caero mission starts in its **HQ hangar**, with the engine enabled.
 Allow a boost cell to charge, then press **Enter** once to launch. Follow each
@@ -160,7 +160,7 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 
 - **Space / Enter:** advance briefing pages.
 - **1:** select Pinner Direct; **Space / left mouse:** fire on each press.
-- **Docking:** saves progress and opens the next supported briefing automatically.
+- **Docking:** saves progress and opens the next briefing automatically.
 - **Mouse / arrow keys:** steer; **Ctrl + arrows:** adjust control force.
 - **Enter:** Caero boost; upgraded Skimma turbo setting.
 - **Backspace:** brake.
@@ -173,7 +173,7 @@ Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
 - **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
 - **Escape:** return to the Caero run menu and release the mouse; close in Skimma development starts.
 
-The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Host-to-DOS mouse sensitivity still needs an interactive comparison. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. The Caero primary icon follows Pinner Direct selection.
+The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. The Caero primary icon follows Pinner Direct selection.
 
 The world view now draws the original 17 sky/ground colour bands, moving with pitch and bank. Halon’s distant grey building shades blend into its grey horizon; Delphi uses its own purple night palette. The original model distance-shading tables and draw radius are unchanged.
 
@@ -185,7 +185,7 @@ Debug builds provide two developer options: `--screenshot=/tmp/frame.ppm` saves 
 
 No GL calls occur in CPU drawing. The presenter and audio device retain independent lifetimes and can be replaced without changing the game logic. Retired demo rendering, source-sheet entry points and input-logging callbacks have been removed.
 
-The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) and [city/model rendering](docs/model_rendering.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records the first translated reload/state routines and remaining integration. [Caero flight](docs/caero_flight.md), [Skimma flight](docs/skimma_flight.md), [steering](docs/flight_controls.md), [clocks](docs/game_clock.md), [city collision](docs/city_collision.md) and [player integration](docs/player_flight.md) record the new runtime path and its native comparisons. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
+The [reconstruction contract](docs/reconstruction_contract.md) defines fidelity and platform boundaries. [Resource loading](docs/resource_loading.md), [indexed images](docs/indexed_images.md) and [cockpit rendering](docs/cockpit_rendering.md) and [software polygons](docs/software_polygons.md) and [city/model rendering](docs/model_rendering.md) document implementation evidence and remaining work. [Skimma weapons](docs/skimma_weapons.md) records reload/state routines and integration. [Caero flight](docs/caero_flight.md), [Skimma flight](docs/skimma_flight.md), [steering](docs/flight_controls.md), [clocks](docs/game_clock.md), [city collision](docs/city_collision.md) and [player integration](docs/player_flight.md) record the runtime path and its native comparisons. [World primitives](docs/world_primitives.md) documents object allocation/recycling, definition expansion, projectile placement and the native random sequence. House conventions are in [style-guide.md](style-guide.md).
 
 ## Verification
 
@@ -200,7 +200,7 @@ ctest --test-dir build --output-on-failure
 
 `framework_tests` and `resource_check` are test-only binaries, excluded by `BUILD_TESTING=OFF`. Unit tests require no game assets; optional resource integration checks use the original packs and previously verified extraction. Native-reference generators in `tools/` run the unpacked original executable with Unicorn. Their checked-in fixtures contain synthetic inputs and result fingerprints; original model and map bytes remain in the user's packs.
 
-The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `DARKER.SAV` beside the selected game packs using the original save format. A Caero crash leads to the original looping Kismet committal presentation; Enter can advance the crash view. The supported missions advance automatically after docking, saving city state, weapon availability and the return site. Remaining fidelity checks are tracked in [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
+The Caero front end now includes the original startup animation, title and four-page briefing, with game selection and pilot-name entry. Pilot slots persist in `DARKER.SAV` beside the selected game packs using the original save format. A Caero crash leads to the original looping Kismet committal presentation; Enter can advance the crash view. Missions advance automatically after docking, saving city state, weapon availability and the return site. Remaining fidelity checks are tracked in [campaign status](docs/campaign_status.md). See [front end](docs/front_end.md) for controls and verification.
 
 [Retail screenshot corrections](docs/visual_regressions.md) cover briefing composition, cockpit edges, indicators, radar coordinates and door interpolation. A [record/replay comparison harness](docs/comparison_harness.md) is proposed for broader visual verification.
 
@@ -224,7 +224,7 @@ Music defaults to `soundblaster_awe32`.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 
-See [campaign status and remaining work](docs/campaign_status.md) for the current playable boundary and next integration priorities.
+See [campaign status](docs/campaign_status.md) for implementation evidence and deferred verification.
 
 The default `--opl=dosbox` uses DOSBox 0.74-3's DBOPL
 synthesiser at the reference 44.1 kHz rate, converted to the host PCM rate.
@@ -232,8 +232,10 @@ synthesiser at the reference 44.1 kHz rate, converted to the host PCM rate.
 sound patches or game logic; music and effects both use the selected core.
 See [FM audio](docs/fm_audio.md) for the measured differences and verification.
 
-[Release readiness](docs/release_readiness.md) tracks the alpha boundary,
-remaining fidelity questions and distribution requirements.
+[Release status](docs/release_readiness.md) records implemented scope and deferred
+playtesting. [Build and release CI](.github/workflows/build.yml) produces Debug
+and Release packages for Linux, Windows and macOS; code-changing pushes to
+`master` publish them after all six build/test jobs pass.
 
 See [binary packaging](docs/binary_packaging.md) for a clean installation of the
 single executable, documentation and dependency notices.

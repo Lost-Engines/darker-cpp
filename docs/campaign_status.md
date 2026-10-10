@@ -1,25 +1,27 @@
-# Connected campaign and remaining work
+# Campaign implementation and verification
 
 The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and intervening films. The original packs supply cities, cockpits, actors, scripts, presentations and sound synthesis data. Controlled integration checks cover normal Caero objectives, Halon launch-site destruction and supply-pad returns, and the final battle. These checks control firing position and resources where documented; they do not establish an unassisted, retail-equivalent full playthrough. Explicit `--craft` starts remain development free-flight checkpoints.
 
 `--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
-## Next integration priorities
+## Current priorities
 
-1. **Runtime patch coverage:** continue the [setup/frame audit](runtime_patches.md), especially indirect, renderer and audio-driver writes.
-2. **Collision/update fidelity:** audit remaining weapon-ray and collision-response edge cases. Native list ordering and player/object ramming are now connected.
-3. **Remaining script integration:** audit actor/player consumers and supplementary-context ordering beyond the exercised campaign fixtures; verify retained world state across death, load and unusual mission exits.
-4. **Presentation and rendering:** remaining camera transitions and exact presentation ordering/input policies; actor lifecycle brightness and distant dots are now connected. Native menu/score layout, shaded panels, title/credits fades and Nightmare are now connected.
-5. **Audio fidelity:** integrated register timing, remaining event bindings and exhaustive camera-mode listening comparisons. Stereo placement and rendered-camera listening are connected. Native physical voice allocation, aircraft/vehicle engines, projectile callbacks and Delphi's fixed ambient sources are now connected.
-6. **Integrated validation:** sustained ordinary play, weapon/targeting edge cases and side-by-side retail comparisons. Campaign entry and controlled objective completion are established separately from this final validation.
+The gameplay systems described below are connected. Remaining work is release
+engineering and targeted investigation when testing reveals a divergence, not
+completion of a known missing subsystem. See [release status](release_readiness.md)
+and [build/release automation](binary_packaging.md).
 
-Continue native comparisons and focused interactive checks as these are connected. The standalone live-sync DOSBox comparison tool remains deferred. Resolution, view-distance/FOV extensions, converted resources and browser work remain outside this baseline reconstruction.
+Natural endgame and Nightmare completion comparisons are deferred until there
+is time to complete the retail reference. Controlled fixtures remain useful
+without being presented as natural playthrough results. The live-sync DOSBox
+comparison tool, resolution/view-distance/FOV extensions, converted assets and
+browser engine remain separate future work.
 
 ## Evidence and limits
 
 The suite includes native comparison fixtures and an optional original-pack integration test. The latter completes the first fifteen combat scripts and missions nineteen through twenty-two, twenty-five through thirty-five and thirty-eight through forty-four and forty-eight through forty-nine and fifty-two through fifty-three with controlled aim/position and beacon charging, checks objective removals and final messages, and docks. It separately checks missions sixteen, eighteen, twenty-three, thirty-seven, forty-five, forty-seven and fifty-six’s destination handoffs and docking. It does not prove a complete uncontrolled retail-equivalent campaign playthrough. Native fixtures cover the individual arithmetic, placement, activation, targeting, camera and rendering paths described in their subsystem documents.
 
-A real-window check uses the ordinary menus and Level X to traverse all fifty-nine supported briefings and flight entries, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
+An earlier real-window checkpoint used the ordinary menus and Level X to traverse the fifty-nine briefings and flight entries then supported, verifies original-format save checksums and weapon unlocks, and exercises Mimic follow/nose views and expiry. Manual retail/native playtesting remains valuable for integrated behaviour that isolated fixtures cannot establish.
 
 ## Distant moving-object visibility
 
