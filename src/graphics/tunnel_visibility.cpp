@@ -11,6 +11,8 @@ void visit_tunnel_cells(std::span<game::city_cell const,game::city_map_cell_coun
   unsigned int constexpr diagonal_reach_cells{7};
   unsigned int constexpr outer_edge_width_cells{3};
   if(column >= game::city_map_size.column || row >= game::city_map_size.row) throw std::out_of_range{"Underground camera cell exceeds its map"};
+  // addresses retain the original two-byte cell layout: 128 cells per row means a 256-byte row stride
+  // even addresses select cell types; odd neighbour offsets select state bytes, with /2 recovering the cell index
   uint16_t const centre{static_cast<uint16_t>(row*256 + column*2)};
   auto const occupied{[&](uint16_t const address){ return address / 2 < cells.size() && cells[address / 2].type != 0; }};
   auto const visible{[&](uint16_t const address){ return address / 2 < visibility.size() && (visibility[address / 2] & 1) != 0; }};
@@ -42,6 +44,8 @@ void visit_tunnel_cells(std::span<game::city_cell const,game::city_map_cell_coun
     visibility[address / 2] = 0;
     if(diagonal ? ((a || b) && c) : ((a && b) || c)) accept(address);
   }};
+  // 258 steps one row and one column; 512 crosses two rows, while distance*4 crosses twice the column distance
+  // masking with 0xff00 preserves the row; the byte cast wraps column movement without carrying into that row
   auto const diagonals{[&](unsigned int const distance){
     auto address{offset(centre,static_cast<int>(distance*258))};
     examine(address,-255,-1,-257,true);

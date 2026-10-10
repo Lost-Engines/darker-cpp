@@ -79,6 +79,7 @@ bool within_object_window(city_view const &view, maths::world_position const &po
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool const underground) {
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
+  // retain two sub-word bits in projection units; subtracting from the camera adds the object's fractional displacement
   camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions.column >> 6));
   camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions.row >> 6));
   auto placement{place_model(basis, camera, {
@@ -156,11 +157,16 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
   unsigned int constexpr maximum_scan_radius_cells{32};
   if(radius < minimum_scan_radius_cells || radius > maximum_scan_radius_cells) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
   output.clear();
+  // angles wrap at 65536 units per turn; discard six bits to use the 1024-step sine-table phase
+  // +15 is the native quantisation bias, not round-to-nearest (+32); its original rationale is unknown
   auto const heading_phase{static_cast<std::uint16_t>(angles.heading + 15) >> 6};
   auto const pitch_phase{static_cast<std::uint16_t>(angles.pitch + 15) >> 6};
-  auto const quadrant{((heading_phase >> 7) - 1) & 6};
-  auto const pitch_quadrant{(pitch_phase >> 7) & 3};
-  bool const full{pitch_quadrant == 1 || pitch_quadrant == 2};
+  // 128 phase steps make a 45-degree octant; pair heading octants into four half-map scan directions
+  // 0/2/4/6 are native word-table byte offsets: decreasing columns, increasing rows, increasing columns, decreasing rows
+  auto const scan_direction_offset{((heading_phase >> 7) - 1) & 6};
+  // fold pitch modulo half a turn: octants 1/2 select steep views towards either vertical pole
+  auto const folded_pitch_octant{(pitch_phase >> 7) & 3};
+  bool const scan_full_circle{folded_pitch_octant == 1 || folded_pitch_octant == 2};
   auto const span{[&](int const y, int const left, int const right){
     auto const wrapped_row{static_cast<std::uint8_t>(y)};
     if(wrapped_row >= game::city_map_size.row) return;
@@ -172,20 +178,22 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
     }
   }};
   auto const rows{[&](int const width, int const offset){
-    if(full) {
+    if(scan_full_circle) {
       span(row + offset, column - width, column + width);
       span(row - offset, column - width, column + width);
-    } else if(quadrant == 0 || quadrant == 4) {
-      int const left{quadrant == 0 ? column - width : column};
-      int const right{quadrant == 0 ? column : column + width};
+    } else if(scan_direction_offset == 0 || scan_direction_offset == 4) {
+      int const left{scan_direction_offset == 0 ? column - width : column};
+      int const right{scan_direction_offset == 0 ? column : column + width};
       span(row - offset, left, right);
       span(row + offset, left, right);
     } else {
-      span(quadrant == 2 ? row + offset : row - offset, column - width, column + width);
+      span(scan_direction_offset == 2 ? row + offset : row - offset, column - width, column + width);
     }
   }};
   unsigned int width{0};
   unsigned int offset{radius};
+  // the circle stepper uses byte subtraction and carry/borrow, not an unbounded signed error accumulator
+  unsigned int constexpr byte_modulus{256};
   std::uint8_t error{static_cast<std::uint8_t>(radius / 2)};
   do {
     --offset;
@@ -195,7 +203,7 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
       ++width;
       sum = error + width;
       error = static_cast<std::uint8_t>(sum);
-    } while(sum < 256);
+    } while(sum < byte_modulus);
     rows(static_cast<int>(width), static_cast<int>(offset));
   } while(width < offset);
   while(offset > 0) {
@@ -208,6 +216,7 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
     } else if(offset == 0) break;
     rows(static_cast<int>(width), static_cast<int>(offset));
   }
+  // the native traversal always includes the complete centre row, even for a half-map scan
   span(row, column - static_cast<int>(width), column + static_cast<int>(width));
 }
 
@@ -216,6 +225,9 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
   distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects, particle_scene const *const particles) {
   /// Assemble the selected native visibility path before sorting world geometry, actors and particle effects
   auto const basis{make_camera_basis(view.angles)};
+  // position words hold 1/256-cell units; the extra fraction byte subdivides those units by another 256
+  // projection needs 1/1024-cell units: multiply the word by four and retain the fraction's top two bits
+  // narrowing deliberately wraps at 16 bits, matching the native camera-origin subtractors
   camera_position const camera{
     .column{static_cast<std::uint16_t>(view.column * 4 + (view.column_fraction >> 6))},
     .row{static_cast<std::uint16_t>(view.row * 4 + (view.row_fraction >> 6))},
@@ -229,11 +241,14 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     }
     return false;
   }};
+  // visibility scans address whole map cells: the high byte discards the word's eight sub-cell bits
+  auto const camera_column{static_cast<uint8_t>(view.column >> 8)};
+  auto const camera_row{static_cast<uint8_t>(view.row >> 8)};
   if(view.underground && !view.unrestricted_visibility) {
-    visit_tunnel_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),tunnel_visibility,place);
+    visit_tunnel_cells(cells,camera_column,camera_row,tunnel_visibility,place);
   } else {
     tunnel_visibility.fill(0);
-    collect_city_cells(cells,static_cast<uint8_t>(view.column >> 8),static_cast<uint8_t>(view.row >> 8),view.angles,view.radius,candidates);
+    collect_city_cells(cells,camera_column,camera_row,view.angles,view.radius,candidates);
     for(auto const index : candidates) place(index);
   }
   if(particles) {
@@ -275,7 +290,10 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       if(auto const point{project_distant_object(item.placement,view.origin,view.bottom,item.projection_residue)}) {
         auto const colour{bank.header_at(item.model_offset).point_colour};
         // 2D71 reuses the last mesh's shade table; it does not calculate distance or fade again.
-        target.pixels[static_cast<size_t>(point->y)*320+point->x] = static_cast<uint8_t>((colour & 0xe0)+retained_colours.shades.at(colour & 31));
+        unsigned int constexpr palette_ramp_mask{0xe0};                         // upper three bits select one of eight 32-colour ramps
+        unsigned int constexpr palette_shade_mask{0x1f};                        // lower five bits select the shade within that ramp
+        auto const shaded_colour{(colour & palette_ramp_mask) + retained_colours.shades.at(colour & palette_shade_mask)};
+        target.pixels[static_cast<size_t>(point->y) * target.width + point->x] = static_cast<uint8_t>(shaded_colour);
       }
       continue;
     }
