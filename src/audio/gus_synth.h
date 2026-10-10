@@ -11,7 +11,7 @@ private:
   std::unique_ptr<implementation> state;
 
 public:
-  gus_synth(std::filesystem::path const &patch_directory, unsigned int sample_rate);
+  gus_synth(std::filesystem::path const &patch_directory, unsigned int sample_rate, unsigned int ram_kib = 1024);
   ~gus_synth() override;
   void reset() noexcept override;
   void send(midi_message message) noexcept override;

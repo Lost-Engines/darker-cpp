@@ -162,6 +162,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("roland-gm-bank", boost::program_options::value<std::string>(), "load the whole Roland MTGM.MID bank before Darker custom instruments on the same device")
     ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
     ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")
+    ("gus-ram", boost::program_options::value<unsigned int>()->default_value(1024), "Gravis RAM in KiB: 256, 512, 768 or 1024")
     ("gus-dir", boost::program_options::value<std::string>(), "Gravis UltraSound directory (default: ULTRASND in game directory)")
     ("awe32-rom", boost::program_options::value<std::string>(), "AWE32 sample ROM (default: awe32.raw in game directory)")
     ("sc55-rom-dir", boost::program_options::value<std::string>(), "SC-55 v1.21 ROM directory (default: game directory)")
@@ -201,6 +202,9 @@ auto main(int const argc, char const *const argv[])->int {
   if(percussion_bank_enabled && (music_name != "roland-lapc" || percussion_fallback || arguments.contains("soundfont"))) return startup_failure("--roland-gm-percussion-bank requires --music=roland-lapc without --soundfont or --roland-gm-percussion-fallback");
   if(percussion_fallback && music_name != "roland-lapc") return startup_failure("--roland-gm-percussion-fallback requires --music=roland-lapc");
   if(arguments.contains("mt32-rom-dir") && arguments.contains("soundfont") && !percussion_fallback) return startup_failure("Choose either --mt32-rom-dir or --soundfont for LAPC-I playback");
+  auto const gus_ram{arguments["gus-ram"].as<unsigned int>()};
+  if(gus_ram < 256 || gus_ram > 1024 || gus_ram % 256) return startup_failure("--gus-ram must be 256, 512, 768 or 1024 (KiB)");
+  if(!arguments["gus-ram"].defaulted() && (music_name != "gravis" || arguments.contains("soundfont"))) return startup_failure("--gus-ram requires --music=gravis without --soundfont");
   if(arguments.contains("gus-dir") && (music_name != "gravis" || arguments.contains("soundfont"))) return startup_failure("--gus-dir requires --music=gravis without --soundfont");
   if(arguments.contains("awe32-rom") && (music_name != "soundblaster_awe32" || arguments.contains("soundfont"))) return startup_failure("--awe32-rom requires --music=soundblaster_awe32 without --soundfont");
   if(arguments.contains("sc55-rom-dir") && music_name != "roland-sc55") return startup_failure("--sc55-rom-dir requires --music=roland-sc55");
@@ -729,7 +733,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(music_variant == darker::audio::music_variant::soundblaster) audio.configure_music(archives.load({0,33}), std::move(songs));
       else if(music_variant == darker::audio::music_variant::gus && !arguments.contains("soundfont")) {
         auto const directory{arguments.contains("gus-dir") ? std::filesystem::path{arguments["gus-dir"].as<std::string>()} : data_directory / "ULTRASND"};
-        audio.configure_gus_music(directory, std::move(songs));
+        audio.configure_gus_music(directory, std::move(songs), gus_ram);
       }
       else if(music_variant == darker::audio::music_variant::awe32 && !arguments.contains("soundfont")) {
         auto const rom{arguments.contains("awe32-rom") ? std::filesystem::path{arguments["awe32-rom"].as<std::string>()} : data_directory / "awe32.raw"};

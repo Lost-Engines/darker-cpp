@@ -14,7 +14,7 @@ private:
   std::unique_ptr<gf1_detail::device_state> state;
 
 public:
-  explicit gf1_device(std::function<void(std::span<std::byte>)> dma_read);
+  explicit gf1_device(std::function<void(std::span<std::byte>)> dma_read, unsigned int ram_kib = 1024);
   ~gf1_device();
   auto read(unsigned int port, unsigned int size)->unsigned int;
   void write(unsigned int port, unsigned int size, unsigned int value);

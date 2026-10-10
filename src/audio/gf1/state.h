@@ -2,6 +2,7 @@
 struct device_state {
   GFGus registers{};
   Bit8u ram[1024 * 1024]{};
+  size_t ram_size{sizeof(ram)};
   GUSChannels *channels[32]{};
   GUSChannels *selected{};
   Bit8u adlib{};

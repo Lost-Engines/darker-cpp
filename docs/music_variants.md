@@ -302,7 +302,7 @@ an isolated DOSBox GF1 core. The default layout follows a DOS installation:
 ```
 
 `fetch-assets.sh` supplies the driver, configuration and the 85 patches used by
-its 1 MiB preload map. `--gus-dir=/path/to/ULTRASND` selects another installation;
+its four RAM-size preload maps. `--gus-dir=/path/to/ULTRASND` selects another installation;
 a flat directory containing the executable, INI and patches also works.
 Files are loaded at runtime, not included in the executable. An explicit
 `--soundfont` retains the previous GUS-arrangement comparison rendition.
@@ -341,3 +341,17 @@ waveform discontinuities and audible clicks despite rendering faster than real
 time. The adapters queue those samples in order. Gravis advances its BIOS clock
 with the same generated-sample count. The opening-arrangement regression check
 covers the discontinuities alongside the existing buffer-size checks.
+
+### Gravis RAM selection
+
+`--music=gravis --gus-ram=256` selects 256 KiB of card RAM. The other supported
+sizes are `512`, `768` and `1024`; 1024 remains the default. This changes the
+DRAM detected by the original UltraMID executable, which selects the matching
+preload column in `ULTRAMID.INI`. It does not replace the patches with a modern
+bank or change Darker's sequence. All four sizes use `ULTRAMID -c`.
+
+Darker forwards MIDI to the resident driver rather than loading instruments
+per song. Per-song loading is an UltraMID capability, but is not offered here:
+it would change the game's original approach. The fetch script supplies the
+union of patches required by the four original preload maps. All six groups
+are checked at every RAM size.

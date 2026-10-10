@@ -48,10 +48,10 @@ struct gus_synth::implementation {
   bool boot{true}, resident{}, primed{};
   std::string failure;
 
-  explicit implementation(std::filesystem::path const &path, unsigned int sample_rate)
+  explicit implementation(std::filesystem::path const &path, unsigned int sample_rate, unsigned int ram_kib)
     : chip{[this](std::span<std::byte> destination) {
         check(uc_mem_read(cpu, static_cast<uint32_t>(dma_page) * 65536 + dma_address, destination.data(), destination.size()));
-      }}, directory{path}, rate{sample_rate} {}
+      }, ram_kib}, directory{path}, rate{sample_rate} {}
 
   ~implementation() {
     if(cpu) uc_close(cpu);
@@ -292,8 +292,8 @@ struct gus_synth::implementation {
   }
 };
 
-gus_synth::gus_synth(std::filesystem::path const &patch_directory, unsigned int const sample_rate)
-  : state{std::make_unique<implementation>(patch_directory, sample_rate)} {
+gus_synth::gus_synth(std::filesystem::path const &patch_directory, unsigned int const sample_rate, unsigned int const ram_kib)
+  : state{std::make_unique<implementation>(patch_directory, sample_rate, ram_kib)} {
   if(sample_rate == 0) throw std::invalid_argument{"Gravis output sample rate must be positive"};
   if(std::filesystem::is_directory(patch_directory / "MIDI")) state->directory /= "MIDI";
   state->initialise();

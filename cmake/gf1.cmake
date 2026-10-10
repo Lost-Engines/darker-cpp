@@ -16,6 +16,8 @@ foreach(global IN ITEMS
   string(REPLACE "${global}" "" gf1_source "${gf1_source}")
 endforeach()
 string(REPLACE "} myGUS;" "};\n#include \"audio/gf1/state.h\"" gf1_source "${gf1_source}")
+# DRAM probes must see only the installed banks so UltraMID selects its RAM map.
+string(REPLACE "sizeof(GUSRam)" "context->ram_size" gf1_source "${gf1_source}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp"
   "#include <stdexcept>\n#include <utility>\n#include \"audio/gf1/compatibility.h\"\nnamespace darker::audio::gf1_detail {\n${gf1_source}\n#include \"audio/gf1/implementation.h\"\n")
 add_library(gf1_backend STATIC "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp")

@@ -107,9 +107,9 @@ void fm_stream::configure_music(std::span<std::byte const> const driver, std::ar
   state->songs = std::move(songs);
 }
 
-void fm_stream::configure_gus_music(std::filesystem::path const &patch_directory, std::array<std::vector<std::byte>,6> songs) {
+void fm_stream::configure_gus_music(std::filesystem::path const &patch_directory, std::array<std::vector<std::byte>,6> songs, unsigned int const ram_kib) {
   for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid Gravis music resource size"};
-  state->sampled_synth = std::make_unique<gus_synth>(patch_directory, state->sample_rate);
+  state->sampled_synth = std::make_unique<gus_synth>(patch_directory, state->sample_rate, ram_kib);
   state->sampled_music = std::make_unique<midi_music>(music_variant::gus);
   state->music.reset();
   state->songs = std::move(songs);

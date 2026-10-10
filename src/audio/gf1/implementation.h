@@ -21,9 +21,11 @@ void PIC_AddEvent(void (*callback)(Bitu), float delay, Bitu argument) {
 } // namespace darker::audio::gf1_detail
 
 namespace darker::audio {
-gf1_device::gf1_device(std::function<void(std::span<std::byte>)> dma_read)
+gf1_device::gf1_device(std::function<void(std::span<std::byte>)> dma_read, unsigned int const ram_kib)
   : state{std::make_unique<gf1_detail::device_state>()} {
+  if(ram_kib < 256 || ram_kib > 1024 || ram_kib % 256) throw std::invalid_argument{"Gravis RAM must be 256, 512, 768 or 1024 KiB"};
   auto &core{*state};
+  core.ram_size = static_cast<size_t>(ram_kib) * 1024;
   gf1_detail::context = &core;
   core.dma_reader = std::move(dma_read);
   core.registers.rate = 44100;

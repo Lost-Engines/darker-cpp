@@ -32,7 +32,7 @@ public:
   explicit fm_stream(unsigned int sample_rate, fm_backend backend = fm_backend::nuked);
   ~fm_stream();
   void configure_music(std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
-  void configure_gus_music(std::filesystem::path const &patch_directory, std::array<std::vector<std::byte>,6> songs);
+  void configure_gus_music(std::filesystem::path const &patch_directory, std::array<std::vector<std::byte>,6> songs, unsigned int ram_kib = 1024);
   void configure_awe32_music(std::filesystem::path const &rom, std::span<std::byte const> driver, std::array<std::vector<std::byte>,6> songs);
   void configure_sc55_music(std::filesystem::path const &rom_directory, std::array<std::vector<std::byte>,6> songs);
   void configure_sampled_music(music_variant variant, std::filesystem::path const &soundfont, std::array<std::vector<std::byte>,6> songs);

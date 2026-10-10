@@ -80,7 +80,7 @@ done < "$script_dir/awe32_rom_urls.txt"
 if ! sha256sum --check "$script_dir/awe32.sha256"; then
   echo 'Warning: AWE32 ROM differs from the known sample ROM. File left in place.'
 fi
-# 6. UltraMID and its 1 MiB Gravis patch set.
+# 6. UltraMID and its 256–1024 KiB Gravis preload patch sets.
 mkdir -p ULTRASND/MIDI || exit 1
 while read -r url; do
   [ -z "$url" ] && continue

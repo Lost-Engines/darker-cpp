@@ -4,6 +4,7 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/AGOGOHI.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/AGOGOLO.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/APPLAUSE.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/AURORA.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/BAGPIPES.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/BANJO.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/BASSOON.PAT
@@ -28,6 +29,7 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/CYMCHINA.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/CYMCRSH1.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/DISTGTR.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/ECHOVOX.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/ENGLHORN.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/EPIANO1.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/FANTASIA.PAT
@@ -37,6 +39,7 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/HIHATCL.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/HIHATOP.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/HIHATPD.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/HOMEORG.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/KICK1.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/KICK2.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/LEAD5TH.PAT
@@ -44,6 +47,7 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/MARCATO.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/MARIMBA.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/NYGUITAR.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/OBOE.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/ODGUITAR.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/ORCHHIT.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/PICKBASS.PAT
@@ -54,6 +58,7 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SHAKAZUL.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SITAR.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SLAPBAS1.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SLOWSTR.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SNARE1.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SNARE2.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SPRNOSAX.PAT
@@ -61,6 +66,9 @@ https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/STEELDRM.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/STICKRIM.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/STICKS.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SYNBASS2.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SYNPIANO.PAT
+https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/SYNSTR2.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/TAMBORIN.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/TENORSAX.PAT
 https://raw.githubusercontent.com/alinebee/Boxer/master/Resources/DOS%20Toolkit/ULTRASND/MIDI/TIMBALEH.PAT
