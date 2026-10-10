@@ -35,7 +35,7 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
     mt32emu_free_context(state->context);
     state->context = mt32emu_create_context({}, nullptr);
     if(!state->context) throw std::runtime_error{"Cannot create Munt ROM identification context"};
-    for(auto const &file : files) mt32emu_add_machine_rom_file(state->context, machine, file.c_str());
+    for(auto const &file : files) mt32emu_add_machine_rom_file(state->context, machine, file.string().c_str());
     mt32emu_rom_info info{};
     mt32emu_get_rom_info(state->context, &info);
     if(info.control_rom_id && info.pcm_rom_id) { found = true; break; }

@@ -9,7 +9,7 @@ struct soundfont::implementation {
 };
 
 soundfont::soundfont(std::filesystem::path const &path, unsigned int const sample_rate) : state{std::make_unique<implementation>()} {
-  state->synth.reset(tsf_load_filename(path.c_str()));
+  state->synth.reset(tsf_load_filename(path.string().c_str()));
   if(!state->synth) throw std::runtime_error{"Cannot load SoundFont: " + path.string()};
   tsf_set_output(state->synth.get(), TSF_STEREO_INTERLEAVED, static_cast<int>(sample_rate), -6.0f);
   if(!tsf_set_max_voices(state->synth.get(), 256)) throw std::runtime_error{"Cannot allocate SoundFont voices"};

@@ -16,6 +16,11 @@ function(configure_first_party target)
 endfunction()
 
 # Third-party device implementation, compiled separately from first-party warning settings
+if(APPLE)
+  # CoreAudio headers require Apple's blocks extension, as Cocoa does for GLFW.
+  enable_language(OBJC)
+  set_source_files_properties(src/platform/miniaudio_implementation.c PROPERTIES LANGUAGE OBJC)
+endif()
 add_library(pcm_device STATIC src/platform/miniaudio_implementation.c)
 target_include_directories(pcm_device SYSTEM PUBLIC "${miniaudio_SOURCE_DIR}")
 target_compile_definitions(pcm_device PUBLIC
