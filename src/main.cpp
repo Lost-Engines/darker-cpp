@@ -934,12 +934,13 @@ auto main(int const argc, char const *const argv[])->int {
           auto const record{front->selected_record()};
           mission = scenario->records()[record];
           text = scenario->language(record,language);
-          auto const configuration{static_cast<uint8_t>(mission.configuration & 15)};
-          bool const underground{configuration == 4};
-          world_mode = underground ? 2 : configuration == 2 || configuration == 3 ? 1 : 0;
-          caero = configuration == 1 || underground;
-          type = caero ? darker::graphics::craft::caero : configuration == 2 ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma;
-          bitmap = darker::graphics::decode_bitmap(archives.load({0,darker::graphics::cockpit_resource_slot(configuration)}));
+          using enum darker::resources::scenario_configuration;
+          auto const configuration{darker::resources::decode_scenario_configuration(mission.configuration)};
+          bool const underground{configuration == underground_caero};
+          world_mode = underground ? 2 : configuration == halon_skimma || configuration == halon_upgraded_skimma ? 1 : 0;
+          caero = configuration == delphi_caero || underground;
+          type = caero ? darker::graphics::craft::caero : configuration == halon_skimma ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma;
+          bitmap = darker::graphics::decode_bitmap(archives.load({0,std::to_underlying(darker::graphics::cockpit_resource_slot(configuration))}));
           cache = darker::graphics::make_cockpit_cache(bitmap.image);
           cockpit = cache;
           bank = darker::resources::geometry_bank{archives.load({0,30u + world_mode})};
@@ -980,13 +981,13 @@ auto main(int const argc, char const *const argv[])->int {
             host.hangar.return_site = site;
             host.hangar.next_return_site = site;
             darker::game::initialise_skimma_pad(host.player,site,entry ? entry->heading : uint8_t{0},
-              bank.header_at(bank.special_models()[configuration + 24]).height,configuration != 2);
+              bank.header_at(bank.special_models()[std::to_underlying(configuration) + 24]).height,configuration != halon_skimma);
           }
           host.player.noclip = noclip;
           host.player.boost_cheat = boost_cheat;
           host.player.damage_cheat = damage_cheat;
-          host.player.scenario_configuration = configuration;
-          if(configuration == 0) host.player.supply.phase = darker::game::supply_phase::flight;
+          host.player.scenario_configuration = std::to_underlying(configuration);
+          if(configuration == delphi_skimma) host.player.supply.phase = darker::game::supply_phase::flight;
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network,cells}} : std::nullopt};
           darker::game::weapon_ammunition second_weapon;
           darker::game::refill_skimma_weapon(second_weapon,1);

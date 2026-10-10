@@ -6,13 +6,14 @@
 
 namespace darker::graphics {
 
-unsigned int cockpit_resource_slot(std::uint8_t const configuration) {
+cockpit_sheet cockpit_resource_slot(resources::scenario_configuration const configuration) {
   /// BC69 selects 00/15 for the Delphi Skimma; the other configurations use craft-specific sheets
-  switch(configuration & 15) {
-  case 0: return 15;
-  case 1: case 4: return 16;
-  case 2: return 17;
-  case 3: return 18;
+  using enum resources::scenario_configuration;
+  switch(configuration) {
+  case delphi_skimma: return cockpit_sheet::delphi_skimma;
+  case delphi_caero: case underground_caero: return cockpit_sheet::caero;
+  case halon_skimma: return cockpit_sheet::halon_skimma;
+  case halon_upgraded_skimma: return cockpit_sheet::halon_upgraded_skimma;
   default: throw std::invalid_argument{"Unknown cockpit configuration"};
   }
 }

@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <stdexcept>
+#include <utility>
 #include "graphics/blit.h"
 #include "graphics/cockpit.h"
 #include "render/framebuffer.h"
@@ -12,9 +14,10 @@ TEST_CASE("Cockpit sheets follow native scenario configuration including the Del
   /// BC5F–BC77 captured sheet selections for configurations zero through four
   std::array<unsigned int,5> constexpr native_sheets{15,16,17,18,16};
   for(std::uint8_t configuration{0}; configuration < native_sheets.size(); ++configuration) {
-    CHECK(darker::graphics::cockpit_resource_slot(configuration) == native_sheets[configuration]);
-    CHECK(darker::graphics::cockpit_resource_slot(configuration | 0x30) == native_sheets[configuration]);
+    CHECK(std::to_underlying(darker::graphics::cockpit_resource_slot(darker::resources::decode_scenario_configuration(configuration))) == native_sheets[configuration]);
+    CHECK(std::to_underlying(darker::graphics::cockpit_resource_slot(darker::resources::decode_scenario_configuration(configuration | 0x30))) == native_sheets[configuration]);
   }
+  CHECK_THROWS_AS(darker::graphics::cockpit_resource_slot(darker::resources::decode_scenario_configuration(0xff)), std::invalid_argument);
 }
 
 TEST_CASE("Opaque blits clip source and destination together, including zero indices") {

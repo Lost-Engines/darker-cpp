@@ -6,12 +6,20 @@
 #include <string_view>
 #include "graphics/blit.h"
 #include "render/indexed_framebuffer.h"
+#include "resources/scenario_configuration.h"
 
 namespace darker::graphics {
 
 enum class craft { caero, skimma, upgraded_skimma };
 
-unsigned int cockpit_resource_slot(std::uint8_t configuration);
+enum class cockpit_sheet : unsigned int {
+  delphi_skimma = 15,
+  caero = 16,
+  halon_skimma = 17,
+  halon_upgraded_skimma = 18,
+};
+
+cockpit_sheet cockpit_resource_slot(resources::scenario_configuration configuration);
 
 struct hud_strip {
   int y_offset;
