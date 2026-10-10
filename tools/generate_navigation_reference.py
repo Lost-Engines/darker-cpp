@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from format_cpp_initialisers import format_designated_initialisers
 
 
 def main():
@@ -118,7 +119,7 @@ def main():
             checksum = ((checksum ^ byte) * 1099511628211) & ((1 << 64) - 1)
         lines.append(f'  {{.height{{{sample["height"]}}}, .reference{{{sample["reference"]}}}, .alignment{{{sample["alignment"]}}}, .checksum{{0x{checksum:016x}ULL}}}},')
     lines += ['}};', '', '} // namespace darker::test_reference', '']
-    args.output.write_text('\n'.join(lines))
+    args.output.write_text(format_designated_initialisers('\n'.join(lines)))
 
 
 if __name__ == '__main__':

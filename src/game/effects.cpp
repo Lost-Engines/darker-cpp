@@ -48,7 +48,11 @@ particle_emitter make_damage_trail(maths::world_position position, uint8_t const
   auto const dx{std::bit_cast<int16_t>(shifted) >> 11};
   position.column = static_cast<uint16_t>(position.column + dx);
   position.height = static_cast<uint16_t>(position.height + std::bit_cast<int8_t>(static_cast<uint8_t>(random * 4)));
-  return {.position{position}, .start{clock}, .flags{static_cast<uint8_t>(0x88 + (severity >> 3))}};
+  return {
+    .position{position},
+    .start{clock},
+    .flags{static_cast<uint8_t>(0x88 + (severity >> 3))}
+  };
 }
 
 void effect_system::append_sound(std::vector<effect_sound> &pool, sound_slots &slots, uint32_t const first_identity, effect_sound sound) {
@@ -70,25 +74,48 @@ void effect_system::spawn(uint16_t const recipe, maths::world_position const pos
   if(found == original_effect_recipes.end()) throw std::invalid_argument{"Unknown effect recipe"};
   for(auto const &source : found->emitters) {
     particle_emitter emitter{
-      .position{position}, .start{static_cast<uint16_t>(clock + source.delay)}, .radius{source.radius}, .angle{source.angle},
-      .sampling{source.sampling}, .radius_rate{source.radius_rate}, .height_rate{source.height_rate},
-      .angle_rate{source.angle_rate}, .flags{source.flags},
+      .position{position},
+      .start{static_cast<uint16_t>(clock + source.delay)},
+      .radius{source.radius},
+      .angle{source.angle},
+      .sampling{source.sampling},
+      .radius_rate{source.radius_rate},
+      .height_rate{source.height_rate},
+      .angle_rate{source.angle_rate},
+      .flags{source.flags},
     };
     for(unsigned int axis{0}; axis < 3; ++axis) emitter.position[axis] = static_cast<uint16_t>(emitter.position[axis] + source.offset[axis]);
     if(emitters.size() == 25) emitters.erase(emitters.begin());
     emitters.push_back(emitter);
   }
   for(auto const &sound : found->sounds) {
-    append_sound(sounds,effect_slots,1,{.position{position}, .definition{sound}, .deadline{static_cast<uint16_t>(clock + sound.duration)}});
+    append_sound(sounds,effect_slots,1,{
+      .position{position},
+      .definition{sound},
+      .deadline{static_cast<uint16_t>(clock + sound.duration)}
+    });
   }
 }
 
 void effect_system::spark(maths::world_position const position, uint8_t const phase, uint16_t const sound_level, uint16_t const clock) {
   /// 6742 emits a stationary sprite plus a short patch-22 sound, also used by the Wrecker's cutting effects
   if(trails.size() == 20) trails.erase(trails.begin());
-  trails.push_back({.position{position},.start{clock},.flags{phase}});
-  append_sound(gun_sounds,gun_slots,17,{.position{position},.definition{.duration{256},.pitch{0x203},.level{sound_level},.patch{22},.flags{1}},
-    .deadline{static_cast<uint16_t>(clock + 256)}});
+  trails.push_back({
+    .position{position},
+    .start{clock},
+    .flags{phase}
+  });
+  append_sound(gun_sounds,gun_slots,17,{
+    .position{position},
+    .definition{
+      .duration{256},
+      .pitch{0x203},
+      .level{sound_level},
+      .patch{22},
+      .flags{1}
+    },
+    .deadline{static_cast<uint16_t>(clock + 256)}
+  });
 }
 
 void effect_system::gun_impact(maths::world_position position, bool const hit, uint16_t const clock) {

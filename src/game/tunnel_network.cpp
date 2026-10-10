@@ -108,7 +108,10 @@ tunnel_segment tunnel_network::segment_at(int const index) const {
 tunnel_junction tunnel_network::junction(uint8_t const type) const {
   /// D219 selects the next cell's first edge and exposes the shared junction flag
   if(type == 0 || type > 200) throw std::out_of_range{"Tunnel junction type exceeds its directory"};
-  return {.flags{std::to_integer<uint8_t>(data[(type - 1)*16])},.edges{segment(type,2),segment(type,1),segment(type,0)}};
+  return {
+    .flags{std::to_integer<uint8_t>(data[(type - 1)*16])},
+    .edges{segment(type,2),segment(type,1),segment(type,0)}
+  };
 }
 
 tunnel_boundary tunnel_network::crossing(uint8_t const type, tunnel_connection const source) const {
@@ -116,9 +119,11 @@ tunnel_boundary tunnel_network::crossing(uint8_t const type, tunnel_connection c
   auto const edge{segment(type,source.route)};
   auto const endpoint{source.route & 0x80 ? edge.second : edge.first};
   constexpr std::array<int,4> steps{-256,1,256,-1};
-  return {.cell{static_cast<uint16_t>(source.cell + steps[(endpoint >> 5) & 3])},
+  return {
+    .cell{static_cast<uint16_t>(source.cell + steps[(endpoint >> 5) & 3])},
     .perimeter{static_cast<uint8_t>(((endpoint & 0x20 ? 0xa0 : 0x60) - endpoint) & 127)},
-    .height{static_cast<uint8_t>(source.route & 0x80 ? edge.heights >> 4 : edge.heights & 15)}};
+    .height{static_cast<uint8_t>(source.route & 0x80 ? edge.heights >> 4 : edge.heights & 15)}
+  };
 }
 
 maths::world_position tunnel_network::point(uint8_t const type, uint8_t const route, uint16_t const cell, uint16_t const distance) const {
@@ -150,7 +155,11 @@ tunnel_start tunnel_network::start(uint8_t const type, uint16_t const cell, uint
   auto const route{static_cast<uint8_t>((encoded_heading >> 8) & 3)};
   auto const heading{static_cast<uint16_t>(encoded_heading & 0xfcff)};
   auto const edge{segment(type,route)};
-  return {.position{point(type,route,cell,edge.length)},.heading{heading},.route{direction(type,route,heading)}};
+  return {
+    .position{point(type,route,cell,edge.length)},
+    .heading{heading},
+    .route{direction(type,route,heading)}
+  };
 }
 
 tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connection const source, uint8_t const preferred_heading) const {
@@ -234,7 +243,10 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
     }
     source = connect(cells,source,preferred_heading);
   }
-  tunnel_trace result{.connection{source},.progress{static_cast<uint16_t>(progress)}};
+  tunnel_trace result{
+    .connection{source},
+    .progress{static_cast<uint16_t>(progress)}
+  };
   int distance{progress - lookahead};
   while(distance < 0) {
     if(++visits > 200) throw std::invalid_argument{"Tunnel lookahead exceeds connected route traversal"};

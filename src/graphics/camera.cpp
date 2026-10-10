@@ -18,7 +18,10 @@ std::int16_t multiply(std::int16_t const left, std::int16_t const right) noexcep
 
 projection_term term(std::uint32_t const product) noexcept {
   /// Keep the whole word and middle byte consumed by the model projector
-  return {.whole{static_cast<std::uint16_t>(product >> 16)}, .fraction{static_cast<std::uint8_t>(product >> 8)}};
+  return {
+    .whole{static_cast<std::uint16_t>(product >> 16)},
+    .fraction{static_cast<std::uint8_t>(product >> 8)}
+  };
 }
 
 std::uint16_t magnitude(std::int16_t const value) noexcept {
@@ -55,7 +58,11 @@ camera_basis orient_model(camera_basis const &camera, camera_angles const angles
       for(unsigned int j{0}; j < 3; ++j) sum += static_cast<std::uint32_t>(axes[i, j] * (camera[j].*member));
       return word(static_cast<int>(sum >> 15));
     }};
-    result[i] = {.horizontal{project(&projection_axis::horizontal)}, .vertical{project(&projection_axis::vertical)}, .depth{project(&projection_axis::depth)}};
+    result[i] = {
+      .horizontal{project(&projection_axis::horizontal)},
+      .vertical{project(&projection_axis::vertical)},
+      .depth{project(&projection_axis::depth)}
+    };
   }
   return result;
 }

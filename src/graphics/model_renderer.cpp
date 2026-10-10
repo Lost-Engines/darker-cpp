@@ -247,7 +247,11 @@ public:
                 if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
                 auto const shade{colours.shades[operand]};
                 vertex_shades[i] = static_cast<std::uint16_t>(((source_colour & 224) + shade) * 256 + shade + 128);
-                shaded_face[i] = {.x{face[i].x}, .y{face[i].y}, .shade{vertex_shades[i]}};
+                shaded_face[i] = {
+                  .x{face[i].x},
+                  .y{face[i].y},
+                  .shade{vertex_shades[i]}
+                };
               }
             }
           }

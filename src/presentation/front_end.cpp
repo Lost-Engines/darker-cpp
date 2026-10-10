@@ -40,15 +40,24 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   }
   load_image(archives,{0,14},title_background,title_palette,280,100,16,65);
   std::array<std::byte,2> constexpr trademark{std::byte{'T'},std::byte{'M'}};
-  graphics::draw_text(title_background,font,resources::font_face::compact,trademark,{256, 84},{.ink{129},.edge{130}});
+  graphics::draw_text(title_background,font,resources::font_face::compact,trademark,{256, 84},{
+    .ink{129},
+    .edge{130}
+  });
   credits_background = menu_background;
   auto const logo{archives.load({0,28})};
   if(logo.size() != 80*17) throw std::invalid_argument{"Unexpected credits logo size"};
   for(size_t y{0}; y < 17; ++y) for(size_t x{0}; x < 80; ++x)
     credits_background.pixels[(y+48)*320+x+120] = std::to_integer<uint8_t>(logo[y*80+x]);
   auto const credits{original_credits.at(static_cast<size_t>(language))};
-  auto const credit_page{graphics::lay_out_text(std::as_bytes(std::span{credits}),font,resources::font_face::interface,{.y{96},.colour{0x7d00}})};
-  for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{125},.edge{0}});
+  auto const credit_page{graphics::lay_out_text(std::as_bytes(std::span{credits}),font,resources::font_face::interface,{
+    .y{96},
+    .colour{0x7d00}
+  })};
+  for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background,font,resources::font_face::interface,glyph.code,glyph.position,{
+    .ink{125},
+    .edge{0}
+  });
 
   selection_prompt = original_menu_text.at(static_cast<size_t>(language)).select;
   if(skip_intro) current = screen::games;
@@ -154,7 +163,9 @@ void front_end::begin_briefing(bool const continued_mission) {
   /// Select the current supported campaign record for briefing
   if(!nightmare_selected() && (save.pilots[selected].stage < 1 || save.pilots[selected].stage > 116)) { unsupported_stage = true; return; }
   retained_music = music_group();
-  if(nightmare_selected()) { challenge_pilot = {.stage{1}}; challenge_score = 0; }
+  if(nightmare_selected()) { challenge_pilot = {
+    .stage{1}
+  }; challenge_score = 0; }
   scene = std::make_unique<player>(archives,font,selected_scenario(),selected_record(),0,continued_mission,language);
   current = screen::briefing;
   if(scene->finished() && scene->input_policy == 0) finish_briefing();
@@ -307,7 +318,9 @@ void front_end::start_level(uint8_t const stage) {
   /// Rebuild guaranteed campaign setup changes without inventing completed combat
   if(stage < 1 || stage > 116) throw std::out_of_range{"Level must be between 1 and 116"};
   if(nightmare_selected()) selected = 0;
-  resources::pilot_record pilot{.stage{stage}};
+  resources::pilot_record pilot{
+    .stage{stage}
+  };
   pilot.set_name("Level test");
   std::array<game::city_map,2> cities{
     game::make_city_map(archives.load({0,68}),true),
@@ -397,7 +410,10 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   auto frame{menu_background};
   auto const text{[&](std::string_view const value, int const x, int const y, uint8_t const colour = 125){
     graphics::draw_text(frame,font,resources::font_face::interface,std::as_bytes(std::span{value}),
-      {static_cast<int16_t>(x), static_cast<int16_t>(y)},{.ink{colour},.edge{0}});
+      {static_cast<int16_t>(x), static_cast<int16_t>(y)},{
+        .ink{colour},
+        .edge{0}
+      });
   }};
   auto const centred{[&](std::string_view const value, int const y, uint8_t const colour){
     unsigned int width{0};
@@ -413,11 +429,19 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
     panel(48,y-5,224,30);
     if(slot == 4) {
       text("NIGHTMARE",112,y,colour);
-      graphics::text_cursor cursor{.x{52},.y{static_cast<uint16_t>(y+11)},.colour{static_cast<uint16_t>(colour << 8)},.runtime_number{challenge_score}};
+      graphics::text_cursor cursor{
+        .x{52},
+        .y{static_cast<uint16_t>(y+11)},
+        .colour{static_cast<uint16_t>(colour << 8)},
+        .runtime_number{challenge_score}
+      };
       for(auto const value : {labels.score,labels.best_score}) {
         std::string const bytes{std::string{value}+'\0'};
         auto const page{graphics::lay_out_text(std::as_bytes(std::span{bytes}),font,resources::font_face::interface,cursor)};
-        for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{colour},.edge{0}});
+        for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame,font,resources::font_face::interface,glyph.code,glyph.position,{
+          .ink{colour},
+          .edge{0}
+        });
         cursor = page.cursor;
         cursor.runtime_number = std::to_integer<uint8_t>(save.trailer[0]);
       }

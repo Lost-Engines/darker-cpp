@@ -17,7 +17,10 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
     darker::resources::geometry_bank{archives.load({0,31})},darker::resources::geometry_bank{archives.load({0,32})}};
   darker::game::tunnel_network const network{archives.load({0,78})};
   for(unsigned int slot{0}; slot < 16; ++slot) {
-    darker::resources::scenario_resource const resource{archives.load({.archive{4}, .slot{slot}})};
+    darker::resources::scenario_resource const resource{archives.load({
+      .archive{4},
+      .slot{slot}
+    })};
     for(std::size_t index{0}; index < resource.records().size(); ++index) {
       auto const &record{resource.records()[index]};
       auto const &reference{darker::test_reference::scenario_samples.at(records++)};
@@ -48,7 +51,11 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
         auto const cells{darker::game::make_city_map(archives.load({0,configuration == 4 ? static_cast<unsigned int>(70+(record.configuration >> 4)) : configuration <= 1 ? 68u : 69u}),configuration <= 1)};
         darker::game::player_flight player;
         if(configuration == 2 || configuration == 3) player.craft = darker::game::skimma_flight_state{};
-        player.pose().position = {.column{0x4271},.row{0x5163},.height{3000}};
+        player.pose().position = {
+          .column{0x4271},
+          .row{0x5163},
+          .height{3000}
+        };
         darker::game::weapon_ammunition ammunition;
         auto const actors{darker::game::make_scenario_actors(record,resource,bank,player,ammunition,0xff00,
           configuration == 4 ? std::optional{darker::game::tunnel_setup{network,cells}} : std::nullopt)};

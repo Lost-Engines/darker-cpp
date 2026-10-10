@@ -20,7 +20,11 @@ void check_nightmare(darker::resources::archive_set const &archives) {
   auto cells{darker::game::make_city_map(archives.load({0,68}),true)};
   darker::game::apply_scenario_cells(cells,record);
   darker::game::player_flight player;
-  player.pose().position = {.column{11392},.row{17024},.height{0}};
+  player.pose().position = {
+    .column{11392},
+    .row{17024},
+    .height{0}
+  };
   player.pose().angles.heading = 0xc400;
   darker::game::weapon_ammunition ammunition;
   auto groups{darker::game::make_scenario_actors(record,scenario,bank,player,ammunition,0)};
@@ -32,10 +36,16 @@ void check_nightmare(darker::resources::archive_set const &archives) {
   combat.free_actors = std::move(groups.free);
   combat.difficulty = briefing.difficulty.value_or(0);
   darker::game::beacon_changes beacons;
-  darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
-  darker::game::mission_context context{.program{scenario.bytes(record.shared)},
-    .text{scenario.language(0,darker::resources::scenario_language::english)},.cells{cells},
-    .time_multiplier{record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+  darker::game::mission_script script{
+    .continuation{*record.player_program-record.shared.offset}
+  };
+  darker::game::mission_context context{
+    .program{scenario.bytes(record.shared)},
+    .text{scenario.language(0,darker::resources::scenario_language::english)},
+    .cells{cells},
+    .time_multiplier{record.time_multiplier},
+    .text_cursor{briefing.consumed_text()}
+  };
   unsigned int removed{0}, waves{0}, checkpoints{0}, altitude_changes{0};
   uint8_t score{0};
   uint16_t weapons{briefing.weapon_toggles};
@@ -69,9 +79,16 @@ void check_nightmare(darker::resources::archive_set const &archives) {
     std::get<darker::game::caero_flight_state>(player.craft).damage = {};
     beacons.advance(cells,static_cast<uint16_t>(tick));
     combat.advance(player, cells, bank,
-        {.elapsed_ticks{tick}, .frame_step{8}, .changes{static_cast<uint16_t>(tick^(tick-8))}},
+        {
+          .elapsed_ticks{tick},
+          .frame_step{8},
+          .changes{static_cast<uint16_t>(tick^(tick-8))}
+        },
         {},
-        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
+        {
+          .routes{scenario.bytes(record.shared)},
+          .time_multiplier{record.time_multiplier}
+        });
     context.clock = tick;
     context.objectives_complete = !combat.remaining_objectives();
     context.object_counter = static_cast<uint8_t>(combat.completed_objectives);

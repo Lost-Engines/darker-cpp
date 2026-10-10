@@ -34,7 +34,13 @@ void flight_sounds::trigger(flight_sound const effect, std::uint16_t const clock
       shield_ready = true;
       break;
   }
-  voices[channel] = {.pitch{pitch}, .level{level}, .generation{static_cast<std::uint16_t>(voices[channel].generation + 1)}, .patch{patch}, .active{true}};
+  voices[channel] = {
+    .pitch{pitch},
+    .level{level},
+    .generation{static_cast<std::uint16_t>(voices[channel].generation + 1)},
+    .patch{patch},
+    .active{true}
+  };
   submitted[channel] = false;
   deadlines[channel] = static_cast<std::uint16_t>(clock + duration);
 }
@@ -54,8 +60,12 @@ fm_frame flight_sounds::advance(game::player_flight const &player, std::uint16_t
     auto const triangle{static_cast<std::uint8_t>(phase ^ (phase & 128 ? 255 : 0))};
     pitch = static_cast<std::uint16_t>(pitch + (player.pose().speed >> 2) + ((triangle * 64) >> 10));
   }
-  voices[0] = {.pitch{pitch}, .level{cockpit_hidden ? std::uint16_t{0x8800} : static_cast<std::uint16_t>(definition.sound_level * 256 + 255)}, .patch{definition.fm_patch},
-    .active{!player.lifecycle.crashing && (!caero || player.engine_flags == 1)}};
+  voices[0] = {
+    .pitch{pitch},
+    .level{cockpit_hidden ? std::uint16_t{0x8800} : static_cast<std::uint16_t>(definition.sound_level * 256 + 255)},
+    .patch{definition.fm_patch},
+    .active{!player.lifecycle.crashing && (!caero || player.engine_flags == 1)}
+  };
   if(!caero) {
     if(player.engine_flags != 1) voices[4].active = false;
     else if(ready && !shield_ready) trigger(flight_sound::shield_ready, clock);

@@ -10,8 +10,11 @@ TEST_CASE("Gouraud polygons match original palette bands and clipping", "[graphi
     std::array<darker::graphics::shaded_vertex, 4> vertices{};
     for(std::size_t i{0}; i < sample.count; ++i) {
       auto const &source{sample.vertices[i]};
-      vertices[i] = {.x{static_cast<std::int16_t>(source[0])}, .y{static_cast<std::int16_t>(source[1])},
-        .shade{static_cast<std::uint16_t>((sample.base + source[2]) * 256 + source[2] + 128)}};
+      vertices[i] = {
+        .x{static_cast<std::int16_t>(source[0])},
+        .y{static_cast<std::int16_t>(source[1])},
+        .shade{static_cast<std::uint16_t>((sample.base + source[2]) * 256 + source[2] + 128)}
+      };
     }
     framework::render::indexed_cockpit_framebuffer frame{};
     darker::graphics::draw_gouraud_polygon(frame, std::span{vertices}.first(sample.count), 319, 168);

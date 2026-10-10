@@ -10,7 +10,10 @@ TEST_CASE("Projectile expiry repairs native references and counters before list 
     CAPTURE(sample.lifecycle, sample.completed, sample.outstanding, sample.selected);
     darker::game::projectile_pool pool;
     darker::game::launch_emitter const emitter;
-    darker::game::projectile_launch const request{.definition{darker::game::original_object_definitions[0]}, .emitter{emitter}};
+    darker::game::projectile_launch const request{
+      .definition{darker::game::original_object_definitions[0]},
+      .emitter{emitter}
+    };
     auto *tail{pool.launch(request)};
     auto *record{pool.launch(request)};
     auto *head{pool.launch(request)};
@@ -28,9 +31,13 @@ TEST_CASE("Projectile expiry repairs native references and counters before list 
       .reference_2449{sample.selected ? record->native_id : tail->native_id},
       .missile_view{sample.selected ? record->native_id : static_cast<std::uint16_t>(0x1234)},
     };
-    darker::game::objective_counters objectives{.completed{static_cast<std::uint8_t>(sample.completed)},
-      .outstanding{static_cast<std::uint8_t>(sample.outstanding)}};
-    darker::game::weapon_ring_state ring{.target_spread{17}};
+    darker::game::objective_counters objectives{
+      .completed{static_cast<std::uint8_t>(sample.completed)},
+      .outstanding{static_cast<std::uint8_t>(sample.outstanding)}
+    };
+    darker::game::weapon_ring_state ring{
+      .target_spread{17}
+    };
     auto const *next{darker::game::expire_projectile(pool, *record, references, objectives, ring)};
     auto const id{[](darker::game::projectile const *const p)->int{ return p ? p->native_id : 0; }};
     auto const &list{pool.objects()};

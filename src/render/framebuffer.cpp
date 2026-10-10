@@ -6,7 +6,12 @@ namespace framework::render {
 
 viewport fit_viewport(int const width, int const height, int const source_width, int const source_height) noexcept {
   /// Fit the source aspect ratio, using integer enlargement whenever the window is large enough
-  if(width <= 0 || height <= 0 || source_width <= 0 || source_height <= 0) return {.x{0}, .y{0}, .width{0}, .height{0}};
+  if(width <= 0 || height <= 0 || source_width <= 0 || source_height <= 0) return {
+    .x{0},
+    .y{0},
+    .width{0},
+    .height{0}
+  };
   double const available{std::min(width / static_cast<double>(source_width), height / static_cast<double>(source_height))};
   double const scale{available >= 1.0 ? std::floor(available) : available};
   int const fitted_width{std::max(1, static_cast<int>(source_width * scale))};

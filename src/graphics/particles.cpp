@@ -32,8 +32,11 @@ std::vector<particle_point> project_emitter(game::particle_emitter const &emitte
     for(unsigned int i{0}; i < 3; ++i) v[i] = wrap24(offsets[i] + ((coefficients[i][0] * sine) >> 8) + ((coefficients[i][1] * cosine) >> 8));
     auto const depth{v[2] >> 8};
     if(depth >= 32) {
-      points.push_back({.x{std::bit_cast<int16_t>(static_cast<uint16_t>(v[0] / depth + origin.x))},
-        .y{std::bit_cast<int16_t>(static_cast<uint16_t>(v[1] / depth + origin.y))}, .depth{static_cast<int16_t>(depth)}});
+      points.push_back({
+        .x{std::bit_cast<int16_t>(static_cast<uint16_t>(v[0] / depth + origin.x))},
+        .y{std::bit_cast<int16_t>(static_cast<uint16_t>(v[1] / depth + origin.y))},
+        .depth{static_cast<int16_t>(depth)}
+      });
       if(depth > points[far].depth) far = points.size() - 1;
       if(depth < points[near].depth) near = points.size() - 1;
     }

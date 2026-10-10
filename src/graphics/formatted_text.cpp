@@ -22,7 +22,11 @@ private:
   void glyph(std::uint8_t const code) {
     /// Record original coordinates and colour tokens; palette translation remains the drawing consumer's job
     auto &cursor{page.cursor};
-    page.glyphs.push_back({.position{std::bit_cast<std::int16_t>(cursor.x), std::bit_cast<std::int16_t>(cursor.y)}, .colour{cursor.colour}, .code{code}});
+    page.glyphs.push_back({
+      .position{std::bit_cast<std::int16_t>(cursor.x), std::bit_cast<std::int16_t>(cursor.y)},
+      .colour{cursor.colour},
+      .code{code}
+    });
     cursor.x = static_cast<std::uint16_t>(cursor.x + font.glyph(face, code).advance);
   }
 
@@ -105,7 +109,9 @@ public:
 formatted_page lay_out_text(std::span<std::byte const> const text, resources::font_resource const &font,
   resources::font_face const face, text_cursor const cursor) {
   /// Consume exactly one terminated page, leaving the next page or counted-message suffix to its caller
-  formatted_page page{.cursor{cursor}};
+  formatted_page page{
+    .cursor{cursor}
+  };
   formatter{text, font, face, page}.run();
   return page;
 }

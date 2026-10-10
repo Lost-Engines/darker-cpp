@@ -72,7 +72,11 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
     if(mode == camera_mode::tracking) {
       auto const direction{maths::direction_from_displacement({static_cast<std::uint16_t>(anchor.position.column - player.position.column),
         static_cast<std::uint16_t>(anchor.position.row - player.position.row), static_cast<std::uint16_t>(player.position.height - anchor.position.height)})};
-      result.angles = {.heading{direction.heading}, .pitch{direction.pitch}, .roll{0}};
+      result.angles = {
+        .heading{direction.heading},
+        .pitch{direction.pitch},
+        .roll{0}
+      };
     }
   }
   // 24A7 sends underground player following views straight to 24E6, preserving roll and distance.

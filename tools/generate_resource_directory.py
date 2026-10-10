@@ -6,6 +6,7 @@ Development-only: the C++ application does not require Python or analysis files.
 import argparse
 import hashlib
 from pathlib import Path
+from format_cpp_initialisers import format_designated_initialisers
 
 IMAGE_SHA256 = '7599201a01aa24b7e6ad1ae4295d493821cde7c3a43b247c464522626c0380a4'
 ARCHIVE_SIZES = (1195478, 1337498, 1453028, 1402901, 134178)
@@ -45,7 +46,7 @@ def main():
     for archive, slot, offset, length in entries:
         text.append(f'  {{.id{{.archive{{{archive}}}, .slot{{{slot}}}}}, .offset{{{offset}}}, .compressed_size{{{length}}}}},')
     text += ['}};', '', '} // namespace darker::resources', '']
-    args.output.write_text('\n'.join(text))
+    args.output.write_text(format_designated_initialisers('\n'.join(text)))
 
 
 if __name__ == '__main__':

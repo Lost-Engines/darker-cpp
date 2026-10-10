@@ -64,8 +64,14 @@ projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, 
   bool const valid_target{request.weapon == 1 ? !(request.target & 0x8000) : (static_cast<uint16_t>(request.target+1) & 0x8000) != 0};
   if(!valid_target) return nullptr;
   auto const &definition{original_object_definitions[10+request.weapon]};
-  auto *shot{pool.launch({.definition{definition},.emitter{request.emitter},.model_token{request.model},.clock{request.clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{request.target}})};
+  auto *shot{pool.launch({
+    .definition{definition},
+    .emitter{request.emitter},
+    .model_token{request.model},
+    .clock{request.clock},
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},
+    .target_token{request.target}
+  })};
   if(shot) --slot.ammunition.working;
   return shot;
 }
@@ -89,7 +95,10 @@ bool select_skimma_weapon(std::span<skimma_weapon_slot> const weapons, uint8_t &
 void refill_skimma_weapon(weapon_ammunition &ammunition, std::uint8_t const weapon) {
   /// 5E44–5E58 refill both counters without changing the shared reload deadline
   validate_weapon(weapon);
-  ammunition = {.working{working_capacity[weapon]}, .reserve{reserve_capacity[weapon]}};
+  ammunition = {
+    .working{working_capacity[weapon]},
+    .reserve{reserve_capacity[weapon]}
+  };
 }
 
 bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring, std::uint8_t const weapon, std::uint16_t const clock) {
@@ -98,7 +107,10 @@ bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring
   if(ammunition.working != 0) return false;
   auto const next{static_cast<std::uint8_t>(ammunition.reserve - 1)};
   if((next & 0x80) != 0) return false;
-  ammunition = {.working{working_capacity[weapon]}, .reserve{next}};
+  ammunition = {
+    .working{working_capacity[weapon]},
+    .reserve{next}
+  };
   ring.reload_deadline = static_cast<std::uint16_t>(clock + 1024);
   ring.spread = 508;
   return true;
@@ -112,10 +124,16 @@ std::optional<weapon_ring_display> calculate_weapon_ring(weapon_ammunition const
   if(delta < 0) {
     auto const radius{static_cast<std::uint8_t>(static_cast<std::uint16_t>(delta * 64) >> 9)};
     if(radius < 15) return std::nullopt;
-    return weapon_ring_display{.radius{radius}, .remaining{0}};
+    return weapon_ring_display{
+      .radius{radius},
+      .remaining{0}
+    };
   }
   auto const radius{static_cast<std::uint8_t>(static_cast<std::uint16_t>(ring.spread * 64) >> 8)};
-  return weapon_ring_display{.radius{std::max<std::uint8_t>(15, radius)}, .remaining{ammunition.working}};
+  return weapon_ring_display{
+    .radius{std::max<std::uint8_t>(15, radius)},
+    .remaining{ammunition.working}
+  };
 }
 
 std::optional<weapon_ring_display> update_weapon_ring(weapon_ammunition const ammunition,

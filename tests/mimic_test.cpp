@@ -17,7 +17,13 @@ TEST_CASE("Pinner Mimic steering and displacement match complete native updates"
       shot.placement.fractions[axis] = static_cast<uint8_t>(sample[3 + axis]);
     }
     shot.placement.speed = static_cast<uint16_t>(sample[9]);
-    darker::game::object_pose const player{.angles{.heading{0},.pitch{static_cast<uint16_t>(sample[10])},.roll{static_cast<uint16_t>(sample[11])}}};
+    darker::game::object_pose const player{
+      .angles{
+        .heading{0},
+        .pitch{static_cast<uint16_t>(sample[10])},
+        .roll{static_cast<uint16_t>(sample[11])}
+      }
+    };
     darker::game::advance_mimic_projectile(shot,player,static_cast<uint16_t>(sample[12]),static_cast<uint16_t>(sample[13]));
     CHECK(shot.placement.angles.heading == sample[20 + 0]);
     CHECK(shot.placement.angles.pitch == sample[20 + 1]);

@@ -75,8 +75,11 @@ model_header geometry_bank::header_at(std::size_t const offset) const {
   check_model(offset);
   auto const pool{model_pool()};
   return {
-    .point_distance{byte(pool, offset + 4)}, .point_colour{byte(pool, offset + 5)}, .flat_distance{byte(pool, offset + 6)},
-    .height{std::bit_cast<std::int16_t>(word(pool, offset + 7))}, .extent{word(pool, offset + 9)},
+    .point_distance{byte(pool, offset + 4)},
+    .point_colour{byte(pool, offset + 5)},
+    .flat_distance{byte(pool, offset + 6)},
+    .height{std::bit_cast<std::int16_t>(word(pool, offset + 7))},
+    .extent{word(pool, offset + 9)},
   };
 }
 

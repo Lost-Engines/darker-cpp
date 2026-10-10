@@ -16,9 +16,14 @@ TEST_CASE("Skimma automatic reload matches original counters, byte signs and dea
   for(auto const &sample : darker::test_reference::reload_samples) {
     CAPTURE(sample.weapon, sample.clock, sample.working, sample.reserve);
     darker::game::weapon_ammunition ammunition{
-      .working{static_cast<std::uint8_t>(sample.working)}, .reserve{static_cast<std::uint8_t>(sample.reserve)},
+      .working{static_cast<std::uint8_t>(sample.working)},
+      .reserve{static_cast<std::uint8_t>(sample.reserve)},
     };
-    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}, .target_spread{17}};
+    darker::game::weapon_ring_state ring{
+      .reload_deadline{123},
+      .spread{252},
+      .target_spread{17}
+    };
     bool const changed{darker::game::reload_skimma_weapon(ammunition, ring,
       static_cast<std::uint8_t>(sample.weapon), static_cast<std::uint16_t>(sample.clock))};
     CHECK(changed == (sample.next_working != sample.working));
@@ -34,8 +39,14 @@ TEST_CASE("Skimma ring timing matches native suppression, spent indicators and r
   for(auto const &sample : darker::test_reference::ring_samples) {
     for(auto const deadline : std::array<uint16_t,3>{0, 1024, 65500}) {
       CAPTURE(sample.delta, sample.enabled, sample.spread, deadline);
-      auto const display{darker::game::calculate_weapon_ring({.working{7}, .reserve{3}},
-        {.reload_deadline{deadline}, .spread{static_cast<std::uint16_t>(sample.spread)}},
+      auto const display{darker::game::calculate_weapon_ring({
+        .working{7},
+        .reserve{3}
+      },
+        {
+          .reload_deadline{deadline},
+          .spread{static_cast<std::uint16_t>(sample.spread)}
+        },
         static_cast<std::uint16_t>(deadline + sample.delta), static_cast<std::uint8_t>(sample.enabled | 0x80))};
       REQUIRE(display.has_value() == static_cast<bool>(sample.visible));
       if(display) {
@@ -50,7 +61,10 @@ TEST_CASE("Skimma resupply restores native working and reserve capacities") {
   std::array<std::uint8_t, 3> constexpr working{14, 8, 10};
   std::array<std::uint8_t, 3> constexpr reserve{5, 3, 4};
   for(std::uint8_t weapon{0}; weapon < 3; ++weapon) {
-    darker::game::weapon_ammunition ammunition{.working{1}, .reserve{1}};
+    darker::game::weapon_ammunition ammunition{
+      .working{1},
+      .reserve{1}
+    };
     darker::game::refill_skimma_weapon(ammunition, weapon);
     CHECK(ammunition.working == working[weapon]);
     CHECK(ammunition.reserve == reserve[weapon]);
@@ -63,10 +77,14 @@ TEST_CASE("Skimma ring draws before smoothing and leaves reload state unchanged 
   for(auto const &sample : darker::test_reference::update_samples) {
     CAPTURE(sample.clock, sample.delta, sample.spread, sample.step, sample.enabled);
     darker::game::weapon_ring_state ring{
-      .reload_deadline{static_cast<std::uint16_t>(sample.clock - sample.delta)}, .spread{static_cast<std::uint16_t>(sample.spread)},
+      .reload_deadline{static_cast<std::uint16_t>(sample.clock - sample.delta)},
+      .spread{static_cast<std::uint16_t>(sample.spread)},
       .target_spread{static_cast<std::uint16_t>(sample.target)},
     };
-    auto const display{darker::game::update_weapon_ring({.working{7}, .reserve{3}}, ring,
+    auto const display{darker::game::update_weapon_ring({
+      .working{7},
+      .reserve{3}
+    }, ring,
       static_cast<std::uint16_t>(sample.clock), static_cast<std::uint8_t>(sample.enabled), static_cast<std::uint16_t>(sample.step))};
     CHECK(ring.reload_deadline == sample.deadline);
     CHECK(ring.spread == sample.next_spread);
@@ -84,10 +102,19 @@ TEST_CASE("Skimma status update reloads before reserve selection and preserves n
     CAPTURE(sample.slots, sample.selected, sample.flags, sample.working, sample.reserve, sample.target, sample.count);
     std::array<darker::game::skimma_weapon_slot, 3> weapons;
     for(auto &slot : weapons) {
-      slot = {.ammunition{.working{static_cast<std::uint8_t>(sample.working)}, .reserve{static_cast<std::uint8_t>(sample.reserve)}},
-        .flags{static_cast<std::uint8_t>(sample.flags)}};
+      slot = {
+        .ammunition{
+          .working{static_cast<std::uint8_t>(sample.working)},
+          .reserve{static_cast<std::uint8_t>(sample.reserve)}
+        },
+        .flags{static_cast<std::uint8_t>(sample.flags)}
+      };
     }
-    darker::game::weapon_ring_state ring{.reload_deadline{123}, .spread{252}, .target_spread{17}};
+    darker::game::weapon_ring_state ring{
+      .reload_deadline{123},
+      .spread{252},
+      .target_spread{17}
+    };
     auto const display{darker::game::update_skimma_weapon_status(std::span{weapons}.first(static_cast<std::size_t>(sample.slots)), ring,
       static_cast<std::uint8_t>(sample.selected), 65000, static_cast<std::int16_t>(sample.target), static_cast<std::uint16_t>(sample.count))};
     CHECK(display == sample.display);
@@ -139,11 +166,25 @@ TEST_CASE("Skimma primary gun rays match native recoil and random spread", "[gam
   /// Compare endpoints and consumed random state before city or aircraft clipping
   for(auto const &sample : darker::test_reference::skimma_gun_samples) {
     CAPTURE(sample);
-    darker::game::object_pose player{.position{.column{static_cast<uint16_t>(sample[0])},.row{static_cast<uint16_t>(sample[1])},.height{static_cast<uint16_t>(sample[2])}},
-      .angles{.heading{static_cast<uint16_t>(sample[3])},.pitch{static_cast<uint16_t>(sample[4])},.roll{0}}};
+    darker::game::object_pose player{
+      .position{
+        .column{static_cast<uint16_t>(sample[0])},
+        .row{static_cast<uint16_t>(sample[1])},
+        .height{static_cast<uint16_t>(sample[2])}
+      },
+      .angles{
+        .heading{static_cast<uint16_t>(sample[3])},
+        .pitch{static_cast<uint16_t>(sample[4])},
+        .roll{0}
+      }
+    };
     auto random{static_cast<uint16_t>(sample[6])};
     auto const end{darker::game::skimma_gun_endpoint(player,std::bit_cast<int16_t>(static_cast<uint16_t>(sample[5])),random)};
-    CHECK(end == darker::maths::world_position{.column{static_cast<uint16_t>(sample[7])},.row{static_cast<uint16_t>(sample[8])},.height{static_cast<uint16_t>(sample[9])}});
+    CHECK(end == darker::maths::world_position{
+      .column{static_cast<uint16_t>(sample[7])},
+      .row{static_cast<uint16_t>(sample[8])},
+      .height{static_cast<uint16_t>(sample[9])}
+    });
     CHECK(random == sample[10]);
   }
 }
@@ -153,18 +194,33 @@ TEST_CASE("Skimma secondary firing matches native status, reload and ammunition 
   for(auto const &sample : darker::test_reference::skimma_firing_samples) {
     CAPTURE(sample);
     std::array<darker::game::skimma_weapon_slot,3> weapons;
-    for(size_t i{0}; i < 3; ++i) weapons[i] = {.ammunition{static_cast<uint8_t>(sample[5+i]),static_cast<uint8_t>(sample[8+i])},.flags{static_cast<uint8_t>(sample[2+i])}};
+    for(size_t i{0}; i < 3; ++i) weapons[i] = {
+      .ammunition{static_cast<uint8_t>(sample[5+i]),static_cast<uint8_t>(sample[8+i])},
+      .flags{static_cast<uint8_t>(sample[2+i])}
+    };
     darker::game::weapon_ring_state ring{static_cast<uint16_t>(sample[12]),static_cast<uint16_t>(sample[13])};
     auto const selected{static_cast<uint8_t>(sample[1])};
     auto const reserve{darker::game::update_skimma_weapon_status(std::span{weapons}.first(sample[0]),ring,selected,static_cast<uint16_t>(sample[11]),
       std::bit_cast<int16_t>(static_cast<uint16_t>(sample[14])),static_cast<uint16_t>(sample[15]))};
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.definition_strength{40}};
+    darker::game::launch_emitter const emitter{
+      .definition_strength{40}
+    };
     if(!sample[15]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
+      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
+        .definition{darker::game::original_object_definitions[0]},
+        .emitter{emitter}
+      }));
     }
-    auto *shot{darker::game::fire_skimma_weapon(pool,weapons[selected],{.emitter{emitter},.weapon{selected},.player_flags{static_cast<uint8_t>(sample[16])},
-      .pressed{sample[17] != 0},.model{0x400},.clock{static_cast<uint16_t>(sample[11])},.target{static_cast<uint16_t>(sample[14])}})};
+    auto *shot{darker::game::fire_skimma_weapon(pool,weapons[selected],{
+      .emitter{emitter},
+      .weapon{selected},
+      .player_flags{static_cast<uint8_t>(sample[16])},
+      .pressed{sample[17] != 0},
+      .model{0x400},
+      .clock{static_cast<uint16_t>(sample[11])},
+      .target{static_cast<uint16_t>(sample[14])}
+    })};
     for(size_t i{0}; i < 3; ++i) {
       CHECK(weapons[i].flags == sample[18+i]);
       CHECK(weapons[i].ammunition.working == sample[21+i]);
@@ -191,7 +247,11 @@ TEST_CASE("Skimma selection matches native enable toggles and reload delay", "[g
     std::array<darker::game::skimma_weapon_slot,3> slots{};
     for(size_t i{0}; i < 3; ++i) slots[i].flags = byte(s[2+i]);
     auto selected{byte(s[1])};
-    darker::game::weapon_ring_state ring{.reload_deadline{word(s[7])},.spread{word(s[8])},.target_spread{508}};
+    darker::game::weapon_ring_state ring{
+      .reload_deadline{word(s[7])},
+      .spread{word(s[8])},
+      .target_spread{508}
+    };
     auto target{word(s[9])};
     if(darker::game::select_skimma_weapon(slots,selected,ring,byte(s[0]),word(s[5]),word(s[6]))) target = 0xffff;
     CHECK(selected == s[10]);

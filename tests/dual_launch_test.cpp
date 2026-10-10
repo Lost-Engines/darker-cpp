@@ -12,8 +12,20 @@ TEST_CASE("Dual Launch separation matches the native paired projectile metric", 
   /// Preserve wrapping and the original asymmetric absolute-value arithmetic
   for(auto const &s : darker::test_reference::dual_separation_samples) {
     CAPTURE(s);
-    darker::game::object_pose const source{.position{.column{static_cast<uint16_t>(s[0])},.row{static_cast<uint16_t>(s[1])},.height{static_cast<uint16_t>(s[2])}}};
-    darker::game::object_pose const target{.position{.column{static_cast<uint16_t>(s[3])},.row{static_cast<uint16_t>(s[4])},.height{static_cast<uint16_t>(s[5])}}};
+    darker::game::object_pose const source{
+      .position{
+        .column{static_cast<uint16_t>(s[0])},
+        .row{static_cast<uint16_t>(s[1])},
+        .height{static_cast<uint16_t>(s[2])}
+      }
+    };
+    darker::game::object_pose const target{
+      .position{
+        .column{static_cast<uint16_t>(s[3])},
+        .row{static_cast<uint16_t>(s[4])},
+        .height{static_cast<uint16_t>(s[5])}
+      }
+    };
     CHECK(darker::game::dual_launch_separation(source,target) == s[6]);
   }
 }
@@ -22,8 +34,20 @@ TEST_CASE("Dual Launch blast matches native category bounds and impact strength"
   /// Compare the complete 6DB5 admission and CD13 strength path for aircraft and smaller ground/static passes
   for(auto const &s : darker::test_reference::dual_impact_samples) {
     CAPTURE(s);
-    darker::game::object_pose const source{.position{.column{static_cast<uint16_t>(s[0])},.row{static_cast<uint16_t>(s[1])},.height{static_cast<uint16_t>(s[2])}}};
-    darker::game::object_pose const target{.position{.column{static_cast<uint16_t>(s[3])},.row{static_cast<uint16_t>(s[4])},.height{static_cast<uint16_t>(s[5])}}};
+    darker::game::object_pose const source{
+      .position{
+        .column{static_cast<uint16_t>(s[0])},
+        .row{static_cast<uint16_t>(s[1])},
+        .height{static_cast<uint16_t>(s[2])}
+      }
+    };
+    darker::game::object_pose const target{
+      .position{
+        .column{static_cast<uint16_t>(s[3])},
+        .row{static_cast<uint16_t>(s[4])},
+        .height{static_cast<uint16_t>(s[5])}
+      }
+    };
     auto const strength{darker::game::dual_launch_impact(source,target,s[6] != 0)};
     CHECK(strength.has_value() == (s[7] != 0));
     if(strength) CHECK(*strength == s[8]);
@@ -35,16 +59,37 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
   for(auto const &s : darker::test_reference::dual_firing_samples) {
     CAPTURE(s);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{
+      .position{
+        .column{1000},
+        .row{2000},
+        .height{3000}
+      },
+      .definition_strength{40}
+    };
     darker::game::projectile *tail{nullptr};
-    if(s[5] >= 0) tail = pool.launch({.definition{darker::game::original_object_definitions[s[5]]},.emitter{emitter}});
+    if(s[5] >= 0) tail = pool.launch({
+      .definition{darker::game::original_object_definitions[s[5]]},
+      .emitter{emitter}
+    });
     if(!s[3]) {
-      while(pool.objects().free) pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}});
+      while(pool.objects().free) pool.launch({
+        .definition{darker::game::original_object_definitions[0]},
+        .emitter{emitter}
+      });
     }
-    darker::game::caero_energy_state energy{.reserve{static_cast<uint16_t>(s[1])}};
+    darker::game::caero_energy_state energy{
+      .reserve{static_cast<uint16_t>(s[1])}
+    };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{.emitter{emitter},.selection{static_cast<uint8_t>(s[0])},
-      .player_flags{static_cast<uint8_t>(s[2])},.pressed{s[4] != 0},.target{0xec00},.released{s[12] != 0}})};
+    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+      .emitter{emitter},
+      .selection{static_cast<uint8_t>(s[0])},
+      .player_flags{static_cast<uint8_t>(s[2])},
+      .pressed{s[4] != 0},
+      .target{0xec00},
+      .released{s[12] != 0}
+    })};
     CHECK(energy.reserve == s[6]);
     CHECK(result.ready == (s[7] != 0));
     CHECK((result.next_selection ? result.next_selection : s[0]) == s[8]);

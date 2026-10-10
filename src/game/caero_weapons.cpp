@@ -54,7 +54,9 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
       if(energy.reserve < cost) return {};
       energy.reserve -= cost;
       charge = static_cast<uint16_t>((cost & 0x8000) ? 0xffff : cost);
-      return {.ready{true}};
+      return {
+        .ready{true}
+      };
     }
     if(request.held) {
       if(charge) {
@@ -63,34 +65,55 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
         energy.reserve -= spent;
         charge = static_cast<uint16_t>(std::min(unsigned{charge} + spent,65535u));
       }
-      return {.ready{true}};
+      return {
+        .ready{true}
+      };
     }
     lifetime = charge >> 4;
     charge = 0;
-    if(!lifetime || !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {.ready{true}};
+    if(!lifetime || !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {
+      .ready{true}
+    };
   } else if(selection == 4 || selection == 5) {
-    if(energy.reserve < cost || (request.target & 0x8000)) return {.next_selection{request.pressed ? uint8_t{5} : uint8_t{0}}};
-    if(!request.pressed) return {.ready{true}};
+    if(energy.reserve < cost || (request.target & 0x8000)) return {
+      .next_selection{request.pressed ? uint8_t{5} : uint8_t{0}}
+    };
+    if(!request.pressed) return {
+      .ready{true}
+    };
     energy.reserve -= cost;
     next_selection = selection ^ 1;
   } else {
     if(energy.reserve < cost) return {};
     if(selection == 7) {
       auto const *capsule{pool.objects().tail};
-      if(!capsule || capsule->parameters.definition != &original_object_definitions[2]) return {.ready{true},.next_selection{3}};
-      if(!request.released) return {.ready{true}};
+      if(!capsule || capsule->parameters.definition != &original_object_definitions[2]) return {
+        .ready{true},
+        .next_selection{3}
+      };
+      if(!request.released) return {
+        .ready{true}
+      };
       target = capsule->native_id;
     }
     if((selection == 8 || selection == 10) && !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {};
     if(selection == 6 && (request.target & 0x8000)) return {};
-    if(selection != 7 && !request.pressed) return {.ready{true}};
+    if(selection != 7 && !request.pressed) return {
+      .ready{true}
+    };
     energy.reserve -= cost;
     if(selection == 3) next_selection = 7;
     else if(selection == 7) next_selection = 3;
   }
   return {
-    .shot{pool.launch({.definition{definition}, .emitter{request.emitter}, .model_token{request.model}, .clock{request.clock},
-      .lifetime{lifetime}, .target_token{target}})},
+    .shot{pool.launch({
+      .definition{definition},
+      .emitter{request.emitter},
+      .model_token{request.model},
+      .clock{request.clock},
+      .lifetime{lifetime},
+      .target_token{target}
+    })},
     .ready{true},
     .next_selection{next_selection},
   };

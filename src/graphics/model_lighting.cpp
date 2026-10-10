@@ -21,7 +21,10 @@ model_colours distance_shading::colours(std::uint16_t depth, model_path const pa
   if(path == model_path::near_clipped && (depth & 0x8000)) depth = 0;
   auto const adjusted{static_cast<std::uint16_t>(depth + 16 * (255 - light))};
   auto const index{std::min<std::size_t>(adjusted >> 8, tables.size() - 1)};
-  return {.shades{tables[index]}, .dynamic{static_cast<std::uint8_t>(0xf0 | (light >> 4))}};
+  return {
+    .shades{tables[index]},
+    .dynamic{static_cast<std::uint8_t>(0xf0 | (light >> 4))}
+  };
 }
 
 } // namespace darker::graphics

@@ -12,15 +12,33 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
     auto const input{std::span{sample}.subspan(3,23)}, output{std::span{sample}.subspan(26,23)};
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     auto const kind{static_cast<darker::game::scenario_setup_kind>(sample[0])};
-    darker::game::object_pose const pose{.position{.column{word(input[0])},.row{word(input[1])},.height{word(input[2])}},
-      .angles{.heading{word(input[3])},.pitch{word(input[4])},.roll{word(input[5])}},.speed{word(input[6])}};
+    darker::game::object_pose const pose{
+      .position{
+        .column{word(input[0])},
+        .row{word(input[1])},
+        .height{word(input[2])}
+      },
+      .angles{
+        .heading{word(input[3])},
+        .pitch{word(input[4])},
+        .roll{word(input[5])}
+      },
+      .speed{word(input[6])}
+    };
     auto actual{std::array<int,23>{}};
     std::ranges::copy(input,actual.begin());
     darker::game::object_pose result;
     if(sample[0] == 0 || sample[0] == 1 || sample[0] == 4 || sample[0] == 5) {
       darker::game::player_flight player;
-      player.craft = darker::game::caero_flight_state{.pose{pose},
-        .energy{.reserve{word(input[19])},.boost{word(input[18])}},.horizontal_velocity{word(input[7])},.active_boost{word(input[20])}};
+      player.craft = darker::game::caero_flight_state{
+        .pose{pose},
+        .energy{
+          .reserve{word(input[19])},
+          .boost{word(input[18])}
+        },
+        .horizontal_velocity{word(input[7])},
+        .active_boost{word(input[20])}
+      };
       player.lifecycle.flags = static_cast<uint8_t>(input[17]);
       darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(input[21]),static_cast<uint8_t>(input[22])};
       darker::game::apply_player_scenario_setup(kind,player,std::bit_cast<int16_t>(word(sample[1])),ammunition);

@@ -39,10 +39,22 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);
   vehicle.last_shot = clock;
   auto const &definition{original_object_definitions[18]};
-  launch_emitter const emitter{.position{vehicle.pose.position},.fractions{vehicle.pose.fractions},.angles{vehicle.pose.angles},
-    .speed{vehicle.pose.speed},.side_flags{vehicle.flags},.definition_strength{vehicle.parameters.definition->impact_strength}};
-  return pool.launch({.definition{definition},.emitter{emitter},.model_token{model},.clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{0xd986}});
+  launch_emitter const emitter{
+    .position{vehicle.pose.position},
+    .fractions{vehicle.pose.fractions},
+    .angles{vehicle.pose.angles},
+    .speed{vehicle.pose.speed},
+    .side_flags{vehicle.flags},
+    .definition_strength{vehicle.parameters.definition->impact_strength}
+  };
+  return pool.launch({
+    .definition{definition},
+    .emitter{emitter},
+    .model_token{model},
+    .clock{clock},
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},
+    .target_token{0xd986}
+  });
 }
 
 } // namespace darker::game

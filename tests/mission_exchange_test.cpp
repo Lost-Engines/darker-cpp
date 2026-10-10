@@ -10,8 +10,13 @@ TEST_CASE("Mission owner registration stops the native owner and retains its pre
   for(auto const &s : darker::test_reference::mission_owner_samples) {
     CAPTURE(s);
     uint16_t owner{static_cast<uint16_t>(s[1])};
-    darker::game::mission_script script{.deadline{static_cast<uint16_t>(s[0])}};
-    darker::game::mission_context context{.program{program},.clock{static_cast<uint32_t>(s[0])}};
+    darker::game::mission_script script{
+      .deadline{static_cast<uint16_t>(s[0])}
+    };
+    darker::game::mission_context context{
+      .program{program},
+      .clock{static_cast<uint32_t>(s[0])}
+    };
     context.register_owner = [&]{ return std::exchange(owner,uint16_t{0xd986}); };
     CHECK(darker::game::advance_mission_script(script,context) == 1);
     CHECK(owner == s[2]);
@@ -28,9 +33,17 @@ TEST_CASE("Consecutive mission exchanges resume immediately with the original me
   std::array const primary_text{std::byte{1}};
   std::array const secondary_text{std::byte{24},std::byte{3},std::byte{65},std::byte{66},std::byte{67}};
   for(auto const &s : darker::test_reference::mission_exchange_samples) {
-    darker::game::mission_script script{.deadline{static_cast<uint16_t>(s[0])}};
-    darker::game::mission_context context{.program{primary},.text{primary_text},.clock{static_cast<uint32_t>(s[0])}};
-    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{secondary,secondary_text,0}}};
+    darker::game::mission_script script{
+      .deadline{static_cast<uint16_t>(s[0])}
+    };
+    darker::game::mission_context context{
+      .program{primary},
+      .text{primary_text},
+      .clock{static_cast<uint32_t>(s[0])}
+    };
+    darker::game::mission_exchange exchange{
+      .alternate{darker::game::mission_context_slot{secondary,secondary_text,0}}
+    };
     context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
     CHECK(darker::game::advance_mission_script(script,context) == 4);
     CHECK(script.deadline == s[1]);
@@ -55,11 +68,17 @@ TEST_CASE("Supply visits preserve a stopped primary script and reset their messa
   std::array const supply{std::byte{0x26},std::byte{0x25},std::byte{0xfd}};
   for(uint16_t const clock : {uint16_t{0},uint16_t{1000},uint16_t{32768},uint16_t{65535}}) {
     darker::game::mission_script script;
-    darker::game::mission_context context{.program{primary},.clock{clock},.text_cursor{7}};
+    darker::game::mission_context context{
+      .program{primary},
+      .clock{clock},
+      .text_cursor{7}
+    };
     script.deadline = clock;
     darker::game::advance_mission_script(script,context);
     REQUIRE(script.stopped);
-    darker::game::mission_exchange exchange{.alternate{darker::game::mission_context_slot{supply,{},0,19}}};
+    darker::game::mission_exchange exchange{
+      .alternate{darker::game::mission_context_slot{supply,{},0,19}}
+    };
     context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
     for(unsigned int visit{0}; visit < 3; ++visit) {
       exchange.enter_supply(script,context);

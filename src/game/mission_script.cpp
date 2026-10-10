@@ -110,9 +110,14 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         if(!width) break;
         auto const length{read_byte(context.text, context.text_cursor)};
         if(length > context.text.size() - context.text_cursor) throw std::invalid_argument{"Counted mission message exceeds its language section"};
-        context.messages.push_back({.offset{context.text_cursor}, .length{length}, .width{width},
+        context.messages.push_back({
+          .offset{context.text_cursor},
+          .length{length},
+          .width{width},
           .expiry{static_cast<std::uint16_t>(now + duration * context.time_multiplier)},
-          .alignment{static_cast<message_alignment>(opcode - 0x0c)}, .text{context.text}});
+          .alignment{static_cast<message_alignment>(opcode - 0x0c)},
+          .text{context.text}
+        });
         context.text_cursor += length;
         delay(interval);
       }

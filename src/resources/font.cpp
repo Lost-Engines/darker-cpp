@@ -30,7 +30,9 @@ font_glyph font_resource::glyph(font_face const face, std::uint8_t const code, u
   /// E1FE uses a phase-relative offset table; low/high nibbles select coverage and the two-colour pattern
   auto const &font{directories.at(static_cast<std::size_t>(face))};
   if(alignment > 3) throw std::out_of_range{"Font alignment must be between zero and three"};
-  if(code < 33) return {.advance{4}};
+  if(code < 33) return {
+    .advance{4}
+  };
   unsigned int const index{code - 33u};
   // E1FE does not bound the glyph index by the directory count. Two German
   // pages reach the following table bytes; preserve those reads.
@@ -61,8 +63,12 @@ font_glyph font_resource::glyph(font_face const face, std::uint8_t const code, u
   auto const size{stride * height};
   if(source > data.size() || size > data.size() - source) throw std::invalid_argument{"Font glyph exceeds its resource"};
   return {
-    .width{width}, .height{height}, .top{top}, .advance{static_cast<std::uint16_t>(width + font.spacing)},
-    .stride{stride}, .planes{std::span{data}.subspan(source, size)},
+    .width{width},
+    .height{height},
+    .top{top},
+    .advance{static_cast<std::uint16_t>(width + font.spacing)},
+    .stride{stride},
+    .planes{std::span{data}.subspan(source, size)},
   };
 }
 

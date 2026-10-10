@@ -8,14 +8,46 @@ darker::game::caero_flight_state read_state(std::array<int, 26> const &values) {
   /// Map native object/global fields into the named callback state
   auto const word{[&](std::size_t const i){ return static_cast<std::uint16_t>(values[i]); }};
   return {
-    .pose{.position{.column{word(0)}, .row{word(1)}, .height{word(2)}},
-      .fractions{.column{static_cast<std::uint8_t>(values[3])}, .row{static_cast<std::uint8_t>(values[4])}, .height{static_cast<std::uint8_t>(values[5])}},
-      .angles{.heading{word(6)}, .pitch{word(7)}, .roll{word(8)}}, .speed{word(9)}},
-    .damage{.rotation{.pitch{word(10)}, .turn{word(11)}}, .damage{word(21)}},
-    .energy{.buffer{word(17)}, .reserve{word(18)}, .boost{word(19)},
-      .incoming_display{static_cast<std::uint8_t>(values[24])}, .reserve_display{static_cast<std::uint8_t>(values[25])}},
-    .horizontal_velocity{word(12)}, .vertical_velocity{word(13)}, .pitch_assist_rate{word(14)},
-    .active_boost{word(15)}, .forward_bias{word(16)}, .repair_phase{word(20)}, .startup_energy{word(22)}, .flying{values[23] != 0},
+    .pose{
+      .position{
+        .column{word(0)},
+        .row{word(1)},
+        .height{word(2)}
+      },
+      .fractions{
+        .column{static_cast<std::uint8_t>(values[3])},
+        .row{static_cast<std::uint8_t>(values[4])},
+        .height{static_cast<std::uint8_t>(values[5])}
+      },
+      .angles{
+        .heading{word(6)},
+        .pitch{word(7)},
+        .roll{word(8)}
+      },
+      .speed{word(9)}
+    },
+    .damage{
+      .rotation{
+        .pitch{word(10)},
+        .turn{word(11)}
+      },
+      .damage{word(21)}
+    },
+    .energy{
+      .buffer{word(17)},
+      .reserve{word(18)},
+      .boost{word(19)},
+      .incoming_display{static_cast<std::uint8_t>(values[24])},
+      .reserve_display{static_cast<std::uint8_t>(values[25])}
+    },
+    .horizontal_velocity{word(12)},
+    .vertical_velocity{word(13)},
+    .pitch_assist_rate{word(14)},
+    .active_boost{word(15)},
+    .forward_bias{word(16)},
+    .repair_phase{word(20)},
+    .startup_energy{word(22)},
+    .flying{values[23] != 0},
   };
 }
 
@@ -40,13 +72,26 @@ TEST_CASE("Complete Caero flight updates match native persistent-state traces", 
     auto state{read_state(sample.before)};
     auto const &input{sample.input};
     darker::game::city_map cells{};
-    cells.fill({.type{1}, .state{static_cast<std::uint8_t>(input[12])}});
+    cells.fill({
+      .type{1},
+      .state{static_cast<std::uint8_t>(input[12])}
+    });
     darker::game::advance_caero_flight(state,
-      {.angular_response{static_cast<std::uint16_t>(input[7])}, .drive_multiplier{static_cast<std::uint16_t>(input[8])},
-        .vertical_bias{static_cast<std::int8_t>(input[11])}, .desired_height{static_cast<std::uint16_t>(input[9])},
-        .height_reference{static_cast<std::uint16_t>(input[10])}},
-      {.bank_drive{static_cast<std::uint16_t>(input[1])}, .pitch_drive{static_cast<std::uint16_t>(input[2])},
-        .engine_flags{static_cast<std::uint8_t>(input[3])}, .altitude_hold{input[4] != 0}, .brake{input[5] != 0}, .boost_cheat{input[6] != 0}},
+      {
+        .angular_response{static_cast<std::uint16_t>(input[7])},
+        .drive_multiplier{static_cast<std::uint16_t>(input[8])},
+        .vertical_bias{static_cast<std::int8_t>(input[11])},
+        .desired_height{static_cast<std::uint16_t>(input[9])},
+        .height_reference{static_cast<std::uint16_t>(input[10])}
+      },
+      {
+        .bank_drive{static_cast<std::uint16_t>(input[1])},
+        .pitch_drive{static_cast<std::uint16_t>(input[2])},
+        .engine_flags{static_cast<std::uint8_t>(input[3])},
+        .altitude_hold{input[4] != 0},
+        .brake{input[5] != 0},
+        .boost_cheat{input[6] != 0}
+      },
       static_cast<std::uint16_t>(input[0]), cells);
     auto const actual{write_state(state)};
     for(std::size_t field{0}; field < actual.size(); ++field) {
@@ -62,17 +107,25 @@ TEST_CASE("Caero hangar charging pauses with the engine off and resumes without 
   darker::game::city_map const cells{};
   darker::game::caero_flight_state running{}, switched{};
   for(int tick{0}; tick < 64; ++tick) {
-    darker::game::advance_caero_flight(running, {}, {.engine_flags{1}}, 16, cells);
+    darker::game::advance_caero_flight(running, {}, {
+      .engine_flags{1}
+    }, 16, cells);
   }
   switched = running;
   REQUIRE(switched.energy.boost != 0);
   for(int tick{0}; tick < 64; ++tick) {
-    darker::game::advance_caero_flight(switched, {}, {.engine_flags{0}}, 16, cells);
+    darker::game::advance_caero_flight(switched, {}, {
+      .engine_flags{0}
+    }, 16, cells);
     CHECK(write_state(switched) == write_state(running));
   }
   for(int tick{0}; tick < 192; ++tick) {
-    darker::game::advance_caero_flight(running, {}, {.engine_flags{1}}, 16, cells);
-    darker::game::advance_caero_flight(switched, {}, {.engine_flags{1}}, 16, cells);
+    darker::game::advance_caero_flight(running, {}, {
+      .engine_flags{1}
+    }, 16, cells);
+    darker::game::advance_caero_flight(switched, {}, {
+      .engine_flags{1}
+    }, 16, cells);
   }
   CHECK(write_state(switched) == write_state(running));
   CHECK(switched.energy.boost == 0xa000);
@@ -84,7 +137,10 @@ TEST_CASE("Caero boost activation matches the original reserve threshold and byt
   /// Include insufficient reserve, an exact pip and retriggering an already active boost
   for(auto const &sample : darker::test_reference::caero_boost_samples) {
     darker::game::caero_flight_state state{
-      .energy{.boost{static_cast<std::uint16_t>(sample.reserve)}}, .active_boost{static_cast<std::uint16_t>(sample.active)},
+      .energy{
+        .boost{static_cast<std::uint16_t>(sample.reserve)}
+      },
+      .active_boost{static_cast<std::uint16_t>(sample.active)},
     };
     REQUIRE(darker::game::activate_caero_boost(state) == (sample.accepted != 0));
     REQUIRE(state.energy.boost == sample.result_reserve);

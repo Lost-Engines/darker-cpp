@@ -100,8 +100,20 @@ std::array<ambient_source,10> make_ambient_sources(uint16_t const clock) {
   std::array<ambient_source,10> result{};
   for(size_t i{0}; i < records.size(); ++i) {
     auto const &r{records[i]};
-    result[i] = {.sound{.position{r.position},.definition{
-      .duration{r.duration},.pitch{r.pitch},.level{r.level},.patch{r.patch},.flags{r.flags}},.deadline{clock}},.callback{r.callback}};
+    result[i] = {
+      .sound{
+        .position{r.position},
+        .definition{
+          .duration{r.duration},
+          .pitch{r.pitch},
+          .level{r.level},
+          .patch{r.patch},
+          .flags{r.flags}
+        },
+        .deadline{clock}
+      },
+      .callback{r.callback}
+    };
   }
   return result;
 }

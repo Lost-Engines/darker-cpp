@@ -16,7 +16,18 @@ TEST_CASE("Ground vehicle routes match native movement through turns, branches a
   for(auto const &sample : darker::test_reference::vehicle_route_samples) {
     CAPTURE(sample.program,sample.heading,sample.step);
     darker::game::vehicle_route route;
-    darker::game::object_pose pose{.position{.column{14720},.row{20608},.height{0}},.angles{.heading{static_cast<uint16_t>(sample.heading)},.pitch{0},.roll{0}}};
+    darker::game::object_pose pose{
+      .position{
+        .column{14720},
+        .row{20608},
+        .height{0}
+      },
+      .angles{
+        .heading{static_cast<uint16_t>(sample.heading)},
+        .pitch{0},
+        .roll{0}
+      }
+    };
     uint8_t flags{0};
     uint16_t random{17}, deadline{0};
     uint64_t hash{0xcbf29ce484222325};

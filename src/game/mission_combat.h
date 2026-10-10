@@ -37,7 +37,10 @@ struct combat_scenario {
 
 struct skimma_armament {
   std::array<skimma_weapon_slot,3> slots{};
-  weapon_ring_state ring{.spread{508},.target_spread{508}};
+  weapon_ring_state ring{
+    .spread{508},
+    .target_spread{508}
+  };
   uint8_t selection{};
   uint8_t reserves{};
   int8_t recoil{};

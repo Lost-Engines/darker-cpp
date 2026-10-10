@@ -8,7 +8,10 @@ std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::ui
   std::uint16_t const end_x, std::uint16_t const end_y) {
   /// 655E–662A visits cells in the original major/minor-axis order, retaining its fractional crossing bias
   std::vector<collision_cell> result;
-  collision_cell cell{.column{static_cast<std::uint8_t>(x >> 8)}, .row{static_cast<std::uint8_t>(y >> 8)}};
+  collision_cell cell{
+    .column{static_cast<std::uint8_t>(x >> 8)},
+    .row{static_cast<std::uint8_t>(y >> 8)}
+  };
   auto const visit{[&]{
     if(cell.column < 128 && cell.row < 128) result.push_back(cell);
   }};

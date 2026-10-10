@@ -46,7 +46,12 @@ city_collision_result sweep_city(resources::geometry_bank const &bank, std::span
     city_collision_result result{};
     for(auto const &box : city_collision_boxes(bank, object.type, object.state, damage_mask, cell.column, cell.row, expansion)) {
       if(sweep_collision_box(box, previous, clipped)) {
-        result = {.contact{city_contact::building}, .column{cell.column}, .row{cell.row}, .category{box.category}};
+        result = {
+          .contact{city_contact::building},
+          .column{cell.column},
+          .row{cell.row},
+          .category{box.category}
+        };
       }
     }
     if(result.contact == city_contact::building) {
@@ -58,7 +63,9 @@ city_collision_result sweep_city(resources::geometry_bank const &bank, std::span
   if(terrain) {
     end = clipped;
     end.height = static_cast<std::uint16_t>(end.height << 3);
-    return {.contact{city_contact::terrain}};
+    return {
+      .contact{city_contact::terrain}
+    };
   }
   return {};
 }

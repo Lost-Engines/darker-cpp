@@ -19,8 +19,16 @@ TEST_CASE("Object definition expansion matches all native records and unsigned b
       }
     }
     darker::game::object_parameters parameters{
-      .definition{nullptr}, .model_token{0xa5a5}, .update_entry{static_cast<darker::game::object_update>(0xa5a5)}, .flags_4c{0xa5a5},
-      .angular_response{0xa5a5}, .motion{.bank_response{0xa5a5}, .bank_limit{0xa5a5}, .turn_response{0xa5a5}},
+      .definition{nullptr},
+      .model_token{0xa5a5},
+      .update_entry{static_cast<darker::game::object_update>(0xa5a5)},
+      .flags_4c{0xa5a5},
+      .angular_response{0xa5a5},
+      .motion{
+        .bank_response{0xa5a5},
+        .bank_limit{0xa5a5},
+        .turn_response{0xa5a5}
+      },
     };
     darker::game::apply_object_definition(parameters, definition, static_cast<std::uint16_t>(sample.model));
     CHECK(parameters.definition == &definition);

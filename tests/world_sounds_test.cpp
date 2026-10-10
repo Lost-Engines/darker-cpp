@@ -22,13 +22,34 @@ TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]"
   }
   for(auto const &v : darker::test_reference::sound_velocity) {
     CAPTURE(v);
-    darker::game::object_pose const pose{.angles{.heading{static_cast<uint16_t>(v[0])},.pitch{static_cast<uint16_t>(v[1])},.roll{0}}, .speed{static_cast<uint16_t>(v[2])}};
+    darker::game::object_pose const pose{
+      .angles{
+        .heading{static_cast<uint16_t>(v[0])},
+        .pitch{static_cast<uint16_t>(v[1])},
+        .roll{0}
+      },
+      .speed{static_cast<uint16_t>(v[2])}
+    };
     CHECK(darker::audio::doppler_factor(&pose, static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])) == v[5]);
   }
   for(auto const &v : darker::test_reference::sound_pitch) {
     CAPTURE(v);
-    darker::game::object_pose const source{.angles{.heading{static_cast<uint16_t>(v[4])},.pitch{static_cast<uint16_t>(v[5])},.roll{0}}, .speed{static_cast<uint16_t>(v[6])}};
-    darker::game::object_pose const listener{.angles{.heading{static_cast<uint16_t>(v[7])},.pitch{static_cast<uint16_t>(v[8])},.roll{0}}, .speed{static_cast<uint16_t>(v[9])}};
+    darker::game::object_pose const source{
+      .angles{
+        .heading{static_cast<uint16_t>(v[4])},
+        .pitch{static_cast<uint16_t>(v[5])},
+        .roll{0}
+      },
+      .speed{static_cast<uint16_t>(v[6])}
+    };
+    darker::game::object_pose const listener{
+      .angles{
+        .heading{static_cast<uint16_t>(v[7])},
+        .pitch{static_cast<uint16_t>(v[8])},
+        .roll{0}
+      },
+      .speed{static_cast<uint16_t>(v[9])}
+    };
     CHECK(darker::audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
   }
 }
@@ -41,7 +62,11 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
     REQUIRE(effects.trails.size() == 1);
     REQUIRE(effects.gun_sounds.size() == 1);
     CHECK(effects.trails[0].flags == v[1]);
-    CHECK(effects.trails[0].position == darker::maths::world_position{.column{static_cast<uint16_t>(v[2])},.row{static_cast<uint16_t>(v[3])},.height{static_cast<uint16_t>(v[4])}});
+    CHECK(effects.trails[0].position == darker::maths::world_position{
+      .column{static_cast<uint16_t>(v[2])},
+      .row{static_cast<uint16_t>(v[3])},
+      .height{static_cast<uint16_t>(v[4])}
+    });
     auto const &sound{effects.gun_sounds[0]};
     CHECK(sound.definition.pitch == v[5]);
     CHECK(sound.definition.level == v[6]);
@@ -59,7 +84,12 @@ TEST_CASE("World voices retain channels and retrigger replacement sources", "[au
   combat.effects.spawn(0x7319,{0,0,0},0);
   darker::audio::world_sounds mixer;
   darker::audio::fm_frame player{};
-  player[0] = {.pitch{400}, .level{0x8800}, .patch{7}, .active{true}};
+  player[0] = {
+    .pitch{400},
+    .level{0x8800},
+    .patch{7},
+    .active{true}
+  };
   auto const first{mixer.mix(player,combat,{})};
   auto const second{mixer.mix(player,combat,{})};
   unsigned int active{0};
@@ -107,10 +137,22 @@ TEST_CASE("Object sound callbacks match native engines, lifetime pitch and fadin
   /// Cover every non-player definition with wrapped speed, damage, flags, pitch and expiry
   for(auto const &v : darker::test_reference::object_sound_samples) {
     CAPTURE(v);
-    darker::game::object_pose const pose{.angles{.heading{0},.pitch{static_cast<uint16_t>(v[3])},.roll{0}},.speed{static_cast<uint16_t>(v[2])}};
+    darker::game::object_pose const pose{
+      .angles{
+        .heading{0},
+        .pitch{static_cast<uint16_t>(v[3])},
+        .roll{0}
+      },
+      .speed{static_cast<uint16_t>(v[2])}
+    };
     auto const note{darker::audio::object_sound(darker::game::original_object_definitions[v[0]],pose,
-      {.identity{static_cast<uint16_t>(v[1])},.flags{static_cast<uint8_t>(v[5])},.damage{static_cast<uint16_t>(v[6])},
-        .fade{static_cast<uint8_t>(v[7])},.deadline{static_cast<uint16_t>(v[8])}},static_cast<uint16_t>(v[4]))};
+      {
+        .identity{static_cast<uint16_t>(v[1])},
+        .flags{static_cast<uint8_t>(v[5])},
+        .damage{static_cast<uint16_t>(v[6])},
+        .fade{static_cast<uint8_t>(v[7])},
+        .deadline{static_cast<uint16_t>(v[8])}
+      },static_cast<uint16_t>(v[4]))};
     CHECK(note.pitch == v[9]);
     CHECK(note.level == v[10]);
     CHECK(note.active == (v[11] != 0));
@@ -119,7 +161,12 @@ TEST_CASE("Object sound callbacks match native engines, lifetime pitch and fadin
 
 TEST_CASE("Aircraft engines follow source admission without restarting moving voices", "[audio]") {
   /// Exercise the live actor path, including hidden and destroyed aircraft and distance rejection
-  darker::game::scenario_actor actor{.parameters{.definition{&darker::game::original_object_definitions[19]}},.index{3}};
+  darker::game::scenario_actor actor{
+    .parameters{
+      .definition{&darker::game::original_object_definitions[19]}
+    },
+    .index{3}
+  };
   darker::game::mission_combat combat{{actor}};
   darker::audio::world_sounds mixer;
   auto const first{mixer.mix({},combat,{},0)};
@@ -148,7 +195,11 @@ TEST_CASE("Physical sound channels match consecutive native allocation frames", 
   for(auto const &sample : darker::test_reference::voice_allocation) {
     std::vector<darker::audio::sound_candidate> candidates;
     for(size_t i{0}; i < sample[0]; ++i) candidates.push_back({sample[1+i*2],
-      {.pitch{400},.level{static_cast<uint16_t>(sample[2+i*2])},.active{true}}});
+      {
+        .pitch{400},
+        .level{static_cast<uint16_t>(sample[2+i*2])},
+        .active{true}
+      }});
     auto const frame{allocator.allocate(candidates)};
     for(size_t i{0}; i < frame.size(); ++i) {
       CHECK(allocator.identities()[i] == sample[49+i]);
@@ -163,7 +214,16 @@ TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audi
   combat.effects.spawn(0x7319,{0,0,0},0);
   darker::audio::world_sounds mixer;
   std::array<darker::game::effect_sound,9> louder{};
-  for(size_t i{0}; i < louder.size(); ++i) louder[i] = {.definition{.duration{0},.pitch{400},.level{65535},.patch{0},.flags{2}},.identity{static_cast<uint32_t>(i*65536+1)}};
+  for(size_t i{0}; i < louder.size(); ++i) louder[i] = {
+    .definition{
+      .duration{0},
+      .pitch{400},
+      .level{65535},
+      .patch{0},
+      .flags{2}
+    },
+    .identity{static_cast<uint32_t>(i*65536+1)}
+  };
   mixer.mix({},combat,{},0,louder);
   REQUIRE_FALSE(combat.effects.sounds.empty());
   auto const frame{mixer.mix({},combat,{})};
@@ -175,8 +235,16 @@ TEST_CASE("A repeated fixed sound retriggers without changing physical ownership
   /// Fixed record identity survives a new note onset even when free-list order has changed
   darker::audio::voice_allocation allocator;
   std::array<darker::audio::sound_candidate,2> sources{{
-    {1,{.pitch{400},.level{300},.active{true}}},
-    {2,{.pitch{600},.level{100},.active{true}}},
+    {1,{
+      .pitch{400},
+      .level{300},
+      .active{true}
+    }},
+    {2,{
+      .pitch{600},
+      .level{100},
+      .active{true}
+    }},
   }};
   auto const first{allocator.allocate(sources)};
   auto const owners{allocator.identities()};
@@ -191,9 +259,18 @@ TEST_CASE("Stereo attenuation matches the native camera transform and gain curve
   /// Cover wrapping products, signed bearings, saturation and the original non-linear pan law
   for(auto const &v : darker::test_reference::stereo_samples) {
     darker::maths::view_basis const basis{{
-      {.horizontal{static_cast<int16_t>(v[4])},.depth{static_cast<int16_t>(v[7])}},
-      {.horizontal{static_cast<int16_t>(v[3])},.depth{static_cast<int16_t>(v[6])}},
-      {.horizontal{static_cast<int16_t>(v[5])},.depth{static_cast<int16_t>(v[8])}},
+      {
+        .horizontal{static_cast<int16_t>(v[4])},
+        .depth{static_cast<int16_t>(v[7])}
+      },
+      {
+        .horizontal{static_cast<int16_t>(v[3])},
+        .depth{static_cast<int16_t>(v[6])}
+      },
+      {
+        .horizontal{static_cast<int16_t>(v[5])},
+        .depth{static_cast<int16_t>(v[8])}
+      },
     }};
     CHECK(darker::audio::stereo_attenuation({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},basis,
       static_cast<uint16_t>(v[9])) == std::array<uint8_t,2>{static_cast<uint8_t>(v[10]),static_cast<uint8_t>(v[11])});
@@ -205,7 +282,14 @@ TEST_CASE("Stereo carrier levels produce independent PCM without altering centre
   auto const energy{[](std::array<uint8_t,2> const attenuation){
     darker::audio::fm_stream stream{48000};
     darker::audio::fm_frame frame{};
-    frame[0] = {.pitch{686},.level{0xb000},.generation{1},.patch{2},.active{true},.attenuation{attenuation}};
+    frame[0] = {
+      .pitch{686},
+      .level{0xb000},
+      .generation{1},
+      .patch{2},
+      .active{true},
+      .attenuation{attenuation}
+    };
     REQUIRE(stream.publish(frame));
     std::array<float,2048> pcm{};
     std::array<double,2> result{};

@@ -94,7 +94,11 @@ std::size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertic
   std::size_t count{0};
   auto const emit{[&](screen_vertex const &point, std::uint16_t const shade){
     if(count == output.size()) throw std::invalid_argument{"Near shaded polygon exceeds its output buffer"};
-    output[count++] = {.x{point.x}, .y{point.y}, .shade{shade}};
+    output[count++] = {
+      .x{point.x},
+      .y{point.y},
+      .shade{shade}
+    };
   }};
   for(std::size_t i{0}; i < vertices.size(); ++i) {
     auto const j{(i + 1) % vertices.size()};

@@ -27,16 +27,56 @@ TEST_CASE("Grid coordinate glyphs match native signed-byte and divide-by-nine bo
   };
   // Captured from native 5429/5455; signed high-bit inputs take the same restoration path as zero.
   std::array<sample, 10> const samples{{
-    {.encoded{0}, .tens{42}, .units{42}},
-    {.encoded{1}, .tens{0}, .units{1}},
-    {.encoded{9}, .tens{0}, .units{1}},
-    {.encoded{10}, .tens{0}, .units{2}},
-    {.encoded{81}, .tens{0}, .units{9}},
-    {.encoded{82}, .tens{1}, .units{0}},
-    {.encoded{127}, .tens{1}, .units{5}},
-    {.encoded{128}, .tens{42}, .units{42}},
-    {.encoded{135}, .tens{42}, .units{42}},
-    {.encoded{255}, .tens{42}, .units{42}},
+    {
+      .encoded{0},
+      .tens{42},
+      .units{42}
+    },
+    {
+      .encoded{1},
+      .tens{0},
+      .units{1}
+    },
+    {
+      .encoded{9},
+      .tens{0},
+      .units{1}
+    },
+    {
+      .encoded{10},
+      .tens{0},
+      .units{2}
+    },
+    {
+      .encoded{81},
+      .tens{0},
+      .units{9}
+    },
+    {
+      .encoded{82},
+      .tens{1},
+      .units{0}
+    },
+    {
+      .encoded{127},
+      .tens{1},
+      .units{5}
+    },
+    {
+      .encoded{128},
+      .tens{42},
+      .units{42}
+    },
+    {
+      .encoded{135},
+      .tens{42},
+      .units{42}
+    },
+    {
+      .encoded{255},
+      .tens{42},
+      .units{42}
+    },
   }};
   for(auto const &sample : samples) {
     auto target{cache};
@@ -85,7 +125,10 @@ TEST_CASE("Weapon icons enforce slot roles, preserve backgrounds and restore emp
 TEST_CASE("Caero callbacks dispatch changed fields with row on the left and column on the right") {
   auto const cache{digit_cache()};
   auto target{cache};
-  darker::graphics::caero_bitmap_state const state{.row{82}, .column{10}};
+  darker::graphics::caero_bitmap_state const state{
+    .row{82},
+    .column{10}
+  };
   darker::graphics::update_caero_bitmaps(cache, target, {}, state);
   REQUIRE(target.pixels[185 * 320 + 44] == 1);
   REQUIRE(target.pixels[185 * 320 + 48] == 0);
@@ -105,8 +148,12 @@ TEST_CASE("Skimma bearing changes restore previous pixels and ordinary craft rej
     for(std::uint8_t second{1}; second <= 7; ++second) {
       auto target{cache};
       auto fresh{cache};
-      darker::graphics::skimma_bitmap_state const old_state{.bearing{first}};
-      darker::graphics::skimma_bitmap_state const new_state{.bearing{second}};
+      darker::graphics::skimma_bitmap_state const old_state{
+        .bearing{first}
+      };
+      darker::graphics::skimma_bitmap_state const new_state{
+        .bearing{second}
+      };
       darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::skimma, {}, old_state);
       darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::skimma, old_state, new_state);
       darker::graphics::update_skimma_bitmaps(cache, fresh, darker::graphics::craft::skimma, {}, new_state);
@@ -116,7 +163,9 @@ TEST_CASE("Skimma bearing changes restore previous pixels and ordinary craft rej
     }
   }
   auto target{cache};
-  REQUIRE_THROWS(darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::skimma, {}, {.weapons{0, 0, 1}}));
+  REQUIRE_THROWS(darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::skimma, {}, {
+    .weapons{0, 0, 1}
+  }));
 }
 
 TEST_CASE("Large coordinate font uses blank glyphs for unavailable coordinates") {

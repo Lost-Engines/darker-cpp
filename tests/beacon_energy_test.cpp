@@ -12,7 +12,8 @@ TEST_CASE("Beacon power matches native lattice lookup and distance attenuation",
     std::array<darker::game::city_cell, 128 * 128> cells{};
     if(sample.cell_x < 128 && sample.cell_y < 128) {
       cells[sample.cell_y * 128 + sample.cell_x] = {
-        .type{static_cast<std::uint8_t>(sample.kind)}, .state{static_cast<std::uint8_t>(sample.strength)},
+        .type{static_cast<std::uint8_t>(sample.kind)},
+        .state{static_cast<std::uint8_t>(sample.strength)},
       };
     }
     auto const light{darker::game::beacon_light(cells,

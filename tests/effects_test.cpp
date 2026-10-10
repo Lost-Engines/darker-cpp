@@ -9,9 +9,20 @@ TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {
   /// Include clipped rings, equal-depth samples and the original duplicate nearest sample
   for(auto const &v : darker::test_reference::effect_projection) {
     CAPTURE(v);
-    darker::game::particle_emitter const emitter{.radius{static_cast<uint16_t>(v[0])}, .angle{static_cast<uint16_t>(v[1])}, .sampling{static_cast<uint16_t>(v[2])}};
-    auto const term{[](int64_t const value){ return darker::graphics::projection_term{.whole{static_cast<uint16_t>(value >> 8)}, .fraction{static_cast<uint8_t>(value)}}; }};
-    darker::graphics::model_placement const centre{.horizontal{term(v[3])}, .vertical{term(v[4])}, .depth{term(v[5])}};
+    darker::game::particle_emitter const emitter{
+      .radius{static_cast<uint16_t>(v[0])},
+      .angle{static_cast<uint16_t>(v[1])},
+      .sampling{static_cast<uint16_t>(v[2])}
+    };
+    auto const term{[](int64_t const value){ return darker::graphics::projection_term{
+      .whole{static_cast<uint16_t>(value >> 8)},
+      .fraction{static_cast<uint8_t>(value)}
+    }; }};
+    darker::graphics::model_placement const centre{
+      .horizontal{term(v[3])},
+      .vertical{term(v[4])},
+      .depth{term(v[5])}
+    };
     darker::graphics::camera_basis const basis{{
       {static_cast<int16_t>(v[7]), static_cast<int16_t>(v[9]), static_cast<int16_t>(v[11])},
       {static_cast<int16_t>(v[6]), static_cast<int16_t>(v[8]), static_cast<int16_t>(v[10])}, {},
@@ -28,9 +39,20 @@ TEST_CASE("Effect movement matches signed native byte arithmetic", "[effects]") 
   /// Check fractional height carries and wrapping words, including signed frame-step bytes
   for(auto const &v : darker::test_reference::effect_motion) {
     CAPTURE(v);
-    darker::game::particle_emitter emitter{.position{.column{0},.row{0},.height{static_cast<uint16_t>(v[0])}}, .height_fraction{static_cast<uint8_t>(v[1])},
-      .start{static_cast<uint16_t>(v[7])}, .radius{static_cast<uint16_t>(v[2])}, .angle{static_cast<uint16_t>(v[3])},
-      .radius_rate{static_cast<int8_t>(v[4])}, .height_rate{static_cast<int8_t>(v[5])}, .angle_rate{static_cast<int8_t>(v[6])}};
+    darker::game::particle_emitter emitter{
+      .position{
+        .column{0},
+        .row{0},
+        .height{static_cast<uint16_t>(v[0])}
+      },
+      .height_fraction{static_cast<uint8_t>(v[1])},
+      .start{static_cast<uint16_t>(v[7])},
+      .radius{static_cast<uint16_t>(v[2])},
+      .angle{static_cast<uint16_t>(v[3])},
+      .radius_rate{static_cast<int8_t>(v[4])},
+      .height_rate{static_cast<int8_t>(v[5])},
+      .angle_rate{static_cast<int8_t>(v[6])}
+    };
     darker::game::advance_emitter(emitter, static_cast<uint16_t>(v[7]), static_cast<uint16_t>(v[8]));
     CHECK(emitter.position.height == v[9]);
     CHECK(emitter.height_fraction == v[10]);
@@ -46,7 +68,11 @@ TEST_CASE("Particle pixels follow native source selection and scanline masks", "
   for(auto const &v : darker::test_reference::particle_pixels) {
     CAPTURE(v);
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_particle(frame, sheet, {.x{static_cast<int16_t>(v[2])}, .y{80}, .depth{static_cast<int16_t>(v[0])}}, static_cast<uint8_t>(v[1]), 240);
+    darker::graphics::draw_particle(frame, sheet, {
+      .x{static_cast<int16_t>(v[2])},
+      .y{80},
+      .depth{static_cast<int16_t>(v[0])}
+    }, static_cast<uint8_t>(v[1]), 240);
     uint32_t hash{2166136261};
     for(auto const pixel : frame.pixels) hash = (hash ^ pixel) * 16777619;
     CHECK(hash == v[3]);
@@ -56,13 +82,20 @@ TEST_CASE("Particle pixels follow native source selection and scanline masks", "
 TEST_CASE("Effect phases and stationary trails match original records", "[effects]") {
   /// Keep waiting/expired states and the bright-to-smoke splice distinct from an ascending atlas animation
   for(auto const &v : darker::test_reference::effect_ages) {
-    darker::game::particle_emitter const emitter{.start{1000}, .flags{static_cast<uint8_t>(v[0])}};
+    darker::game::particle_emitter const emitter{
+      .start{1000},
+      .flags{static_cast<uint8_t>(v[0])}
+    };
     auto const phase{darker::game::particle_phase(emitter, static_cast<uint16_t>(1000 + v[1]))};
     CHECK((phase ? static_cast<int>(*phase) : -1) == v[2]);
   }
   for(auto const &v : darker::test_reference::effect_trails) {
     auto const emitter{darker::game::make_damage_trail({16000,17000,2000}, static_cast<uint8_t>(v[0]), static_cast<uint16_t>(v[1]), 1000)};
-    CHECK(emitter.position == darker::maths::world_position{.column{static_cast<uint16_t>(v[2])}, .row{static_cast<uint16_t>(v[3])}, .height{static_cast<uint16_t>(v[4])}});
+    CHECK(emitter.position == darker::maths::world_position{
+      .column{static_cast<uint16_t>(v[2])},
+      .row{static_cast<uint16_t>(v[3])},
+      .height{static_cast<uint16_t>(v[4])}
+    });
     CHECK(emitter.flags == v[5]);
   }
 }

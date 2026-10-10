@@ -42,7 +42,8 @@ caero_instruments measure_caero_instruments(game::caero_flight_state const &stat
   auto const altitude{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>((std::bit_cast<std::int16_t>(state.pose.position.height) >> 2) + 224))};
   return {
     .altitude{static_cast<std::uint8_t>(std::min(8, std::max(0, static_cast<int>(altitude)) >> 8))},
-    .impact{static_cast<std::uint8_t>(impact >> 2)}, .damage_lights{static_cast<std::uint8_t>(lights)},
+    .impact{static_cast<std::uint8_t>(impact >> 2)},
+    .damage_lights{static_cast<std::uint8_t>(lights)},
     .power_cells{static_cast<std::uint8_t>(state.energy.boost >> 13)},
     .charging{static_cast<std::uint8_t>((13 * ((state.energy.boost >> 5) & 255)) >> 8)},
   };
@@ -57,13 +58,18 @@ shield_strip_range skimma_shield_strips(std::uint8_t const strength) noexcept {
     first = static_cast<std::uint8_t>((count & 1) == 0 ? 1 : 0);
     count += count >> 1;
   }
-  return {.first{first}, .end{static_cast<std::uint8_t>(count <= 2 ? (count == 0 ? 0 : 1) : count - 2)}};
+  return {
+    .first{first},
+    .end{static_cast<std::uint8_t>(count <= 2 ? (count == 0 ? 0 : 1) : count - 2)}
+  };
 }
 
 skimma_instruments measure_skimma_instruments(std::uint16_t const height, std::uint16_t const shield_charge, bool const shield_enabled,
   bool const warning_flash, std::uint16_t const clock, std::uint16_t &shield_deadline) noexcept {
   /// 579C–5828 separates the height warning, shield startup animation and available shield-strength strip
-  skimma_instruments result{.low_altitude{static_cast<std::uint8_t>(height < 1024 && !(warning_flash && (clock & 256)) ? 1 : 0)}};
+  skimma_instruments result{
+    .low_altitude{static_cast<std::uint8_t>(height < 1024 && !(warning_flash && (clock & 256)) ? 1 : 0)}
+  };
   if(!shield_enabled) return result;
   auto remaining{static_cast<std::uint16_t>(shield_deadline - clock)};
   auto const charge{static_cast<std::uint8_t>(shield_charge >> 8)};

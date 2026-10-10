@@ -19,7 +19,11 @@ TEST_CASE("Player camera position and distance smoothing match native views", "[
     }
     for(std::size_t i{0}; i < 2; ++i) player.fractions[i] = static_cast<std::uint8_t>(sample.fractions[i]);
     auto const &v{sample.input};
-    darker::game::flight_camera camera{.mode{static_cast<darker::game::camera_mode>(v[0])}, .distance_step{static_cast<std::uint8_t>(v[2])}, .distance{static_cast<std::uint16_t>(v[3])}};
+    darker::game::flight_camera camera{
+      .mode{static_cast<darker::game::camera_mode>(v[0])},
+      .distance_step{static_cast<std::uint8_t>(v[2])},
+      .distance{static_cast<std::uint16_t>(v[3])}
+    };
     auto const result{camera.view(player, static_cast<std::uint16_t>(v[1]), v[4] != 0)};
     CAPTURE(sample.position, sample.angles, v);
     CHECK(std::array<int, 9>{result.position.column, result.position.row, result.position.height, result.fractions.column, result.fractions.row,
@@ -32,9 +36,15 @@ TEST_CASE("Tab look and recentering follow original camera controls", "[game][ca
   /// Include wrapped offsets, both steering signs and the landed look constraint
   for(auto const &sample : darker::test_reference::camera_look_samples) {
     auto const &v{sample.input};
-    darker::game::flight_camera camera{.mode{static_cast<darker::game::camera_mode>(v[6])},
-      .look_heading{static_cast<std::uint16_t>(v[0])}, .look_pitch{static_cast<std::uint16_t>(v[1])}};
-    camera.update_look({.bank{static_cast<std::uint16_t>(v[2])}, .pitch{static_cast<std::uint16_t>(v[3])}}, v[4] != 0, static_cast<std::uint16_t>(v[5]), v[7] != 0);
+    darker::game::flight_camera camera{
+      .mode{static_cast<darker::game::camera_mode>(v[6])},
+      .look_heading{static_cast<std::uint16_t>(v[0])},
+      .look_pitch{static_cast<std::uint16_t>(v[1])}
+    };
+    camera.update_look({
+      .bank{static_cast<std::uint16_t>(v[2])},
+      .pitch{static_cast<std::uint16_t>(v[3])}
+    }, v[4] != 0, static_cast<std::uint16_t>(v[5]), v[7] != 0);
     CAPTURE(v);
     CHECK(std::array<int, 2>{camera.look_heading, camera.look_pitch} == sample.output);
   }
@@ -80,7 +90,11 @@ TEST_CASE("Missile camera positions match native attached and impact views", "[g
     }
     for(size_t axis{0}; axis < 2; ++axis) shot.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
     auto const &v{sample.input};
-    darker::game::flight_camera camera{.mode{static_cast<darker::game::camera_mode>(v[0])},.distance_step{static_cast<uint8_t>(v[2])},.distance{static_cast<uint16_t>(v[3])}};
+    darker::game::flight_camera camera{
+      .mode{static_cast<darker::game::camera_mode>(v[0])},
+      .distance_step{static_cast<uint8_t>(v[2])},
+      .distance{static_cast<uint16_t>(v[3])}
+    };
     auto const result{camera.view(shot,static_cast<uint16_t>(v[1]),v[4] != 0,
       v[5] ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile)};
     CAPTURE(sample.position,sample.angles,v);
@@ -102,8 +116,11 @@ TEST_CASE("Underground following and death views retain the player position", "[
     }
     for(size_t i{0}; i < 2; ++i) player.fractions[i] = static_cast<uint8_t>(sample.fractions[i]);
     for(auto const mode : {darker::game::camera_mode::behind,darker::game::camera_mode::level}) {
-      darker::game::flight_camera camera{.mode{mode},.distance_step{static_cast<uint8_t>(sample.input[2])},
-        .distance{static_cast<uint16_t>(sample.input[3])}};
+      darker::game::flight_camera camera{
+        .mode{mode},
+        .distance_step{static_cast<uint8_t>(sample.input[2])},
+        .distance{static_cast<uint16_t>(sample.input[3])}
+      };
       auto const result{camera.view(player,static_cast<uint16_t>(sample.input[1]),sample.input[4] != 0,darker::game::camera_subject::player,true)};
       CHECK(std::array<int,9>{result.position.column,result.position.row,result.position.height,result.fractions.column,result.fractions.row,
         result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
@@ -139,8 +156,11 @@ TEST_CASE("F7 follows live and destroyed objects at the original distances", "[g
     }
     for(size_t axis{0}; axis < 2; ++axis) object.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
     auto const &v{sample.input};
-    darker::game::flight_camera camera{.mode{darker::game::camera_mode::object},
-      .distance_step{static_cast<uint8_t>(v[1])},.distance{static_cast<uint16_t>(v[2])}};
+    darker::game::flight_camera camera{
+      .mode{darker::game::camera_mode::object},
+      .distance_step{static_cast<uint8_t>(v[1])},
+      .distance{static_cast<uint16_t>(v[2])}
+    };
     auto const result{camera.view(object,static_cast<uint16_t>(v[0]),false,
       v[3] ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)};
     CAPTURE(sample.position,sample.angles,v);

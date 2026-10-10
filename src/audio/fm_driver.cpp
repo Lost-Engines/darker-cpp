@@ -15,7 +15,10 @@ fm_program fm_driver::stop(std::uint8_t const channel) {
   if(channel >= voices.size()) throw std::out_of_range{"FM channel exceeds nine voices"};
   if(voices[channel].block == 31) return {};
   voices[channel].block = 31;
-  return {.writes{{{static_cast<std::uint8_t>(0x43 + operators[channel]), 63}, {static_cast<std::uint8_t>(0xb0 + channel), 31}}}, .count{2}};
+  return {
+    .writes{{{static_cast<std::uint8_t>(0x43 + operators[channel]), 63}, {static_cast<std::uint8_t>(0xb0 + channel), 31}}},
+    .count{2}
+  };
 }
 
 fm_program fm_driver::program(std::uint8_t const channel, std::uint8_t const patch, std::uint16_t pitch,
@@ -27,7 +30,10 @@ fm_program fm_driver::program(std::uint8_t const channel, std::uint8_t const pat
   auto const op{operators[channel]};
   fm_program result;
   auto const write{[&](int const address, int const value){
-    result.writes[result.count++] = {.address{static_cast<std::uint8_t>(address)}, .value{static_cast<std::uint8_t>(value)}};
+    result.writes[result.count++] = {
+      .address{static_cast<std::uint8_t>(address)},
+      .value{static_cast<std::uint8_t>(value)}
+    };
   }};
   if(voice.patch != patch) {
     voice.patch = patch;

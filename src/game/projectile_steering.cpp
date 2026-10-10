@@ -23,8 +23,11 @@ map_guidance_target resolve_map_guidance(uint16_t const cell, city_map const &ce
   if(object.type == 0) throw std::invalid_argument{"Guided projectile building target is empty"};
   auto const &type{bank.city_types()[object.type - 1]};
   auto const model{bank.header_at(bank.city_model_offset(object.type,object.state,damage_mask))};
-  return {.position{static_cast<uint16_t>(column*256+type.column_fraction),static_cast<uint16_t>(row*256+type.row_fraction)},
-    .height{static_cast<uint16_t>(model.extent - model.height - type.collision_marker*256)},.height_extent{model.extent}};
+  return {
+    .position{static_cast<uint16_t>(column*256+type.column_fraction),static_cast<uint16_t>(row*256+type.row_fraction)},
+    .height{static_cast<uint16_t>(model.extent - model.height - type.collision_marker*256)},
+    .height_extent{model.extent}
+  };
 }
 
 void advance_mimic_projectile(projectile &record, object_pose const &player, uint16_t const remaining, uint16_t const frame_step) {
@@ -75,7 +78,10 @@ void advance_chargeable_projectile(projectile &record, object_pose const &target
   /// CC68 retains the steering roll separately and derives visible spin and extra speed from remaining charge
   record.placement.angles.roll = record.inherited_roll;
   auto const angles{&target == &record.placement
-    ? maths::direction_angles{.heading{record.placement.angles.heading},.pitch{record.placement.angles.pitch}}
+    ? maths::direction_angles{
+      .heading{record.placement.angles.heading},
+      .pitch{record.placement.angles.pitch}
+    }
     : maths::object_target_direction(record.placement.position,target.position)};
   auto const step{steer_homing_projectile(record,angles.heading,angles.pitch,frame_step)};
   record.inherited_roll = record.placement.angles.roll;
@@ -87,7 +93,10 @@ void advance_chargeable_projectile(projectile &record, object_pose const &target
 void advance_object_homing_projectile(projectile &record, object_pose const &target, std::uint16_t const frame_step) {
   /// CCB9 resolves object positions; self-targeting deliberately retains the current angles
   auto const angles{&target == &record.placement
-    ? maths::direction_angles{.heading{record.placement.angles.heading}, .pitch{record.placement.angles.pitch}}
+    ? maths::direction_angles{
+      .heading{record.placement.angles.heading},
+      .pitch{record.placement.angles.pitch}
+    }
     : maths::object_target_direction(record.placement.position, target.position)};
   advance_homing_projectile(record, angles.heading, angles.pitch, frame_step);
 }

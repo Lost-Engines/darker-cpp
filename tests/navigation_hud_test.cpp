@@ -30,7 +30,10 @@ TEST_CASE("Every compass phase matches original-code pixel captures") {
 TEST_CASE("Normal radar projection matches all captured headings, clipping and group colours") {
   for(auto const &sample : darker::test_reference::radar) {
     auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
-      {.position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)}, .group{sample.group}})};
+      {
+        .position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)},
+        .group{sample.group}
+      })};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.pixel->position.x);
@@ -42,7 +45,11 @@ TEST_CASE("Normal radar projection matches all captured headings, clipping and g
 
 TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw order") {
   darker::graphics::world_position const player{0, 0};
-  darker::graphics::radar_contact contact{.position{darker::graphics::world_position{player}}, .group{darker::graphics::radar_group::a}, .hidden{true}};
+  darker::graphics::radar_contact contact{
+    .position{darker::graphics::world_position{player}},
+    .group{darker::graphics::radar_group::a},
+    .hidden{true}
+  };
   REQUIRE_FALSE(darker::graphics::project_radar_contact(player, 0, contact));
   contact.hidden = false;
   contact.covered = false;
@@ -50,7 +57,10 @@ TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw ord
   contact.covered = true;
   framework::render::indexed_cockpit_framebuffer screen;
   screen.pixels.fill(99);
-  std::array<darker::graphics::radar_contact, 2> const contacts{{contact, {.position{darker::graphics::world_position{player}}, .group{darker::graphics::radar_group::b}}}};
+  std::array<darker::graphics::radar_contact, 2> const contacts{{contact, {
+    .position{darker::graphics::world_position{player}},
+    .group{darker::graphics::radar_group::b}
+  }}};
   darker::graphics::draw_radar_contacts(screen, player, 0, contacts);
   REQUIRE(screen.pixels[215 * 320 + 54] == 242);
   REQUIRE(screen.pixels[215 * 320 + 55] == 99);
@@ -80,17 +90,60 @@ TEST_CASE("Radar retains fractional positions and native word wrapping at world 
   };
   // Native 5AC9/5AE9 captures, with 59A3 coverage supplied as true and DBC1 pixel writes intercepted.
   std::array<sample, 8> const samples{{
-    {.player{15377, 15487}, .contact{15376, 15742}, .heading{1}, .expected{darker::graphics::radar_pixel{{53, 215}, 249}}},
-    {.player{15377, 15487}, .contact{15632, 15486}, .heading{8191}, .expected{darker::graphics::radar_pixel{{54, 215}, 249}}},
-    {.player{0, 0}, .contact{65279, 511}, .heading{65535}, .expected{darker::graphics::radar_pixel{{53, 216}, 249}}},
-    {.player{65520, 64}, .contact{241, 65087}, .heading{8191}, .expected{darker::graphics::radar_pixel{{56, 214}, 249}}},
-    {.player{32760, 65510}, .contact{38135, 65253}, .heading{1}, .expected{darker::graphics::radar_pixel{{74, 213}, 237}}},
-    {.player{32760, 65510}, .contact{38136, 65253}, .heading{1}, .expected{}},
-    {.player{0, 0}, .contact{60160, 511}, .heading{65535}, .expected{}},
-    {.player{0, 0}, .contact{60159, 511}, .heading{65535}, .expected{}},
+    {
+      .player{15377, 15487},
+      .contact{15376, 15742},
+      .heading{1},
+      .expected{darker::graphics::radar_pixel{{53, 215}, 249}}
+    },
+    {
+      .player{15377, 15487},
+      .contact{15632, 15486},
+      .heading{8191},
+      .expected{darker::graphics::radar_pixel{{54, 215}, 249}}
+    },
+    {
+      .player{0, 0},
+      .contact{65279, 511},
+      .heading{65535},
+      .expected{darker::graphics::radar_pixel{{53, 216}, 249}}
+    },
+    {
+      .player{65520, 64},
+      .contact{241, 65087},
+      .heading{8191},
+      .expected{darker::graphics::radar_pixel{{56, 214}, 249}}
+    },
+    {
+      .player{32760, 65510},
+      .contact{38135, 65253},
+      .heading{1},
+      .expected{darker::graphics::radar_pixel{{74, 213}, 237}}
+    },
+    {
+      .player{32760, 65510},
+      .contact{38136, 65253},
+      .heading{1},
+      .expected{}
+    },
+    {
+      .player{0, 0},
+      .contact{60160, 511},
+      .heading{65535},
+      .expected{}
+    },
+    {
+      .player{0, 0},
+      .contact{60159, 511},
+      .heading{65535},
+      .expected{}
+    },
   }};
   for(auto const &sample : samples) {
-    auto const actual{darker::graphics::project_radar_contact(sample.player, sample.heading, {.position{darker::graphics::world_position{sample.contact}}, .group{darker::graphics::radar_group::a}})};
+    auto const actual{darker::graphics::project_radar_contact(sample.player, sample.heading, {
+      .position{darker::graphics::world_position{sample.contact}},
+      .group{darker::graphics::radar_group::a}
+    })};
     REQUIRE(actual.has_value() == sample.expected.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.expected->position.x);
@@ -128,7 +181,10 @@ TEST_CASE("Enlarged radar disc and heading match all 256 captured native surroun
 TEST_CASE("Enlarged contact scale, clipping and palette colours match native captures") {
   for(auto const &sample : darker::test_reference::enlarged_radar) {
     auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
-      {.position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)}, .group{sample.group}}, darker::graphics::radar_scale::enlarged)};
+      {
+        .position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)},
+        .group{sample.group}
+      }, darker::graphics::radar_scale::enlarged)};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.pixel->position.x);
@@ -154,8 +210,10 @@ TEST_CASE("Underground radar shares the grey contact ramp for every actor group"
   /// 5876 selects 5C04 instead of the 5BFE/5C01 coloured entries; only the base colour changes
   for(auto const &sample : darker::test_reference::radar) {
     auto const actual{darker::graphics::project_radar_contact({60*256, 60*256},sample.heading,
-      {.position{static_cast<uint16_t>((60+sample.x)*256), static_cast<uint16_t>((60+sample.y)*256)},
-        .group{darker::graphics::radar_group::underground}})};
+      {
+        .position{static_cast<uint16_t>((60+sample.x)*256), static_cast<uint16_t>((60+sample.y)*256)},
+        .group{darker::graphics::radar_group::underground}
+      })};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(!actual) continue;
     CHECK(actual->position.x == sample.pixel->position.x);

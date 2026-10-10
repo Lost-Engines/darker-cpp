@@ -47,17 +47,29 @@ scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resou
 
 actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state, bool const underground) {
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
-  if(actor.parameters.update_entry == object_update::inactive) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
+  if(actor.parameters.update_entry == object_update::inactive) return {
+    .effect{0x7296},
+    .at_actor{true},
+    .remove{true}
+  };
   if(actor.parameters.definition->impact_strength == 0) {
-    if(actor.parameters.definition->role_data.craft().flags & 2) return {.effect{0x721c}};
+    if(actor.parameters.definition->role_data.craft().flags & 2) return {
+      .effect{0x721c}
+    };
     actor.expiry = static_cast<uint16_t>(clock + 256);
     actor.flags |= 0x20;
-    return {.effect{0x7247}, .at_actor{true}};
+    return {
+      .effect{0x7247},
+      .at_actor{true}
+    };
   }
   object_impact_state state{
     .rotation{actor.attitude.pitch_rate, actor.attitude.bank_rate},
-    .impact_accumulator{actor.awareness.level}, .damage{actor.awareness.cooldown},
-    .update_entry{actor.parameters.update_entry}, .deadline{actor.expiry}, .flags{actor.flags},
+    .impact_accumulator{actor.awareness.level},
+    .damage{actor.awareness.cooldown},
+    .update_entry{actor.parameters.update_entry},
+    .deadline{actor.expiry},
+    .flags{actor.flags},
   };
   auto const result{apply_object_impact(state, strength, actor.parameters.definition->impact_strength, underground, clock, random_state)};
   actor.attitude = {state.rotation.pitch, state.rotation.turn};
@@ -65,7 +77,9 @@ actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uin
   actor.parameters.update_entry = state.update_entry;
   actor.expiry = state.deadline;
   actor.flags = state.flags;
-  return {.effect{static_cast<uint16_t>(result)}};
+  return {
+    .effect{static_cast<uint16_t>(result)}
+  };
 }
 
 void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexcept {
@@ -111,10 +125,22 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
   if((actor.flags & 2) || !enabled || static_cast<uint16_t>(clock - actor.last_shot) < 0x600 || (actor.selected_target & 0x8000)) return nullptr;
   actor.last_shot = clock;
   auto const &definition{original_object_definitions[14]};
-  launch_emitter const emitter{.position{actor.pose.position},.fractions{actor.pose.fractions},.angles{actor.pose.angles},
-    .speed{actor.pose.speed},.side_flags{actor.flags},.definition_strength{actor.parameters.definition->impact_strength}};
-  auto *shot{pool.launch({.definition{definition},.emitter{emitter},.model_token{model_token},.clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{actor.selected_target}})};
+  launch_emitter const emitter{
+    .position{actor.pose.position},
+    .fractions{actor.pose.fractions},
+    .angles{actor.pose.angles},
+    .speed{actor.pose.speed},
+    .side_flags{actor.flags},
+    .definition_strength{actor.parameters.definition->impact_strength}
+  };
+  auto *shot{pool.launch({
+    .definition{definition},
+    .emitter{emitter},
+    .model_token{model_token},
+    .clock{clock},
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},
+    .target_token{actor.selected_target}
+  })};
   if(shot) shot->placement.angles.pitch = 0xc800;
   return shot;
 }
@@ -132,7 +158,10 @@ std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pos
   if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
   auto const elapsed{static_cast<uint16_t>(clock - actor.last_shot)};
   if((elapsed & 0x100) || !(changes & 0x80)) return std::nullopt;
-  gun_trace result{.start{actor.pose.position},.end{skimma_gun_endpoint(actor.pose,0,random_state)}};
+  gun_trace result{
+    .start{actor.pose.position},
+    .end{skimma_gun_endpoint(actor.pose,0,random_state)}
+  };
   result.hit = sweep_aircraft(player, player_extent, 10, result.start, result.end);
   return result;
 }

@@ -157,150 +157,1326 @@ struct radar_sample {
 };
 
 inline std::array<radar_sample, 144> const radar{{
-  {.heading{0}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{33, 215}, .colour{236}}}},
-  {.heading{0}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{33, 215}, .colour{229}}}},
-  {.heading{0}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{34, 210}, .colour{236}}}},
-  {.heading{0}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{34, 210}, .colour{229}}}},
-  {.heading{0}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{44, 224}, .colour{244}}}},
-  {.heading{0}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{44, 224}, .colour{237}}}},
-  {.heading{0}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{0}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{0}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{58, 210}, .colour{248}}}},
-  {.heading{0}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{58, 210}, .colour{241}}}},
-  {.heading{0}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 215}, .colour{238}}}},
-  {.heading{0}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 215}, .colour{231}}}},
-  {.heading{0}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{0}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{0}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 194}, .colour{236}}}},
-  {.heading{0}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 194}, .colour{229}}}},
-  {.heading{8192}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{39, 214}, .colour{242}}}},
-  {.heading{8192}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{39, 214}, .colour{235}}}},
-  {.heading{8192}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{8192}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{8192}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{61, 214}, .colour{248}}}},
-  {.heading{8192}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{61, 214}, .colour{241}}}},
-  {.heading{8192}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{237}}}},
-  {.heading{8192}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{230}}}},
-  {.heading{8192}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{236}}}},
-  {.heading{8192}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{229}}}},
-  {.heading{16384}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 194}, .colour{236}}}},
-  {.heading{16384}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 194}, .colour{229}}}},
-  {.heading{16384}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{59, 195}, .colour{236}}}},
-  {.heading{16384}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{59, 195}, .colour{229}}}},
-  {.heading{16384}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{44, 205}, .colour{243}}}},
-  {.heading{16384}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{44, 205}, .colour{236}}}},
-  {.heading{16384}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{16384}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{16384}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{59, 219}, .colour{248}}}},
-  {.heading{16384}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{59, 219}, .colour{241}}}},
-  {.heading{16384}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 234}, .colour{238}}}},
-  {.heading{16384}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 234}, .colour{231}}}},
-  {.heading{16384}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{16384}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{16384}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{75, 215}, .colour{236}}}},
-  {.heading{16384}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{75, 215}, .colour{229}}}},
-  {.heading{24576}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{236}}}},
-  {.heading{24576}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{229}}}},
-  {.heading{24576}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{71, 204}, .colour{237}}}},
-  {.heading{24576}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{71, 204}, .colour{230}}}},
-  {.heading{24576}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 200}, .colour{242}}}},
-  {.heading{24576}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 200}, .colour{235}}}},
-  {.heading{24576}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{24576}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{24576}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 222}, .colour{248}}}},
-  {.heading{24576}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 222}, .colour{241}}}},
-  {.heading{24576}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{236}}}},
-  {.heading{24576}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{229}}}},
-  {.heading{24576}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{24576}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{24576}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{24576}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{24576}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{237}}}},
-  {.heading{24576}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{230}}}},
-  {.heading{32768}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{74, 215}, .colour{237}}}},
-  {.heading{32768}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{74, 215}, .colour{230}}}},
-  {.heading{32768}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 219}, .colour{238}}}},
-  {.heading{32768}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 219}, .colour{231}}}},
-  {.heading{32768}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{63, 205}, .colour{244}}}},
-  {.heading{32768}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{63, 205}, .colour{237}}}},
-  {.heading{32768}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{32768}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{32768}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{49, 219}, .colour{248}}}},
-  {.heading{32768}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{49, 219}, .colour{241}}}},
-  {.heading{32768}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{34, 215}, .colour{237}}}},
-  {.heading{32768}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{34, 215}, .colour{230}}}},
-  {.heading{32768}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{32768}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{32768}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{32768}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{32768}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 235}, .colour{237}}}},
-  {.heading{32768}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 235}, .colour{230}}}},
-  {.heading{40960}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{237}}}},
-  {.heading{40960}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 229}, .colour{230}}}},
-  {.heading{40960}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{64, 232}, .colour{237}}}},
-  {.heading{40960}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{64, 232}, .colour{230}}}},
-  {.heading{40960}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 214}, .colour{243}}}},
-  {.heading{40960}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 214}, .colour{236}}}},
-  {.heading{40960}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{40960}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{40960}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{46, 214}, .colour{247}}}},
-  {.heading{40960}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{46, 214}, .colour{240}}}},
-  {.heading{40960}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{40960}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{40960}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{40960}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{40960}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{40960}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{40960}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{236}}}},
-  {.heading{40960}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{229}}}},
-  {.heading{49152}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 235}, .colour{237}}}},
-  {.heading{49152}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 235}, .colour{230}}}},
-  {.heading{49152}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{49, 234}, .colour{237}}}},
-  {.heading{49152}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{49, 234}, .colour{230}}}},
-  {.heading{49152}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{64, 224}, .colour{244}}}},
-  {.heading{49152}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{64, 224}, .colour{237}}}},
-  {.heading{49152}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{49152}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{49152}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{49, 210}, .colour{248}}}},
-  {.heading{49152}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{49, 210}, .colour{241}}}},
-  {.heading{49152}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 195}, .colour{237}}}},
-  {.heading{49152}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 195}, .colour{230}}}},
-  {.heading{49152}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{49152}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{49152}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{49152}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{49152}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{33, 215}, .colour{236}}}},
-  {.heading{49152}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{33, 215}, .colour{229}}}},
-  {.heading{57344}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{236}}}},
-  {.heading{57344}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{39, 229}, .colour{229}}}},
-  {.heading{57344}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{36, 225}, .colour{236}}}},
-  {.heading{57344}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{36, 225}, .colour{229}}}},
-  {.heading{57344}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 229}, .colour{243}}}},
-  {.heading{57344}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 229}, .colour{236}}}},
-  {.heading{57344}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{249}}}},
-  {.heading{57344}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 215}, .colour{242}}}},
-  {.heading{57344}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{54, 207}, .colour{247}}}},
-  {.heading{57344}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{54, 207}, .colour{240}}}},
-  {.heading{57344}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{236}}}},
-  {.heading{57344}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{68, 200}, .colour{229}}}},
-  {.heading{57344}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{57344}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{57344}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{}},
+  {
+    .heading{0},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{33, 215},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{33, 215},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{34, 210},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{34, 210},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{44, 224},
+      .colour{244}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{44, 224},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{0},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{58, 210},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{0},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{58, 210},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 215},
+      .colour{238}
+    }}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 215},
+      .colour{231}
+    }}
+  },
+  {
+    .heading{0},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 194},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 194},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{39, 214},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{39, 214},
+      .colour{235}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{61, 214},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{61, 214},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 194},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 194},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{59, 195},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{59, 195},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{44, 205},
+      .colour{243}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{44, 205},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{59, 219},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{59, 219},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 234},
+      .colour{238}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 234},
+      .colour{231}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{75, 215},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{75, 215},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{71, 204},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{71, 204},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 200},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 200},
+      .colour{235}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 222},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 222},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{74, 215},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{74, 215},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 219},
+      .colour{238}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 219},
+      .colour{231}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{63, 205},
+      .colour{244}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{63, 205},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{49, 219},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{49, 219},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{34, 215},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{34, 215},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 235},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 235},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 229},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{64, 232},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{64, 232},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 214},
+      .colour{243}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 214},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{46, 214},
+      .colour{247}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{46, 214},
+      .colour{240}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 235},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 235},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{49, 234},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{49, 234},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{64, 224},
+      .colour{244}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{64, 224},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{49, 210},
+      .colour{248}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{49, 210},
+      .colour{241}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 195},
+      .colour{237}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 195},
+      .colour{230}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{33, 215},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{33, 215},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{39, 229},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{36, 225},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{36, 225},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 229},
+      .colour{243}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 229},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{249}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 215},
+      .colour{242}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{54, 207},
+      .colour{247}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{54, 207},
+      .colour{240}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{236}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{68, 200},
+      .colour{229}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
 }};
 
 struct skimma_sample {
@@ -312,25 +1488,120 @@ struct skimma_sample {
 
 // Sprite geometry SHA-256: fd37a44fcb2c9cf84b48bb3efc6b2fc2ea92ecb06883f91f661ab604ca2c1986
 inline std::array<skimma_sample, 19> constexpr skimma{{
-  {.bearing{true}, .index{0}, .state{1}, .checksum{0x8ecc3fae1acdd6e5ULL}},
-  {.bearing{true}, .index{1}, .state{2}, .checksum{0x0ed1b7f9c6d6f27aULL}},
-  {.bearing{true}, .index{2}, .state{3}, .checksum{0x447d7e3871816c07ULL}},
-  {.bearing{true}, .index{3}, .state{4}, .checksum{0x82e20813d0da7b1bULL}},
-  {.bearing{true}, .index{4}, .state{5}, .checksum{0x481c76f9100cbd19ULL}},
-  {.bearing{true}, .index{5}, .state{6}, .checksum{0xf14b0c3fa3a5654dULL}},
-  {.bearing{true}, .index{6}, .state{7}, .checksum{0xe8fe2212e742b77dULL}},
-  {.bearing{false}, .index{0}, .state{0}, .checksum{0xab074fe9e4ab3850ULL}},
-  {.bearing{false}, .index{0}, .state{1}, .checksum{0x23bdc17b5034d6eaULL}},
-  {.bearing{false}, .index{0}, .state{2}, .checksum{0x8173a8e1fcc95447ULL}},
-  {.bearing{false}, .index{0}, .state{3}, .checksum{0x322932adbe9c5d7bULL}},
-  {.bearing{false}, .index{1}, .state{0}, .checksum{0xab074fe9e4ab3850ULL}},
-  {.bearing{false}, .index{1}, .state{1}, .checksum{0x0b99940774ea4133ULL}},
-  {.bearing{false}, .index{1}, .state{2}, .checksum{0x6dd6f0b5468343b0ULL}},
-  {.bearing{false}, .index{1}, .state{3}, .checksum{0xa870c5a1d79ffc32ULL}},
-  {.bearing{false}, .index{2}, .state{0}, .checksum{0xab074fe9e4ab3850ULL}},
-  {.bearing{false}, .index{2}, .state{1}, .checksum{0x9688ad609c8a6f85ULL}},
-  {.bearing{false}, .index{2}, .state{2}, .checksum{0x70d3bf2d5b2ee2c9ULL}},
-  {.bearing{false}, .index{2}, .state{3}, .checksum{0x1bf17e8002abc7eeULL}},
+  {
+    .bearing{true},
+    .index{0},
+    .state{1},
+    .checksum{0x8ecc3fae1acdd6e5ULL}
+  },
+  {
+    .bearing{true},
+    .index{1},
+    .state{2},
+    .checksum{0x0ed1b7f9c6d6f27aULL}
+  },
+  {
+    .bearing{true},
+    .index{2},
+    .state{3},
+    .checksum{0x447d7e3871816c07ULL}
+  },
+  {
+    .bearing{true},
+    .index{3},
+    .state{4},
+    .checksum{0x82e20813d0da7b1bULL}
+  },
+  {
+    .bearing{true},
+    .index{4},
+    .state{5},
+    .checksum{0x481c76f9100cbd19ULL}
+  },
+  {
+    .bearing{true},
+    .index{5},
+    .state{6},
+    .checksum{0xf14b0c3fa3a5654dULL}
+  },
+  {
+    .bearing{true},
+    .index{6},
+    .state{7},
+    .checksum{0xe8fe2212e742b77dULL}
+  },
+  {
+    .bearing{false},
+    .index{0},
+    .state{0},
+    .checksum{0xab074fe9e4ab3850ULL}
+  },
+  {
+    .bearing{false},
+    .index{0},
+    .state{1},
+    .checksum{0x23bdc17b5034d6eaULL}
+  },
+  {
+    .bearing{false},
+    .index{0},
+    .state{2},
+    .checksum{0x8173a8e1fcc95447ULL}
+  },
+  {
+    .bearing{false},
+    .index{0},
+    .state{3},
+    .checksum{0x322932adbe9c5d7bULL}
+  },
+  {
+    .bearing{false},
+    .index{1},
+    .state{0},
+    .checksum{0xab074fe9e4ab3850ULL}
+  },
+  {
+    .bearing{false},
+    .index{1},
+    .state{1},
+    .checksum{0x0b99940774ea4133ULL}
+  },
+  {
+    .bearing{false},
+    .index{1},
+    .state{2},
+    .checksum{0x6dd6f0b5468343b0ULL}
+  },
+  {
+    .bearing{false},
+    .index{1},
+    .state{3},
+    .checksum{0xa870c5a1d79ffc32ULL}
+  },
+  {
+    .bearing{false},
+    .index{2},
+    .state{0},
+    .checksum{0xab074fe9e4ab3850ULL}
+  },
+  {
+    .bearing{false},
+    .index{2},
+    .state{1},
+    .checksum{0x9688ad609c8a6f85ULL}
+  },
+  {
+    .bearing{false},
+    .index{2},
+    .state{2},
+    .checksum{0x70d3bf2d5b2ee2c9ULL}
+  },
+  {
+    .bearing{false},
+    .index{2},
+    .state{3},
+    .checksum{0x1bf17e8002abc7eeULL}
+  },
 }};
 
 struct ring_sample {
@@ -342,146 +1613,846 @@ struct ring_sample {
 
 // Ring trace SHA-256: c7cd2a5f42f6dd54a818ae08329a82b834d92cae736a9549c44e3520575417df
 inline std::array<ring_sample, 140> constexpr rings{{
-  {.weapon{0}, .radius{15}, .remaining{0}, .checksum{0x93124ac6cebe211bULL}},
-  {.weapon{0}, .radius{15}, .remaining{1}, .checksum{0x1f26ae4a053f1666ULL}},
-  {.weapon{0}, .radius{15}, .remaining{2}, .checksum{0xee463458f5552df8ULL}},
-  {.weapon{0}, .radius{15}, .remaining{3}, .checksum{0xd5f5e0541c64bb98ULL}},
-  {.weapon{0}, .radius{15}, .remaining{4}, .checksum{0xcbf3c488db0b3e25ULL}},
-  {.weapon{0}, .radius{15}, .remaining{5}, .checksum{0xb22e53fd38faadbcULL}},
-  {.weapon{0}, .radius{15}, .remaining{6}, .checksum{0x7c98172d3bc53b69ULL}},
-  {.weapon{0}, .radius{15}, .remaining{7}, .checksum{0xc7a37ba80a04463cULL}},
-  {.weapon{0}, .radius{15}, .remaining{8}, .checksum{0x4279c5ced8afa4e0ULL}},
-  {.weapon{0}, .radius{15}, .remaining{9}, .checksum{0x6ab78bacb91c4909ULL}},
-  {.weapon{0}, .radius{15}, .remaining{10}, .checksum{0x3e4ec9818d860b12ULL}},
-  {.weapon{0}, .radius{15}, .remaining{11}, .checksum{0xec74c8ba688cd052ULL}},
-  {.weapon{0}, .radius{15}, .remaining{12}, .checksum{0x854389d76940fbdeULL}},
-  {.weapon{0}, .radius{15}, .remaining{13}, .checksum{0x2d3f21112d0f814dULL}},
-  {.weapon{0}, .radius{15}, .remaining{14}, .checksum{0x4d3071d25bfb9cc9ULL}},
-  {.weapon{0}, .radius{31}, .remaining{0}, .checksum{0xad123aac3527f102ULL}},
-  {.weapon{0}, .radius{31}, .remaining{1}, .checksum{0x137244f62a8895feULL}},
-  {.weapon{0}, .radius{31}, .remaining{2}, .checksum{0x33976a48bdf5ef25ULL}},
-  {.weapon{0}, .radius{31}, .remaining{3}, .checksum{0x841fe39adc13cb3cULL}},
-  {.weapon{0}, .radius{31}, .remaining{4}, .checksum{0xc851518b24735849ULL}},
-  {.weapon{0}, .radius{31}, .remaining{5}, .checksum{0x7dd13ce020a79ed4ULL}},
-  {.weapon{0}, .radius{31}, .remaining{6}, .checksum{0x0dd1bc9f4db5e340ULL}},
-  {.weapon{0}, .radius{31}, .remaining{7}, .checksum{0x6da7bf21d5ae3207ULL}},
-  {.weapon{0}, .radius{31}, .remaining{8}, .checksum{0x744010d633bf4d47ULL}},
-  {.weapon{0}, .radius{31}, .remaining{9}, .checksum{0xfe4582f3de113513ULL}},
-  {.weapon{0}, .radius{31}, .remaining{10}, .checksum{0x8c39fef481fd8ee2ULL}},
-  {.weapon{0}, .radius{31}, .remaining{11}, .checksum{0x54520deb1bc07f96ULL}},
-  {.weapon{0}, .radius{31}, .remaining{12}, .checksum{0x8e9e0c328f6539f6ULL}},
-  {.weapon{0}, .radius{31}, .remaining{13}, .checksum{0x96e957020120f7bfULL}},
-  {.weapon{0}, .radius{31}, .remaining{14}, .checksum{0x8a8f583594d1f90bULL}},
-  {.weapon{0}, .radius{63}, .remaining{0}, .checksum{0x5855a9ca2a280edfULL}},
-  {.weapon{0}, .radius{63}, .remaining{1}, .checksum{0xf22e193995e515bbULL}},
-  {.weapon{0}, .radius{63}, .remaining{2}, .checksum{0xfdba501bed2b5ff3ULL}},
-  {.weapon{0}, .radius{63}, .remaining{3}, .checksum{0x9a2d888b74f0694bULL}},
-  {.weapon{0}, .radius{63}, .remaining{4}, .checksum{0x2f3b800248f8e19cULL}},
-  {.weapon{0}, .radius{63}, .remaining{5}, .checksum{0x1ecbca6ab4b16e47ULL}},
-  {.weapon{0}, .radius{63}, .remaining{6}, .checksum{0x9120f894c232a873ULL}},
-  {.weapon{0}, .radius{63}, .remaining{7}, .checksum{0x3c722568056c029fULL}},
-  {.weapon{0}, .radius{63}, .remaining{8}, .checksum{0xbfe572ff2db9dbb3ULL}},
-  {.weapon{0}, .radius{63}, .remaining{9}, .checksum{0x860830eb667f4808ULL}},
-  {.weapon{0}, .radius{63}, .remaining{10}, .checksum{0xab42ae8d9856e23dULL}},
-  {.weapon{0}, .radius{63}, .remaining{11}, .checksum{0x0f338c052874c231ULL}},
-  {.weapon{0}, .radius{63}, .remaining{12}, .checksum{0xd61508d30c6186a5ULL}},
-  {.weapon{0}, .radius{63}, .remaining{13}, .checksum{0xb39d065098943d80ULL}},
-  {.weapon{0}, .radius{63}, .remaining{14}, .checksum{0x107d5357bf5ed4bcULL}},
-  {.weapon{0}, .radius{127}, .remaining{0}, .checksum{0xe7b92e4f3e107594ULL}},
-  {.weapon{0}, .radius{127}, .remaining{1}, .checksum{0x5ccf75e4d25244d0ULL}},
-  {.weapon{0}, .radius{127}, .remaining{2}, .checksum{0x9355990f51d9aeb5ULL}},
-  {.weapon{0}, .radius{127}, .remaining{3}, .checksum{0xb04b53ec659c7429ULL}},
-  {.weapon{0}, .radius{127}, .remaining{4}, .checksum{0x3e234b1bcb3dfd75ULL}},
-  {.weapon{0}, .radius{127}, .remaining{5}, .checksum{0x54f0fd4091f4edc9ULL}},
-  {.weapon{0}, .radius{127}, .remaining{6}, .checksum{0x9b560b580a37c489ULL}},
-  {.weapon{0}, .radius{127}, .remaining{7}, .checksum{0x7413dea2fb0e5b98ULL}},
-  {.weapon{0}, .radius{127}, .remaining{8}, .checksum{0xa0fdba7c53a14f1cULL}},
-  {.weapon{0}, .radius{127}, .remaining{9}, .checksum{0x51927f6b1822efd8ULL}},
-  {.weapon{0}, .radius{127}, .remaining{10}, .checksum{0x19d6e47319ccb9afULL}},
-  {.weapon{0}, .radius{127}, .remaining{11}, .checksum{0x2f37df504a66ab8bULL}},
-  {.weapon{0}, .radius{127}, .remaining{12}, .checksum{0xded931cb45db09b7ULL}},
-  {.weapon{0}, .radius{127}, .remaining{13}, .checksum{0x77d372bd9f9e40ebULL}},
-  {.weapon{0}, .radius{127}, .remaining{14}, .checksum{0xac897cd415daa9aeULL}},
-  {.weapon{1}, .radius{15}, .remaining{0}, .checksum{0xbc5b23ac066270f7ULL}},
-  {.weapon{1}, .radius{15}, .remaining{1}, .checksum{0x28b566ac1ce47ea3ULL}},
-  {.weapon{1}, .radius{15}, .remaining{2}, .checksum{0xd6c8cb8d78351ec7ULL}},
-  {.weapon{1}, .radius{15}, .remaining{3}, .checksum{0x449c8f6714be456aULL}},
-  {.weapon{1}, .radius{15}, .remaining{4}, .checksum{0x5be20034d112c67eULL}},
-  {.weapon{1}, .radius{15}, .remaining{5}, .checksum{0x4dc74b6f199352caULL}},
-  {.weapon{1}, .radius{15}, .remaining{6}, .checksum{0xfdfde11369e86c59ULL}},
-  {.weapon{1}, .radius{15}, .remaining{7}, .checksum{0x9778b030f0c96ad9ULL}},
-  {.weapon{1}, .radius{15}, .remaining{8}, .checksum{0x6ce64c77e2a92776ULL}},
-  {.weapon{1}, .radius{31}, .remaining{0}, .checksum{0x9b48bfce65c0054aULL}},
-  {.weapon{1}, .radius{31}, .remaining{1}, .checksum{0x7cdb052bffc341c6ULL}},
-  {.weapon{1}, .radius{31}, .remaining{2}, .checksum{0xe0008565f7b9d4cdULL}},
-  {.weapon{1}, .radius{31}, .remaining{3}, .checksum{0xe220c7a8570c32a8ULL}},
-  {.weapon{1}, .radius{31}, .remaining{4}, .checksum{0xb8ba7d93c59b71cbULL}},
-  {.weapon{1}, .radius{31}, .remaining{5}, .checksum{0x0a008bd73bf040ffULL}},
-  {.weapon{1}, .radius{31}, .remaining{6}, .checksum{0xb3178a0f2383f917ULL}},
-  {.weapon{1}, .radius{31}, .remaining{7}, .checksum{0xb0ff72703892c503ULL}},
-  {.weapon{1}, .radius{31}, .remaining{8}, .checksum{0xe5d05e8b23637207ULL}},
-  {.weapon{1}, .radius{63}, .remaining{0}, .checksum{0x4752a75f34f46122ULL}},
-  {.weapon{1}, .radius{63}, .remaining{1}, .checksum{0x68e257137a9c386eULL}},
-  {.weapon{1}, .radius{63}, .remaining{2}, .checksum{0x11dd06aeee7a16f9ULL}},
-  {.weapon{1}, .radius{63}, .remaining{3}, .checksum{0xd49e9d0fe94a3f8cULL}},
-  {.weapon{1}, .radius{63}, .remaining{4}, .checksum{0x10c96a769de9fc03ULL}},
-  {.weapon{1}, .radius{63}, .remaining{5}, .checksum{0xd40b9f0ae6f88457ULL}},
-  {.weapon{1}, .radius{63}, .remaining{6}, .checksum{0x3adc5202aecc04ebULL}},
-  {.weapon{1}, .radius{63}, .remaining{7}, .checksum{0xb27050a93b9635abULL}},
-  {.weapon{1}, .radius{63}, .remaining{8}, .checksum{0x267bf9d751dbdbc7ULL}},
-  {.weapon{1}, .radius{127}, .remaining{0}, .checksum{0x999a582ea4880ffeULL}},
-  {.weapon{1}, .radius{127}, .remaining{1}, .checksum{0x75eedebe780d1e5aULL}},
-  {.weapon{1}, .radius{127}, .remaining{2}, .checksum{0x6a61c018afde9c26ULL}},
-  {.weapon{1}, .radius{127}, .remaining{3}, .checksum{0xf90a51d5bd4f883bULL}},
-  {.weapon{1}, .radius{127}, .remaining{4}, .checksum{0x221fc1b6228e6c0bULL}},
-  {.weapon{1}, .radius{127}, .remaining{5}, .checksum{0xff24185287f7452fULL}},
-  {.weapon{1}, .radius{127}, .remaining{6}, .checksum{0x456659cc020f37c8ULL}},
-  {.weapon{1}, .radius{127}, .remaining{7}, .checksum{0x6383c417de54a2e8ULL}},
-  {.weapon{1}, .radius{127}, .remaining{8}, .checksum{0x5eef2c610251a8cbULL}},
-  {.weapon{2}, .radius{15}, .remaining{0}, .checksum{0x6a37137bab7bbd42ULL}},
-  {.weapon{2}, .radius{15}, .remaining{1}, .checksum{0xc43cd674efca60faULL}},
-  {.weapon{2}, .radius{15}, .remaining{2}, .checksum{0xeaa9c6e7673aa222ULL}},
-  {.weapon{2}, .radius{15}, .remaining{3}, .checksum{0xbcce9a18a69f5dffULL}},
-  {.weapon{2}, .radius{15}, .remaining{4}, .checksum{0x2f98914019a0fbd2ULL}},
-  {.weapon{2}, .radius{15}, .remaining{5}, .checksum{0x3d7e20b65021ee76ULL}},
-  {.weapon{2}, .radius{15}, .remaining{6}, .checksum{0x6bac86a44f797557ULL}},
-  {.weapon{2}, .radius{15}, .remaining{7}, .checksum{0x77ffe88dd5e6e032ULL}},
-  {.weapon{2}, .radius{15}, .remaining{8}, .checksum{0x196a65a81f5d0f42ULL}},
-  {.weapon{2}, .radius{15}, .remaining{9}, .checksum{0x124fb235c8bec19eULL}},
-  {.weapon{2}, .radius{15}, .remaining{10}, .checksum{0x2f53004148df9693ULL}},
-  {.weapon{2}, .radius{31}, .remaining{0}, .checksum{0x3971a081f55d0a82ULL}},
-  {.weapon{2}, .radius{31}, .remaining{1}, .checksum{0x7d2a63d585b917beULL}},
-  {.weapon{2}, .radius{31}, .remaining{2}, .checksum{0x03788c4f389863baULL}},
-  {.weapon{2}, .radius{31}, .remaining{3}, .checksum{0x08ed5d8598ce8729ULL}},
-  {.weapon{2}, .radius{31}, .remaining{4}, .checksum{0x750d84c68a22f3f2ULL}},
-  {.weapon{2}, .radius{31}, .remaining{5}, .checksum{0x87448869138fd0beULL}},
-  {.weapon{2}, .radius{31}, .remaining{6}, .checksum{0xe32519996dd5faffULL}},
-  {.weapon{2}, .radius{31}, .remaining{7}, .checksum{0xdff47f41b60f9ff8ULL}},
-  {.weapon{2}, .radius{31}, .remaining{8}, .checksum{0xdd51b7e10828dfc8ULL}},
-  {.weapon{2}, .radius{31}, .remaining{9}, .checksum{0x4a19ed3276c6b078ULL}},
-  {.weapon{2}, .radius{31}, .remaining{10}, .checksum{0xc4a501fb4b55b639ULL}},
-  {.weapon{2}, .radius{63}, .remaining{0}, .checksum{0x096757ce0640c612ULL}},
-  {.weapon{2}, .radius{63}, .remaining{1}, .checksum{0x54769ded98c9b276ULL}},
-  {.weapon{2}, .radius{63}, .remaining{2}, .checksum{0x4a3da2293a63cbadULL}},
-  {.weapon{2}, .radius{63}, .remaining{3}, .checksum{0x10c91454c583149aULL}},
-  {.weapon{2}, .radius{63}, .remaining{4}, .checksum{0x2900771194cfb736ULL}},
-  {.weapon{2}, .radius{63}, .remaining{5}, .checksum{0xa99ab7cda658be76ULL}},
-  {.weapon{2}, .radius{63}, .remaining{6}, .checksum{0x1c2ac668a6cabddfULL}},
-  {.weapon{2}, .radius{63}, .remaining{7}, .checksum{0x48855d4b53281cdbULL}},
-  {.weapon{2}, .radius{63}, .remaining{8}, .checksum{0x891a7ac5e9cd9ffbULL}},
-  {.weapon{2}, .radius{63}, .remaining{9}, .checksum{0xb96da82cff479168ULL}},
-  {.weapon{2}, .radius{63}, .remaining{10}, .checksum{0x3854ead9cfde239bULL}},
-  {.weapon{2}, .radius{127}, .remaining{0}, .checksum{0x848b0856da68bb39ULL}},
-  {.weapon{2}, .radius{127}, .remaining{1}, .checksum{0xe9c137dbbccca675ULL}},
-  {.weapon{2}, .radius{127}, .remaining{2}, .checksum{0x5b076f0dd88bd439ULL}},
-  {.weapon{2}, .radius{127}, .remaining{3}, .checksum{0x70b68d444b9b0955ULL}},
-  {.weapon{2}, .radius{127}, .remaining{4}, .checksum{0x7fd87672efe48c05ULL}},
-  {.weapon{2}, .radius{127}, .remaining{5}, .checksum{0x62615ea848911f21ULL}},
-  {.weapon{2}, .radius{127}, .remaining{6}, .checksum{0xc09640079d7e4e06ULL}},
-  {.weapon{2}, .radius{127}, .remaining{7}, .checksum{0x3b46951ca233b29aULL}},
-  {.weapon{2}, .radius{127}, .remaining{8}, .checksum{0x711785657a288901ULL}},
-  {.weapon{2}, .radius{127}, .remaining{9}, .checksum{0x8493d4932313eee0ULL}},
-  {.weapon{2}, .radius{127}, .remaining{10}, .checksum{0x0978dd87dd3e534cULL}},
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{0},
+    .checksum{0x93124ac6cebe211bULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{1},
+    .checksum{0x1f26ae4a053f1666ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{2},
+    .checksum{0xee463458f5552df8ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{3},
+    .checksum{0xd5f5e0541c64bb98ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{4},
+    .checksum{0xcbf3c488db0b3e25ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{5},
+    .checksum{0xb22e53fd38faadbcULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{6},
+    .checksum{0x7c98172d3bc53b69ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{7},
+    .checksum{0xc7a37ba80a04463cULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{8},
+    .checksum{0x4279c5ced8afa4e0ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{9},
+    .checksum{0x6ab78bacb91c4909ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{10},
+    .checksum{0x3e4ec9818d860b12ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{11},
+    .checksum{0xec74c8ba688cd052ULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{12},
+    .checksum{0x854389d76940fbdeULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{13},
+    .checksum{0x2d3f21112d0f814dULL}
+  },
+  {
+    .weapon{0},
+    .radius{15},
+    .remaining{14},
+    .checksum{0x4d3071d25bfb9cc9ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{0},
+    .checksum{0xad123aac3527f102ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{1},
+    .checksum{0x137244f62a8895feULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{2},
+    .checksum{0x33976a48bdf5ef25ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{3},
+    .checksum{0x841fe39adc13cb3cULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{4},
+    .checksum{0xc851518b24735849ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{5},
+    .checksum{0x7dd13ce020a79ed4ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{6},
+    .checksum{0x0dd1bc9f4db5e340ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{7},
+    .checksum{0x6da7bf21d5ae3207ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{8},
+    .checksum{0x744010d633bf4d47ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{9},
+    .checksum{0xfe4582f3de113513ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{10},
+    .checksum{0x8c39fef481fd8ee2ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{11},
+    .checksum{0x54520deb1bc07f96ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{12},
+    .checksum{0x8e9e0c328f6539f6ULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{13},
+    .checksum{0x96e957020120f7bfULL}
+  },
+  {
+    .weapon{0},
+    .radius{31},
+    .remaining{14},
+    .checksum{0x8a8f583594d1f90bULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{0},
+    .checksum{0x5855a9ca2a280edfULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{1},
+    .checksum{0xf22e193995e515bbULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{2},
+    .checksum{0xfdba501bed2b5ff3ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{3},
+    .checksum{0x9a2d888b74f0694bULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{4},
+    .checksum{0x2f3b800248f8e19cULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{5},
+    .checksum{0x1ecbca6ab4b16e47ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{6},
+    .checksum{0x9120f894c232a873ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{7},
+    .checksum{0x3c722568056c029fULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{8},
+    .checksum{0xbfe572ff2db9dbb3ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{9},
+    .checksum{0x860830eb667f4808ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{10},
+    .checksum{0xab42ae8d9856e23dULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{11},
+    .checksum{0x0f338c052874c231ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{12},
+    .checksum{0xd61508d30c6186a5ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{13},
+    .checksum{0xb39d065098943d80ULL}
+  },
+  {
+    .weapon{0},
+    .radius{63},
+    .remaining{14},
+    .checksum{0x107d5357bf5ed4bcULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{0},
+    .checksum{0xe7b92e4f3e107594ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{1},
+    .checksum{0x5ccf75e4d25244d0ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{2},
+    .checksum{0x9355990f51d9aeb5ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{3},
+    .checksum{0xb04b53ec659c7429ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{4},
+    .checksum{0x3e234b1bcb3dfd75ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{5},
+    .checksum{0x54f0fd4091f4edc9ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{6},
+    .checksum{0x9b560b580a37c489ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{7},
+    .checksum{0x7413dea2fb0e5b98ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{8},
+    .checksum{0xa0fdba7c53a14f1cULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{9},
+    .checksum{0x51927f6b1822efd8ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{10},
+    .checksum{0x19d6e47319ccb9afULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{11},
+    .checksum{0x2f37df504a66ab8bULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{12},
+    .checksum{0xded931cb45db09b7ULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{13},
+    .checksum{0x77d372bd9f9e40ebULL}
+  },
+  {
+    .weapon{0},
+    .radius{127},
+    .remaining{14},
+    .checksum{0xac897cd415daa9aeULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{0},
+    .checksum{0xbc5b23ac066270f7ULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{1},
+    .checksum{0x28b566ac1ce47ea3ULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{2},
+    .checksum{0xd6c8cb8d78351ec7ULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{3},
+    .checksum{0x449c8f6714be456aULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{4},
+    .checksum{0x5be20034d112c67eULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{5},
+    .checksum{0x4dc74b6f199352caULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{6},
+    .checksum{0xfdfde11369e86c59ULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{7},
+    .checksum{0x9778b030f0c96ad9ULL}
+  },
+  {
+    .weapon{1},
+    .radius{15},
+    .remaining{8},
+    .checksum{0x6ce64c77e2a92776ULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{0},
+    .checksum{0x9b48bfce65c0054aULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{1},
+    .checksum{0x7cdb052bffc341c6ULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{2},
+    .checksum{0xe0008565f7b9d4cdULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{3},
+    .checksum{0xe220c7a8570c32a8ULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{4},
+    .checksum{0xb8ba7d93c59b71cbULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{5},
+    .checksum{0x0a008bd73bf040ffULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{6},
+    .checksum{0xb3178a0f2383f917ULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{7},
+    .checksum{0xb0ff72703892c503ULL}
+  },
+  {
+    .weapon{1},
+    .radius{31},
+    .remaining{8},
+    .checksum{0xe5d05e8b23637207ULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{0},
+    .checksum{0x4752a75f34f46122ULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{1},
+    .checksum{0x68e257137a9c386eULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{2},
+    .checksum{0x11dd06aeee7a16f9ULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{3},
+    .checksum{0xd49e9d0fe94a3f8cULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{4},
+    .checksum{0x10c96a769de9fc03ULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{5},
+    .checksum{0xd40b9f0ae6f88457ULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{6},
+    .checksum{0x3adc5202aecc04ebULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{7},
+    .checksum{0xb27050a93b9635abULL}
+  },
+  {
+    .weapon{1},
+    .radius{63},
+    .remaining{8},
+    .checksum{0x267bf9d751dbdbc7ULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{0},
+    .checksum{0x999a582ea4880ffeULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{1},
+    .checksum{0x75eedebe780d1e5aULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{2},
+    .checksum{0x6a61c018afde9c26ULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{3},
+    .checksum{0xf90a51d5bd4f883bULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{4},
+    .checksum{0x221fc1b6228e6c0bULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{5},
+    .checksum{0xff24185287f7452fULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{6},
+    .checksum{0x456659cc020f37c8ULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{7},
+    .checksum{0x6383c417de54a2e8ULL}
+  },
+  {
+    .weapon{1},
+    .radius{127},
+    .remaining{8},
+    .checksum{0x5eef2c610251a8cbULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{0},
+    .checksum{0x6a37137bab7bbd42ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{1},
+    .checksum{0xc43cd674efca60faULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{2},
+    .checksum{0xeaa9c6e7673aa222ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{3},
+    .checksum{0xbcce9a18a69f5dffULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{4},
+    .checksum{0x2f98914019a0fbd2ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{5},
+    .checksum{0x3d7e20b65021ee76ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{6},
+    .checksum{0x6bac86a44f797557ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{7},
+    .checksum{0x77ffe88dd5e6e032ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{8},
+    .checksum{0x196a65a81f5d0f42ULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{9},
+    .checksum{0x124fb235c8bec19eULL}
+  },
+  {
+    .weapon{2},
+    .radius{15},
+    .remaining{10},
+    .checksum{0x2f53004148df9693ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{0},
+    .checksum{0x3971a081f55d0a82ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{1},
+    .checksum{0x7d2a63d585b917beULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{2},
+    .checksum{0x03788c4f389863baULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{3},
+    .checksum{0x08ed5d8598ce8729ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{4},
+    .checksum{0x750d84c68a22f3f2ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{5},
+    .checksum{0x87448869138fd0beULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{6},
+    .checksum{0xe32519996dd5faffULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{7},
+    .checksum{0xdff47f41b60f9ff8ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{8},
+    .checksum{0xdd51b7e10828dfc8ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{9},
+    .checksum{0x4a19ed3276c6b078ULL}
+  },
+  {
+    .weapon{2},
+    .radius{31},
+    .remaining{10},
+    .checksum{0xc4a501fb4b55b639ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{0},
+    .checksum{0x096757ce0640c612ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{1},
+    .checksum{0x54769ded98c9b276ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{2},
+    .checksum{0x4a3da2293a63cbadULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{3},
+    .checksum{0x10c91454c583149aULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{4},
+    .checksum{0x2900771194cfb736ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{5},
+    .checksum{0xa99ab7cda658be76ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{6},
+    .checksum{0x1c2ac668a6cabddfULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{7},
+    .checksum{0x48855d4b53281cdbULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{8},
+    .checksum{0x891a7ac5e9cd9ffbULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{9},
+    .checksum{0xb96da82cff479168ULL}
+  },
+  {
+    .weapon{2},
+    .radius{63},
+    .remaining{10},
+    .checksum{0x3854ead9cfde239bULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{0},
+    .checksum{0x848b0856da68bb39ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{1},
+    .checksum{0xe9c137dbbccca675ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{2},
+    .checksum{0x5b076f0dd88bd439ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{3},
+    .checksum{0x70b68d444b9b0955ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{4},
+    .checksum{0x7fd87672efe48c05ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{5},
+    .checksum{0x62615ea848911f21ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{6},
+    .checksum{0xc09640079d7e4e06ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{7},
+    .checksum{0x3b46951ca233b29aULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{8},
+    .checksum{0x711785657a288901ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{9},
+    .checksum{0x8493d4932313eee0ULL}
+  },
+  {
+    .weapon{2},
+    .radius{127},
+    .remaining{10},
+    .checksum{0x0978dd87dd3e534cULL}
+  },
 }};
 
 // Enlarged surround SHA-256: 540b6413eec0c91720f080f34d637ccc2c6968d870f82decea64df4321089164
@@ -745,150 +2716,1308 @@ inline std::array<std::uint64_t, 256> constexpr enlarged_surround_checksums{
 };
 
 inline std::array<radar_sample, 144> const enlarged_radar{{
-  {.heading{0}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{0}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{13, 90}, .colour{8}}}},
-  {.heading{0}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{13, 90}, .colour{8}}}},
-  {.heading{0}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{43, 134}, .colour{16}}}},
-  {.heading{0}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{43, 134}, .colour{12}}}},
-  {.heading{0}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{0}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{0}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{87, 90}, .colour{21}}}},
-  {.heading{0}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{87, 90}, .colour{14}}}},
-  {.heading{0}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{132, 105}, .colour{9}}}},
-  {.heading{0}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{132, 105}, .colour{8}}}},
-  {.heading{0}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{0}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{0}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{0}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{41, 51}, .colour{8}}}},
-  {.heading{8192}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{41, 51}, .colour{8}}}},
-  {.heading{8192}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{30, 104}, .colour{16}}}},
-  {.heading{8192}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{30, 104}, .colour{12}}}},
-  {.heading{8192}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{8192}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{8192}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{94, 104}, .colour{21}}}},
-  {.heading{8192}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{94, 104}, .colour{14}}}},
-  {.heading{8192}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{115, 147}, .colour{9}}}},
-  {.heading{8192}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{115, 147}, .colour{8}}}},
-  {.heading{8192}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{8192}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{8192}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{117, 60}, .colour{8}}}},
-  {.heading{8192}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{117, 60}, .colour{8}}}},
-  {.heading{16384}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{16384}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{88, 45}, .colour{8}}}},
-  {.heading{16384}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{88, 45}, .colour{8}}}},
-  {.heading{16384}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{43, 75}, .colour{16}}}},
-  {.heading{16384}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{43, 75}, .colour{12}}}},
-  {.heading{16384}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{16384}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{16384}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{88, 119}, .colour{21}}}},
-  {.heading{16384}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{88, 119}, .colour{14}}}},
-  {.heading{16384}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 164}, .colour{9}}}},
-  {.heading{16384}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 164}, .colour{8}}}},
-  {.heading{16384}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{16384}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{16384}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{16384}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{24576}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{117, 60}, .colour{8}}}},
-  {.heading{24576}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{117, 60}, .colour{8}}}},
-  {.heading{24576}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{126, 73}, .colour{8}}}},
-  {.heading{24576}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{126, 73}, .colour{8}}}},
-  {.heading{24576}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 62}, .colour{16}}}},
-  {.heading{24576}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 62}, .colour{12}}}},
-  {.heading{24576}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{24576}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{24576}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 126}, .colour{21}}}},
-  {.heading{24576}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 126}, .colour{14}}}},
-  {.heading{24576}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{30, 147}, .colour{9}}}},
-  {.heading{24576}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{30, 147}, .colour{8}}}},
-  {.heading{24576}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{24576}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{24576}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{24576}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{24576}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{117, 149}, .colour{8}}}},
-  {.heading{24576}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{117, 149}, .colour{8}}}},
-  {.heading{32768}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{135, 105}, .colour{8}}}},
-  {.heading{32768}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{135, 105}, .colour{8}}}},
-  {.heading{32768}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{132, 119}, .colour{9}}}},
-  {.heading{32768}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{132, 119}, .colour{8}}}},
-  {.heading{32768}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{102, 75}, .colour{16}}}},
-  {.heading{32768}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{102, 75}, .colour{12}}}},
-  {.heading{32768}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{32768}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{32768}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{58, 119}, .colour{21}}}},
-  {.heading{32768}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{58, 119}, .colour{14}}}},
-  {.heading{32768}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{13, 105}, .colour{9}}}},
-  {.heading{32768}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{13, 105}, .colour{8}}}},
-  {.heading{32768}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{32768}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{32768}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{32768}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{32768}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 167}, .colour{8}}}},
-  {.heading{32768}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 167}, .colour{8}}}},
-  {.heading{40960}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{117, 149}, .colour{8}}}},
-  {.heading{40960}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{117, 149}, .colour{8}}}},
-  {.heading{40960}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{104, 158}, .colour{8}}}},
-  {.heading{40960}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{104, 158}, .colour{8}}}},
-  {.heading{40960}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{115, 104}, .colour{16}}}},
-  {.heading{40960}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{115, 104}, .colour{12}}}},
-  {.heading{40960}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{40960}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{40960}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{51, 104}, .colour{21}}}},
-  {.heading{40960}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{51, 104}, .colour{14}}}},
-  {.heading{40960}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{30, 62}, .colour{9}}}},
-  {.heading{40960}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{30, 62}, .colour{8}}}},
-  {.heading{40960}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{40960}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{40960}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{40960}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{40960}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{28, 149}, .colour{8}}}},
-  {.heading{40960}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{28, 149}, .colour{8}}}},
-  {.heading{49152}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 167}, .colour{8}}}},
-  {.heading{49152}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 167}, .colour{8}}}},
-  {.heading{49152}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{58, 164}, .colour{9}}}},
-  {.heading{49152}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{58, 164}, .colour{8}}}},
-  {.heading{49152}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{103, 134}, .colour{16}}}},
-  {.heading{49152}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{103, 134}, .colour{12}}}},
-  {.heading{49152}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{49152}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{49152}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{58, 90}, .colour{21}}}},
-  {.heading{49152}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{58, 90}, .colour{14}}}},
-  {.heading{49152}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 45}, .colour{9}}}},
-  {.heading{49152}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 45}, .colour{8}}}},
-  {.heading{49152}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{49152}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{49152}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{49152}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{49152}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{49152}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{57344}, .x{-21}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{28, 149}, .colour{8}}}},
-  {.heading{57344}, .x{-21}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{28, 149}, .colour{8}}}},
-  {.heading{57344}, .x{-20}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{19, 136}, .colour{8}}}},
-  {.heading{57344}, .x{-20}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{19, 136}, .colour{8}}}},
-  {.heading{57344}, .x{-10}, .y{10}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 147}, .colour{16}}}},
-  {.heading{57344}, .x{-10}, .y{10}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 147}, .colour{12}}}},
-  {.heading{57344}, .x{0}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{23}}}},
-  {.heading{57344}, .x{0}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 105}, .colour{15}}}},
-  {.heading{57344}, .x{5}, .y{-5}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{73, 83}, .colour{21}}}},
-  {.heading{57344}, .x{5}, .y{-5}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{73, 83}, .colour{14}}}},
-  {.heading{57344}, .x{20}, .y{0}, .group{graphics::radar_group::a}, .pixel{graphics::radar_pixel{.position{115, 62}, .colour{9}}}},
-  {.heading{57344}, .x{20}, .y{0}, .group{graphics::radar_group::b}, .pixel{graphics::radar_pixel{.position{115, 62}, .colour{8}}}},
-  {.heading{57344}, .x{21}, .y{0}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{21}, .y{0}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{57344}, .x{20}, .y{20}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{20}, .y{20}, .group{graphics::radar_group::b}, .pixel{}},
-  {.heading{57344}, .x{0}, .y{-21}, .group{graphics::radar_group::a}, .pixel{}},
-  {.heading{57344}, .x{0}, .y{-21}, .group{graphics::radar_group::b}, .pixel{}},
+  {
+    .heading{0},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{13, 90},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{13, 90},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{43, 134},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{0},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{43, 134},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{0},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{87, 90},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{0},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{87, 90},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{132, 105},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{132, 105},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{0},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{0},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{41, 51},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{41, 51},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{30, 104},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{30, 104},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{94, 104},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{94, 104},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{115, 147},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{115, 147},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{117, 60},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{8192},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{117, 60},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{88, 45},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{88, 45},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{43, 75},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{43, 75},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{88, 119},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{88, 119},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 164},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 164},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{16384},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{16384},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{117, 60},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{117, 60},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{126, 73},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{126, 73},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 62},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 62},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 126},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 126},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{30, 147},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{30, 147},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{117, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{24576},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{117, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{135, 105},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{135, 105},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{132, 119},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{132, 119},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{102, 75},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{102, 75},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{58, 119},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{58, 119},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{13, 105},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{13, 105},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 167},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{32768},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 167},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{117, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{117, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{104, 158},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{104, 158},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{115, 104},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{115, 104},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{51, 104},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{51, 104},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{30, 62},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{30, 62},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{28, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{40960},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{28, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 167},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 167},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{58, 164},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{58, 164},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{103, 134},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{103, 134},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{58, 90},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{58, 90},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 45},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 45},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{49152},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{49152},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{28, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{28, 149},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{19, 136},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-20},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{19, 136},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 147},
+      .colour{16}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{-10},
+    .y{10},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 147},
+      .colour{12}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{23}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 105},
+      .colour{15}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{73, 83},
+      .colour{21}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{5},
+    .y{-5},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{73, 83},
+      .colour{14}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{graphics::radar_pixel{
+      .position{115, 62},
+      .colour{9}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{graphics::radar_pixel{
+      .position{115, 62},
+      .colour{8}
+    }}
+  },
+  {
+    .heading{57344},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{21},
+    .y{0},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{20},
+    .y{20},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::a},
+    .pixel{}
+  },
+  {
+    .heading{57344},
+    .x{0},
+    .y{-21},
+    .group{graphics::radar_group::b},
+    .pixel{}
+  },
 }};
 
 struct height_sample {
@@ -899,150 +4028,870 @@ struct height_sample {
 };
 
 inline std::array<height_sample, 144> constexpr heights{{
-  {.height{0}, .reference{0}, .alignment{0}, .checksum{0x7b5c7c49d337e92dULL}},
-  {.height{0}, .reference{0}, .alignment{1}, .checksum{0x767281ac2aee7493ULL}},
-  {.height{0}, .reference{0}, .alignment{2}, .checksum{0xd1fd606e2a3e8d06ULL}},
-  {.height{0}, .reference{0}, .alignment{3}, .checksum{0xee056a16072d693cULL}},
-  {.height{0}, .reference{4}, .alignment{0}, .checksum{0xe390a626c8c13fe5ULL}},
-  {.height{0}, .reference{4}, .alignment{1}, .checksum{0x0f24304d8360ca3fULL}},
-  {.height{0}, .reference{4}, .alignment{2}, .checksum{0x3f6d0365c5bcefa6ULL}},
-  {.height{0}, .reference{4}, .alignment{3}, .checksum{0xd44b1f1b4fd37f00ULL}},
-  {.height{0}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{0}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{0}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{0}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{0}, .reference{250}, .alignment{0}, .checksum{0x22c4c99bef5aec8dULL}},
-  {.height{0}, .reference{250}, .alignment{1}, .checksum{0xd463774ab51c2c5fULL}},
-  {.height{0}, .reference{250}, .alignment{2}, .checksum{0x91cae74c863055baULL}},
-  {.height{0}, .reference{250}, .alignment{3}, .checksum{0xbb43bc648a2464c8ULL}},
-  {.height{1}, .reference{0}, .alignment{0}, .checksum{0x7b5c7c49d337e92dULL}},
-  {.height{1}, .reference{0}, .alignment{1}, .checksum{0x767281ac2aee7493ULL}},
-  {.height{1}, .reference{0}, .alignment{2}, .checksum{0xd1fd606e2a3e8d06ULL}},
-  {.height{1}, .reference{0}, .alignment{3}, .checksum{0xee056a16072d693cULL}},
-  {.height{1}, .reference{4}, .alignment{0}, .checksum{0xe390a626c8c13fe5ULL}},
-  {.height{1}, .reference{4}, .alignment{1}, .checksum{0x0f24304d8360ca3fULL}},
-  {.height{1}, .reference{4}, .alignment{2}, .checksum{0x3f6d0365c5bcefa6ULL}},
-  {.height{1}, .reference{4}, .alignment{3}, .checksum{0xd44b1f1b4fd37f00ULL}},
-  {.height{1}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{1}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{1}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{1}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{1}, .reference{250}, .alignment{0}, .checksum{0x22c4c99bef5aec8dULL}},
-  {.height{1}, .reference{250}, .alignment{1}, .checksum{0xd463774ab51c2c5fULL}},
-  {.height{1}, .reference{250}, .alignment{2}, .checksum{0x91cae74c863055baULL}},
-  {.height{1}, .reference{250}, .alignment{3}, .checksum{0xbb43bc648a2464c8ULL}},
-  {.height{4}, .reference{0}, .alignment{0}, .checksum{0xd91d3be391a2decdULL}},
-  {.height{4}, .reference{0}, .alignment{1}, .checksum{0xa7e764cbffba1393ULL}},
-  {.height{4}, .reference{0}, .alignment{2}, .checksum{0x9a17b3caa3b6b0eaULL}},
-  {.height{4}, .reference{0}, .alignment{3}, .checksum{0x22ffc1d0ccefa88cULL}},
-  {.height{4}, .reference{4}, .alignment{0}, .checksum{0x7b5c7c49d337e92dULL}},
-  {.height{4}, .reference{4}, .alignment{1}, .checksum{0x767281ac2aee7493ULL}},
-  {.height{4}, .reference{4}, .alignment{2}, .checksum{0xd1fd606e2a3e8d06ULL}},
-  {.height{4}, .reference{4}, .alignment{3}, .checksum{0xee056a16072d693cULL}},
-  {.height{4}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{4}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{4}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{4}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{4}, .reference{250}, .alignment{0}, .checksum{0x2da17a0cb5465e05ULL}},
-  {.height{4}, .reference{250}, .alignment{1}, .checksum{0xd0646596253b263fULL}},
-  {.height{4}, .reference{250}, .alignment{2}, .checksum{0x5ecb96481832b246ULL}},
-  {.height{4}, .reference{250}, .alignment{3}, .checksum{0x5b979a6d87008850ULL}},
-  {.height{20}, .reference{0}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{20}, .reference{0}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{20}, .reference{0}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{20}, .reference{0}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{20}, .reference{4}, .alignment{0}, .checksum{0xb22b2b853ec122cdULL}},
-  {.height{20}, .reference{4}, .alignment{1}, .checksum{0xefd5f753014736d3ULL}},
-  {.height{20}, .reference{4}, .alignment{2}, .checksum{0x436d7baa55f6e936ULL}},
-  {.height{20}, .reference{4}, .alignment{3}, .checksum{0x8d6aa4909b8b893cULL}},
-  {.height{20}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{20}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{20}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{20}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{20}, .reference{250}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{20}, .reference{250}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{20}, .reference{250}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{20}, .reference{250}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{64}, .reference{0}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{64}, .reference{0}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{64}, .reference{0}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{64}, .reference{0}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{64}, .reference{4}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{64}, .reference{4}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{64}, .reference{4}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{64}, .reference{4}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{64}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{64}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{64}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{64}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{64}, .reference{250}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{64}, .reference{250}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{64}, .reference{250}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{64}, .reference{250}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{127}, .reference{0}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{127}, .reference{0}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{127}, .reference{0}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{127}, .reference{0}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{127}, .reference{4}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{127}, .reference{4}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{127}, .reference{4}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{127}, .reference{4}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{127}, .reference{100}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{127}, .reference{100}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{127}, .reference{100}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{127}, .reference{100}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{127}, .reference{250}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{127}, .reference{250}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{127}, .reference{250}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{127}, .reference{250}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{128}, .reference{0}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{128}, .reference{0}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{128}, .reference{0}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{128}, .reference{0}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{128}, .reference{4}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{128}, .reference{4}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{128}, .reference{4}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{128}, .reference{4}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{128}, .reference{100}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{128}, .reference{100}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{128}, .reference{100}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{128}, .reference{100}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{128}, .reference{250}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{128}, .reference{250}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{128}, .reference{250}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{128}, .reference{250}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{200}, .reference{0}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{200}, .reference{0}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{200}, .reference{0}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{200}, .reference{0}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{200}, .reference{4}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{200}, .reference{4}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{200}, .reference{4}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{200}, .reference{4}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{200}, .reference{100}, .alignment{0}, .checksum{0xb1d51a84880819adULL}},
-  {.height{200}, .reference{100}, .alignment{1}, .checksum{0x66154ea78b749213ULL}},
-  {.height{200}, .reference{100}, .alignment{2}, .checksum{0xbe4d94afedfa501aULL}},
-  {.height{200}, .reference{100}, .alignment{3}, .checksum{0x848e35c9d10161ccULL}},
-  {.height{200}, .reference{250}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{200}, .reference{250}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{200}, .reference{250}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{200}, .reference{250}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{255}, .reference{0}, .alignment{0}, .checksum{0x8ef69f86823e8a6dULL}},
-  {.height{255}, .reference{0}, .alignment{1}, .checksum{0x99337730594f2dd3ULL}},
-  {.height{255}, .reference{0}, .alignment{2}, .checksum{0xef312b8fd187bb86ULL}},
-  {.height{255}, .reference{0}, .alignment{3}, .checksum{0xaa89dca9c66e9c3cULL}},
-  {.height{255}, .reference{4}, .alignment{0}, .checksum{0x361feac8aa57538dULL}},
-  {.height{255}, .reference{4}, .alignment{1}, .checksum{0xd9599be93be94d13ULL}},
-  {.height{255}, .reference{4}, .alignment{2}, .checksum{0x84c12e2da551092aULL}},
-  {.height{255}, .reference{4}, .alignment{3}, .checksum{0xa8c2644ddc0b3e0cULL}},
-  {.height{255}, .reference{100}, .alignment{0}, .checksum{0x178b8524e174eeedULL}},
-  {.height{255}, .reference{100}, .alignment{1}, .checksum{0xbf514a16fdcd8f53ULL}},
-  {.height{255}, .reference{100}, .alignment{2}, .checksum{0x50b1adf3aa54595aULL}},
-  {.height{255}, .reference{100}, .alignment{3}, .checksum{0x608082711e69b54cULL}},
-  {.height{255}, .reference{250}, .alignment{0}, .checksum{0xd91d3be391a2decdULL}},
-  {.height{255}, .reference{250}, .alignment{1}, .checksum{0xa7e764cbffba1393ULL}},
-  {.height{255}, .reference{250}, .alignment{2}, .checksum{0x9a17b3caa3b6b0eaULL}},
-  {.height{255}, .reference{250}, .alignment{3}, .checksum{0x22ffc1d0ccefa88cULL}},
+  {
+    .height{0},
+    .reference{0},
+    .alignment{0},
+    .checksum{0x7b5c7c49d337e92dULL}
+  },
+  {
+    .height{0},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x767281ac2aee7493ULL}
+  },
+  {
+    .height{0},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xd1fd606e2a3e8d06ULL}
+  },
+  {
+    .height{0},
+    .reference{0},
+    .alignment{3},
+    .checksum{0xee056a16072d693cULL}
+  },
+  {
+    .height{0},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xe390a626c8c13fe5ULL}
+  },
+  {
+    .height{0},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x0f24304d8360ca3fULL}
+  },
+  {
+    .height{0},
+    .reference{4},
+    .alignment{2},
+    .checksum{0x3f6d0365c5bcefa6ULL}
+  },
+  {
+    .height{0},
+    .reference{4},
+    .alignment{3},
+    .checksum{0xd44b1f1b4fd37f00ULL}
+  },
+  {
+    .height{0},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{0},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{0},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{0},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{0},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x22c4c99bef5aec8dULL}
+  },
+  {
+    .height{0},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xd463774ab51c2c5fULL}
+  },
+  {
+    .height{0},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x91cae74c863055baULL}
+  },
+  {
+    .height{0},
+    .reference{250},
+    .alignment{3},
+    .checksum{0xbb43bc648a2464c8ULL}
+  },
+  {
+    .height{1},
+    .reference{0},
+    .alignment{0},
+    .checksum{0x7b5c7c49d337e92dULL}
+  },
+  {
+    .height{1},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x767281ac2aee7493ULL}
+  },
+  {
+    .height{1},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xd1fd606e2a3e8d06ULL}
+  },
+  {
+    .height{1},
+    .reference{0},
+    .alignment{3},
+    .checksum{0xee056a16072d693cULL}
+  },
+  {
+    .height{1},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xe390a626c8c13fe5ULL}
+  },
+  {
+    .height{1},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x0f24304d8360ca3fULL}
+  },
+  {
+    .height{1},
+    .reference{4},
+    .alignment{2},
+    .checksum{0x3f6d0365c5bcefa6ULL}
+  },
+  {
+    .height{1},
+    .reference{4},
+    .alignment{3},
+    .checksum{0xd44b1f1b4fd37f00ULL}
+  },
+  {
+    .height{1},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{1},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{1},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{1},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{1},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x22c4c99bef5aec8dULL}
+  },
+  {
+    .height{1},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xd463774ab51c2c5fULL}
+  },
+  {
+    .height{1},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x91cae74c863055baULL}
+  },
+  {
+    .height{1},
+    .reference{250},
+    .alignment{3},
+    .checksum{0xbb43bc648a2464c8ULL}
+  },
+  {
+    .height{4},
+    .reference{0},
+    .alignment{0},
+    .checksum{0xd91d3be391a2decdULL}
+  },
+  {
+    .height{4},
+    .reference{0},
+    .alignment{1},
+    .checksum{0xa7e764cbffba1393ULL}
+  },
+  {
+    .height{4},
+    .reference{0},
+    .alignment{2},
+    .checksum{0x9a17b3caa3b6b0eaULL}
+  },
+  {
+    .height{4},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x22ffc1d0ccefa88cULL}
+  },
+  {
+    .height{4},
+    .reference{4},
+    .alignment{0},
+    .checksum{0x7b5c7c49d337e92dULL}
+  },
+  {
+    .height{4},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x767281ac2aee7493ULL}
+  },
+  {
+    .height{4},
+    .reference{4},
+    .alignment{2},
+    .checksum{0xd1fd606e2a3e8d06ULL}
+  },
+  {
+    .height{4},
+    .reference{4},
+    .alignment{3},
+    .checksum{0xee056a16072d693cULL}
+  },
+  {
+    .height{4},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{4},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{4},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{4},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{4},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x2da17a0cb5465e05ULL}
+  },
+  {
+    .height{4},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xd0646596253b263fULL}
+  },
+  {
+    .height{4},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x5ecb96481832b246ULL}
+  },
+  {
+    .height{4},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x5b979a6d87008850ULL}
+  },
+  {
+    .height{20},
+    .reference{0},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{20},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{20},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{20},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{20},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xb22b2b853ec122cdULL}
+  },
+  {
+    .height{20},
+    .reference{4},
+    .alignment{1},
+    .checksum{0xefd5f753014736d3ULL}
+  },
+  {
+    .height{20},
+    .reference{4},
+    .alignment{2},
+    .checksum{0x436d7baa55f6e936ULL}
+  },
+  {
+    .height{20},
+    .reference{4},
+    .alignment{3},
+    .checksum{0x8d6aa4909b8b893cULL}
+  },
+  {
+    .height{20},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{20},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{20},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{20},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{20},
+    .reference{250},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{20},
+    .reference{250},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{20},
+    .reference{250},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{20},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{64},
+    .reference{0},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{64},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{64},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{64},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{64},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{64},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{64},
+    .reference{4},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{64},
+    .reference{4},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{64},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{64},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{64},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{64},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{64},
+    .reference{250},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{64},
+    .reference{250},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{64},
+    .reference{250},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{64},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{127},
+    .reference{0},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{127},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{127},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{127},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{127},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{127},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{127},
+    .reference{4},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{127},
+    .reference{4},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{127},
+    .reference{100},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{127},
+    .reference{100},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{127},
+    .reference{100},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{127},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{127},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{127},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{127},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{127},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{128},
+    .reference{0},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{128},
+    .reference{0},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{128},
+    .reference{0},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{128},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{128},
+    .reference{4},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{128},
+    .reference{4},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{128},
+    .reference{4},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{128},
+    .reference{4},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{128},
+    .reference{100},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{128},
+    .reference{100},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{128},
+    .reference{100},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{128},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{128},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{128},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{128},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{128},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{200},
+    .reference{0},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{200},
+    .reference{0},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{200},
+    .reference{0},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{200},
+    .reference{0},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{200},
+    .reference{4},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{200},
+    .reference{4},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{200},
+    .reference{4},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{200},
+    .reference{4},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{200},
+    .reference{100},
+    .alignment{0},
+    .checksum{0xb1d51a84880819adULL}
+  },
+  {
+    .height{200},
+    .reference{100},
+    .alignment{1},
+    .checksum{0x66154ea78b749213ULL}
+  },
+  {
+    .height{200},
+    .reference{100},
+    .alignment{2},
+    .checksum{0xbe4d94afedfa501aULL}
+  },
+  {
+    .height{200},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x848e35c9d10161ccULL}
+  },
+  {
+    .height{200},
+    .reference{250},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{200},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{200},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{200},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{255},
+    .reference{0},
+    .alignment{0},
+    .checksum{0x8ef69f86823e8a6dULL}
+  },
+  {
+    .height{255},
+    .reference{0},
+    .alignment{1},
+    .checksum{0x99337730594f2dd3ULL}
+  },
+  {
+    .height{255},
+    .reference{0},
+    .alignment{2},
+    .checksum{0xef312b8fd187bb86ULL}
+  },
+  {
+    .height{255},
+    .reference{0},
+    .alignment{3},
+    .checksum{0xaa89dca9c66e9c3cULL}
+  },
+  {
+    .height{255},
+    .reference{4},
+    .alignment{0},
+    .checksum{0x361feac8aa57538dULL}
+  },
+  {
+    .height{255},
+    .reference{4},
+    .alignment{1},
+    .checksum{0xd9599be93be94d13ULL}
+  },
+  {
+    .height{255},
+    .reference{4},
+    .alignment{2},
+    .checksum{0x84c12e2da551092aULL}
+  },
+  {
+    .height{255},
+    .reference{4},
+    .alignment{3},
+    .checksum{0xa8c2644ddc0b3e0cULL}
+  },
+  {
+    .height{255},
+    .reference{100},
+    .alignment{0},
+    .checksum{0x178b8524e174eeedULL}
+  },
+  {
+    .height{255},
+    .reference{100},
+    .alignment{1},
+    .checksum{0xbf514a16fdcd8f53ULL}
+  },
+  {
+    .height{255},
+    .reference{100},
+    .alignment{2},
+    .checksum{0x50b1adf3aa54595aULL}
+  },
+  {
+    .height{255},
+    .reference{100},
+    .alignment{3},
+    .checksum{0x608082711e69b54cULL}
+  },
+  {
+    .height{255},
+    .reference{250},
+    .alignment{0},
+    .checksum{0xd91d3be391a2decdULL}
+  },
+  {
+    .height{255},
+    .reference{250},
+    .alignment{1},
+    .checksum{0xa7e764cbffba1393ULL}
+  },
+  {
+    .height{255},
+    .reference{250},
+    .alignment{2},
+    .checksum{0x9a17b3caa3b6b0eaULL}
+  },
+  {
+    .height{255},
+    .reference{250},
+    .alignment{3},
+    .checksum{0x22ffc1d0ccefa88cULL}
+  },
 }};
 
 } // namespace darker::test_reference

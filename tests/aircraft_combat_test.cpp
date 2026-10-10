@@ -12,11 +12,29 @@ TEST_CASE("Aircraft hit volumes match native extent sweeps", "[combat]") {
   /// Check both hit admission and native impact rounding at full altitude scale
   for(auto const &v : darker::test_reference::aircraft_sweeps) {
     CAPTURE(v);
-    darker::game::object_pose const target{.position{.column{static_cast<uint16_t>(v[0])}, .row{static_cast<uint16_t>(v[1])}, .height{static_cast<uint16_t>(v[2])}}};
-    darker::maths::world_position const start{.column{static_cast<uint16_t>(v[5])}, .row{static_cast<uint16_t>(v[6])}, .height{static_cast<uint16_t>(v[7])}};
-    darker::maths::world_position end{.column{static_cast<uint16_t>(v[8])}, .row{static_cast<uint16_t>(v[9])}, .height{static_cast<uint16_t>(v[10])}};
+    darker::game::object_pose const target{
+      .position{
+        .column{static_cast<uint16_t>(v[0])},
+        .row{static_cast<uint16_t>(v[1])},
+        .height{static_cast<uint16_t>(v[2])}
+      }
+    };
+    darker::maths::world_position const start{
+      .column{static_cast<uint16_t>(v[5])},
+      .row{static_cast<uint16_t>(v[6])},
+      .height{static_cast<uint16_t>(v[7])}
+    };
+    darker::maths::world_position end{
+      .column{static_cast<uint16_t>(v[8])},
+      .row{static_cast<uint16_t>(v[9])},
+      .height{static_cast<uint16_t>(v[10])}
+    };
     CHECK(darker::game::sweep_aircraft(target, v[3], v[4], start, end) == (v[11] != 0));
-    CHECK(end == darker::maths::world_position{.column{static_cast<uint16_t>(v[12])}, .row{static_cast<uint16_t>(v[13])}, .height{static_cast<uint16_t>(v[14])}});
+    CHECK(end == darker::maths::world_position{
+      .column{static_cast<uint16_t>(v[12])},
+      .row{static_cast<uint16_t>(v[13])},
+      .height{static_cast<uint16_t>(v[14])}
+    });
   }
 }
 
@@ -25,9 +43,17 @@ TEST_CASE("Falling aircraft match the original destruction callback", "[combat]"
   for(auto const &v : darker::test_reference::aircraft_falls) {
     CAPTURE(v);
     darker::game::scenario_actor actor;
-    actor.pose.position = {.column{static_cast<uint16_t>(v[0])}, .row{static_cast<uint16_t>(v[1])}, .height{static_cast<uint16_t>(v[2])}};
+    actor.pose.position = {
+      .column{static_cast<uint16_t>(v[0])},
+      .row{static_cast<uint16_t>(v[1])},
+      .height{static_cast<uint16_t>(v[2])}
+    };
     actor.attitude = {static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])};
-    actor.pose.angles = {.heading{static_cast<uint16_t>(v[5])}, .pitch{static_cast<uint16_t>(v[6])}, .roll{static_cast<uint16_t>(v[7])}};
+    actor.pose.angles = {
+      .heading{static_cast<uint16_t>(v[5])},
+      .pitch{static_cast<uint16_t>(v[6])},
+      .roll{static_cast<uint16_t>(v[7])}
+    };
     actor.pose.speed = static_cast<uint16_t>(v[8]);
     darker::game::advance_falling_aircraft(actor, v[9]);
     std::array<int, 12> const actual{actor.pose.position.column, actor.pose.position.row, actor.pose.position.height, actor.attitude.pitch_rate, actor.attitude.bank_rate,
@@ -45,12 +71,29 @@ TEST_CASE("Enemy gun checks match original world profiles, aim, timing and hits"
     actor.behaviour.attack_control = static_cast<uint8_t>(v[16]);
     actor.selected_target = 0xd986;
     actor.parameters.definition = &darker::game::original_object_definitions[19];
-    actor.pose.position = {.column{10000}, .row{10000}, .height{3000}};
-    actor.pose.angles = {.heading{static_cast<uint16_t>(v[0])}, .pitch{static_cast<uint16_t>(v[1])}, .roll{0}};
-    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(v[9])}, .row{static_cast<uint16_t>(v[10])}, .height{static_cast<uint16_t>(v[11])}}};
+    actor.pose.position = {
+      .column{10000},
+      .row{10000},
+      .height{3000}
+    };
+    actor.pose.angles = {
+      .heading{static_cast<uint16_t>(v[0])},
+      .pitch{static_cast<uint16_t>(v[1])},
+      .roll{0}
+    };
+    darker::game::object_pose const player{
+      .position{
+        .column{static_cast<uint16_t>(v[9])},
+        .row{static_cast<uint16_t>(v[10])},
+        .height{static_cast<uint16_t>(v[11])}
+      }
+    };
     uint16_t random{static_cast<uint16_t>(v[8])};
     auto const shot{darker::game::fire_skimma_gun(actor, player, v[7], v[12],
-      {.heading{static_cast<uint16_t>(v[2])}, .pitch{static_cast<uint16_t>(v[3])}}, v[4], v[5], v[6], random, v[17] == 0 ? 0x30 : 0x20)};
+      {
+        .heading{static_cast<uint16_t>(v[2])},
+        .pitch{static_cast<uint16_t>(v[3])}
+      }, v[4], v[5], v[6], random, v[17] == 0 ? 0x30 : 0x20)};
     CHECK(shot.has_value() == (v[13] != 0));
     CHECK((shot && shot->hit) == (v[14] != 0));
     CHECK(random == v[15]);
@@ -65,12 +108,19 @@ TEST_CASE("Aircraft missile eligibility matches native firing settings and timer
     actor.definition_slot = static_cast<uint8_t>(v[0]);
     actor.parameters.definition = &darker::game::original_object_definitions[actor.definition_slot];
     actor.behaviour.attack_control = static_cast<uint8_t>(v[1]);
-    actor.pose.angles = {.heading{static_cast<uint16_t>(v[4])},.pitch{static_cast<uint16_t>(v[5])},.roll{0}};
+    actor.pose.angles = {
+      .heading{static_cast<uint16_t>(v[4])},
+      .pitch{static_cast<uint16_t>(v[5])},
+      .roll{0}
+    };
     actor.selected_target = static_cast<uint16_t>(v[8]);
     actor.flags = static_cast<uint8_t>(v[9]);
     actor.last_shot = static_cast<uint16_t>(v[11]);
     auto const slot{darker::game::aircraft_projectile_definition(actor,static_cast<uint8_t>(v[10]),
-      {.heading{static_cast<uint16_t>(v[6])},.pitch{static_cast<uint16_t>(v[7])}},
+      {
+        .heading{static_cast<uint16_t>(v[6])},
+        .pitch{static_cast<uint16_t>(v[7])}
+      },
       static_cast<uint8_t>(v[3]),static_cast<uint16_t>(v[12]),static_cast<uint8_t>(v[2]),v[13] != 0)};
     CHECK((slot ? static_cast<int>(*slot) : -1) == v[14]);
   }
@@ -97,7 +147,10 @@ TEST_CASE("Aircraft bomb drops match native target, cooldown and exhausted-pool 
     actor.last_shot = static_cast<uint16_t>(v[4]);
     darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
     darker::game::launch_emitter const emitter{};
-    if(!v[3]) while(pool.launch({.definition{darker::game::original_object_definitions[14]},.emitter{emitter}})) {}
+    if(!v[3]) while(pool.launch({
+      .definition{darker::game::original_object_definitions[14]},
+      .emitter{emitter}
+    })) {}
     auto const *shot{darker::game::drop_aircraft_bomb(pool,actor,v[1] != 0,static_cast<uint16_t>(v[5]),0)};
     CHECK((shot != nullptr) == (v[6] != 0));
     CHECK(actor.last_shot == v[7]);

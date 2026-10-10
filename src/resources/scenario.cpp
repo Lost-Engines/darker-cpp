@@ -57,7 +57,10 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
       }
       auto const row{input.byte()};
       if(row >= 128) throw std::invalid_argument{"Scenario cell lies outside the map"};
-      list.cells.push_back({.column{column}, .row{row}});
+      list.cells.push_back({
+        .column{column},
+        .row{row}
+      });
     }
   }
   record.objective_cell_list = record.cell_lists[1].terminator == 254 ? 1 : 2;
@@ -76,11 +79,21 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
         auto const consumed{input.position() - start - 1};
         if(length < consumed) throw std::invalid_argument{"Invalid native scenario setup length"};
         input.skip(length - consumed);
-        group.native_setup.push_back({.source{.offset{start + 1}, .size{length}}, .current_object{object_index}});
+        group.native_setup.push_back({
+          .source{
+            .offset{start + 1},
+            .size{length}
+          },
+          .current_object{object_index}
+        });
         continue;
       }
       scenario_placement object{
-        .source{.offset{start}}, .definition_slot{static_cast<std::uint8_t>(header & 63)}, .counted{(header & 128) != 0},
+        .source{
+          .offset{start}
+        },
+        .definition_slot{static_cast<std::uint8_t>(header & 63)},
+        .counted{(header & 128) != 0},
       };
       if(object.definition_slot > 32) throw std::invalid_argument{"Unknown scenario object definition"};
       object.form = header & 64 ? placement_form::absolute_static : object.definition_slot > 28 ? placement_form::compact_special : placement_form::moving;
@@ -123,11 +136,20 @@ scenario_resource::scenario_resource(std::vector<std::byte> resource) : data{std
       throw std::invalid_argument{"Invalid scenario language directory"};
     }
     scenario_record record{
-      .source{.offset{cursor}, .size{size + 2}},
-      .shared{.offset{cursor + 8}, .size{boundaries[0] - 6}},
+      .source{
+        .offset{cursor},
+        .size{size + 2}
+      },
+      .shared{
+        .offset{cursor + 8},
+        .size{boundaries[0] - 6}
+      },
     };
     for(std::size_t i{0}; i < record.languages.size(); ++i) {
-      record.languages[i] = {.offset{cursor + 2 + boundaries[i]}, .size{boundaries[i + 1] - boundaries[i]}};
+      record.languages[i] = {
+        .offset{cursor + 2 + boundaries[i]},
+        .size{boundaries[i + 1] - boundaries[i]}
+      };
     }
     reader shared{data, record.shared.offset, record.shared.offset + record.shared.size};
     record.entry_offset = record.shared.offset + shared.word();

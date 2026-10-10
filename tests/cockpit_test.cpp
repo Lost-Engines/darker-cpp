@@ -42,7 +42,13 @@ TEST_CASE("Mask row skips are independent and uncovered pixels are preserved") {
   source.fill(7);
   std::array<std::uint8_t, 640> target;
   target.fill(99);
-  std::array<darker::graphics::mask_row, 2> const mask{{{.skip{2}, .width{2}}, {.skip{0}, .width{1}}}};
+  std::array<darker::graphics::mask_row, 2> const mask{{{
+    .skip{2},
+    .width{2}
+  }, {
+    .skip{0},
+    .width{1}
+  }}};
   darker::graphics::copy_mask(source, target, {0, 0}, {10, 0}, mask);
   REQUIRE(target[11] == 99);
   REQUIRE(target[12] == 7);

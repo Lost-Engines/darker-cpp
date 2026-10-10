@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 from pathlib import Path
+from format_cpp_initialisers import format_designated_initialisers
 from generate_resource_directory import IMAGE_SHA256
 
 
@@ -59,7 +60,7 @@ def main():
                   f'    .impact_strength{{{data[8]}}}, .base_speed{{{data[9]}}}, .role_data{{{role}}},',
                   f'    .sound_entry{{0x{word(18):04x}}}, .fm_patch{{{data[20]}}}, .sound_level{{{data[21]}}}, .sound_pitch{{{word(22)}}},', '  },']
     lines += ['}};', '', '} // namespace darker::game', '']
-    (Path(__file__).resolve().parents[1] / 'src/game/object_definitions.h').write_text('\n'.join(lines))
+    (Path(__file__).resolve().parents[1] / 'src/game/object_definitions.h').write_text(format_designated_initialisers('\n'.join(lines)))
 
 
 if __name__ == '__main__':

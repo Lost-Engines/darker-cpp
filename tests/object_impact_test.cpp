@@ -13,7 +13,10 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
   for(auto const &sample : darker::test_reference::impact_samples) {
     CAPTURE(sample.strength, sample.resistance, sample.mode, sample.damage, sample.flags, sample.seed);
     darker::game::object_impact_state state{
-      .rotation{.pitch{static_cast<std::uint16_t>(sample.pitch)}, .turn{static_cast<std::uint16_t>(sample.heading)}},
+      .rotation{
+        .pitch{static_cast<std::uint16_t>(sample.pitch)},
+        .turn{static_cast<std::uint16_t>(sample.heading)}
+      },
       .impact_accumulator{static_cast<std::uint16_t>(sample.accumulator)},
       .damage{static_cast<std::uint16_t>(sample.damage)},
       .update_entry{darker::game::object_update::surface_actor},
@@ -31,7 +34,9 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
 
 TEST_CASE("Ordinary object impact rejects separate removal paths before changing state", "[game][impact]") {
   /// Keep unsupported effect/removal branches explicit at the boundary
-  darker::game::object_impact_state state{.update_entry{darker::game::object_update::surface_actor}};
+  darker::game::object_impact_state state{
+    .update_entry{darker::game::object_update::surface_actor}
+  };
   std::uint16_t seed{17};
   REQUIRE_THROWS_AS(darker::game::apply_object_impact(state, 1, 0, false, 0, seed), std::invalid_argument);
   CHECK(seed == 17);
@@ -45,7 +50,9 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
   /// Zero resistance follows effect-only or delayed-removal paths without consuming random damage kicks
   for(auto const &sample : darker::test_reference::actor_impact_samples) {
     CAPTURE(sample);
-    darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}}};
+    darker::game::object_definition definition{
+      .role_data{darker::game::craft_definition_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}}
+    };
     darker::game::scenario_actor actor;
     actor.parameters.definition = &definition;
     actor.parameters.update_entry = static_cast<darker::game::object_update>(sample[0]);

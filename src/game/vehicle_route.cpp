@@ -131,8 +131,13 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
         a ^= reflection[direction / 2];
         d ^= reflection[direction / 2 + 1];
         if(direction & 2) std::swap(a,d);
-        vehicle_route_effect effect{.position{.column{static_cast<uint16_t>((pose.position.column & 0xff00) | (d & 255))},
-          .row{static_cast<uint16_t>((pose.position.row & 0xff00) | (a & 255))},.height{static_cast<uint16_t>(256 + (second >> 8))}}};
+        vehicle_route_effect effect{
+          .position{
+            .column{static_cast<uint16_t>((pose.position.column & 0xff00) | (d & 255))},
+            .row{static_cast<uint16_t>((pose.position.row & 0xff00) | (a & 255))},
+            .height{static_cast<uint16_t>(256 + (second >> 8))}
+          }
+        };
         bool const burst{route.effect_countdown < 40};
         route.effect_countdown = static_cast<uint8_t>(route.effect_countdown - 40);
         if(burst) {

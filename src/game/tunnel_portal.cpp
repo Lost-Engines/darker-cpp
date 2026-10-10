@@ -20,9 +20,16 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
   player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data.player().drive_multiplier*8);
   auto &craft{std::get<caero_flight_state>(player.craft)};
   craft.flying = true;
-  craft.energy = {.buffer{0x6000},.reserve{0x1fff},.boost{0x1fff}};
-  craft.pose.position = {.column{static_cast<uint16_t>((site & 255)*128 + fraction[0])},
-    .row{static_cast<uint16_t>((site & 0xff00) + fraction[1])},.height{static_cast<uint16_t>(1536 - model_height)}};
+  craft.energy = {
+    .buffer{0x6000},
+    .reserve{0x1fff},
+    .boost{0x1fff}
+  };
+  craft.pose.position = {
+    .column{static_cast<uint16_t>((site & 255)*128 + fraction[0])},
+    .row{static_cast<uint16_t>((site & 0xff00) + fraction[1])},
+    .height{static_cast<uint16_t>(1536 - model_height)}
+  };
   craft.pose.angles.heading = static_cast<uint16_t>(heading*256);
 }
 

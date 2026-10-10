@@ -31,7 +31,10 @@ TEST_CASE("Scenario language and program ranges survive resource copies", "[reso
   CHECK(copy.language(0, darker::resources::scenario_language::french)[0] == std::byte{66});
   CHECK(copy.language(1, darker::resources::scenario_language::german)[0] == std::byte{67});
   CHECK_THROWS_AS(copy.language(2, darker::resources::scenario_language::english), std::out_of_range);
-  CHECK_THROWS_AS(copy.bytes({.offset{33}, .size{0}}), std::out_of_range);
+  CHECK_THROWS_AS(copy.bytes({
+    .offset{33},
+    .size{0}
+  }), std::out_of_range);
 }
 
 TEST_CASE("Scenario reader rejects truncated records and inverted language ranges", "[resources][scenario]") {

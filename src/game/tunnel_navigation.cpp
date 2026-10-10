@@ -97,7 +97,12 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
   advance_actor_awareness(actor.awareness,actor.pose,player,
-    {.decay{actor.behaviour.awareness_decay},.rise{actor.behaviour.awareness_rise},.strength{actor.behaviour.awareness_strength},.cooldown_shift{definition.role_data.craft().cooldown_shift}},frame_step);
+    {
+      .decay{actor.behaviour.awareness_decay},
+      .rise{actor.behaviour.awareness_rise},
+      .strength{actor.behaviour.awareness_strength},
+      .cooldown_shift{definition.role_data.craft().cooldown_shift}
+    },frame_step);
   auto const preferred{choose_tunnel_heading(actor,cells,network)};
   auto const path{network.trace(cells,{actor.current_cell,actor.tunnel->route},actor.pose.position,152,preferred)};
   auto heading{actor.pose.angles.heading}, pitch{actor.pose.angles.pitch};

@@ -113,8 +113,15 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   auto const first_point{std::min_element(points.begin(), points.end(), [](auto const &a, auto const &b){ return a.y < b.y; })};
   auto const last_point{std::max_element(points.begin(), points.end(), [](auto const &a, auto const &b){ return a.y < b.y; })};
   auto const start{static_cast<std::size_t>(first_point - points.begin())};
-  edge_walker left_edge{.index{start}, .direction{-1}, .end_y{first_point->y}};
-  edge_walker right_edge{.index{start}, .end_y{first_point->y}};
+  edge_walker left_edge{
+    .index{start},
+    .direction{-1},
+    .end_y{first_point->y}
+  };
+  edge_walker right_edge{
+    .index{start},
+    .end_y{first_point->y}
+  };
   for(int y{first_point->y}; y < last_point->y; ++y) {
     if(y == left_edge.end_y) start_edge(left_edge, points, y, false);
     if(y == right_edge.end_y) start_edge(right_edge, points, y, true);

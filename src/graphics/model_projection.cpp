@@ -7,7 +7,10 @@ namespace {
 projection_term product(std::int16_t const value, std::int16_t const coefficient) noexcept {
   /// FD04/FD30/FD5C cache the upper word and middle byte of each signed product
   auto const bits{static_cast<std::uint32_t>(static_cast<std::int32_t>(value) * coefficient)};
-  return {.whole{static_cast<std::uint16_t>(bits >> 16)}, .fraction{static_cast<std::uint8_t>(bits >> 8)}};
+  return {
+    .whole{static_cast<std::uint16_t>(bits >> 16)},
+    .fraction{static_cast<std::uint8_t>(bits >> 8)}
+  };
 }
 
 void negate(projection_term &term) noexcept {
@@ -65,13 +68,20 @@ camera_vertex model_projection::transform() const noexcept {
     vertical += static_cast<std::uint32_t>(cached.vertical) * 256;
   }
   auto const signed_coordinate{[](std::uint32_t const value){ return std::bit_cast<std::int32_t>(value << 8) >> 8; }};
-  return {.horizontal{signed_coordinate(horizontal)}, .vertical{signed_coordinate(vertical)}, .depth{signed_coordinate(depth)}};
+  return {
+    .horizontal{signed_coordinate(horizontal)},
+    .vertical{signed_coordinate(vertical)},
+    .depth{signed_coordinate(depth)}
+  };
 }
 
 projected_vertex model_projection::project() const {
   /// The direct path divides the same cached camera coordinates that the near path retains
   auto const vertex{transform()};
-  return {.screen{project_vertex(vertex, parameters.origin)}, .depth{static_cast<std::int16_t>(vertex.depth >> 8)}};
+  return {
+    .screen{project_vertex(vertex, parameters.origin)},
+    .depth{static_cast<std::int16_t>(vertex.depth >> 8)}
+  };
 }
 
 } // namespace darker::graphics

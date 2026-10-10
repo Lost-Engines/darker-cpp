@@ -10,17 +10,47 @@ TEST_CASE("Complete Skimma flight updates match native persistent-state traces",
     auto const &before{sample.before};
     auto const word{[&](std::size_t const i){ return static_cast<std::uint16_t>(before[i]); }};
     darker::game::skimma_flight_state state{
-      .pose{.position{.column{word(0)}, .row{word(1)}, .height{word(2)}},
-        .fractions{.column{static_cast<std::uint8_t>(before[3])}, .row{static_cast<std::uint8_t>(before[4])}, .height{static_cast<std::uint8_t>(before[5])}},
-        .angles{.heading{word(6)}, .pitch{word(7)}, .roll{word(8)}}, .speed{word(9)}},
-      .damage{.rotation{.pitch{word(10)}, .turn{word(11)}}, .shield_charge{word(15)}},
-      .horizontal_velocity{word(12)}, .vertical_velocity{word(13)}, .pitch_assist_rate{word(14)},
+      .pose{
+        .position{
+          .column{word(0)},
+          .row{word(1)},
+          .height{word(2)}
+        },
+        .fractions{
+          .column{static_cast<std::uint8_t>(before[3])},
+          .row{static_cast<std::uint8_t>(before[4])},
+          .height{static_cast<std::uint8_t>(before[5])}
+        },
+        .angles{
+          .heading{word(6)},
+          .pitch{word(7)},
+          .roll{word(8)}
+        },
+        .speed{word(9)}
+      },
+      .damage{
+        .rotation{
+          .pitch{word(10)},
+          .turn{word(11)}
+        },
+        .shield_charge{word(15)}
+      },
+      .horizontal_velocity{word(12)},
+      .vertical_velocity{word(13)},
+      .pitch_assist_rate{word(14)},
     };
     auto const &input{sample.input};
     darker::game::advance_skimma_flight(state,
-      {.angular_response{static_cast<std::uint16_t>(input[3])}, .vertical_bias{static_cast<std::int8_t>(input[6])}},
-      {.bank_drive{static_cast<std::uint16_t>(input[1])}, .pitch_drive{static_cast<std::uint16_t>(input[2])},
-        .forward_setting{static_cast<std::uint16_t>(input[4])}, .brake{input[5] != 0}},
+      {
+        .angular_response{static_cast<std::uint16_t>(input[3])},
+        .vertical_bias{static_cast<std::int8_t>(input[6])}
+      },
+      {
+        .bank_drive{static_cast<std::uint16_t>(input[1])},
+        .pitch_drive{static_cast<std::uint16_t>(input[2])},
+        .forward_setting{static_cast<std::uint16_t>(input[4])},
+        .brake{input[5] != 0}
+      },
       static_cast<std::uint16_t>(input[0]));
     std::array<int, 16> const actual{state.pose.position.column, state.pose.position.row, state.pose.position.height,
       state.pose.fractions.column, state.pose.fractions.row, state.pose.fractions.height,

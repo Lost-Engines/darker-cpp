@@ -16,7 +16,10 @@
 
 void check_text_resources(darker::resources::archive_set const &archives) {
   /// Compare native glyph paths and formatter state independently of final palette selection
-  darker::resources::font_resource const fonts{archives.load({.archive{0}, .slot{29}})};
+  darker::resources::font_resource const fonts{archives.load({
+    .archive{0},
+    .slot{29}
+  })};
   for(auto const &sample : darker::test_reference::font_samples) {
     std::uint64_t fingerprint{0xcbf29ce484222325};
     auto const add{[&](std::uint32_t const value){
@@ -28,7 +31,10 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     for(auto const code : codes) {
       framework::render::indexed_cockpit_framebuffer frame{};
       auto const cursor{darker::graphics::draw_glyph(frame, fonts, static_cast<darker::resources::font_face>(sample.face),
-        static_cast<std::uint8_t>(code), {static_cast<std::int16_t>(8 + sample.phase), 9}, {.ink{2}, .edge{1}})};
+        static_cast<std::uint8_t>(code), {static_cast<std::int16_t>(8 + sample.phase), 9}, {
+          .ink{2},
+          .edge{1}
+        })};
       add(cursor);
       std::uint32_t count{0};
       for(auto const pixel : frame.pixels) count += pixel != 0;
@@ -46,8 +52,14 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   for(unsigned int phase{0}; phase < 4; ++phase) {
     framework::render::indexed_cockpit_framebuffer actual{}, expected{};
     auto const position{darker::graphics::pixel_position{static_cast<int16_t>(8+phase), 9}};
-    auto const advance{darker::graphics::draw_glyph(actual,fonts,darker::resources::font_face::wide,153,position,{.ink{2},.edge{1}})};
-    auto const replacement{darker::graphics::draw_glyph(expected,fonts,darker::resources::font_face::wide,'?',position,{.ink{2},.edge{1}})};
+    auto const advance{darker::graphics::draw_glyph(actual,fonts,darker::resources::font_face::wide,153,position,{
+      .ink{2},
+      .edge{1}
+    })};
+    auto const replacement{darker::graphics::draw_glyph(expected,fonts,darker::resources::font_face::wide,'?',position,{
+      .ink{2},
+      .edge{1}
+    })};
     if(advance != replacement || actual.pixels != expected.pixels) throw std::runtime_error{"Undefined German glyph does not use a stable replacement"};
   }
   // This exception must not hide a damaged bitmap belonging to a declared glyph.
@@ -58,7 +70,10 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   catch(std::invalid_argument const &) { rejected = true; }
   if(!rejected) throw std::runtime_error{"Truncated font was accepted"};
   std::array<std::vector<std::byte>, 16> resources;
-  for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({.archive{4}, .slot{slot}});
+  for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({
+    .archive{4},
+    .slot{slot}
+  });
   std::array<std::span<std::uint8_t const>, 6> const extra{
     darker::test_reference::text_extra_0, darker::test_reference::text_extra_1, darker::test_reference::text_extra_2,
     darker::test_reference::text_extra_3, darker::test_reference::text_extra_4, darker::test_reference::text_extra_5,
@@ -67,7 +82,10 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     std::span<std::byte const> const bytes{sample.resource == 16 ? (sample.offset < 3 ? std::as_bytes(extra.at(sample.offset))
         : std::as_bytes(std::span{darker::presentation::original_credits.at(sample.offset-3)}))
       : std::span<std::byte const>{resources.at(sample.resource)}.subspan(sample.offset, sample.size)};
-    auto const page{darker::graphics::lay_out_text(bytes, fonts, darker::resources::font_face::interface, {.colour{0x3456}, .runtime_number{195}})};
+    auto const page{darker::graphics::lay_out_text(bytes, fonts, darker::resources::font_face::interface, {
+      .colour{0x3456},
+      .runtime_number{195}
+    })};
     std::uint64_t fingerprint{0xcbf29ce484222325};
     auto const add{[&](std::uint32_t const value){
       for(unsigned int shift{0}; shift < 32; shift += 8) fingerprint = (fingerprint ^ ((value >> shift) & 255)) * 0x100000001b3;

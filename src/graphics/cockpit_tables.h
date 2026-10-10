@@ -9,2011 +9,6705 @@
 namespace darker::graphics {
 
 inline std::array<mask_row, 11> constexpr rows_463e_0{{
-  {.skip{23}, .width{2}},
-  {.skip{20}, .width{5}},
-  {.skip{18}, .width{8}},
-  {.skip{16}, .width{11}},
-  {.skip{13}, .width{15}},
-  {.skip{11}, .width{17}},
-  {.skip{10}, .width{17}},
-  {.skip{11}, .width{15}},
-  {.skip{11}, .width{14}},
-  {.skip{11}, .width{13}},
-  {.skip{12}, .width{11}},
+  {
+    .skip{23},
+    .width{2}
+  },
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{8}
+  },
+  {
+    .skip{16},
+    .width{11}
+  },
+  {
+    .skip{13},
+    .width{15}
+  },
+  {
+    .skip{11},
+    .width{17}
+  },
+  {
+    .skip{10},
+    .width{17}
+  },
+  {
+    .skip{11},
+    .width{15}
+  },
+  {
+    .skip{11},
+    .width{14}
+  },
+  {
+    .skip{11},
+    .width{13}
+  },
+  {
+    .skip{12},
+    .width{11}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_463e_1{{
-  {.skip{20}, .width{3}},
-  {.skip{17}, .width{6}},
-  {.skip{15}, .width{8}},
-  {.skip{12}, .width{11}},
-  {.skip{10}, .width{14}},
-  {.skip{7}, .width{16}},
-  {.skip{7}, .width{13}},
-  {.skip{8}, .width{10}},
-  {.skip{8}, .width{8}},
-  {.skip{9}, .width{4}},
-  {.skip{9}, .width{2}},
+  {
+    .skip{20},
+    .width{3}
+  },
+  {
+    .skip{17},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{8}
+  },
+  {
+    .skip{12},
+    .width{11}
+  },
+  {
+    .skip{10},
+    .width{14}
+  },
+  {
+    .skip{7},
+    .width{16}
+  },
+  {
+    .skip{7},
+    .width{13}
+  },
+  {
+    .skip{8},
+    .width{10}
+  },
+  {
+    .skip{8},
+    .width{8}
+  },
+  {
+    .skip{9},
+    .width{4}
+  },
+  {
+    .skip{9},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_463e_2{{
-  {.skip{18}, .width{4}},
-  {.skip{14}, .width{9}},
-  {.skip{10}, .width{13}},
-  {.skip{6}, .width{17}},
-  {.skip{6}, .width{17}},
-  {.skip{5}, .width{15}},
-  {.skip{5}, .width{12}},
-  {.skip{5}, .width{10}},
-  {.skip{6}, .width{6}},
-  {.skip{7}, .width{3}},
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{14},
+    .width{9}
+  },
+  {
+    .skip{10},
+    .width{13}
+  },
+  {
+    .skip{6},
+    .width{17}
+  },
+  {
+    .skip{6},
+    .width{17}
+  },
+  {
+    .skip{5},
+    .width{15}
+  },
+  {
+    .skip{5},
+    .width{12}
+  },
+  {
+    .skip{5},
+    .width{10}
+  },
+  {
+    .skip{6},
+    .width{6}
+  },
+  {
+    .skip{7},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_463e_3{{
-  {.skip{4}, .width{17}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{14}},
-  {.skip{4}, .width{10}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{2}},
+  {
+    .skip{4},
+    .width{17}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{14}
+  },
+  {
+    .skip{4},
+    .width{10}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 7> constexpr rows_463e_4{{
-  {.skip{5}, .width{5}},
-  {.skip{4}, .width{10}},
-  {.skip{4}, .width{14}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{18}},
-  {.skip{4}, .width{18}},
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{4},
+    .width{10}
+  },
+  {
+    .skip{4},
+    .width{14}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{18}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_463e_5{{
-  {.skip{7}, .width{2}},
-  {.skip{6}, .width{6}},
-  {.skip{6}, .width{9}},
-  {.skip{5}, .width{12}},
-  {.skip{5}, .width{15}},
-  {.skip{5}, .width{18}},
-  {.skip{5}, .width{18}},
-  {.skip{10}, .width{13}},
-  {.skip{14}, .width{9}},
-  {.skip{18}, .width{5}},
+  {
+    .skip{7},
+    .width{2}
+  },
+  {
+    .skip{6},
+    .width{6}
+  },
+  {
+    .skip{6},
+    .width{9}
+  },
+  {
+    .skip{5},
+    .width{12}
+  },
+  {
+    .skip{5},
+    .width{15}
+  },
+  {
+    .skip{5},
+    .width{18}
+  },
+  {
+    .skip{5},
+    .width{18}
+  },
+  {
+    .skip{10},
+    .width{13}
+  },
+  {
+    .skip{14},
+    .width{9}
+  },
+  {
+    .skip{18},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_463e_6{{
-  {.skip{11}, .width{1}},
-  {.skip{10}, .width{4}},
-  {.skip{9}, .width{7}},
-  {.skip{8}, .width{10}},
-  {.skip{8}, .width{12}},
-  {.skip{7}, .width{15}},
-  {.skip{9}, .width{15}},
-  {.skip{12}, .width{13}},
-  {.skip{15}, .width{10}},
-  {.skip{17}, .width{8}},
-  {.skip{20}, .width{4}},
+  {
+    .skip{11},
+    .width{1}
+  },
+  {
+    .skip{10},
+    .width{4}
+  },
+  {
+    .skip{9},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{10}
+  },
+  {
+    .skip{8},
+    .width{12}
+  },
+  {
+    .skip{7},
+    .width{15}
+  },
+  {
+    .skip{9},
+    .width{15}
+  },
+  {
+    .skip{12},
+    .width{13}
+  },
+  {
+    .skip{15},
+    .width{10}
+  },
+  {
+    .skip{17},
+    .width{8}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_463e_7{{
-  {.skip{14}, .width{5}},
-  {.skip{13}, .width{10}},
-  {.skip{12}, .width{12}},
-  {.skip{12}, .width{13}},
-  {.skip{12}, .width{14}},
-  {.skip{12}, .width{15}},
-  {.skip{12}, .width{15}},
-  {.skip{14}, .width{14}},
-  {.skip{16}, .width{12}},
-  {.skip{18}, .width{10}},
-  {.skip{20}, .width{8}},
-  {.skip{22}, .width{5}},
-  {.skip{24}, .width{2}},
+  {
+    .skip{14},
+    .width{5}
+  },
+  {
+    .skip{13},
+    .width{10}
+  },
+  {
+    .skip{12},
+    .width{12}
+  },
+  {
+    .skip{12},
+    .width{13}
+  },
+  {
+    .skip{12},
+    .width{14}
+  },
+  {
+    .skip{12},
+    .width{15}
+  },
+  {
+    .skip{12},
+    .width{15}
+  },
+  {
+    .skip{14},
+    .width{14}
+  },
+  {
+    .skip{16},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{10}
+  },
+  {
+    .skip{20},
+    .width{8}
+  },
+  {
+    .skip{22},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{2}
+  },
 }};
 
 inline std::array<hud_strip, 8> constexpr strips_463e{{
-  {.y_offset{40}, .rows{rows_463e_0}},
-  {.y_offset{35}, .rows{rows_463e_1}},
-  {.y_offset{30}, .rows{rows_463e_2}},
-  {.y_offset{26}, .rows{rows_463e_3}},
-  {.y_offset{19}, .rows{rows_463e_4}},
-  {.y_offset{12}, .rows{rows_463e_5}},
-  {.y_offset{6}, .rows{rows_463e_6}},
-  {.y_offset{0}, .rows{rows_463e_7}},
+  {
+    .y_offset{40},
+    .rows{rows_463e_0}
+  },
+  {
+    .y_offset{35},
+    .rows{rows_463e_1}
+  },
+  {
+    .y_offset{30},
+    .rows{rows_463e_2}
+  },
+  {
+    .y_offset{26},
+    .rows{rows_463e_3}
+  },
+  {
+    .y_offset{19},
+    .rows{rows_463e_4}
+  },
+  {
+    .y_offset{12},
+    .rows{rows_463e_5}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_463e_6}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_463e_7}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_46f4_0{{
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{9}},
-  {.skip{21}, .width{8}},
-  {.skip{21}, .width{8}},
-  {.skip{21}, .width{7}},
-  {.skip{21}, .width{7}},
-  {.skip{21}, .width{6}},
-  {.skip{21}, .width{6}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{3}},
-  {.skip{21}, .width{3}},
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{9}
+  },
+  {
+    .skip{21},
+    .width{8}
+  },
+  {
+    .skip{21},
+    .width{8}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_46f4_1{{
-  {.skip{30}, .width{1}},
-  {.skip{29}, .width{2}},
-  {.skip{29}, .width{4}},
-  {.skip{28}, .width{6}},
-  {.skip{28}, .width{6}},
-  {.skip{27}, .width{6}},
-  {.skip{27}, .width{5}},
-  {.skip{26}, .width{6}},
-  {.skip{26}, .width{5}},
-  {.skip{25}, .width{5}},
-  {.skip{25}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{4}},
-  {.skip{24}, .width{4}},
-  {.skip{26}, .width{1}},
+  {
+    .skip{30},
+    .width{1}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{6}
+  },
+  {
+    .skip{28},
+    .width{6}
+  },
+  {
+    .skip{27},
+    .width{6}
+  },
+  {
+    .skip{27},
+    .width{5}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{4}
+  },
+  {
+    .skip{24},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_46f4_2{{
-  {.skip{34}, .width{1}},
-  {.skip{33}, .width{3}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{5}},
-  {.skip{31}, .width{7}},
-  {.skip{30}, .width{8}},
-  {.skip{30}, .width{9}},
-  {.skip{29}, .width{8}},
-  {.skip{28}, .width{7}},
-  {.skip{28}, .width{5}},
-  {.skip{29}, .width{2}},
+  {
+    .skip{34},
+    .width{1}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{5}
+  },
+  {
+    .skip{31},
+    .width{7}
+  },
+  {
+    .skip{30},
+    .width{8}
+  },
+  {
+    .skip{30},
+    .width{9}
+  },
+  {
+    .skip{29},
+    .width{8}
+  },
+  {
+    .skip{28},
+    .width{7}
+  },
+  {
+    .skip{28},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_46f4_3{{
-  {.skip{37}, .width{3}},
-  {.skip{35}, .width{5}},
-  {.skip{33}, .width{7}},
-  {.skip{31}, .width{10}},
-  {.skip{30}, .width{11}},
-  {.skip{31}, .width{10}},
-  {.skip{31}, .width{9}},
-  {.skip{31}, .width{10}},
+  {
+    .skip{37},
+    .width{3}
+  },
+  {
+    .skip{35},
+    .width{5}
+  },
+  {
+    .skip{33},
+    .width{7}
+  },
+  {
+    .skip{31},
+    .width{10}
+  },
+  {
+    .skip{30},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{10}
+  },
+  {
+    .skip{31},
+    .width{9}
+  },
+  {
+    .skip{31},
+    .width{10}
+  },
 }};
 
 inline std::array<mask_row, 7> constexpr rows_46f4_4{{
-  {.skip{31}, .width{10}},
-  {.skip{31}, .width{11}},
-  {.skip{30}, .width{11}},
-  {.skip{31}, .width{10}},
-  {.skip{33}, .width{8}},
-  {.skip{35}, .width{5}},
-  {.skip{37}, .width{2}},
+  {
+    .skip{31},
+    .width{10}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{30},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{10}
+  },
+  {
+    .skip{33},
+    .width{8}
+  },
+  {
+    .skip{35},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_46f4_5{{
-  {.skip{29}, .width{2}},
-  {.skip{27}, .width{6}},
-  {.skip{27}, .width{8}},
-  {.skip{27}, .width{10}},
-  {.skip{28}, .width{11}},
-  {.skip{29}, .width{9}},
-  {.skip{30}, .width{8}},
-  {.skip{31}, .width{6}},
-  {.skip{32}, .width{4}},
-  {.skip{33}, .width{2}},
+  {
+    .skip{29},
+    .width{2}
+  },
+  {
+    .skip{27},
+    .width{6}
+  },
+  {
+    .skip{27},
+    .width{8}
+  },
+  {
+    .skip{27},
+    .width{10}
+  },
+  {
+    .skip{28},
+    .width{11}
+  },
+  {
+    .skip{29},
+    .width{9}
+  },
+  {
+    .skip{30},
+    .width{8}
+  },
+  {
+    .skip{31},
+    .width{6}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_46f4_6{{
-  {.skip{25}, .width{1}},
-  {.skip{24}, .width{3}},
-  {.skip{24}, .width{3}},
-  {.skip{24}, .width{3}},
-  {.skip{24}, .width{4}},
-  {.skip{24}, .width{5}},
-  {.skip{25}, .width{5}},
-  {.skip{25}, .width{6}},
-  {.skip{26}, .width{6}},
-  {.skip{26}, .width{7}},
-  {.skip{27}, .width{7}},
-  {.skip{27}, .width{7}},
-  {.skip{28}, .width{5}},
-  {.skip{28}, .width{4}},
+  {
+    .skip{25},
+    .width{1}
+  },
+  {
+    .skip{24},
+    .width{3}
+  },
+  {
+    .skip{24},
+    .width{3}
+  },
+  {
+    .skip{24},
+    .width{3}
+  },
+  {
+    .skip{24},
+    .width{4}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{7}
+  },
+  {
+    .skip{27},
+    .width{7}
+  },
+  {
+    .skip{27},
+    .width{7}
+  },
+  {
+    .skip{28},
+    .width{5}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_46f4_7{{
-  {.skip{23}, .width{1}},
-  {.skip{21}, .width{3}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{6}},
-  {.skip{21}, .width{6}},
-  {.skip{21}, .width{7}},
-  {.skip{21}, .width{7}},
-  {.skip{21}, .width{7}},
+  {
+    .skip{23},
+    .width{1}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_46f4_8{{
-  {.skip{18}, .width{2}},
-  {.skip{18}, .width{3}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{16}, .width{5}},
-  {.skip{16}, .width{5}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{14}, .width{7}},
-  {.skip{14}, .width{7}},
-  {.skip{14}, .width{7}},
+  {
+    .skip{18},
+    .width{2}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_46f4_9{{
-  {.skip{17}, .width{2}},
-  {.skip{16}, .width{3}},
-  {.skip{15}, .width{4}},
-  {.skip{14}, .width{4}},
-  {.skip{13}, .width{5}},
-  {.skip{12}, .width{5}},
-  {.skip{11}, .width{6}},
-  {.skip{10}, .width{6}},
-  {.skip{9}, .width{7}},
-  {.skip{8}, .width{7}},
-  {.skip{8}, .width{7}},
-  {.skip{9}, .width{5}},
-  {.skip{10}, .width{4}},
+  {
+    .skip{17},
+    .width{2}
+  },
+  {
+    .skip{16},
+    .width{3}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{14},
+    .width{4}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{11},
+    .width{6}
+  },
+  {
+    .skip{10},
+    .width{6}
+  },
+  {
+    .skip{9},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{7}
+  },
+  {
+    .skip{9},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_46f4_10{{
-  {.skip{12}, .width{2}},
-  {.skip{10}, .width{7}},
-  {.skip{8}, .width{8}},
-  {.skip{6}, .width{9}},
-  {.skip{5}, .width{9}},
-  {.skip{5}, .width{8}},
-  {.skip{4}, .width{8}},
-  {.skip{4}, .width{7}},
-  {.skip{5}, .width{5}},
-  {.skip{6}, .width{3}},
-  {.skip{7}, .width{1}},
+  {
+    .skip{12},
+    .width{2}
+  },
+  {
+    .skip{10},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{8}
+  },
+  {
+    .skip{6},
+    .width{9}
+  },
+  {
+    .skip{5},
+    .width{9}
+  },
+  {
+    .skip{5},
+    .width{8}
+  },
+  {
+    .skip{4},
+    .width{8}
+  },
+  {
+    .skip{4},
+    .width{7}
+  },
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{6},
+    .width{3}
+  },
+  {
+    .skip{7},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_46f4_11{{
-  {.skip{1}, .width{11}},
-  {.skip{1}, .width{11}},
-  {.skip{1}, .width{11}},
-  {.skip{1}, .width{12}},
-  {.skip{1}, .width{11}},
-  {.skip{2}, .width{8}},
-  {.skip{3}, .width{5}},
-  {.skip{3}, .width{3}},
-  {.skip{3}, .width{2}},
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{1},
+    .width{12}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{2},
+    .width{8}
+  },
+  {
+    .skip{3},
+    .width{5}
+  },
+  {
+    .skip{3},
+    .width{3}
+  },
+  {
+    .skip{3},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_46f4_12{{
-  {.skip{3}, .width{3}},
-  {.skip{2}, .width{6}},
-  {.skip{2}, .width{8}},
-  {.skip{1}, .width{11}},
-  {.skip{1}, .width{12}},
-  {.skip{1}, .width{12}},
-  {.skip{1}, .width{11}},
-  {.skip{1}, .width{11}},
+  {
+    .skip{3},
+    .width{3}
+  },
+  {
+    .skip{2},
+    .width{6}
+  },
+  {
+    .skip{2},
+    .width{8}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{1},
+    .width{12}
+  },
+  {
+    .skip{1},
+    .width{12}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
+  {
+    .skip{1},
+    .width{11}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_46f4_13{{
-  {.skip{7}, .width{1}},
-  {.skip{6}, .width{3}},
-  {.skip{6}, .width{4}},
-  {.skip{6}, .width{5}},
-  {.skip{6}, .width{6}},
-  {.skip{5}, .width{8}},
-  {.skip{5}, .width{9}},
-  {.skip{6}, .width{9}},
-  {.skip{8}, .width{8}},
-  {.skip{10}, .width{7}},
-  {.skip{12}, .width{6}},
-  {.skip{16}, .width{1}},
+  {
+    .skip{7},
+    .width{1}
+  },
+  {
+    .skip{6},
+    .width{3}
+  },
+  {
+    .skip{6},
+    .width{4}
+  },
+  {
+    .skip{6},
+    .width{5}
+  },
+  {
+    .skip{6},
+    .width{6}
+  },
+  {
+    .skip{5},
+    .width{8}
+  },
+  {
+    .skip{5},
+    .width{9}
+  },
+  {
+    .skip{6},
+    .width{9}
+  },
+  {
+    .skip{8},
+    .width{8}
+  },
+  {
+    .skip{10},
+    .width{7}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_46f4_14{{
-  {.skip{12}, .width{2}},
-  {.skip{10}, .width{4}},
-  {.skip{9}, .width{6}},
-  {.skip{9}, .width{6}},
-  {.skip{8}, .width{8}},
-  {.skip{9}, .width{7}},
-  {.skip{10}, .width{7}},
-  {.skip{11}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{13}, .width{5}},
-  {.skip{14}, .width{5}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{3}},
-  {.skip{17}, .width{2}},
+  {
+    .skip{12},
+    .width{2}
+  },
+  {
+    .skip{10},
+    .width{4}
+  },
+  {
+    .skip{9},
+    .width{6}
+  },
+  {
+    .skip{9},
+    .width{6}
+  },
+  {
+    .skip{8},
+    .width{8}
+  },
+  {
+    .skip{9},
+    .width{7}
+  },
+  {
+    .skip{10},
+    .width{7}
+  },
+  {
+    .skip{11},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{3}
+  },
+  {
+    .skip{17},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_46f4_15{{
-  {.skip{16}, .width{5}},
-  {.skip{14}, .width{7}},
-  {.skip{14}, .width{7}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{16}, .width{5}},
-  {.skip{16}, .width{5}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{18}, .width{3}},
-  {.skip{18}, .width{3}},
-  {.skip{19}, .width{2}},
-  {.skip{19}, .width{2}},
-  {.skip{19}, .width{2}},
-  {.skip{19}, .width{2}},
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{2}
+  },
+  {
+    .skip{19},
+    .width{2}
+  },
+  {
+    .skip{19},
+    .width{2}
+  },
+  {
+    .skip{19},
+    .width{2}
+  },
 }};
 
 inline std::array<hud_strip, 16> constexpr strips_46f4{{
-  {.y_offset{0}, .rows{rows_46f4_0}},
-  {.y_offset{2}, .rows{rows_46f4_1}},
-  {.y_offset{6}, .rows{rows_46f4_2}},
-  {.y_offset{13}, .rows{rows_46f4_3}},
-  {.y_offset{21}, .rows{rows_46f4_4}},
-  {.y_offset{24}, .rows{rows_46f4_5}},
-  {.y_offset{24}, .rows{rows_46f4_6}},
-  {.y_offset{28}, .rows{rows_46f4_7}},
-  {.y_offset{28}, .rows{rows_46f4_8}},
-  {.y_offset{25}, .rows{rows_46f4_9}},
-  {.y_offset{24}, .rows{rows_46f4_10}},
-  {.y_offset{20}, .rows{rows_46f4_11}},
-  {.y_offset{12}, .rows{rows_46f4_12}},
-  {.y_offset{5}, .rows{rows_46f4_13}},
-  {.y_offset{1}, .rows{rows_46f4_14}},
-  {.y_offset{0}, .rows{rows_46f4_15}},
+  {
+    .y_offset{0},
+    .rows{rows_46f4_0}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_46f4_1}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_46f4_2}
+  },
+  {
+    .y_offset{13},
+    .rows{rows_46f4_3}
+  },
+  {
+    .y_offset{21},
+    .rows{rows_46f4_4}
+  },
+  {
+    .y_offset{24},
+    .rows{rows_46f4_5}
+  },
+  {
+    .y_offset{24},
+    .rows{rows_46f4_6}
+  },
+  {
+    .y_offset{28},
+    .rows{rows_46f4_7}
+  },
+  {
+    .y_offset{28},
+    .rows{rows_46f4_8}
+  },
+  {
+    .y_offset{25},
+    .rows{rows_46f4_9}
+  },
+  {
+    .y_offset{24},
+    .rows{rows_46f4_10}
+  },
+  {
+    .y_offset{20},
+    .rows{rows_46f4_11}
+  },
+  {
+    .y_offset{12},
+    .rows{rows_46f4_12}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_46f4_13}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_46f4_14}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_46f4_15}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4888_0{{
-  {.skip{13}, .width{3}},
-  {.skip{13}, .width{4}},
-  {.skip{12}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{13}, .width{4}},
-  {.skip{14}, .width{3}},
+  {
+    .skip{13},
+    .width{3}
+  },
+  {
+    .skip{13},
+    .width{4}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{13},
+    .width{4}
+  },
+  {
+    .skip{14},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4888_1{{
-  {.skip{20}, .width{3}},
-  {.skip{19}, .width{5}},
-  {.skip{19}, .width{5}},
-  {.skip{18}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{19}, .width{5}},
-  {.skip{20}, .width{3}},
+  {
+    .skip{20},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4888_2{{
-  {.skip{27}, .width{2}},
-  {.skip{26}, .width{4}},
-  {.skip{25}, .width{6}},
-  {.skip{25}, .width{6}},
-  {.skip{25}, .width{6}},
-  {.skip{25}, .width{6}},
-  {.skip{25}, .width{6}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{3}},
+  {
+    .skip{27},
+    .width{2}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
 }};
 
 inline std::array<hud_strip, 3> constexpr strips_4888{{
-  {.y_offset{16}, .rows{rows_4888_0}},
-  {.y_offset{15}, .rows{rows_4888_1}},
-  {.y_offset{16}, .rows{rows_4888_2}},
+  {
+    .y_offset{16},
+    .rows{rows_4888_0}
+  },
+  {
+    .y_offset{15},
+    .rows{rows_4888_1}
+  },
+  {
+    .y_offset{16},
+    .rows{rows_4888_2}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_4a2e_0{{
-  {.skip{17}, .width{4}},
-  {.skip{16}, .width{6}},
-  {.skip{15}, .width{8}},
-  {.skip{14}, .width{9}},
-  {.skip{15}, .width{8}},
-  {.skip{16}, .width{6}},
-  {.skip{16}, .width{5}},
-  {.skip{18}, .width{2}},
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{8}
+  },
+  {
+    .skip{14},
+    .width{9}
+  },
+  {
+    .skip{15},
+    .width{8}
+  },
+  {
+    .skip{16},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_4a2e_1{{
-  {.skip{23}, .width{2}},
-  {.skip{22}, .width{4}},
-  {.skip{21}, .width{6}},
-  {.skip{20}, .width{9}},
-  {.skip{19}, .width{9}},
-  {.skip{21}, .width{6}},
-  {.skip{22}, .width{4}},
-  {.skip{23}, .width{2}},
+  {
+    .skip{23},
+    .width{2}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{20},
+    .width{9}
+  },
+  {
+    .skip{19},
+    .width{9}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4a2e_2{{
-  {.skip{28}, .width{2}},
-  {.skip{27}, .width{4}},
-  {.skip{26}, .width{6}},
-  {.skip{25}, .width{8}},
-  {.skip{24}, .width{9}},
-  {.skip{24}, .width{9}},
-  {.skip{24}, .width{9}},
-  {.skip{25}, .width{7}},
-  {.skip{26}, .width{5}},
+  {
+    .skip{28},
+    .width{2}
+  },
+  {
+    .skip{27},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{8}
+  },
+  {
+    .skip{24},
+    .width{9}
+  },
+  {
+    .skip{24},
+    .width{9}
+  },
+  {
+    .skip{24},
+    .width{9}
+  },
+  {
+    .skip{25},
+    .width{7}
+  },
+  {
+    .skip{26},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 7> constexpr rows_4a2e_3{{
-  {.skip{32}, .width{3}},
-  {.skip{31}, .width{5}},
-  {.skip{30}, .width{7}},
-  {.skip{29}, .width{9}},
-  {.skip{30}, .width{9}},
-  {.skip{31}, .width{6}},
-  {.skip{32}, .width{4}},
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{31},
+    .width{5}
+  },
+  {
+    .skip{30},
+    .width{7}
+  },
+  {
+    .skip{29},
+    .width{9}
+  },
+  {
+    .skip{30},
+    .width{9}
+  },
+  {
+    .skip{31},
+    .width{6}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_4a2e_4{{
-  {.skip{37}, .width{3}},
-  {.skip{36}, .width{5}},
-  {.skip{34}, .width{8}},
-  {.skip{34}, .width{9}},
-  {.skip{34}, .width{9}},
-  {.skip{35}, .width{7}},
-  {.skip{35}, .width{7}},
-  {.skip{36}, .width{5}},
+  {
+    .skip{37},
+    .width{3}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{34},
+    .width{8}
+  },
+  {
+    .skip{34},
+    .width{9}
+  },
+  {
+    .skip{34},
+    .width{9}
+  },
+  {
+    .skip{35},
+    .width{7}
+  },
+  {
+    .skip{35},
+    .width{7}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
 }};
 
 inline std::array<hud_strip, 5> constexpr strips_4a2e{{
-  {.y_offset{20}, .rows{rows_4a2e_0}},
-  {.y_offset{15}, .rows{rows_4a2e_1}},
-  {.y_offset{19}, .rows{rows_4a2e_2}},
-  {.y_offset{15}, .rows{rows_4a2e_3}},
-  {.y_offset{20}, .rows{rows_4a2e_4}},
+  {
+    .y_offset{20},
+    .rows{rows_4a2e_0}
+  },
+  {
+    .y_offset{15},
+    .rows{rows_4a2e_1}
+  },
+  {
+    .y_offset{19},
+    .rows{rows_4a2e_2}
+  },
+  {
+    .y_offset{15},
+    .rows{rows_4a2e_3}
+  },
+  {
+    .y_offset{20},
+    .rows{rows_4a2e_4}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_48ca_0{{
-  {.skip{7}, .width{1}},
-  {.skip{6}, .width{4}},
-  {.skip{5}, .width{6}},
-  {.skip{5}, .width{7}},
-  {.skip{5}, .width{9}},
-  {.skip{5}, .width{10}},
-  {.skip{5}, .width{11}},
-  {.skip{6}, .width{11}},
-  {.skip{8}, .width{10}},
-  {.skip{9}, .width{8}},
-  {.skip{10}, .width{6}},
-  {.skip{11}, .width{4}},
+  {
+    .skip{7},
+    .width{1}
+  },
+  {
+    .skip{6},
+    .width{4}
+  },
+  {
+    .skip{5},
+    .width{6}
+  },
+  {
+    .skip{5},
+    .width{7}
+  },
+  {
+    .skip{5},
+    .width{9}
+  },
+  {
+    .skip{5},
+    .width{10}
+  },
+  {
+    .skip{5},
+    .width{11}
+  },
+  {
+    .skip{6},
+    .width{11}
+  },
+  {
+    .skip{8},
+    .width{10}
+  },
+  {
+    .skip{9},
+    .width{8}
+  },
+  {
+    .skip{10},
+    .width{6}
+  },
+  {
+    .skip{11},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_48ca_1{{
-  {.skip{9}, .width{1}},
-  {.skip{8}, .width{3}},
-  {.skip{8}, .width{4}},
-  {.skip{8}, .width{5}},
-  {.skip{8}, .width{6}},
-  {.skip{10}, .width{5}},
-  {.skip{11}, .width{5}},
-  {.skip{12}, .width{5}},
-  {.skip{14}, .width{4}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{4}},
-  {.skip{17}, .width{3}},
-  {.skip{18}, .width{1}},
+  {
+    .skip{9},
+    .width{1}
+  },
+  {
+    .skip{8},
+    .width{3}
+  },
+  {
+    .skip{8},
+    .width{4}
+  },
+  {
+    .skip{8},
+    .width{5}
+  },
+  {
+    .skip{8},
+    .width{6}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{11},
+    .width{5}
+  },
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{3}
+  },
+  {
+    .skip{18},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_48ca_2{{
-  {.skip{13}, .width{2}},
-  {.skip{12}, .width{4}},
-  {.skip{11}, .width{5}},
-  {.skip{10}, .width{7}},
-  {.skip{11}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{13}, .width{5}},
-  {.skip{14}, .width{5}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{18}, .width{3}},
-  {.skip{19}, .width{3}},
-  {.skip{20}, .width{1}},
+  {
+    .skip{13},
+    .width{2}
+  },
+  {
+    .skip{12},
+    .width{4}
+  },
+  {
+    .skip{11},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{7}
+  },
+  {
+    .skip{11},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{3}
+  },
+  {
+    .skip{20},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_48ca_3{{
-  {.skip{16}, .width{4}},
-  {.skip{15}, .width{5}},
-  {.skip{15}, .width{5}},
-  {.skip{16}, .width{5}},
-  {.skip{16}, .width{5}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{5}},
-  {.skip{18}, .width{4}},
-  {.skip{18}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{20}, .width{3}},
-  {.skip{21}, .width{3}},
-  {.skip{21}, .width{2}},
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{5}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_48ca_4{{
-  {.skip{20}, .width{4}},
-  {.skip{19}, .width{5}},
-  {.skip{20}, .width{4}},
-  {.skip{20}, .width{4}},
-  {.skip{20}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{22}, .width{3}},
-  {.skip{22}, .width{4}},
-  {.skip{22}, .width{4}},
-  {.skip{23}, .width{3}},
-  {.skip{23}, .width{3}},
-  {.skip{23}, .width{3}},
-  {.skip{24}, .width{2}},
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{3}
+  },
+  {
+    .skip{23},
+    .width{3}
+  },
+  {
+    .skip{23},
+    .width{3}
+  },
+  {
+    .skip{24},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_48ca_5{{
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{2}},
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_48ca_6{{
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{5}},
-  {.skip{29}, .width{5}},
-  {.skip{29}, .width{5}},
-  {.skip{29}, .width{5}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{2}},
-  {.skip{29}, .width{2}},
-  {.skip{29}, .width{2}},
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_48ca_7{{
-  {.skip{34}, .width{3}},
-  {.skip{34}, .width{4}},
-  {.skip{34}, .width{4}},
-  {.skip{34}, .width{3}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{3}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{31}, .width{4}},
-  {.skip{31}, .width{4}},
+  {
+    .skip{34},
+    .width{3}
+  },
+  {
+    .skip{34},
+    .width{4}
+  },
+  {
+    .skip{34},
+    .width{4}
+  },
+  {
+    .skip{34},
+    .width{3}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_48ca_8{{
-  {.skip{38}, .width{2}},
-  {.skip{38}, .width{3}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{4}},
-  {.skip{36}, .width{5}},
-  {.skip{36}, .width{4}},
-  {.skip{36}, .width{4}},
-  {.skip{35}, .width{4}},
-  {.skip{35}, .width{4}},
-  {.skip{35}, .width{3}},
-  {.skip{35}, .width{3}},
-  {.skip{35}, .width{2}},
+  {
+    .skip{38},
+    .width{2}
+  },
+  {
+    .skip{38},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{4}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{36},
+    .width{4}
+  },
+  {
+    .skip{36},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{3}
+  },
+  {
+    .skip{35},
+    .width{3}
+  },
+  {
+    .skip{35},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_48ca_9{{
-  {.skip{42}, .width{1}},
-  {.skip{42}, .width{3}},
-  {.skip{41}, .width{5}},
-  {.skip{41}, .width{6}},
-  {.skip{40}, .width{6}},
-  {.skip{40}, .width{5}},
-  {.skip{39}, .width{5}},
-  {.skip{39}, .width{4}},
-  {.skip{38}, .width{4}},
-  {.skip{38}, .width{3}},
-  {.skip{37}, .width{3}},
-  {.skip{36}, .width{3}},
-  {.skip{37}, .width{1}},
+  {
+    .skip{42},
+    .width{1}
+  },
+  {
+    .skip{42},
+    .width{3}
+  },
+  {
+    .skip{41},
+    .width{5}
+  },
+  {
+    .skip{41},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{3}
+  },
+  {
+    .skip{36},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_48ca_10{{
-  {.skip{46}, .width{2}},
-  {.skip{45}, .width{4}},
-  {.skip{44}, .width{6}},
-  {.skip{43}, .width{6}},
-  {.skip{42}, .width{6}},
-  {.skip{41}, .width{6}},
-  {.skip{40}, .width{5}},
-  {.skip{39}, .width{4}},
-  {.skip{38}, .width{4}},
-  {.skip{38}, .width{3}},
-  {.skip{39}, .width{1}},
+  {
+    .skip{46},
+    .width{2}
+  },
+  {
+    .skip{45},
+    .width{4}
+  },
+  {
+    .skip{44},
+    .width{6}
+  },
+  {
+    .skip{43},
+    .width{6}
+  },
+  {
+    .skip{42},
+    .width{6}
+  },
+  {
+    .skip{41},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{3}
+  },
+  {
+    .skip{39},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_48ca_11{{
-  {.skip{49}, .width{2}},
-  {.skip{48}, .width{4}},
-  {.skip{47}, .width{5}},
-  {.skip{45}, .width{7}},
-  {.skip{43}, .width{8}},
-  {.skip{42}, .width{10}},
-  {.skip{41}, .width{11}},
-  {.skip{40}, .width{12}},
-  {.skip{40}, .width{11}},
-  {.skip{41}, .width{9}},
-  {.skip{42}, .width{5}},
-  {.skip{43}, .width{2}},
+  {
+    .skip{49},
+    .width{2}
+  },
+  {
+    .skip{48},
+    .width{4}
+  },
+  {
+    .skip{47},
+    .width{5}
+  },
+  {
+    .skip{45},
+    .width{7}
+  },
+  {
+    .skip{43},
+    .width{8}
+  },
+  {
+    .skip{42},
+    .width{10}
+  },
+  {
+    .skip{41},
+    .width{11}
+  },
+  {
+    .skip{40},
+    .width{12}
+  },
+  {
+    .skip{40},
+    .width{11}
+  },
+  {
+    .skip{41},
+    .width{9}
+  },
+  {
+    .skip{42},
+    .width{5}
+  },
+  {
+    .skip{43},
+    .width{2}
+  },
 }};
 
 inline std::array<hud_strip, 12> constexpr strips_48ca{{
-  {.y_offset{11}, .rows{rows_48ca_0}},
-  {.y_offset{7}, .rows{rows_48ca_1}},
-  {.y_offset{4}, .rows{rows_48ca_2}},
-  {.y_offset{2}, .rows{rows_48ca_3}},
-  {.y_offset{0}, .rows{rows_48ca_4}},
-  {.y_offset{0}, .rows{rows_48ca_5}},
-  {.y_offset{0}, .rows{rows_48ca_6}},
-  {.y_offset{1}, .rows{rows_48ca_7}},
-  {.y_offset{2}, .rows{rows_48ca_8}},
-  {.y_offset{5}, .rows{rows_48ca_9}},
-  {.y_offset{9}, .rows{rows_48ca_10}},
-  {.y_offset{12}, .rows{rows_48ca_11}},
+  {
+    .y_offset{11},
+    .rows{rows_48ca_0}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_48ca_1}
+  },
+  {
+    .y_offset{4},
+    .rows{rows_48ca_2}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_48ca_3}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_48ca_4}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_48ca_5}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_48ca_6}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_48ca_7}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_48ca_8}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_48ca_9}
+  },
+  {
+    .y_offset{9},
+    .rows{rows_48ca_10}
+  },
+  {
+    .y_offset{12},
+    .rows{rows_48ca_11}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4a8c_0{{
-  {.skip{3}, .width{2}},
-  {.skip{3}, .width{5}},
-  {.skip{2}, .width{8}},
-  {.skip{2}, .width{9}},
-  {.skip{2}, .width{11}},
-  {.skip{2}, .width{12}},
-  {.skip{3}, .width{12}},
-  {.skip{4}, .width{11}},
-  {.skip{5}, .width{8}},
-  {.skip{7}, .width{6}},
+  {
+    .skip{3},
+    .width{2}
+  },
+  {
+    .skip{3},
+    .width{5}
+  },
+  {
+    .skip{2},
+    .width{8}
+  },
+  {
+    .skip{2},
+    .width{9}
+  },
+  {
+    .skip{2},
+    .width{11}
+  },
+  {
+    .skip{2},
+    .width{12}
+  },
+  {
+    .skip{3},
+    .width{12}
+  },
+  {
+    .skip{4},
+    .width{11}
+  },
+  {
+    .skip{5},
+    .width{8}
+  },
+  {
+    .skip{7},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4a8c_1{{
-  {.skip{6}, .width{2}},
-  {.skip{6}, .width{3}},
-  {.skip{4}, .width{6}},
-  {.skip{3}, .width{8}},
-  {.skip{5}, .width{7}},
-  {.skip{8}, .width{5}},
-  {.skip{10}, .width{4}},
-  {.skip{11}, .width{4}},
-  {.skip{13}, .width{3}},
-  {.skip{14}, .width{3}},
-  {.skip{15}, .width{2}},
+  {
+    .skip{6},
+    .width{2}
+  },
+  {
+    .skip{6},
+    .width{3}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{8}
+  },
+  {
+    .skip{5},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{4}
+  },
+  {
+    .skip{11},
+    .width{4}
+  },
+  {
+    .skip{13},
+    .width{3}
+  },
+  {
+    .skip{14},
+    .width{3}
+  },
+  {
+    .skip{15},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4a8c_2{{
-  {.skip{9}, .width{3}},
-  {.skip{8}, .width{4}},
-  {.skip{8}, .width{5}},
-  {.skip{7}, .width{6}},
-  {.skip{8}, .width{6}},
-  {.skip{9}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{11}, .width{4}},
-  {.skip{12}, .width{4}},
-  {.skip{13}, .width{3}},
-  {.skip{14}, .width{3}},
-  {.skip{15}, .width{3}},
-  {.skip{16}, .width{2}},
+  {
+    .skip{9},
+    .width{3}
+  },
+  {
+    .skip{8},
+    .width{4}
+  },
+  {
+    .skip{8},
+    .width{5}
+  },
+  {
+    .skip{7},
+    .width{6}
+  },
+  {
+    .skip{8},
+    .width{6}
+  },
+  {
+    .skip{9},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{11},
+    .width{4}
+  },
+  {
+    .skip{12},
+    .width{4}
+  },
+  {
+    .skip{13},
+    .width{3}
+  },
+  {
+    .skip{14},
+    .width{3}
+  },
+  {
+    .skip{15},
+    .width{3}
+  },
+  {
+    .skip{16},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_4a8c_3{{
-  {.skip{14}, .width{2}},
-  {.skip{13}, .width{3}},
-  {.skip{13}, .width{3}},
-  {.skip{12}, .width{5}},
-  {.skip{12}, .width{5}},
-  {.skip{13}, .width{4}},
-  {.skip{13}, .width{5}},
-  {.skip{14}, .width{4}},
-  {.skip{14}, .width{4}},
-  {.skip{15}, .width{4}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{3}},
-  {.skip{16}, .width{4}},
-  {.skip{17}, .width{3}},
-  {.skip{18}, .width{2}},
-  {.skip{18}, .width{1}},
+  {
+    .skip{14},
+    .width{2}
+  },
+  {
+    .skip{13},
+    .width{3}
+  },
+  {
+    .skip{13},
+    .width{3}
+  },
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{13},
+    .width{4}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{4}
+  },
+  {
+    .skip{14},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{3}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{3}
+  },
+  {
+    .skip{18},
+    .width{2}
+  },
+  {
+    .skip{18},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_4a8c_4{{
-  {.skip{18}, .width{2}},
-  {.skip{16}, .width{4}},
-  {.skip{16}, .width{4}},
-  {.skip{16}, .width{5}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{18}, .width{3}},
-  {.skip{18}, .width{4}},
-  {.skip{18}, .width{4}},
-  {.skip{19}, .width{3}},
-  {.skip{19}, .width{3}},
-  {.skip{19}, .width{4}},
-  {.skip{20}, .width{3}},
-  {.skip{20}, .width{2}},
+  {
+    .skip{18},
+    .width{2}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{3}
+  },
+  {
+    .skip{20},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_4a8c_5{{
-  {.skip{20}, .width{5}},
-  {.skip{20}, .width{5}},
-  {.skip{20}, .width{5}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{22}, .width{3}},
-  {.skip{22}, .width{3}},
-  {.skip{22}, .width{3}},
-  {.skip{22}, .width{3}},
-  {.skip{23}, .width{2}},
-  {.skip{23}, .width{2}},
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{23},
+    .width{2}
+  },
+  {
+    .skip{23},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_4a8c_6{{
-  {.skip{25}, .width{6}},
-  {.skip{25}, .width{5}},
-  {.skip{25}, .width{5}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{3}},
-  {.skip{25}, .width{3}},
-  {.skip{25}, .width{3}},
-  {.skip{25}, .width{3}},
-  {.skip{25}, .width{2}},
-  {.skip{25}, .width{2}},
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{3}
+  },
+  {
+    .skip{25},
+    .width{3}
+  },
+  {
+    .skip{25},
+    .width{3}
+  },
+  {
+    .skip{25},
+    .width{3}
+  },
+  {
+    .skip{25},
+    .width{2}
+  },
+  {
+    .skip{25},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_4a8c_7{{
-  {.skip{30}, .width{4}},
-  {.skip{30}, .width{4}},
-  {.skip{29}, .width{5}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{3}},
-  {.skip{28}, .width{4}},
-  {.skip{28}, .width{4}},
-  {.skip{28}, .width{3}},
-  {.skip{28}, .width{3}},
-  {.skip{27}, .width{3}},
-  {.skip{27}, .width{3}},
-  {.skip{27}, .width{3}},
+  {
+    .skip{30},
+    .width{4}
+  },
+  {
+    .skip{30},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{3}
+  },
+  {
+    .skip{28},
+    .width{3}
+  },
+  {
+    .skip{27},
+    .width{3}
+  },
+  {
+    .skip{27},
+    .width{3}
+  },
+  {
+    .skip{27},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_4a8c_8{{
-  {.skip{34}, .width{1}},
-  {.skip{34}, .width{2}},
-  {.skip{34}, .width{2}},
-  {.skip{33}, .width{5}},
-  {.skip{33}, .width{5}},
-  {.skip{33}, .width{4}},
-  {.skip{32}, .width{5}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{4}},
-  {.skip{31}, .width{4}},
-  {.skip{31}, .width{4}},
-  {.skip{30}, .width{4}},
-  {.skip{30}, .width{4}},
-  {.skip{30}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{30}, .width{2}},
+  {
+    .skip{34},
+    .width{1}
+  },
+  {
+    .skip{34},
+    .width{2}
+  },
+  {
+    .skip{34},
+    .width{2}
+  },
+  {
+    .skip{33},
+    .width{5}
+  },
+  {
+    .skip{33},
+    .width{5}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{5}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
+  {
+    .skip{30},
+    .width{4}
+  },
+  {
+    .skip{30},
+    .width{4}
+  },
+  {
+    .skip{30},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{30},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr rows_4a8c_9{{
-  {.skip{38}, .width{2}},
-  {.skip{38}, .width{3}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{5}},
-  {.skip{36}, .width{6}},
-  {.skip{36}, .width{5}},
-  {.skip{35}, .width{5}},
-  {.skip{35}, .width{4}},
-  {.skip{34}, .width{4}},
-  {.skip{34}, .width{3}},
-  {.skip{33}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{2}},
-  {.skip{32}, .width{1}},
+  {
+    .skip{38},
+    .width{2}
+  },
+  {
+    .skip{38},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{36},
+    .width{6}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{35},
+    .width{5}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{34},
+    .width{4}
+  },
+  {
+    .skip{34},
+    .width{3}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{2}
+  },
+  {
+    .skip{32},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4a8c_10{{
-  {.skip{42}, .width{1}},
-  {.skip{41}, .width{2}},
-  {.skip{40}, .width{5}},
-  {.skip{39}, .width{6}},
-  {.skip{38}, .width{7}},
-  {.skip{37}, .width{6}},
-  {.skip{36}, .width{5}},
-  {.skip{35}, .width{4}},
-  {.skip{35}, .width{3}},
-  {.skip{34}, .width{3}},
-  {.skip{33}, .width{3}},
+  {
+    .skip{42},
+    .width{1}
+  },
+  {
+    .skip{41},
+    .width{2}
+  },
+  {
+    .skip{40},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{6}
+  },
+  {
+    .skip{38},
+    .width{7}
+  },
+  {
+    .skip{37},
+    .width{6}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{3}
+  },
+  {
+    .skip{34},
+    .width{3}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4a8c_11{{
-  {.skip{45}, .width{1}},
-  {.skip{42}, .width{3}},
-  {.skip{41}, .width{5}},
-  {.skip{39}, .width{7}},
-  {.skip{38}, .width{8}},
-  {.skip{37}, .width{9}},
-  {.skip{36}, .width{10}},
-  {.skip{34}, .width{10}},
-  {.skip{34}, .width{9}},
-  {.skip{37}, .width{5}},
+  {
+    .skip{45},
+    .width{1}
+  },
+  {
+    .skip{42},
+    .width{3}
+  },
+  {
+    .skip{41},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{7}
+  },
+  {
+    .skip{38},
+    .width{8}
+  },
+  {
+    .skip{37},
+    .width{9}
+  },
+  {
+    .skip{36},
+    .width{10}
+  },
+  {
+    .skip{34},
+    .width{10}
+  },
+  {
+    .skip{34},
+    .width{9}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
 }};
 
 inline std::array<hud_strip, 12> constexpr strips_4a8c{{
-  {.y_offset{12}, .rows{rows_4a8c_0}},
-  {.y_offset{8}, .rows{rows_4a8c_1}},
-  {.y_offset{4}, .rows{rows_4a8c_2}},
-  {.y_offset{1}, .rows{rows_4a8c_3}},
-  {.y_offset{0}, .rows{rows_4a8c_4}},
-  {.y_offset{0}, .rows{rows_4a8c_5}},
-  {.y_offset{0}, .rows{rows_4a8c_6}},
-  {.y_offset{1}, .rows{rows_4a8c_7}},
-  {.y_offset{1}, .rows{rows_4a8c_8}},
-  {.y_offset{4}, .rows{rows_4a8c_9}},
-  {.y_offset{8}, .rows{rows_4a8c_10}},
-  {.y_offset{12}, .rows{rows_4a8c_11}},
+  {
+    .y_offset{12},
+    .rows{rows_4a8c_0}
+  },
+  {
+    .y_offset{8},
+    .rows{rows_4a8c_1}
+  },
+  {
+    .y_offset{4},
+    .rows{rows_4a8c_2}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4a8c_3}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4a8c_4}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4a8c_5}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4a8c_6}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4a8c_7}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4a8c_8}
+  },
+  {
+    .y_offset{4},
+    .rows{rows_4a8c_9}
+  },
+  {
+    .y_offset{8},
+    .rows{rows_4a8c_10}
+  },
+  {
+    .y_offset{12},
+    .rows{rows_4a8c_11}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4be6_0{{
-  {.skip{7}, .width{1}},
-  {.skip{6}, .width{4}},
-  {.skip{6}, .width{5}},
-  {.skip{6}, .width{6}},
-  {.skip{6}, .width{8}},
-  {.skip{6}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{8}, .width{9}},
-  {.skip{9}, .width{7}},
-  {.skip{10}, .width{5}},
-  {.skip{11}, .width{3}},
+  {
+    .skip{7},
+    .width{1}
+  },
+  {
+    .skip{6},
+    .width{4}
+  },
+  {
+    .skip{6},
+    .width{5}
+  },
+  {
+    .skip{6},
+    .width{6}
+  },
+  {
+    .skip{6},
+    .width{8}
+  },
+  {
+    .skip{6},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{8},
+    .width{9}
+  },
+  {
+    .skip{9},
+    .width{7}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{11},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4be6_1{{
-  {.skip{9}, .width{2}},
-  {.skip{9}, .width{3}},
-  {.skip{8}, .width{5}},
-  {.skip{8}, .width{6}},
-  {.skip{10}, .width{5}},
-  {.skip{11}, .width{5}},
-  {.skip{12}, .width{5}},
-  {.skip{14}, .width{4}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{3}},
+  {
+    .skip{9},
+    .width{2}
+  },
+  {
+    .skip{9},
+    .width{3}
+  },
+  {
+    .skip{8},
+    .width{5}
+  },
+  {
+    .skip{8},
+    .width{6}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{11},
+    .width{5}
+  },
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4be6_2{{
-  {.skip{14}, .width{1}},
-  {.skip{12}, .width{4}},
-  {.skip{10}, .width{7}},
-  {.skip{11}, .width{6}},
-  {.skip{12}, .width{6}},
-  {.skip{13}, .width{5}},
-  {.skip{14}, .width{5}},
-  {.skip{15}, .width{4}},
-  {.skip{16}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{18}, .width{3}},
-  {.skip{19}, .width{1}},
+  {
+    .skip{14},
+    .width{1}
+  },
+  {
+    .skip{12},
+    .width{4}
+  },
+  {
+    .skip{10},
+    .width{7}
+  },
+  {
+    .skip{11},
+    .width{6}
+  },
+  {
+    .skip{12},
+    .width{6}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
+  {
+    .skip{14},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4be6_3{{
-  {.skip{16}, .width{4}},
-  {.skip{15}, .width{5}},
-  {.skip{15}, .width{6}},
-  {.skip{16}, .width{5}},
-  {.skip{17}, .width{4}},
-  {.skip{17}, .width{5}},
-  {.skip{18}, .width{4}},
-  {.skip{18}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{20}, .width{3}},
-  {.skip{21}, .width{2}},
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{5}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{5}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4be6_4{{
-  {.skip{21}, .width{3}},
-  {.skip{20}, .width{4}},
-  {.skip{20}, .width{4}},
-  {.skip{21}, .width{3}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{22}, .width{3}},
-  {.skip{22}, .width{4}},
-  {.skip{22}, .width{4}},
-  {.skip{23}, .width{3}},
-  {.skip{23}, .width{4}},
-  {.skip{23}, .width{4}},
-  {.skip{23}, .width{3}},
+  {
+    .skip{21},
+    .width{3}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{3}
+  },
+  {
+    .skip{23},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4be6_5{{
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{24}, .width{5}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{25}, .width{4}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{3}},
-  {.skip{27}, .width{2}},
-  {.skip{27}, .width{2}},
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{27},
+    .width{2}
+  },
+  {
+    .skip{27},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4be6_6{{
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{4}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{3}},
-  {.skip{29}, .width{2}},
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4be6_7{{
-  {.skip{33}, .width{3}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{3}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{31}, .width{4}},
-  {.skip{31}, .width{4}},
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4be6_8{{
-  {.skip{37}, .width{4}},
-  {.skip{37}, .width{4}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{5}},
-  {.skip{37}, .width{4}},
-  {.skip{36}, .width{5}},
-  {.skip{36}, .width{4}},
-  {.skip{36}, .width{4}},
-  {.skip{35}, .width{4}},
-  {.skip{35}, .width{4}},
-  {.skip{35}, .width{3}},
-  {.skip{35}, .width{3}},
-  {.skip{36}, .width{1}},
+  {
+    .skip{37},
+    .width{4}
+  },
+  {
+    .skip{37},
+    .width{4}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{5}
+  },
+  {
+    .skip{37},
+    .width{4}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{36},
+    .width{4}
+  },
+  {
+    .skip{36},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{4}
+  },
+  {
+    .skip{35},
+    .width{3}
+  },
+  {
+    .skip{35},
+    .width{3}
+  },
+  {
+    .skip{36},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4be6_9{{
-  {.skip{42}, .width{2}},
-  {.skip{42}, .width{3}},
-  {.skip{41}, .width{4}},
-  {.skip{41}, .width{5}},
-  {.skip{40}, .width{6}},
-  {.skip{40}, .width{5}},
-  {.skip{39}, .width{5}},
-  {.skip{39}, .width{4}},
-  {.skip{38}, .width{4}},
-  {.skip{38}, .width{3}},
-  {.skip{37}, .width{3}},
-  {.skip{37}, .width{2}},
-  {.skip{37}, .width{2}},
+  {
+    .skip{42},
+    .width{2}
+  },
+  {
+    .skip{42},
+    .width{3}
+  },
+  {
+    .skip{41},
+    .width{4}
+  },
+  {
+    .skip{41},
+    .width{5}
+  },
+  {
+    .skip{40},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{4}
+  },
+  {
+    .skip{38},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{3}
+  },
+  {
+    .skip{37},
+    .width{2}
+  },
+  {
+    .skip{37},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4be6_10{{
-  {.skip{46}, .width{2}},
-  {.skip{45}, .width{4}},
-  {.skip{44}, .width{5}},
-  {.skip{43}, .width{7}},
-  {.skip{42}, .width{6}},
-  {.skip{41}, .width{6}},
-  {.skip{40}, .width{5}},
-  {.skip{39}, .width{4}},
-  {.skip{39}, .width{3}},
+  {
+    .skip{46},
+    .width{2}
+  },
+  {
+    .skip{45},
+    .width{4}
+  },
+  {
+    .skip{44},
+    .width{5}
+  },
+  {
+    .skip{43},
+    .width{7}
+  },
+  {
+    .skip{42},
+    .width{6}
+  },
+  {
+    .skip{41},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{5}
+  },
+  {
+    .skip{39},
+    .width{4}
+  },
+  {
+    .skip{39},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4be6_11{{
-  {.skip{48}, .width{3}},
-  {.skip{47}, .width{4}},
-  {.skip{45}, .width{7}},
-  {.skip{43}, .width{9}},
-  {.skip{42}, .width{10}},
-  {.skip{41}, .width{10}},
-  {.skip{42}, .width{8}},
-  {.skip{43}, .width{5}},
-  {.skip{43}, .width{4}},
-  {.skip{44}, .width{2}},
+  {
+    .skip{48},
+    .width{3}
+  },
+  {
+    .skip{47},
+    .width{4}
+  },
+  {
+    .skip{45},
+    .width{7}
+  },
+  {
+    .skip{43},
+    .width{9}
+  },
+  {
+    .skip{42},
+    .width{10}
+  },
+  {
+    .skip{41},
+    .width{10}
+  },
+  {
+    .skip{42},
+    .width{8}
+  },
+  {
+    .skip{43},
+    .width{5}
+  },
+  {
+    .skip{43},
+    .width{4}
+  },
+  {
+    .skip{44},
+    .width{2}
+  },
 }};
 
 // Uninterpreted tail at 4D1A: 0020
 inline std::array<hud_strip, 12> constexpr strips_4be6{{
-  {.y_offset{9}, .rows{rows_4be6_0}},
-  {.y_offset{6}, .rows{rows_4be6_1}},
-  {.y_offset{3}, .rows{rows_4be6_2}},
-  {.y_offset{1}, .rows{rows_4be6_3}},
-  {.y_offset{0}, .rows{rows_4be6_4}},
-  {.y_offset{0}, .rows{rows_4be6_5}},
-  {.y_offset{0}, .rows{rows_4be6_6}},
-  {.y_offset{0}, .rows{rows_4be6_7}},
-  {.y_offset{1}, .rows{rows_4be6_8}},
-  {.y_offset{3}, .rows{rows_4be6_9}},
-  {.y_offset{7}, .rows{rows_4be6_10}},
-  {.y_offset{11}, .rows{rows_4be6_11}},
+  {
+    .y_offset{9},
+    .rows{rows_4be6_0}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_4be6_1}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4be6_2}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4be6_3}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4be6_4}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4be6_5}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4be6_6}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4be6_7}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4be6_8}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4be6_9}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_4be6_10}
+  },
+  {
+    .y_offset{11},
+    .rows{rows_4be6_11}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4d1c_0{{
-  {.skip{22}, .width{5}},
-  {.skip{20}, .width{9}},
-  {.skip{19}, .width{11}},
-  {.skip{17}, .width{15}},
-  {.skip{17}, .width{15}},
-  {.skip{17}, .width{15}},
-  {.skip{18}, .width{14}},
-  {.skip{18}, .width{13}},
-  {.skip{19}, .width{11}},
-  {.skip{20}, .width{9}},
-  {.skip{21}, .width{7}},
+  {
+    .skip{22},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{9}
+  },
+  {
+    .skip{19},
+    .width{11}
+  },
+  {
+    .skip{17},
+    .width{15}
+  },
+  {
+    .skip{17},
+    .width{15}
+  },
+  {
+    .skip{17},
+    .width{15}
+  },
+  {
+    .skip{18},
+    .width{14}
+  },
+  {
+    .skip{18},
+    .width{13}
+  },
+  {
+    .skip{19},
+    .width{11}
+  },
+  {
+    .skip{20},
+    .width{9}
+  },
+  {
+    .skip{21},
+    .width{7}
+  },
 }};
 
 inline std::array<hud_strip, 1> constexpr strips_4d1c{{
-  {.y_offset{0}, .rows{rows_4d1c_0}},
+  {
+    .y_offset{0},
+    .rows{rows_4d1c_0}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4d38_0{{
-  {.skip{8}, .width{7}},
-  {.skip{7}, .width{9}},
-  {.skip{8}, .width{7}},
+  {
+    .skip{8},
+    .width{7}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{8},
+    .width{7}
+  },
 }};
 
 inline std::array<mask_row, 7> constexpr rows_4d38_1{{
-  {.skip{8}, .width{7}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{8}, .width{7}},
+  {
+    .skip{8},
+    .width{7}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{8},
+    .width{7}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4d38_2{{
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{9}},
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
 }};
 
 inline std::array<hud_strip, 3> constexpr strips_4d38{{
-  {.y_offset{5}, .rows{rows_4d38_0}},
-  {.y_offset{3}, .rows{rows_4d38_1}},
-  {.y_offset{0}, .rows{rows_4d38_2}},
+  {
+    .y_offset{5},
+    .rows{rows_4d38_0}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4d38_1}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d38_2}
+  },
 }};
 
 inline std::array<hud_component, 9> constexpr components_4615{{
-  {.address{0x463e}, .field{0x454b}, .label{"Altitude"}, .on_source{120, 0}, .destination{8, 189}, .alternate_source{154, 56}, .strips{strips_463e}},
-  {.address{0x46f4}, .field{0x454c}, .label{"Impact damage"}, .on_source{0, 0}, .destination{200, 201}, .alternate_source{4, 24}, .strips{strips_46f4}},
-  {.address{0x4888}, .field{0x454d}, .label{"Inner damage lights"}, .on_source{0, 0}, .destination{200, 201}, .alternate_source{4, 19}, .strips{strips_4888}},
-  {.address{0x4a2e}, .field{0x454e}, .label{"Stored power cells"}, .on_source{32, 25}, .destination{96, 203}, .alternate_source{4, 43}, .strips{strips_4a2e}},
-  {.address{0x48ca}, .field{0x454f}, .label{"Cell charging"}, .on_source{32, 25}, .destination{96, 203}, .alternate_source{6, 26}, .strips{strips_48ca}},
-  {.address{0x4a8c}, .field{0x4550}, .label{"Incoming power"}, .on_source{40, 0}, .destination{136, 185}, .alternate_source{10, 36}, .strips{strips_4a8c}},
-  {.address{0x4be6}, .field{0x4551}, .label{"Weapon charge"}, .on_source{72, 16}, .destination{240, 181}, .alternate_source{10, 37}, .strips{strips_4be6}},
-  {.address{0x4d1c}, .field{0x4552}, .label{"Engine light"}, .on_source{40, 14}, .destination{136, 199}, .alternate_source{64, 0}, .strips{strips_4d1c}},
-  {.address{0x4d38}, .field{0x4553}, .label{"Nayas receiver"}, .on_source{88, 29}, .destination{176, 222}, .alternate_source{14, 21}, .strips{strips_4d38}},
+  {
+    .address{0x463e},
+    .field{0x454b},
+    .label{"Altitude"},
+    .on_source{120, 0},
+    .destination{8, 189},
+    .alternate_source{154, 56},
+    .strips{strips_463e}
+  },
+  {
+    .address{0x46f4},
+    .field{0x454c},
+    .label{"Impact damage"},
+    .on_source{0, 0},
+    .destination{200, 201},
+    .alternate_source{4, 24},
+    .strips{strips_46f4}
+  },
+  {
+    .address{0x4888},
+    .field{0x454d},
+    .label{"Inner damage lights"},
+    .on_source{0, 0},
+    .destination{200, 201},
+    .alternate_source{4, 19},
+    .strips{strips_4888}
+  },
+  {
+    .address{0x4a2e},
+    .field{0x454e},
+    .label{"Stored power cells"},
+    .on_source{32, 25},
+    .destination{96, 203},
+    .alternate_source{4, 43},
+    .strips{strips_4a2e}
+  },
+  {
+    .address{0x48ca},
+    .field{0x454f},
+    .label{"Cell charging"},
+    .on_source{32, 25},
+    .destination{96, 203},
+    .alternate_source{6, 26},
+    .strips{strips_48ca}
+  },
+  {
+    .address{0x4a8c},
+    .field{0x4550},
+    .label{"Incoming power"},
+    .on_source{40, 0},
+    .destination{136, 185},
+    .alternate_source{10, 36},
+    .strips{strips_4a8c}
+  },
+  {
+    .address{0x4be6},
+    .field{0x4551},
+    .label{"Weapon charge"},
+    .on_source{72, 16},
+    .destination{240, 181},
+    .alternate_source{10, 37},
+    .strips{strips_4be6}
+  },
+  {
+    .address{0x4d1c},
+    .field{0x4552},
+    .label{"Engine light"},
+    .on_source{40, 14},
+    .destination{136, 199},
+    .alternate_source{64, 0},
+    .strips{strips_4d1c}
+  },
+  {
+    .address{0x4d38},
+    .field{0x4553},
+    .label{"Nayas receiver"},
+    .on_source{88, 29},
+    .destination{176, 222},
+    .alternate_source{14, 21},
+    .strips{strips_4d38}
+  },
 }};
 
 inline std::array<mask_row, 17> constexpr rows_4f63_0{{
-  {.skip{12}, .width{5}},
-  {.skip{10}, .width{15}},
-  {.skip{7}, .width{18}},
-  {.skip{4}, .width{19}},
-  {.skip{2}, .width{20}},
-  {.skip{1}, .width{22}},
-  {.skip{2}, .width{22}},
-  {.skip{3}, .width{21}},
-  {.skip{5}, .width{19}},
-  {.skip{4}, .width{20}},
-  {.skip{6}, .width{17}},
-  {.skip{8}, .width{15}},
-  {.skip{9}, .width{14}},
-  {.skip{10}, .width{13}},
-  {.skip{11}, .width{12}},
-  {.skip{12}, .width{11}},
-  {.skip{13}, .width{5}},
+  {
+    .skip{12},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{15}
+  },
+  {
+    .skip{7},
+    .width{18}
+  },
+  {
+    .skip{4},
+    .width{19}
+  },
+  {
+    .skip{2},
+    .width{20}
+  },
+  {
+    .skip{1},
+    .width{22}
+  },
+  {
+    .skip{2},
+    .width{22}
+  },
+  {
+    .skip{3},
+    .width{21}
+  },
+  {
+    .skip{5},
+    .width{19}
+  },
+  {
+    .skip{4},
+    .width{20}
+  },
+  {
+    .skip{6},
+    .width{17}
+  },
+  {
+    .skip{8},
+    .width{15}
+  },
+  {
+    .skip{9},
+    .width{14}
+  },
+  {
+    .skip{10},
+    .width{13}
+  },
+  {
+    .skip{11},
+    .width{12}
+  },
+  {
+    .skip{12},
+    .width{11}
+  },
+  {
+    .skip{13},
+    .width{5}
+  },
 }};
 
 inline std::array<hud_strip, 1> constexpr strips_4f63{{
-  {.y_offset{0}, .rows{rows_4f63_0}},
+  {
+    .y_offset{0},
+    .rows{rows_4f63_0}
+  },
 }};
 
 inline std::array<mask_row, 5> constexpr rows_4f8b_0{{
-  {.skip{37}, .width{10}},
-  {.skip{36}, .width{12}},
-  {.skip{35}, .width{13}},
-  {.skip{35}, .width{13}},
-  {.skip{36}, .width{11}},
+  {
+    .skip{37},
+    .width{10}
+  },
+  {
+    .skip{36},
+    .width{12}
+  },
+  {
+    .skip{35},
+    .width{13}
+  },
+  {
+    .skip{35},
+    .width{13}
+  },
+  {
+    .skip{36},
+    .width{11}
+  },
 }};
 
 inline std::array<mask_row, 2> constexpr rows_4f8b_1{{
-  {.skip{37}, .width{10}},
-  {.skip{35}, .width{14}},
+  {
+    .skip{37},
+    .width{10}
+  },
+  {
+    .skip{35},
+    .width{14}
+  },
 }};
 
 inline std::array<mask_row, 6> constexpr rows_4f8b_2{{
-  {.skip{47}, .width{3}},
-  {.skip{48}, .width{3}},
-  {.skip{48}, .width{4}},
-  {.skip{48}, .width{4}},
-  {.skip{47}, .width{4}},
-  {.skip{46}, .width{4}},
+  {
+    .skip{47},
+    .width{3}
+  },
+  {
+    .skip{48},
+    .width{3}
+  },
+  {
+    .skip{48},
+    .width{4}
+  },
+  {
+    .skip{48},
+    .width{4}
+  },
+  {
+    .skip{47},
+    .width{4}
+  },
+  {
+    .skip{46},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_3{{
-  {.skip{36}, .width{10}},
-  {.skip{34}, .width{15}},
-  {.skip{35}, .width{12}},
+  {
+    .skip{36},
+    .width{10}
+  },
+  {
+    .skip{34},
+    .width{15}
+  },
+  {
+    .skip{35},
+    .width{12}
+  },
 }};
 
 inline std::array<mask_row, 6> constexpr rows_4f8b_4{{
-  {.skip{33}, .width{4}},
-  {.skip{33}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{3}},
-  {.skip{32}, .width{4}},
-  {.skip{32}, .width{4}},
+  {
+    .skip{33},
+    .width{4}
+  },
+  {
+    .skip{33},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_4f8b_5{{
-  {.skip{37}, .width{11}},
-  {.skip{33}, .width{17}},
-  {.skip{32}, .width{5}},
-  {.skip{31}, .width{4}},
+  {
+    .skip{37},
+    .width{11}
+  },
+  {
+    .skip{33},
+    .width{17}
+  },
+  {
+    .skip{32},
+    .width{5}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 2> constexpr rows_4f8b_6{{
-  {.skip{47}, .width{5}},
-  {.skip{49}, .width{3}},
+  {
+    .skip{47},
+    .width{5}
+  },
+  {
+    .skip{49},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4f8b_7{{
-  {.skip{52}, .width{2}},
-  {.skip{52}, .width{3}},
-  {.skip{50}, .width{6}},
-  {.skip{51}, .width{5}},
-  {.skip{52}, .width{4}},
-  {.skip{52}, .width{4}},
-  {.skip{51}, .width{5}},
-  {.skip{50}, .width{5}},
-  {.skip{49}, .width{5}},
-  {.skip{50}, .width{3}},
+  {
+    .skip{52},
+    .width{2}
+  },
+  {
+    .skip{52},
+    .width{3}
+  },
+  {
+    .skip{50},
+    .width{6}
+  },
+  {
+    .skip{51},
+    .width{5}
+  },
+  {
+    .skip{52},
+    .width{4}
+  },
+  {
+    .skip{52},
+    .width{4}
+  },
+  {
+    .skip{51},
+    .width{5}
+  },
+  {
+    .skip{50},
+    .width{5}
+  },
+  {
+    .skip{49},
+    .width{5}
+  },
+  {
+    .skip{50},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_8{{
-  {.skip{32}, .width{3}},
-  {.skip{31}, .width{22}},
-  {.skip{33}, .width{18}},
+  {
+    .skip{32},
+    .width{3}
+  },
+  {
+    .skip{31},
+    .width{22}
+  },
+  {
+    .skip{33},
+    .width{18}
+  },
 }};
 
 inline std::array<mask_row, 1> constexpr rows_4f8b_9{{
-  {.skip{47}, .width{3}},
+  {
+    .skip{47},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr rows_4f8b_10{{
-  {.skip{29}, .width{4}},
-  {.skip{28}, .width{5}},
-  {.skip{28}, .width{4}},
-  {.skip{28}, .width{4}},
-  {.skip{28}, .width{4}},
-  {.skip{28}, .width{4}},
-  {.skip{29}, .width{5}},
-  {.skip{30}, .width{2}},
+  {
+    .skip{29},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{5}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{28},
+    .width{4}
+  },
+  {
+    .skip{29},
+    .width{5}
+  },
+  {
+    .skip{30},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 5> constexpr rows_4f8b_11{{
-  {.skip{36}, .width{12}},
-  {.skip{32}, .width{19}},
-  {.skip{29}, .width{8}},
-  {.skip{28}, .width{5}},
-  {.skip{30}, .width{2}},
+  {
+    .skip{36},
+    .width{12}
+  },
+  {
+    .skip{32},
+    .width{19}
+  },
+  {
+    .skip{29},
+    .width{8}
+  },
+  {
+    .skip{28},
+    .width{5}
+  },
+  {
+    .skip{30},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 2> constexpr rows_4f8b_12{{
-  {.skip{48}, .width{5}},
-  {.skip{50}, .width{5}},
+  {
+    .skip{48},
+    .width{5}
+  },
+  {
+    .skip{50},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_4f8b_13{{
-  {.skip{55}, .width{2}},
-  {.skip{55}, .width{2}},
-  {.skip{54}, .width{4}},
-  {.skip{55}, .width{4}},
-  {.skip{56}, .width{3}},
-  {.skip{56}, .width{4}},
-  {.skip{56}, .width{4}},
-  {.skip{56}, .width{4}},
-  {.skip{56}, .width{4}},
-  {.skip{55}, .width{5}},
-  {.skip{54}, .width{6}},
-  {.skip{53}, .width{6}},
-  {.skip{53}, .width{5}},
-  {.skip{53}, .width{4}},
+  {
+    .skip{55},
+    .width{2}
+  },
+  {
+    .skip{55},
+    .width{2}
+  },
+  {
+    .skip{54},
+    .width{4}
+  },
+  {
+    .skip{55},
+    .width{4}
+  },
+  {
+    .skip{56},
+    .width{3}
+  },
+  {
+    .skip{56},
+    .width{4}
+  },
+  {
+    .skip{56},
+    .width{4}
+  },
+  {
+    .skip{56},
+    .width{4}
+  },
+  {
+    .skip{56},
+    .width{4}
+  },
+  {
+    .skip{55},
+    .width{5}
+  },
+  {
+    .skip{54},
+    .width{6}
+  },
+  {
+    .skip{53},
+    .width{6}
+  },
+  {
+    .skip{53},
+    .width{5}
+  },
+  {
+    .skip{53},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_4f8b_14{{
-  {.skip{30}, .width{3}},
-  {.skip{29}, .width{24}},
-  {.skip{29}, .width{22}},
-  {.skip{32}, .width{15}},
+  {
+    .skip{30},
+    .width{3}
+  },
+  {
+    .skip{29},
+    .width{24}
+  },
+  {
+    .skip{29},
+    .width{22}
+  },
+  {
+    .skip{32},
+    .width{15}
+  },
 }};
 
 inline std::array<mask_row, 1> constexpr rows_4f8b_15{{
-  {.skip{51}, .width{2}},
+  {
+    .skip{51},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4f8b_16{{
-  {.skip{26}, .width{4}},
-  {.skip{25}, .width{6}},
-  {.skip{24}, .width{5}},
-  {.skip{23}, .width{5}},
-  {.skip{23}, .width{5}},
-  {.skip{23}, .width{5}},
-  {.skip{23}, .width{5}},
-  {.skip{23}, .width{5}},
-  {.skip{23}, .width{6}},
-  {.skip{24}, .width{6}},
-  {.skip{25}, .width{6}},
-  {.skip{26}, .width{4}},
-  {.skip{27}, .width{2}},
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{24},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{5}
+  },
+  {
+    .skip{23},
+    .width{6}
+  },
+  {
+    .skip{24},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{27},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 5> constexpr rows_4f8b_17{{
-  {.skip{35}, .width{14}},
-  {.skip{30}, .width{20}},
-  {.skip{27}, .width{9}},
-  {.skip{25}, .width{7}},
-  {.skip{27}, .width{2}},
+  {
+    .skip{35},
+    .width{14}
+  },
+  {
+    .skip{30},
+    .width{20}
+  },
+  {
+    .skip{27},
+    .width{9}
+  },
+  {
+    .skip{25},
+    .width{7}
+  },
+  {
+    .skip{27},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_18{{
-  {.skip{48}, .width{6}},
-  {.skip{51}, .width{6}},
-  {.skip{53}, .width{2}},
+  {
+    .skip{48},
+    .width{6}
+  },
+  {
+    .skip{51},
+    .width{6}
+  },
+  {
+    .skip{53},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_4f8b_19{{
-  {.skip{57}, .width{2}},
-  {.skip{57}, .width{3}},
-  {.skip{57}, .width{4}},
-  {.skip{58}, .width{4}},
-  {.skip{59}, .width{4}},
-  {.skip{59}, .width{4}},
-  {.skip{60}, .width{4}},
-  {.skip{60}, .width{4}},
-  {.skip{60}, .width{4}},
-  {.skip{60}, .width{4}},
-  {.skip{60}, .width{4}},
-  {.skip{60}, .width{3}},
-  {.skip{59}, .width{4}},
-  {.skip{58}, .width{4}},
-  {.skip{57}, .width{4}},
-  {.skip{54}, .width{6}},
+  {
+    .skip{57},
+    .width{2}
+  },
+  {
+    .skip{57},
+    .width{3}
+  },
+  {
+    .skip{57},
+    .width{4}
+  },
+  {
+    .skip{58},
+    .width{4}
+  },
+  {
+    .skip{59},
+    .width{4}
+  },
+  {
+    .skip{59},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{4}
+  },
+  {
+    .skip{60},
+    .width{3}
+  },
+  {
+    .skip{59},
+    .width{4}
+  },
+  {
+    .skip{58},
+    .width{4}
+  },
+  {
+    .skip{57},
+    .width{4}
+  },
+  {
+    .skip{54},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_4f8b_20{{
-  {.skip{26}, .width{3}},
-  {.skip{25}, .width{7}},
-  {.skip{26}, .width{28}},
-  {.skip{28}, .width{23}},
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{25},
+    .width{7}
+  },
+  {
+    .skip{26},
+    .width{28}
+  },
+  {
+    .skip{28},
+    .width{23}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_21{{
-  {.skip{53}, .width{1}},
-  {.skip{51}, .width{7}},
-  {.skip{47}, .width{9}},
+  {
+    .skip{53},
+    .width{1}
+  },
+  {
+    .skip{51},
+    .width{7}
+  },
+  {
+    .skip{47},
+    .width{9}
+  },
 }};
 
 inline std::array<mask_row, 16> constexpr rows_4f8b_22{{
-  {.skip{24}, .width{3}},
-  {.skip{22}, .width{6}},
-  {.skip{21}, .width{5}},
-  {.skip{20}, .width{5}},
-  {.skip{19}, .width{5}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{19}, .width{4}},
-  {.skip{20}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{22}, .width{4}},
-  {.skip{23}, .width{4}},
-  {.skip{24}, .width{2}},
+  {
+    .skip{24},
+    .width{3}
+  },
+  {
+    .skip{22},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{19},
+    .width{4}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{22},
+    .width{4}
+  },
+  {
+    .skip{23},
+    .width{4}
+  },
+  {
+    .skip{24},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 6> constexpr rows_4f8b_23{{
-  {.skip{53}, .width{5}},
-  {.skip{34}, .width{26}},
-  {.skip{34}, .width{27}},
-  {.skip{29}, .width{6}},
-  {.skip{26}, .width{4}},
-  {.skip{25}, .width{2}},
+  {
+    .skip{53},
+    .width{5}
+  },
+  {
+    .skip{34},
+    .width{26}
+  },
+  {
+    .skip{34},
+    .width{27}
+  },
+  {
+    .skip{29},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{25},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_24{{
-  {.skip{49}, .width{14}},
-  {.skip{50}, .width{14}},
-  {.skip{54}, .width{9}},
+  {
+    .skip{49},
+    .width{14}
+  },
+  {
+    .skip{50},
+    .width{14}
+  },
+  {
+    .skip{54},
+    .width{9}
+  },
 }};
 
 inline std::array<mask_row, 20> constexpr rows_4f8b_25{{
-  {.skip{63}, .width{3}},
-  {.skip{59}, .width{8}},
-  {.skip{60}, .width{8}},
-  {.skip{61}, .width{9}},
-  {.skip{62}, .width{9}},
-  {.skip{63}, .width{10}},
-  {.skip{63}, .width{11}},
-  {.skip{64}, .width{11}},
-  {.skip{64}, .width{12}},
-  {.skip{64}, .width{13}},
-  {.skip{64}, .width{13}},
-  {.skip{64}, .width{11}},
-  {.skip{63}, .width{9}},
-  {.skip{63}, .width{8}},
-  {.skip{62}, .width{7}},
-  {.skip{61}, .width{7}},
-  {.skip{60}, .width{6}},
-  {.skip{58}, .width{7}},
-  {.skip{59}, .width{5}},
-  {.skip{61}, .width{2}},
+  {
+    .skip{63},
+    .width{3}
+  },
+  {
+    .skip{59},
+    .width{8}
+  },
+  {
+    .skip{60},
+    .width{8}
+  },
+  {
+    .skip{61},
+    .width{9}
+  },
+  {
+    .skip{62},
+    .width{9}
+  },
+  {
+    .skip{63},
+    .width{10}
+  },
+  {
+    .skip{63},
+    .width{11}
+  },
+  {
+    .skip{64},
+    .width{11}
+  },
+  {
+    .skip{64},
+    .width{12}
+  },
+  {
+    .skip{64},
+    .width{13}
+  },
+  {
+    .skip{64},
+    .width{13}
+  },
+  {
+    .skip{64},
+    .width{11}
+  },
+  {
+    .skip{63},
+    .width{9}
+  },
+  {
+    .skip{63},
+    .width{8}
+  },
+  {
+    .skip{62},
+    .width{7}
+  },
+  {
+    .skip{61},
+    .width{7}
+  },
+  {
+    .skip{60},
+    .width{6}
+  },
+  {
+    .skip{58},
+    .width{7}
+  },
+  {
+    .skip{59},
+    .width{5}
+  },
+  {
+    .skip{61},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 13> constexpr rows_4f8b_26{{
-  {.skip{23}, .width{3}},
-  {.skip{19}, .width{9}},
-  {.skip{21}, .width{38}},
-  {.skip{23}, .width{35}},
-  {.skip{25}, .width{32}},
-  {.skip{27}, .width{29}},
-  {.skip{29}, .width{25}},
-  {.skip{31}, .width{22}},
-  {.skip{34}, .width{17}},
-  {.skip{36}, .width{13}},
-  {.skip{37}, .width{12}},
-  {.skip{39}, .width{9}},
-  {.skip{42}, .width{4}},
+  {
+    .skip{23},
+    .width{3}
+  },
+  {
+    .skip{19},
+    .width{9}
+  },
+  {
+    .skip{21},
+    .width{38}
+  },
+  {
+    .skip{23},
+    .width{35}
+  },
+  {
+    .skip{25},
+    .width{32}
+  },
+  {
+    .skip{27},
+    .width{29}
+  },
+  {
+    .skip{29},
+    .width{25}
+  },
+  {
+    .skip{31},
+    .width{22}
+  },
+  {
+    .skip{34},
+    .width{17}
+  },
+  {
+    .skip{36},
+    .width{13}
+  },
+  {
+    .skip{37},
+    .width{12}
+  },
+  {
+    .skip{39},
+    .width{9}
+  },
+  {
+    .skip{42},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 3> constexpr rows_4f8b_27{{
-  {.skip{56}, .width{3}},
-  {.skip{54}, .width{7}},
-  {.skip{51}, .width{10}},
+  {
+    .skip{56},
+    .width{3}
+  },
+  {
+    .skip{54},
+    .width{7}
+  },
+  {
+    .skip{51},
+    .width{10}
+  },
 }};
 
 inline std::array<mask_row, 19> constexpr rows_4f8b_28{{
-  {.skip{20}, .width{5}},
-  {.skip{19}, .width{5}},
-  {.skip{18}, .width{4}},
-  {.skip{17}, .width{4}},
-  {.skip{16}, .width{4}},
-  {.skip{13}, .width{6}},
-  {.skip{11}, .width{8}},
-  {.skip{9}, .width{10}},
-  {.skip{7}, .width{12}},
-  {.skip{6}, .width{13}},
-  {.skip{5}, .width{14}},
-  {.skip{3}, .width{16}},
-  {.skip{5}, .width{15}},
-  {.skip{7}, .width{14}},
-  {.skip{9}, .width{13}},
-  {.skip{11}, .width{12}},
-  {.skip{13}, .width{11}},
-  {.skip{15}, .width{10}},
-  {.skip{17}, .width{6}},
+  {
+    .skip{20},
+    .width{5}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{18},
+    .width{4}
+  },
+  {
+    .skip{17},
+    .width{4}
+  },
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{13},
+    .width{6}
+  },
+  {
+    .skip{11},
+    .width{8}
+  },
+  {
+    .skip{9},
+    .width{10}
+  },
+  {
+    .skip{7},
+    .width{12}
+  },
+  {
+    .skip{6},
+    .width{13}
+  },
+  {
+    .skip{5},
+    .width{14}
+  },
+  {
+    .skip{3},
+    .width{16}
+  },
+  {
+    .skip{5},
+    .width{15}
+  },
+  {
+    .skip{7},
+    .width{14}
+  },
+  {
+    .skip{9},
+    .width{13}
+  },
+  {
+    .skip{11},
+    .width{12}
+  },
+  {
+    .skip{13},
+    .width{11}
+  },
+  {
+    .skip{15},
+    .width{10}
+  },
+  {
+    .skip{17},
+    .width{6}
+  },
 }};
 
 inline std::array<hud_strip, 29> constexpr strips_4f8b{{
-  {.y_offset{11}, .rows{rows_4f8b_0}},
-  {.y_offset{9}, .rows{rows_4f8b_1}},
-  {.y_offset{11}, .rows{rows_4f8b_2}},
-  {.y_offset{16}, .rows{rows_4f8b_3}},
-  {.y_offset{11}, .rows{rows_4f8b_4}},
-  {.y_offset{7}, .rows{rows_4f8b_5}},
-  {.y_offset{9}, .rows{rows_4f8b_6}},
-  {.y_offset{9}, .rows{rows_4f8b_7}},
-  {.y_offset{18}, .rows{rows_4f8b_8}},
-  {.y_offset{18}, .rows{rows_4f8b_9}},
-  {.y_offset{11}, .rows{rows_4f8b_10}},
-  {.y_offset{5}, .rows{rows_4f8b_11}},
-  {.y_offset{7}, .rows{rows_4f8b_12}},
-  {.y_offset{7}, .rows{rows_4f8b_13}},
-  {.y_offset{20}, .rows{rows_4f8b_14}},
-  {.y_offset{20}, .rows{rows_4f8b_15}},
-  {.y_offset{9}, .rows{rows_4f8b_16}},
-  {.y_offset{3}, .rows{rows_4f8b_17}},
-  {.y_offset{5}, .rows{rows_4f8b_18}},
-  {.y_offset{6}, .rows{rows_4f8b_19}},
-  {.y_offset{22}, .rows{rows_4f8b_20}},
-  {.y_offset{21}, .rows{rows_4f8b_21}},
-  {.y_offset{7}, .rows{rows_4f8b_22}},
-  {.y_offset{0}, .rows{rows_4f8b_23}},
-  {.y_offset{3}, .rows{rows_4f8b_24}},
-  {.y_offset{5}, .rows{rows_4f8b_25}},
-  {.y_offset{24}, .rows{rows_4f8b_26}},
-  {.y_offset{23}, .rows{rows_4f8b_27}},
-  {.y_offset{6}, .rows{rows_4f8b_28}},
+  {
+    .y_offset{11},
+    .rows{rows_4f8b_0}
+  },
+  {
+    .y_offset{9},
+    .rows{rows_4f8b_1}
+  },
+  {
+    .y_offset{11},
+    .rows{rows_4f8b_2}
+  },
+  {
+    .y_offset{16},
+    .rows{rows_4f8b_3}
+  },
+  {
+    .y_offset{11},
+    .rows{rows_4f8b_4}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_4f8b_5}
+  },
+  {
+    .y_offset{9},
+    .rows{rows_4f8b_6}
+  },
+  {
+    .y_offset{9},
+    .rows{rows_4f8b_7}
+  },
+  {
+    .y_offset{18},
+    .rows{rows_4f8b_8}
+  },
+  {
+    .y_offset{18},
+    .rows{rows_4f8b_9}
+  },
+  {
+    .y_offset{11},
+    .rows{rows_4f8b_10}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_4f8b_11}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_4f8b_12}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_4f8b_13}
+  },
+  {
+    .y_offset{20},
+    .rows{rows_4f8b_14}
+  },
+  {
+    .y_offset{20},
+    .rows{rows_4f8b_15}
+  },
+  {
+    .y_offset{9},
+    .rows{rows_4f8b_16}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4f8b_17}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_4f8b_18}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_4f8b_19}
+  },
+  {
+    .y_offset{22},
+    .rows{rows_4f8b_20}
+  },
+  {
+    .y_offset{21},
+    .rows{rows_4f8b_21}
+  },
+  {
+    .y_offset{7},
+    .rows{rows_4f8b_22}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4f8b_23}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4f8b_24}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_4f8b_25}
+  },
+  {
+    .y_offset{24},
+    .rows{rows_4f8b_26}
+  },
+  {
+    .y_offset{23},
+    .rows{rows_4f8b_27}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_4f8b_28}
+  },
 }};
 
 inline std::array<mask_row, 14> constexpr rows_4d8f_0{{
-  {.skip{12}, .width{2}},
-  {.skip{10}, .width{4}},
-  {.skip{9}, .width{6}},
-  {.skip{8}, .width{7}},
-  {.skip{8}, .width{8}},
-  {.skip{7}, .width{9}},
-  {.skip{7}, .width{10}},
-  {.skip{7}, .width{10}},
-  {.skip{7}, .width{11}},
-  {.skip{8}, .width{10}},
-  {.skip{8}, .width{11}},
-  {.skip{9}, .width{11}},
-  {.skip{10}, .width{10}},
-  {.skip{13}, .width{4}},
+  {
+    .skip{12},
+    .width{2}
+  },
+  {
+    .skip{10},
+    .width{4}
+  },
+  {
+    .skip{9},
+    .width{6}
+  },
+  {
+    .skip{8},
+    .width{7}
+  },
+  {
+    .skip{8},
+    .width{8}
+  },
+  {
+    .skip{7},
+    .width{9}
+  },
+  {
+    .skip{7},
+    .width{10}
+  },
+  {
+    .skip{7},
+    .width{10}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{8},
+    .width{10}
+  },
+  {
+    .skip{8},
+    .width{11}
+  },
+  {
+    .skip{9},
+    .width{11}
+  },
+  {
+    .skip{10},
+    .width{10}
+  },
+  {
+    .skip{13},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4d8f_1{{
-  {.skip{14}, .width{7}},
-  {.skip{14}, .width{7}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{16}, .width{6}},
-  {.skip{16}, .width{6}},
-  {.skip{17}, .width{6}},
-  {.skip{17}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{18}, .width{7}},
-  {.skip{19}, .width{5}},
-  {.skip{20}, .width{4}},
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{6}
+  },
+  {
+    .skip{16},
+    .width{6}
+  },
+  {
+    .skip{17},
+    .width{6}
+  },
+  {
+    .skip{17},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{18},
+    .width{7}
+  },
+  {
+    .skip{19},
+    .width{5}
+  },
+  {
+    .skip{20},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4d8f_2{{
-  {.skip{20}, .width{6}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{6}},
-  {.skip{21}, .width{6}},
-  {.skip{22}, .width{6}},
-  {.skip{22}, .width{6}},
-  {.skip{23}, .width{6}},
-  {.skip{24}, .width{6}},
-  {.skip{25}, .width{5}},
-  {.skip{25}, .width{4}},
+  {
+    .skip{20},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{21},
+    .width{6}
+  },
+  {
+    .skip{22},
+    .width{6}
+  },
+  {
+    .skip{22},
+    .width{6}
+  },
+  {
+    .skip{23},
+    .width{6}
+  },
+  {
+    .skip{24},
+    .width{6}
+  },
+  {
+    .skip{25},
+    .width{5}
+  },
+  {
+    .skip{25},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4d8f_3{{
-  {.skip{25}, .width{7}},
-  {.skip{26}, .width{6}},
-  {.skip{26}, .width{6}},
-  {.skip{26}, .width{6}},
-  {.skip{27}, .width{6}},
-  {.skip{27}, .width{6}},
-  {.skip{28}, .width{6}},
-  {.skip{28}, .width{7}},
-  {.skip{29}, .width{6}},
-  {.skip{30}, .width{6}},
-  {.skip{30}, .width{6}},
+  {
+    .skip{25},
+    .width{7}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{26},
+    .width{6}
+  },
+  {
+    .skip{27},
+    .width{6}
+  },
+  {
+    .skip{27},
+    .width{6}
+  },
+  {
+    .skip{28},
+    .width{6}
+  },
+  {
+    .skip{28},
+    .width{7}
+  },
+  {
+    .skip{29},
+    .width{6}
+  },
+  {
+    .skip{30},
+    .width{6}
+  },
+  {
+    .skip{30},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4d8f_4{{
-  {.skip{36}, .width{1}},
-  {.skip{32}, .width{5}},
-  {.skip{32}, .width{6}},
-  {.skip{32}, .width{6}},
-  {.skip{32}, .width{7}},
-  {.skip{33}, .width{6}},
-  {.skip{33}, .width{7}},
-  {.skip{34}, .width{6}},
-  {.skip{35}, .width{6}},
-  {.skip{35}, .width{6}},
-  {.skip{36}, .width{5}},
-  {.skip{36}, .width{6}},
+  {
+    .skip{36},
+    .width{1}
+  },
+  {
+    .skip{32},
+    .width{5}
+  },
+  {
+    .skip{32},
+    .width{6}
+  },
+  {
+    .skip{32},
+    .width{6}
+  },
+  {
+    .skip{32},
+    .width{7}
+  },
+  {
+    .skip{33},
+    .width{6}
+  },
+  {
+    .skip{33},
+    .width{7}
+  },
+  {
+    .skip{34},
+    .width{6}
+  },
+  {
+    .skip{35},
+    .width{6}
+  },
+  {
+    .skip{35},
+    .width{6}
+  },
+  {
+    .skip{36},
+    .width{5}
+  },
+  {
+    .skip{36},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4d8f_5{{
-  {.skip{37}, .width{6}},
-  {.skip{37}, .width{7}},
-  {.skip{38}, .width{6}},
-  {.skip{38}, .width{7}},
-  {.skip{39}, .width{6}},
-  {.skip{39}, .width{7}},
-  {.skip{40}, .width{6}},
-  {.skip{40}, .width{7}},
-  {.skip{41}, .width{6}},
-  {.skip{41}, .width{6}},
-  {.skip{41}, .width{5}},
-  {.skip{42}, .width{3}},
+  {
+    .skip{37},
+    .width{6}
+  },
+  {
+    .skip{37},
+    .width{7}
+  },
+  {
+    .skip{38},
+    .width{6}
+  },
+  {
+    .skip{38},
+    .width{7}
+  },
+  {
+    .skip{39},
+    .width{6}
+  },
+  {
+    .skip{39},
+    .width{7}
+  },
+  {
+    .skip{40},
+    .width{6}
+  },
+  {
+    .skip{40},
+    .width{7}
+  },
+  {
+    .skip{41},
+    .width{6}
+  },
+  {
+    .skip{41},
+    .width{6}
+  },
+  {
+    .skip{41},
+    .width{5}
+  },
+  {
+    .skip{42},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4d8f_6{{
-  {.skip{44}, .width{6}},
-  {.skip{43}, .width{7}},
-  {.skip{44}, .width{6}},
-  {.skip{44}, .width{7}},
-  {.skip{45}, .width{6}},
-  {.skip{45}, .width{6}},
-  {.skip{46}, .width{6}},
-  {.skip{46}, .width{6}},
-  {.skip{47}, .width{6}},
-  {.skip{47}, .width{6}},
-  {.skip{47}, .width{5}},
-  {.skip{48}, .width{4}},
+  {
+    .skip{44},
+    .width{6}
+  },
+  {
+    .skip{43},
+    .width{7}
+  },
+  {
+    .skip{44},
+    .width{6}
+  },
+  {
+    .skip{44},
+    .width{7}
+  },
+  {
+    .skip{45},
+    .width{6}
+  },
+  {
+    .skip{45},
+    .width{6}
+  },
+  {
+    .skip{46},
+    .width{6}
+  },
+  {
+    .skip{46},
+    .width{6}
+  },
+  {
+    .skip{47},
+    .width{6}
+  },
+  {
+    .skip{47},
+    .width{6}
+  },
+  {
+    .skip{47},
+    .width{5}
+  },
+  {
+    .skip{48},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 12> constexpr rows_4d8f_7{{
-  {.skip{50}, .width{7}},
-  {.skip{50}, .width{7}},
-  {.skip{50}, .width{7}},
-  {.skip{51}, .width{6}},
-  {.skip{51}, .width{7}},
-  {.skip{51}, .width{7}},
-  {.skip{52}, .width{6}},
-  {.skip{52}, .width{7}},
-  {.skip{53}, .width{6}},
-  {.skip{53}, .width{6}},
-  {.skip{54}, .width{4}},
-  {.skip{55}, .width{2}},
+  {
+    .skip{50},
+    .width{7}
+  },
+  {
+    .skip{50},
+    .width{7}
+  },
+  {
+    .skip{50},
+    .width{7}
+  },
+  {
+    .skip{51},
+    .width{6}
+  },
+  {
+    .skip{51},
+    .width{7}
+  },
+  {
+    .skip{51},
+    .width{7}
+  },
+  {
+    .skip{52},
+    .width{6}
+  },
+  {
+    .skip{52},
+    .width{7}
+  },
+  {
+    .skip{53},
+    .width{6}
+  },
+  {
+    .skip{53},
+    .width{6}
+  },
+  {
+    .skip{54},
+    .width{4}
+  },
+  {
+    .skip{55},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4d8f_8{{
-  {.skip{57}, .width{7}},
-  {.skip{57}, .width{7}},
-  {.skip{57}, .width{7}},
-  {.skip{57}, .width{7}},
-  {.skip{58}, .width{7}},
-  {.skip{58}, .width{7}},
-  {.skip{58}, .width{7}},
-  {.skip{59}, .width{6}},
-  {.skip{59}, .width{6}},
-  {.skip{59}, .width{6}},
-  {.skip{61}, .width{4}},
+  {
+    .skip{57},
+    .width{7}
+  },
+  {
+    .skip{57},
+    .width{7}
+  },
+  {
+    .skip{57},
+    .width{7}
+  },
+  {
+    .skip{57},
+    .width{7}
+  },
+  {
+    .skip{58},
+    .width{7}
+  },
+  {
+    .skip{58},
+    .width{7}
+  },
+  {
+    .skip{58},
+    .width{7}
+  },
+  {
+    .skip{59},
+    .width{6}
+  },
+  {
+    .skip{59},
+    .width{6}
+  },
+  {
+    .skip{59},
+    .width{6}
+  },
+  {
+    .skip{61},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 11> constexpr rows_4d8f_9{{
-  {.skip{64}, .width{6}},
-  {.skip{64}, .width{6}},
-  {.skip{64}, .width{6}},
-  {.skip{64}, .width{6}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{5}},
-  {.skip{65}, .width{4}},
+  {
+    .skip{64},
+    .width{6}
+  },
+  {
+    .skip{64},
+    .width{6}
+  },
+  {
+    .skip{64},
+    .width{6}
+  },
+  {
+    .skip{64},
+    .width{6}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{5}
+  },
+  {
+    .skip{65},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_10{{
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
-  {.skip{70}, .width{7}},
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
+  {
+    .skip{70},
+    .width{7}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_11{{
-  {.skip{77}, .width{7}},
-  {.skip{77}, .width{7}},
-  {.skip{77}, .width{7}},
-  {.skip{77}, .width{6}},
-  {.skip{77}, .width{6}},
-  {.skip{77}, .width{6}},
-  {.skip{77}, .width{6}},
-  {.skip{77}, .width{5}},
-  {.skip{77}, .width{5}},
-  {.skip{77}, .width{5}},
+  {
+    .skip{77},
+    .width{7}
+  },
+  {
+    .skip{77},
+    .width{7}
+  },
+  {
+    .skip{77},
+    .width{7}
+  },
+  {
+    .skip{77},
+    .width{6}
+  },
+  {
+    .skip{77},
+    .width{6}
+  },
+  {
+    .skip{77},
+    .width{6}
+  },
+  {
+    .skip{77},
+    .width{6}
+  },
+  {
+    .skip{77},
+    .width{5}
+  },
+  {
+    .skip{77},
+    .width{5}
+  },
+  {
+    .skip{77},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_12{{
-  {.skip{84}, .width{6}},
-  {.skip{84}, .width{7}},
-  {.skip{84}, .width{6}},
-  {.skip{83}, .width{7}},
-  {.skip{83}, .width{7}},
-  {.skip{83}, .width{6}},
-  {.skip{83}, .width{6}},
-  {.skip{82}, .width{7}},
-  {.skip{82}, .width{6}},
-  {.skip{82}, .width{6}},
+  {
+    .skip{84},
+    .width{6}
+  },
+  {
+    .skip{84},
+    .width{7}
+  },
+  {
+    .skip{84},
+    .width{6}
+  },
+  {
+    .skip{83},
+    .width{7}
+  },
+  {
+    .skip{83},
+    .width{7}
+  },
+  {
+    .skip{83},
+    .width{6}
+  },
+  {
+    .skip{83},
+    .width{6}
+  },
+  {
+    .skip{82},
+    .width{7}
+  },
+  {
+    .skip{82},
+    .width{6}
+  },
+  {
+    .skip{82},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_13{{
-  {.skip{91}, .width{6}},
-  {.skip{90}, .width{7}},
-  {.skip{90}, .width{7}},
-  {.skip{90}, .width{6}},
-  {.skip{89}, .width{7}},
-  {.skip{89}, .width{7}},
-  {.skip{89}, .width{6}},
-  {.skip{88}, .width{7}},
-  {.skip{88}, .width{7}},
-  {.skip{90}, .width{1}},
+  {
+    .skip{91},
+    .width{6}
+  },
+  {
+    .skip{90},
+    .width{7}
+  },
+  {
+    .skip{90},
+    .width{7}
+  },
+  {
+    .skip{90},
+    .width{6}
+  },
+  {
+    .skip{89},
+    .width{7}
+  },
+  {
+    .skip{89},
+    .width{7}
+  },
+  {
+    .skip{89},
+    .width{6}
+  },
+  {
+    .skip{88},
+    .width{7}
+  },
+  {
+    .skip{88},
+    .width{7}
+  },
+  {
+    .skip{90},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_14{{
-  {.skip{97}, .width{6}},
-  {.skip{97}, .width{7}},
-  {.skip{97}, .width{7}},
-  {.skip{96}, .width{7}},
-  {.skip{96}, .width{7}},
-  {.skip{96}, .width{7}},
-  {.skip{95}, .width{7}},
-  {.skip{95}, .width{7}},
-  {.skip{95}, .width{7}},
-  {.skip{98}, .width{4}},
+  {
+    .skip{97},
+    .width{6}
+  },
+  {
+    .skip{97},
+    .width{7}
+  },
+  {
+    .skip{97},
+    .width{7}
+  },
+  {
+    .skip{96},
+    .width{7}
+  },
+  {
+    .skip{96},
+    .width{7}
+  },
+  {
+    .skip{96},
+    .width{7}
+  },
+  {
+    .skip{95},
+    .width{7}
+  },
+  {
+    .skip{95},
+    .width{7}
+  },
+  {
+    .skip{95},
+    .width{7}
+  },
+  {
+    .skip{98},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4d8f_15{{
-  {.skip{104}, .width{6}},
-  {.skip{104}, .width{6}},
-  {.skip{103}, .width{6}},
-  {.skip{103}, .width{6}},
-  {.skip{103}, .width{6}},
-  {.skip{102}, .width{7}},
-  {.skip{102}, .width{6}},
-  {.skip{102}, .width{6}},
-  {.skip{102}, .width{4}},
+  {
+    .skip{104},
+    .width{6}
+  },
+  {
+    .skip{104},
+    .width{6}
+  },
+  {
+    .skip{103},
+    .width{6}
+  },
+  {
+    .skip{103},
+    .width{6}
+  },
+  {
+    .skip{103},
+    .width{6}
+  },
+  {
+    .skip{102},
+    .width{7}
+  },
+  {
+    .skip{102},
+    .width{6}
+  },
+  {
+    .skip{102},
+    .width{6}
+  },
+  {
+    .skip{102},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_16{{
-  {.skip{110}, .width{3}},
-  {.skip{110}, .width{6}},
-  {.skip{109}, .width{7}},
-  {.skip{109}, .width{7}},
-  {.skip{109}, .width{6}},
-  {.skip{109}, .width{6}},
-  {.skip{108}, .width{7}},
-  {.skip{108}, .width{6}},
-  {.skip{109}, .width{5}},
-  {.skip{108}, .width{6}},
+  {
+    .skip{110},
+    .width{3}
+  },
+  {
+    .skip{110},
+    .width{6}
+  },
+  {
+    .skip{109},
+    .width{7}
+  },
+  {
+    .skip{109},
+    .width{7}
+  },
+  {
+    .skip{109},
+    .width{6}
+  },
+  {
+    .skip{109},
+    .width{6}
+  },
+  {
+    .skip{108},
+    .width{7}
+  },
+  {
+    .skip{108},
+    .width{6}
+  },
+  {
+    .skip{109},
+    .width{5}
+  },
+  {
+    .skip{108},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 10> constexpr rows_4d8f_17{{
-  {.skip{116}, .width{3}},
-  {.skip{116}, .width{6}},
-  {.skip{116}, .width{6}},
-  {.skip{115}, .width{6}},
-  {.skip{115}, .width{6}},
-  {.skip{115}, .width{6}},
-  {.skip{114}, .width{6}},
-  {.skip{114}, .width{6}},
-  {.skip{114}, .width{5}},
-  {.skip{114}, .width{5}},
+  {
+    .skip{116},
+    .width{3}
+  },
+  {
+    .skip{116},
+    .width{6}
+  },
+  {
+    .skip{116},
+    .width{6}
+  },
+  {
+    .skip{115},
+    .width{6}
+  },
+  {
+    .skip{115},
+    .width{6}
+  },
+  {
+    .skip{115},
+    .width{6}
+  },
+  {
+    .skip{114},
+    .width{6}
+  },
+  {
+    .skip{114},
+    .width{6}
+  },
+  {
+    .skip{114},
+    .width{5}
+  },
+  {
+    .skip{114},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr rows_4d8f_18{{
-  {.skip{122}, .width{4}},
-  {.skip{121}, .width{6}},
-  {.skip{121}, .width{6}},
-  {.skip{121}, .width{6}},
-  {.skip{120}, .width{6}},
-  {.skip{120}, .width{6}},
-  {.skip{119}, .width{6}},
-  {.skip{119}, .width{4}},
-  {.skip{119}, .width{3}},
+  {
+    .skip{122},
+    .width{4}
+  },
+  {
+    .skip{121},
+    .width{6}
+  },
+  {
+    .skip{121},
+    .width{6}
+  },
+  {
+    .skip{121},
+    .width{6}
+  },
+  {
+    .skip{120},
+    .width{6}
+  },
+  {
+    .skip{120},
+    .width{6}
+  },
+  {
+    .skip{119},
+    .width{6}
+  },
+  {
+    .skip{119},
+    .width{4}
+  },
+  {
+    .skip{119},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 6> constexpr rows_4d8f_19{{
-  {.skip{127}, .width{1}},
-  {.skip{127}, .width{5}},
-  {.skip{127}, .width{5}},
-  {.skip{126}, .width{6}},
-  {.skip{126}, .width{5}},
-  {.skip{125}, .width{6}},
+  {
+    .skip{127},
+    .width{1}
+  },
+  {
+    .skip{127},
+    .width{5}
+  },
+  {
+    .skip{127},
+    .width{5}
+  },
+  {
+    .skip{126},
+    .width{6}
+  },
+  {
+    .skip{126},
+    .width{5}
+  },
+  {
+    .skip{125},
+    .width{6}
+  },
 }};
 
 inline std::array<hud_strip, 20> constexpr strips_4d8f{{
-  {.y_offset{4}, .rows{rows_4d8f_0}},
-  {.y_offset{4}, .rows{rows_4d8f_1}},
-  {.y_offset{3}, .rows{rows_4d8f_2}},
-  {.y_offset{2}, .rows{rows_4d8f_3}},
-  {.y_offset{1}, .rows{rows_4d8f_4}},
-  {.y_offset{1}, .rows{rows_4d8f_5}},
-  {.y_offset{0}, .rows{rows_4d8f_6}},
-  {.y_offset{0}, .rows{rows_4d8f_7}},
-  {.y_offset{0}, .rows{rows_4d8f_8}},
-  {.y_offset{0}, .rows{rows_4d8f_9}},
-  {.y_offset{0}, .rows{rows_4d8f_10}},
-  {.y_offset{0}, .rows{rows_4d8f_11}},
-  {.y_offset{0}, .rows{rows_4d8f_12}},
-  {.y_offset{1}, .rows{rows_4d8f_13}},
-  {.y_offset{1}, .rows{rows_4d8f_14}},
-  {.y_offset{2}, .rows{rows_4d8f_15}},
-  {.y_offset{2}, .rows{rows_4d8f_16}},
-  {.y_offset{3}, .rows{rows_4d8f_17}},
-  {.y_offset{5}, .rows{rows_4d8f_18}},
-  {.y_offset{6}, .rows{rows_4d8f_19}},
+  {
+    .y_offset{4},
+    .rows{rows_4d8f_0}
+  },
+  {
+    .y_offset{4},
+    .rows{rows_4d8f_1}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4d8f_2}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_4d8f_3}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4d8f_4}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4d8f_5}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_6}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_7}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_8}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_9}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_10}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_11}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_4d8f_12}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4d8f_13}
+  },
+  {
+    .y_offset{1},
+    .rows{rows_4d8f_14}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_4d8f_15}
+  },
+  {
+    .y_offset{2},
+    .rows{rows_4d8f_16}
+  },
+  {
+    .y_offset{3},
+    .rows{rows_4d8f_17}
+  },
+  {
+    .y_offset{5},
+    .rows{rows_4d8f_18}
+  },
+  {
+    .y_offset{6},
+    .rows{rows_4d8f_19}
+  },
 }};
 
 inline std::array<mask_row, 5> constexpr rows_5159_0{{
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_5159_1{{
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_5159_2{{
-  {.skip{4}, .width{5}},
-  {.skip{4}, .width{5}},
-  {.skip{4}, .width{6}},
-  {.skip{4}, .width{6}},
+  {
+    .skip{4},
+    .width{5}
+  },
+  {
+    .skip{4},
+    .width{5}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{6}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_5159_3{{
-  {.skip{3}, .width{6}},
-  {.skip{3}, .width{6}},
-  {.skip{3}, .width{6}},
-  {.skip{4}, .width{5}},
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{4},
+    .width{5}
+  },
 }};
 
 inline std::array<mask_row, 4> constexpr rows_5159_4{{
-  {.skip{3}, .width{6}},
-  {.skip{3}, .width{6}},
-  {.skip{3}, .width{6}},
-  {.skip{3}, .width{6}},
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{6}
+  },
+  {
+    .skip{3},
+    .width{6}
+  },
 }};
 
 inline std::array<hud_strip, 5> constexpr strips_5159{{
-  {.y_offset{16}, .rows{rows_5159_0}},
-  {.y_offset{12}, .rows{rows_5159_1}},
-  {.y_offset{8}, .rows{rows_5159_2}},
-  {.y_offset{4}, .rows{rows_5159_3}},
-  {.y_offset{0}, .rows{rows_5159_4}},
+  {
+    .y_offset{16},
+    .rows{rows_5159_0}
+  },
+  {
+    .y_offset{12},
+    .rows{rows_5159_1}
+  },
+  {
+    .y_offset{8},
+    .rows{rows_5159_2}
+  },
+  {
+    .y_offset{4},
+    .rows{rows_5159_3}
+  },
+  {
+    .y_offset{0},
+    .rows{rows_5159_4}
+  },
 }};
 
 inline std::array<hud_component, 4> constexpr components_4d70{{
-  {.address{0x4f63}, .field{0x454b}, .label{"Low altitude"}, .on_source{288, 13}, .destination{72, 193}, .alternate_source{12, 125}, .strips{strips_4f63}},
-  {.address{0x4f8b}, .field{0x454c}, .label{"Directional shields"}, .on_source{224, 16}, .destination{8, 196}, .alternate_source{10, 13}, .strips{strips_4f8b}},
-  {.address{0x4d8f}, .field{0x454d}, .label{"Engine output"}, .on_source{0, 17}, .destination{112, 183}, .alternate_source{162, 89}, .strips{strips_4d8f}},
-  {.address{0x5159}, .field{0x454e}, .label{"Selected weapon reserve"}, .on_source{0, 43}, .destination{264, 191}, .alternate_source{12, 17}, .strips{strips_5159}},
+  {
+    .address{0x4f63},
+    .field{0x454b},
+    .label{"Low altitude"},
+    .on_source{288, 13},
+    .destination{72, 193},
+    .alternate_source{12, 125},
+    .strips{strips_4f63}
+  },
+  {
+    .address{0x4f8b},
+    .field{0x454c},
+    .label{"Directional shields"},
+    .on_source{224, 16},
+    .destination{8, 196},
+    .alternate_source{10, 13},
+    .strips{strips_4f8b}
+  },
+  {
+    .address{0x4d8f},
+    .field{0x454d},
+    .label{"Engine output"},
+    .on_source{0, 17},
+    .destination{112, 183},
+    .alternate_source{162, 89},
+    .strips{strips_4d8f}
+  },
+  {
+    .address{0x5159},
+    .field{0x454e},
+    .label{"Selected weapon reserve"},
+    .on_source{0, 43},
+    .destination{264, 191},
+    .alternate_source{12, 17},
+    .strips{strips_5159}
+  },
 }};
 
 inline std::array<mask_row, 6> constexpr bearing_rows_0{{
-  {.skip{1}, .width{3}},
-  {.skip{1}, .width{3}},
-  {.skip{1}, .width{3}},
-  {.skip{0}, .width{4}},
-  {.skip{1}, .width{3}},
-  {.skip{2}, .width{2}},
+  {
+    .skip{1},
+    .width{3}
+  },
+  {
+    .skip{1},
+    .width{3}
+  },
+  {
+    .skip{1},
+    .width{3}
+  },
+  {
+    .skip{0},
+    .width{4}
+  },
+  {
+    .skip{1},
+    .width{3}
+  },
+  {
+    .skip{2},
+    .width{2}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr bearing_rows_1{{
-  {.skip{7}, .width{3}},
-  {.skip{6}, .width{4}},
-  {.skip{5}, .width{5}},
-  {.skip{5}, .width{5}},
-  {.skip{5}, .width{5}},
-  {.skip{5}, .width{5}},
-  {.skip{5}, .width{3}},
-  {.skip{6}, .width{1}},
+  {
+    .skip{7},
+    .width{3}
+  },
+  {
+    .skip{6},
+    .width{4}
+  },
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{5},
+    .width{5}
+  },
+  {
+    .skip{5},
+    .width{3}
+  },
+  {
+    .skip{6},
+    .width{1}
+  },
 }};
 
 inline std::array<mask_row, 8> constexpr bearing_rows_2{{
-  {.skip{11}, .width{4}},
-  {.skip{10}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{10}, .width{5}},
-  {.skip{9}, .width{4}},
+  {
+    .skip{11},
+    .width{4}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{10},
+    .width{5}
+  },
+  {
+    .skip{9},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 15> constexpr bearing_rows_3{{
-  {.skip{16}, .width{4}},
-  {.skip{15}, .width{10}},
-  {.skip{0}, .width{0}},
-  {.skip{0}, .width{0}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{15}, .width{6}},
-  {.skip{14}, .width{7}},
-  {.skip{15}, .width{4}},
+  {
+    .skip{16},
+    .width{4}
+  },
+  {
+    .skip{15},
+    .width{10}
+  },
+  {
+    .skip{0},
+    .width{0}
+  },
+  {
+    .skip{0},
+    .width{0}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{15},
+    .width{6}
+  },
+  {
+    .skip{14},
+    .width{7}
+  },
+  {
+    .skip{15},
+    .width{4}
+  },
 }};
 
 inline std::array<mask_row, 9> constexpr bearing_rows_4{{
-  {.skip{21}, .width{2}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{5}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{4}},
-  {.skip{21}, .width{3}},
+  {
+    .skip{21},
+    .width{2}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{5}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{4}
+  },
+  {
+    .skip{21},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 7> constexpr bearing_rows_5{{
-  {.skip{26}, .width{3}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{4}},
-  {.skip{26}, .width{3}},
+  {
+    .skip{26},
+    .width{3}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{4}
+  },
+  {
+    .skip{26},
+    .width{3}
+  },
 }};
 
 inline std::array<mask_row, 5> constexpr bearing_rows_6{{
-  {.skip{30}, .width{4}},
-  {.skip{30}, .width{5}},
-  {.skip{30}, .width{5}},
-  {.skip{31}, .width{4}},
-  {.skip{32}, .width{3}},
+  {
+    .skip{30},
+    .width{4}
+  },
+  {
+    .skip{30},
+    .width{5}
+  },
+  {
+    .skip{30},
+    .width{5}
+  },
+  {
+    .skip{31},
+    .width{4}
+  },
+  {
+    .skip{32},
+    .width{3}
+  },
 }};
 
 inline pixel_position constexpr bearing_destination{120, 198};
 inline std::array<hud_strip, 7> constexpr bearing_strips{{
-  {.y_offset{7}, .rows{bearing_rows_0}},
-  {.y_offset{5}, .rows{bearing_rows_1}},
-  {.y_offset{5}, .rows{bearing_rows_2}},
-  {.y_offset{0}, .rows{bearing_rows_3}},
-  {.y_offset{4}, .rows{bearing_rows_4}},
-  {.y_offset{5}, .rows{bearing_rows_5}},
-  {.y_offset{6}, .rows{bearing_rows_6}},
+  {
+    .y_offset{7},
+    .rows{bearing_rows_0}
+  },
+  {
+    .y_offset{5},
+    .rows{bearing_rows_1}
+  },
+  {
+    .y_offset{5},
+    .rows{bearing_rows_2}
+  },
+  {
+    .y_offset{0},
+    .rows{bearing_rows_3}
+  },
+  {
+    .y_offset{4},
+    .rows{bearing_rows_4}
+  },
+  {
+    .y_offset{5},
+    .rows{bearing_rows_5}
+  },
+  {
+    .y_offset{6},
+    .rows{bearing_rows_6}
+  },
 }};
 
 inline std::array<mask_row, 18> constexpr weapon_status_rows_0{{
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{7}, .width{11}},
-  {.skip{8}, .width{9}},
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{7},
+    .width{11}
+  },
+  {
+    .skip{8},
+    .width{9}
+  },
 }};
 
 inline std::array<mask_row, 19> constexpr weapon_status_rows_1{{
-  {.skip{19}, .width{10}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{18}, .width{12}},
-  {.skip{20}, .width{10}},
-  {.skip{20}, .width{9}},
+  {
+    .skip{19},
+    .width{10}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{18},
+    .width{12}
+  },
+  {
+    .skip{20},
+    .width{10}
+  },
+  {
+    .skip{20},
+    .width{9}
+  },
 }};
 
 inline std::array<mask_row, 18> constexpr weapon_status_rows_2{{
-  {.skip{30}, .width{11}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{30}, .width{12}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{31}, .width{11}},
-  {.skip{32}, .width{9}},
+  {
+    .skip{30},
+    .width{11}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{30},
+    .width{12}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{31},
+    .width{11}
+  },
+  {
+    .skip{32},
+    .width{9}
+  },
 }};
 
 inline pixel_position constexpr weapon_status_destination{272, 194};
 inline std::array<hud_strip, 3> constexpr weapon_status_strips{{
-  {.y_offset{0}, .rows{weapon_status_rows_0}},
-  {.y_offset{0}, .rows{weapon_status_rows_1}},
-  {.y_offset{1}, .rows{weapon_status_rows_2}},
+  {
+    .y_offset{0},
+    .rows{weapon_status_rows_0}
+  },
+  {
+    .y_offset{0},
+    .rows{weapon_status_rows_1}
+  },
+  {
+    .y_offset{1},
+    .rows{weapon_status_rows_2}
+  },
 }};
 
 inline std::array<pixel_position, 4> constexpr weapon_status_sources{{
@@ -2068,10 +6762,22 @@ inline std::array<pixel_position, 38> constexpr compass_offsets{{
 inline std::array<std::uint8_t, 3> constexpr ring_steps{146, 255, 205};
 inline std::array<std::uint8_t, 3> constexpr ring_capacities{14, 8, 10};
 inline std::array<mask_row, 4> constexpr ring_mask{{
-  {.skip{5}, .width{2}},
-  {.skip{4}, .width{4}},
-  {.skip{4}, .width{4}},
-  {.skip{5}, .width{2}},
+  {
+    .skip{5},
+    .width{2}
+  },
+  {
+    .skip{4},
+    .width{4}
+  },
+  {
+    .skip{4},
+    .width{4}
+  },
+  {
+    .skip{5},
+    .width{2}
+  },
 }};
 
 inline std::array<std::uint8_t, 17> constexpr marker_small{0x06, 0x05, 0x07, 0x01, 0x03, 0x02, 0xff, 0xfe, 0x82, 0x05, 0x07, 0x09, 0x07, 0x0a, 0x0b, 0x0e, 0x82};
@@ -2081,12 +6787,30 @@ inline std::array<std::uint8_t, 101> constexpr attitude_outline{0x01, 0x01, 0xfd
 
 inline std::array<std::uint8_t, 4> constexpr navigation_source_x{96, 109, 102, 115};
 inline std::array<mask_row, 6> constexpr navigation_mask{{
-  {.skip{1}, .width{4}},
-  {.skip{0}, .width{6}},
-  {.skip{0}, .width{6}},
-  {.skip{0}, .width{6}},
-  {.skip{0}, .width{6}},
-  {.skip{1}, .width{4}},
+  {
+    .skip{1},
+    .width{4}
+  },
+  {
+    .skip{0},
+    .width{6}
+  },
+  {
+    .skip{0},
+    .width{6}
+  },
+  {
+    .skip{0},
+    .width{6}
+  },
+  {
+    .skip{0},
+    .width{6}
+  },
+  {
+    .skip{1},
+    .width{4}
+  },
 }};
 
 } // namespace darker::graphics

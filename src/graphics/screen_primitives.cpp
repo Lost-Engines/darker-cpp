@@ -125,7 +125,10 @@ void draw_disc(framework::render::indexed_cockpit_framebuffer &target, pixel_pos
   int y{0};
   int error{extent / 2};
   auto const row_span{[&](int const half_width){
-    return span{.left{std::clamp(centre.x - half_width, 0, 320)}, .right{std::clamp(centre.x + half_width, 0, 320)}};
+    return span{
+      .left{std::clamp(centre.x - half_width, 0, 320)},
+      .right{std::clamp(centre.x + half_width, 0, 320)}
+    };
   }};
   do {
     auto const row{row_span(x)};

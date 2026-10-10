@@ -12,15 +12,34 @@ TEST_CASE("Caero Pinner and Brent firing matches original guards, targets and re
   for(auto const &sample : darker::test_reference::caero_weapon_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{.column{1000}, .row{2000}, .height{3000}}, .definition_strength{40}};
+    darker::game::launch_emitter const emitter{
+      .position{
+        .column{1000},
+        .row{2000},
+        .height{3000}
+      },
+      .definition_strength{40}
+    };
     if(!sample[3]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]}, .emitter{emitter}}));
+      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
+        .definition{darker::game::original_object_definitions[0]},
+        .emitter{emitter}
+      }));
     }
-    darker::game::caero_energy_state energy{.reserve{static_cast<uint16_t>(sample[0])}};
+    darker::game::caero_energy_state energy{
+      .reserve{static_cast<uint16_t>(sample[0])}
+    };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{.emitter{emitter},.selection{static_cast<uint8_t>(sample[8])},
-      .player_flags{static_cast<uint8_t>(sample[1])},.pressed{sample[2] != 0},.model{0x400},.clock{65000},
-      .target{static_cast<uint16_t>(sample[9])},.underground{sample[10] == 2}})};
+    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+      .emitter{emitter},
+      .selection{static_cast<uint8_t>(sample[8])},
+      .player_flags{static_cast<uint8_t>(sample[1])},
+      .pressed{sample[2] != 0},
+      .model{0x400},
+      .clock{65000},
+      .target{static_cast<uint16_t>(sample[9])},
+      .underground{sample[10] == 2}
+    })};
     CHECK(energy.reserve == sample[4]);
     CHECK(result.ready == (sample[5] != 0));
     CHECK((result.shot != nullptr) == (sample[6] != 0));
@@ -38,15 +57,36 @@ TEST_CASE("Chargeable charging and release match the native firing handler", "[g
   for(auto const &sample : darker::test_reference::chargeable_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{
+      .position{
+        .column{1000},
+        .row{2000},
+        .height{3000}
+      },
+      .definition_strength{40}
+    };
     if(!sample[3]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
+      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
+        .definition{darker::game::original_object_definitions[0]},
+        .emitter{emitter}
+      }));
     }
-    darker::game::caero_energy_state energy{.reserve{static_cast<uint16_t>(sample[0])}};
+    darker::game::caero_energy_state energy{
+      .reserve{static_cast<uint16_t>(sample[0])}
+    };
     auto charge{static_cast<uint16_t>(sample[1])};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{.emitter{emitter},.selection{9},
-      .player_flags{static_cast<uint8_t>(sample[2])},.pressed{sample[4] != 0},.held{sample[5] != 0},.model{0x400},.clock{65000},
-      .frame_step{static_cast<uint16_t>(sample[8])},.target{static_cast<uint16_t>(sample[6])},.underground{sample[7] == 2}})};
+    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+      .emitter{emitter},
+      .selection{9},
+      .player_flags{static_cast<uint8_t>(sample[2])},
+      .pressed{sample[4] != 0},
+      .held{sample[5] != 0},
+      .model{0x400},
+      .clock{65000},
+      .frame_step{static_cast<uint16_t>(sample[8])},
+      .target{static_cast<uint16_t>(sample[6])},
+      .underground{sample[7] == 2}
+    })};
     CHECK(energy.reserve == sample[9]);
     CHECK(charge == sample[10]);
     CHECK(result.ready == (sample[11] != 0));
@@ -90,15 +130,34 @@ TEST_CASE("Diffuser firing matches native alternating selections and failure res
   for(auto const &sample : darker::test_reference::diffuser_firing_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{
+      .position{
+        .column{1000},
+        .row{2000},
+        .height{3000}
+      },
+      .definition_strength{40}
+    };
     if(!sample[4]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
+      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
+        .definition{darker::game::original_object_definitions[0]},
+        .emitter{emitter}
+      }));
     }
-    darker::game::caero_energy_state energy{.reserve{static_cast<uint16_t>(sample[2])}};
+    darker::game::caero_energy_state energy{
+      .reserve{static_cast<uint16_t>(sample[2])}
+    };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{.emitter{emitter},.selection{static_cast<uint8_t>(sample[0])},
-      .player_flags{static_cast<uint8_t>(sample[5])},.pressed{sample[3] != 0},.model{0x400},.clock{65000},
-      .target{static_cast<uint16_t>(sample[6])},.underground{sample[1] == 2}})};
+    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+      .emitter{emitter},
+      .selection{static_cast<uint8_t>(sample[0])},
+      .player_flags{static_cast<uint8_t>(sample[5])},
+      .pressed{sample[3] != 0},
+      .model{0x400},
+      .clock{65000},
+      .target{static_cast<uint16_t>(sample[6])},
+      .underground{sample[1] == 2}
+    })};
     CHECK(energy.reserve == sample[7]);
     CHECK(result.ready == (sample[8] != 0));
     CHECK((result.next_selection ? result.next_selection : sample[0]) == sample[9]);

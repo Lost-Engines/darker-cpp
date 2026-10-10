@@ -285,13 +285,20 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       if((callback == object_update::surface_actor || callback == object_update::tunnel_actor) && !find_actor()->script.stopped) {
         // Script callbacks may insert into actors, so retain the executing record independently of vector storage.
         auto actor{*find_actor()};
-        mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
+        mission_context context{
+          .program{routes},
+          .object_flags{status_flags(player.lifecycle.flags)},
+          .cells{cells},
+          .clock{elapsed_ticks},
+          .time_multiplier{script_multiplier},
+          .object_counter{static_cast<uint8_t>(completed_objectives)},
           .current_cell{static_cast<uint16_t>((actor.pose.position.column >> 8) | (actor.pose.position.row & 0xff00))},
           .set_target{[&](uint16_t const target, bool const flag_02){
             actor.target_token = target;
             actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
           }},
-          .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}};
+          .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player.pose(),clock); }}
+        };
         context.adjust_objectives = [&](uint8_t const operand){ adjust_objectives(operand); return remaining_objectives() == 0; };
         context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
           activate_reserves(static_cast<actor_category>(opcode-9),count,player.pose(),clock);
@@ -343,11 +350,22 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
               // CAF0 records the attempt time even if the hostile pool is exhausted.
               source.last_shot = clock;
               auto const &definition{original_object_definitions[*slot]};
-              launch_emitter const launcher{.position{source.pose.position},.fractions{source.pose.fractions},
-                .angles{source.pose.angles},.speed{source.pose.speed},.side_flags{source.flags},
-                .definition_strength{source.parameters.definition->impact_strength}};
-              hostile_projectiles.launch({.definition{definition},.emitter{launcher},.model_token{bank.special_models()[*slot]},
-                .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},.target_token{source.selected_target}});
+              launch_emitter const launcher{
+                .position{source.pose.position},
+                .fractions{source.pose.fractions},
+                .angles{source.pose.angles},
+                .speed{source.pose.speed},
+                .side_flags{source.flags},
+                .definition_strength{source.parameters.definition->impact_strength}
+              };
+              hostile_projectiles.launch({
+                .definition{definition},
+                .emitter{launcher},
+                .model_token{bank.special_models()[*slot]},
+                .clock{clock},
+                .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
+                .target_token{source.selected_target}
+              });
             }
           }
         },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); },&threat_errors);
@@ -357,8 +375,14 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
   }
   auto const &pose{player.pose()};
-  launch_emitter const emitter{.position{pose.position}, .fractions{pose.fractions}, .angles{pose.angles}, .speed{pose.speed},
-    .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
+  launch_emitter const emitter{
+    .position{pose.position},
+    .fractions{pose.fractions},
+    .angles{pose.angles},
+    .speed{pose.speed},
+    .side_flags{player.lifecycle.flags},
+    .definition_strength{original_object_definitions[player_definition].impact_strength}
+  };
   weapon_ready = false;
   if(!caero) {
     skimma.reserves = update_skimma_weapon_status(std::span{skimma.slots}.first(player.upgraded ? 3 : 2),skimma.ring,
@@ -366,9 +390,17 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     fire_skimma_primary(player,cells,bank,clock,frame_step,trigger_pressed);
   }
   if(caero && (primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7)) {
-    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{.emitter{emitter},.selection{primary_weapon},
-      .player_flags{player.lifecycle.flags},.pressed{trigger_pressed},.model{bank.special_models()[primary_weapon - 1]},
-      .clock{clock},.frame_step{frame_step},.underground{player.tunnel.has_value()},.released{trigger_released}})};
+    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{
+      .emitter{emitter},
+      .selection{primary_weapon},
+      .player_flags{player.lifecycle.flags},
+      .pressed{trigger_pressed},
+      .model{bank.special_models()[primary_weapon - 1]},
+      .clock{clock},
+      .frame_step{frame_step},
+      .underground{player.tunnel.has_value()},
+      .released{trigger_released}
+    })};
     weapon_ready = result.ready;
     if(result.next_selection) primary_weapon = result.next_selection;
     player_fired = result.shot != nullptr;
@@ -376,9 +408,18 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   secondary_ready = false;
   if(caero && (secondary_weapon == 4 || secondary_weapon == 5 || secondary_weapon == 6 || secondary_weapon == 8 || secondary_weapon == 9 || secondary_weapon == 10)) {
-    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{.emitter{emitter},.selection{secondary_weapon},
-      .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.held{secondary_held},.model{bank.special_models()[secondary_weapon - 1]},
-      .clock{clock},.frame_step{frame_step},.target{target.token},.underground{player.tunnel.has_value()}})};
+    auto const result{fire_caero_weapon(projectiles,caero->energy,weapon_charge,{
+      .emitter{emitter},
+      .selection{secondary_weapon},
+      .player_flags{player.lifecycle.flags},
+      .pressed{secondary_pressed},
+      .held{secondary_held},
+      .model{bank.special_models()[secondary_weapon - 1]},
+      .clock{clock},
+      .frame_step{frame_step},
+      .target{target.token},
+      .underground{player.tunnel.has_value()}
+    })};
     secondary_ready = result.ready;
     if(result.next_selection) secondary_weapon = result.next_selection;
     player_fired |= result.shot != nullptr;
@@ -386,9 +427,15 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }
   if(!caero) {
     auto &slot{skimma.slots.at(skimma.selection)};
-    auto *shot{fire_skimma_weapon(projectiles,slot,{.emitter{emitter},.weapon{skimma.selection},
-      .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.model{bank.special_models()[10+skimma.selection]},
-      .clock{clock},.target{target.token}})};
+    auto *shot{fire_skimma_weapon(projectiles,slot,{
+      .emitter{emitter},
+      .weapon{skimma.selection},
+      .player_flags{player.lifecycle.flags},
+      .pressed{secondary_pressed},
+      .model{bank.special_models()[10+skimma.selection]},
+      .clock{clock},
+      .target{target.token}
+    })};
     secondary_ready = slot.flags == 3;
     player_fired |= shot != nullptr;
     if(shot && missile_camera_enabled) camera_projectile = shot;
@@ -445,7 +492,11 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       } else {
         auto const aim{resolve_map_guidance(target.token,cells,bank,damage_mask)};
         auto const cell{cells[(target.token >> 8)*128+(target.token & 127)]};
-        maths::world_position const position{.column{aim.position.column},.row{aim.position.row},.height{aim.height}};
+        maths::world_position const position{
+          .column{aim.position.column},
+          .row{aim.position.row},
+          .height{aim.height}
+        };
         if(caero) project_caero_target(target,pose.position,position,aim.height_extent,targeting_basis,secondary_weapon,cell.type,cell.state);
         else {
           auto const model{bank.city_model_offset(cell.type,cell.state,damage_mask)};

@@ -34,8 +34,11 @@ std::optional<city_draw_item> classify_model(model_placement const placement, re
   }
   bound = word(bound + word(diameter + 32));
   if(magnitude(placement.horizontal.whole) >= bound || magnitude(placement.vertical.whole) >= bound) return std::nullopt;
-  return city_draw_item{.placement{placement},
-    .path{near ? model_path::near_clipped : model_path::direct}, .force_flat{force_flat}};
+  return city_draw_item{
+    .placement{placement},
+    .path{near ? model_path::near_clipped : model_path::direct},
+    .force_flat{force_flat}
+  };
 }
 
 } // namespace
@@ -77,7 +80,11 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
   camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions.column >> 6));
   camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions.row >> 6));
-  auto placement{place_model(basis, camera, {.column{object.pose.position.column}, .row{object.pose.position.row}, .height{word(-object.pose.position.height)}})};
+  auto placement{place_model(basis, camera, {
+    .column{object.pose.position.column},
+    .row{object.pose.position.row},
+    .height{word(-object.pose.position.height)}
+  })};
   auto const header{bank.header_at(object.model_offset)};
   // BC94 patches 2EDC from ADD to SUB for underground moving objects.
   placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + (underground ? -header.extent : header.extent));
@@ -95,11 +102,17 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
 
 std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const &origin, int const bottom, uint8_t const residue) {
   /// 2D32 consumes traversal AL for the Y divide, then projected Y's low byte for the X divide
-  auto point{project_vertex({.horizontal{0}, .vertical{word(placement.vertical.whole)*256+residue},
-    .depth{word(placement.depth.whole)*256}},origin)};
+  auto point{project_vertex({
+    .horizontal{0},
+    .vertical{word(placement.vertical.whole)*256+residue},
+    .depth{word(placement.depth.whole)*256}
+  },origin)};
   if(point.y < 0 || point.y >= bottom) return std::nullopt;
-  point.x = project_vertex({.horizontal{word(placement.horizontal.whole)*256+static_cast<uint8_t>(point.y)},
-    .vertical{0}, .depth{word(placement.depth.whole)*256}},origin).x;
+  point.x = project_vertex({
+    .horizontal{word(placement.horizontal.whole)*256+static_cast<uint8_t>(point.y)},
+    .vertical{0},
+    .depth{word(placement.depth.whole)*256}
+  },origin).x;
   if(point.x < 0 || point.x >= 320 || point.y < 0 || point.y >= bottom) return std::nullopt;
   return point;
 }
@@ -202,7 +215,8 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
   auto const basis{make_camera_basis(view.angles)};
   camera_position const camera{
     .column{static_cast<std::uint16_t>(view.column * 4 + (view.column_fraction >> 6))},
-    .row{static_cast<std::uint16_t>(view.row * 4 + (view.row_fraction >> 6))}, .altitude{view.altitude},
+    .row{static_cast<std::uint16_t>(view.row * 4 + (view.row_fraction >> 6))},
+    .altitude{view.altitude},
   };
   items.clear();
   auto const place{[&](uint16_t const index){
@@ -226,8 +240,16 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
         if(!phase) continue;
         // 2F35 admits effects through the same wrapping coordinate window as moving objects.
         if(!within_object_window(view, emitter.position)) continue;
-        auto const placement{place_model(basis, camera, {.column{emitter.position.column}, .row{emitter.position.row}, .height{word(-emitter.position.height)}})};
-        items.push_back({.placement{placement}, .emitter{&emitter}, .phase{*phase}});
+        auto const placement{place_model(basis, camera, {
+          .column{emitter.position.column},
+          .row{emitter.position.row},
+          .height{word(-emitter.position.height)}
+        })};
+        items.push_back({
+          .placement{placement},
+          .emitter{&emitter},
+          .phase{*phase}
+        });
       }
     }};
     append(particles->effects.trails);
@@ -255,8 +277,11 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
       continue;
     }
     projection_parameters const projection{
-      .axes{item.orientation.value_or(basis)}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
-      .depth{item.placement.depth}, .origin{screen_vertex{view.origin}},
+      .axes{item.orientation.value_or(basis)},
+      .horizontal{item.placement.horizontal},
+      .vertical{item.placement.vertical},
+      .depth{item.placement.depth},
+      .origin{screen_vertex{view.origin}},
     };
     std::uint8_t light{item.orientation ? item.object_light : std::uint8_t{255}};
     if(view.beacon_lighting && !item.orientation) {

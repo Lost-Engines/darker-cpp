@@ -53,7 +53,10 @@ size_t world_objectives::replace(city_map &cells, std::span<std::byte const> con
       if(consumed >= program.size()) throw std::invalid_argument{"Scripted building list is missing a row"};
       auto const row{std::to_integer<uint8_t>(program[consumed++])};
       if(row >= 128) throw std::invalid_argument{"Scripted building target lies outside the map"};
-      entry.cells.push_back({.column{column},.row{row}});
+      entry.cells.push_back({
+        .column{column},
+        .row{row}
+      });
     }
   }
   for(auto const cell : replacement[0].cells) cells[cell.row*128+cell.column].state |= 0x40;

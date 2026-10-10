@@ -24,7 +24,9 @@ private:
   framework::render::indexed_cockpit_framebuffer menu_background{}, title_background{}, credits_background{};
   graphics::palette_state menu_palette, title_palette;
   resources::save_file &save;
-  resources::pilot_record challenge_pilot{.stage{1}};
+  resources::pilot_record challenge_pilot{
+    .stage{1}
+  };
   uint8_t challenge_score{0};
   std::string draft_name;
   std::string selection_prompt{"Select a game: 1,2,3,4 or N"};

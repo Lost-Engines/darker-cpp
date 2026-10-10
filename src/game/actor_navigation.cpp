@@ -11,7 +11,11 @@ namespace {
 actor_course target_course(object_pose const &actor, maths::world_position const &target) {
   /// 88DC resolves the same position/angle convention used by projectile object guidance
   auto const direction{maths::object_target_direction(actor.position, target)};
-  return {.heading{direction.heading}, .pitch{direction.pitch}, .distance{horizontal_distance(actor.position, target)}};
+  return {
+    .heading{direction.heading},
+    .pitch{direction.pitch},
+    .distance{horizontal_distance(actor.position, target)}
+  };
 }
 
 } // anonymous namespace
@@ -153,7 +157,10 @@ actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course
   /// 89A3–8A51 selects speed, pitch, turning and a possible firing check after target/obstacle resolution
   auto const &definition{*actor.parameters.definition};
   auto const awareness{static_cast<std::uint8_t>(actor.awareness.level >> 8)};
-  actor_manoeuvre result{.pitch{course.pitch}, .speed{definition.role_data.craft().cruise_speed}};
+  actor_manoeuvre result{
+    .pitch{course.pitch},
+    .speed{definition.role_data.craft().cruise_speed}
+  };
   if(course.climb != 0) {
     auto const scaled{(course.climb * definition.role_data.craft().cruise_speed) >> 8};
     result.speed = static_cast<std::uint8_t>((definition.role_data.craft().cruise_speed + scaled) >> 1);

@@ -35,9 +35,16 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
   // Outer startup 3D50–3D52 supplies thrust energy independently of the visible boost-cell reserve.
   std::get<caero_flight_state>(player.craft).energy.buffer = 0x6000;
   player.pose() = {
-    .position{.column{static_cast<std::uint16_t>((centre % 128) * 256 + 128)}, .row{static_cast<std::uint16_t>((centre / 128) * 256 + 152)},
-      .height{static_cast<std::uint16_t>(-104 - model_height)}},
-    .angles{.heading{0}, .pitch{0x0a20}, .roll{0}},
+    .position{
+      .column{static_cast<std::uint16_t>((centre % 128) * 256 + 128)},
+      .row{static_cast<std::uint16_t>((centre / 128) * 256 + 152)},
+      .height{static_cast<std::uint16_t>(-104 - model_height)}
+    },
+    .angles{
+      .heading{0},
+      .pitch{0x0a20},
+      .roll{0}
+    },
   };
   hangar.extension = 0;
   hangar.sound_level = 0;
@@ -89,8 +96,11 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   if((pose.position.height >> 8) >= 9) return false;
   auto const aligned{[](uint16_t const error){ return static_cast<uint8_t>((error >> 8) + 7) < 14; }};
   if(!aligned(pose.angles.roll)) return false;
-  maths::world_position const target{.column{static_cast<uint16_t>((centre % 128) * 256 + 128)},
-    .row{static_cast<uint16_t>((centre / 128) * 256 + 152)}, .height{256}};
+  maths::world_position const target{
+    .column{static_cast<uint16_t>((centre % 128) * 256 + 128)},
+    .row{static_cast<uint16_t>((centre / 128) * 256 + 152)},
+    .height{256}
+  };
   auto const distance{horizontal_distance(pose.position, target)};
   if(static_cast<uint16_t>(distance - 0x260) >= 256) return false;
   auto const direction{maths::object_target_direction(pose.position, target)};
@@ -120,8 +130,11 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   }};
   if(hangar.returning == hangar_return_phase::approaching) {
     auto const centre{site_index(hangar.return_site)};
-    maths::world_position target{.column{static_cast<uint16_t>((centre % 128) * 256 + 128)},
-      .row{static_cast<uint16_t>((centre / 128) * 256 + (player.tunnel ? 144 : 216))}, .height{static_cast<uint16_t>(player.tunnel ? 1640 : 220)}};
+    maths::world_position target{
+      .column{static_cast<uint16_t>((centre % 128) * 256 + 128)},
+      .row{static_cast<uint16_t>((centre / 128) * 256 + (player.tunnel ? 144 : 216))},
+      .height{static_cast<uint16_t>(player.tunnel ? 1640 : 220)}
+    };
     auto const distance{horizontal_distance(pose.position, target)};
     auto const approach{[&](maths::world_position const &point){
       bool const close{static_cast<uint16_t>(point.column - pose.position.column + 7) < 15

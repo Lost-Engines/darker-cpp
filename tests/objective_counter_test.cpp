@@ -13,7 +13,9 @@ TEST_CASE("Script objective adjustments match native wrapping and signed clampin
     darker::game::mission_combat combat{std::move(actors)};
     std::array const program{std::byte{0x33},static_cast<std::byte>(s[1]),std::byte{0x23}};
     darker::game::mission_script script;
-    darker::game::mission_context context{.program{program}};
+    darker::game::mission_context context{
+      .program{program}
+    };
     context.adjust_objectives = [&](uint8_t const operand){ combat.adjust_objectives(operand); return combat.remaining_objectives() == 0; };
     CHECK(darker::game::advance_mission_script(script,context) == 2);
     CHECK(combat.remaining_objectives() == static_cast<unsigned>(s[2]));

@@ -49,7 +49,10 @@ void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &targe
     if(errors[i] < 64) {
       auto const level{static_cast<std::uint8_t>(14 - ((errors[i] * 56) >> 8))};
       draw_glyph(target,font,resources::font_face::compact,0x81,{x, 180},
-        {.ink{static_cast<std::uint8_t>(level + 229)}, .edge{static_cast<std::uint8_t>(level == 1 ? 0 : level + 223)}});
+        {
+          .ink{static_cast<std::uint8_t>(level + 229)},
+          .edge{static_cast<std::uint8_t>(level == 1 ? 0 : level + 223)}
+        });
     }
   }
 }

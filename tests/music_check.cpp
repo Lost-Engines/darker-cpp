@@ -182,7 +182,13 @@ void check_music(darker::resources::archive_set const &archives) {
     }
     stream.select_music(-1);
     darker::audio::fm_frame effect{};
-    effect[0] = {.pitch{1200}, .level{8192}, .generation{1}, .patch{1}, .active{true}};
+    effect[0] = {
+      .pitch{1200},
+      .level{8192},
+      .generation{1},
+      .patch{1},
+      .active{true}
+    };
     if(!stream.publish(effect)) throw std::runtime_error{"Failed to enqueue effects after sampled music"};
     double energy{0};
     for(int block{0}; block < 100; ++block) {

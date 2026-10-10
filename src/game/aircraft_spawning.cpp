@@ -70,11 +70,18 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
     free.erase(available);
     actor.awareness = {};
     actor.attitude = {};
-    actor.pose.angles = {.heading{state.halon ? state.departure_heading : uint16_t{0x8000}},.pitch{state.halon ? uint16_t{0x2c00} : uint16_t{0}},.roll{0}};
+    actor.pose.angles = {
+      .heading{state.halon ? state.departure_heading : uint16_t{0x8000}},
+      .pitch{state.halon ? uint16_t{0x2c00} : uint16_t{0}},
+      .roll{0}
+    };
     if(state.halon) state.departure_heading = static_cast<uint16_t>(state.departure_heading+0x2800);
     actor.pose.speed = state.halon ? 300 : 100;
-    actor.pose.position = {.column{static_cast<uint16_t>(column*256+128)},.row{static_cast<uint16_t>(row*256+(state.halon ? 128 : 248))},
-      .height{static_cast<uint16_t>((state.halon ? 1160 : 100) - bank.header_at(actor.parameters.model_token).height)}};
+    actor.pose.position = {
+      .column{static_cast<uint16_t>(column*256+128)},
+      .row{static_cast<uint16_t>(row*256+(state.halon ? 128 : 248))},
+      .height{static_cast<uint16_t>((state.halon ? 1160 : 100) - bank.header_at(actor.parameters.model_token).height)}
+    };
     actor.previous_position = actor.pose.position;
     actor.current_cell = actor.target_token = site;
     actor.parameters.update_entry = object_update::departing_aircraft;
@@ -93,8 +100,12 @@ void advance_aircraft_departure(scenario_actor &actor, uint16_t const clock, uin
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
   advance_actor_speed(actor.pose,definition.base_speed,definition.role_data.craft().acceleration,definition.role_data.craft().deceleration,frame_step);
-  steer_actor(actor.pose,actor.attitude,{.response{actor.parameters.angular_response},.bank_response{actor.parameters.motion.bank_response},
-    .bank_limit{actor.parameters.motion.bank_limit},.turn_response{actor.parameters.motion.turn_response}},0x0c00,0,frame_step);
+  steer_actor(actor.pose,actor.attitude,{
+    .response{actor.parameters.angular_response},
+    .bank_response{actor.parameters.motion.bank_response},
+    .bank_limit{actor.parameters.motion.bank_limit},
+    .turn_response{actor.parameters.motion.turn_response}
+  },0x0c00,0,frame_step);
   if(std::bit_cast<int16_t>(static_cast<uint16_t>(clock - actor.script.deadline)) >= 0) {
     actor.parameters.update_entry = object_update::surface_actor;
     actor.flags &= 0xef;

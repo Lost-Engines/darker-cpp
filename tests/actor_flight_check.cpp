@@ -9,15 +9,30 @@
 
 void check_actor_flight(darker::resources::archive_set const &archives) {
   /// Compare sequential actor updates against original 8823 on the original Delphi map and first-mission placements
-  darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
-  auto cells{darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true)};
+  darker::resources::geometry_bank const bank{archives.load({
+    .archive{0},
+    .slot{30}
+  })};
+  auto cells{darker::game::make_city_map(archives.load({
+    .archive{0},
+    .slot{68}
+  }), true)};
   std::array<uint8_t, 256> limits{};
   for(size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
-  darker::resources::scenario_resource const resource{archives.load({.archive{4}, .slot{0}})};
+  darker::resources::scenario_resource const resource{archives.load({
+    .archive{4},
+    .slot{0}
+  })};
   auto const &record{resource.records().front()};
   auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
-  darker::game::object_pose player{.position{.column{10000}, .row{23700}, .height{3000}}};
+  darker::game::object_pose player{
+    .position{
+      .column{10000},
+      .row{23700},
+      .height{3000}
+    }
+  };
   size_t sample{0};
   for(int frame{0}; frame < 1024; ++frame) {
     if(frame >= 256) {

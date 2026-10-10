@@ -5,6 +5,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from format_cpp_initialisers import format_designated_initialisers
 
 
 def checksum(pixels):
@@ -68,7 +69,7 @@ def main():
     for x, y, colour in data['attitude']['overlay']:
         pixels[(y+8)*320+x] = colour
     lines += [f'inline std::uint64_t constexpr attitude_surround_checksum{{0x{checksum(pixels):016x}ULL}};', '', '} // namespace darker::test_reference', '']
-    args.output.write_text('\n'.join(lines))
+    args.output.write_text(format_designated_initialisers('\n'.join(lines)))
 
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 from pathlib import Path
+from format_cpp_initialisers import format_designated_initialisers
 from generate_resource_directory import IMAGE_SHA256
 
 
@@ -98,7 +99,7 @@ def main():
     for p in range(0x6b52, 0x6b5e, 2):
         lines.append(f'  {{.skip{{{image[p]}}}, .width{{{image[p+1]}}}}},')
     lines += ['}};', '', '} // namespace darker::graphics', '']
-    args.output.write_text('\n'.join(lines))
+    args.output.write_text(format_designated_initialisers('\n'.join(lines)))
 
 
 if __name__ == '__main__':

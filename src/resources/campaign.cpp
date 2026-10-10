@@ -7,7 +7,10 @@ campaign_selection select_campaign_stage(uint8_t const stage) {
   /// BB12 converts the one-based saved stage into an archive-04 resource and an eight-record index
   if(stage == 0 || stage > 120) throw std::out_of_range{"Campaign stage is outside the normal scenario resources"};
   auto const index{static_cast<unsigned int>(stage - 1)};
-  return {.resource{4,index >> 3}, .record{index & 7}};
+  return {
+    .resource{4,index >> 3},
+    .record{index & 7}
+  };
 }
 
 campaign_resources::campaign_resources(archive_set const &archives) : archives{archives} {

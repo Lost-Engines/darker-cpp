@@ -70,7 +70,11 @@ std::array<uint8_t,2> stereo_attenuation(maths::world_position const delta, math
 fm_note object_sound(game::object_definition const &definition, game::object_pose const &pose,
   object_sound_state const state, uint16_t const clock) {
   /// 3556 supplies each non-player definition's callback with its original pitch, level and object state
-  fm_note result{.pitch{definition.sound_pitch},.level{static_cast<uint16_t>(definition.sound_level*256+255)},.patch{definition.fm_patch}};
+  fm_note result{
+    .pitch{definition.sound_pitch},
+    .level{static_cast<uint16_t>(definition.sound_level*256+255)},
+    .patch{definition.fm_patch}
+  };
   switch(definition.sound_entry) {
   case 0x391d: {
     auto const phase{static_cast<uint8_t>(clock+state.identity)};
@@ -114,8 +118,13 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     auto const level{audible_level(sound.position, listener.position, definition.level, definition.flags)};
     if(!level) return;
     auto const pitch{definition.flags & 4 ? definition.pitch : spatial_pitch(definition.pitch, sound.position, listener, motion, listener_motion)};
-    candidates.push_back({identity, {.pitch{pitch}, .level{*level},
-      .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : sound.generation)},.patch{definition.patch}, .active{true}}});
+    candidates.push_back({identity, {
+      .pitch{pitch},
+      .level{*level},
+      .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : sound.generation)},
+      .patch{definition.patch},
+      .active{true}
+    }});
     if(definition.flags & 1) candidates.back().note.attenuation = stereo_attenuation({
       static_cast<uint16_t>(sound.position.column-listener.position.column),static_cast<uint16_t>(sound.position.row-listener.position.row),
       static_cast<uint16_t>(sound.position.height-listener.position.height)},basis,*level);
@@ -125,11 +134,24 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       if(actor.category != category) continue;
       if(!actor.parameters.definition) continue;
       auto const note{object_sound(*actor.parameters.definition,actor.pose,
-        {.identity{static_cast<uint16_t>(0xd986+actor.index*112)},.flags{actor.flags},.damage{actor.awareness.cooldown},
-          .fade{actor.fade},.deadline{actor.expiry}},clock)};
+        {
+          .identity{static_cast<uint16_t>(0xd986+actor.index*112)},
+          .flags{actor.flags},
+          .damage{actor.awareness.cooldown},
+          .fade{actor.fade},
+          .deadline{actor.expiry}
+        },clock)};
       if(!note.active) continue;
-      game::effect_sound const sound{.position{actor.pose.position},.definition{
-        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0x29}}};
+      game::effect_sound const sound{
+        .position{actor.pose.position},
+        .definition{
+          .duration{0},
+          .pitch{note.pitch},
+          .level{note.level},
+          .patch{note.patch},
+          .flags{0x29}
+        }
+      };
       append(sound,&actor.pose,0x300000000ULL+actor.index);
     }
   }};
@@ -137,11 +159,24 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
       auto const &definition{*shot->parameters.definition};
       auto note{object_sound(definition,shot->placement,
-        {.identity{shot->native_id},.flags{shot->flags},.fade{shot->fade},.deadline{shot->deadline}},clock)};
+        {
+          .identity{shot->native_id},
+          .flags{shot->flags},
+          .fade{shot->fade},
+          .deadline{shot->deadline}
+        },clock)};
       if(!note.active) continue;
       if(&definition == &game::original_object_definitions[6]) note.pitch = combat.skimma.dual_launch_pitch;
-      game::effect_sound const sound{.position{shot->placement.position},.definition{
-        .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0x29}}};
+      game::effect_sound const sound{
+        .position{shot->placement.position},
+        .definition{
+          .duration{0},
+          .pitch{note.pitch},
+          .level{note.level},
+          .patch{note.patch},
+          .flags{0x29}
+        }
+      };
       // Object voices retain their native pool identity across updates.
       auto const identity{0x200000000ULL+shot->native_id};
       append(sound,&shot->placement,identity);
@@ -152,15 +187,31 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     if(player[i].active) candidates.push_back({0x100000000ULL+i*65536,player[i]});
   }};
   if(player_source && player[0].active) {
-    game::effect_sound const engine{.position{player_source->position},.definition{.duration{0},.pitch{player[0].pitch},
-      .level{player[0].level},.patch{player[0].patch},.flags{0x29}}};
+    game::effect_sound const engine{
+      .position{player_source->position},
+      .definition{
+        .duration{0},
+        .pitch{player[0].pitch},
+        .level{player[0].level},
+        .patch{player[0].patch},
+        .flags{0x29}
+      }
+    };
     append(engine,player_source,0x100000000ULL);
   } else append_player(0);
   append_actors(game::actor_category::air);
   // Fixed records are visited in address order: boost, beacons, charge, messages, ambient, switches, shield.
   if(player_source && player[1].active) {
-    game::effect_sound const boost{.position{player_source->position},.definition{.duration{0},.pitch{player[1].pitch},
-      .level{player[1].level},.patch{player[1].patch},.flags{1}}};
+    game::effect_sound const boost{
+      .position{player_source->position},
+      .definition{
+        .duration{0},
+        .pitch{player[1].pitch},
+        .level{player[1].level},
+        .patch{player[1].patch},
+        .flags{1}
+      }
+    };
     auto const before{candidates.size()};
     append(boost,player_source,0x100010000ULL);
     if(candidates.size() != before) candidates.back().note.generation = player[1].generation;

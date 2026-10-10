@@ -13,13 +13,32 @@ TEST_CASE("Flat model bytecode reproduces complete native indexed frames", "[gra
     CAPTURE(case_index, sample.mirrored, sample.dynamic);
     darker::graphics::projection_parameters parameters{
       .axes{{
-        {.horizontal{static_cast<std::int16_t>(sample.mirrored ? -16384 : 16384)}, .vertical{4096}},
-        {.horizontal{4096}, .vertical{-4096}},
-        {.vertical{16384}},
+        {
+        .horizontal{static_cast<std::int16_t>(sample.mirrored ? -16384 : 16384)},
+        .vertical{4096}
+      },
+        {
+        .horizontal{4096},
+        .vertical{-4096}
+      },
+        {
+        .vertical{16384}
+      },
       }},
-      .horizontal{.fraction{11}}, .vertical{.fraction{19}}, .depth{.whole{256}}, .origin{160, 120},
+      .horizontal{
+        .fraction{11}
+      },
+      .vertical{
+        .fraction{19}
+      },
+      .depth{
+        .whole{256}
+      },
+      .origin{160, 120},
     };
-    darker::graphics::model_colours colours{.dynamic{static_cast<std::uint8_t>(sample.dynamic)}};
+    darker::graphics::model_colours colours{
+      .dynamic{static_cast<std::uint8_t>(sample.dynamic)}
+    };
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(sample.dynamic == 17 ? 27 - i : i);
     std::array<std::byte, 64> bytes{};
     for(std::size_t i{0}; i < bytes.size(); ++i) bytes[i] = static_cast<std::byte>(sample.code[i]);

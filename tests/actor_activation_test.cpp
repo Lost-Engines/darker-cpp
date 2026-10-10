@@ -26,14 +26,32 @@ TEST_CASE("Reserve activation preserves category heads and reverses each admitte
   /// Native C33E repeatedly pops the reserve head and prepends to the matching active list
   using darker::game::actor_category;
   std::vector<darker::game::scenario_actor> active{
-    {.category{actor_category::air},.index{1}},
-    {.category{actor_category::ground},.index{2}},
+    {
+      .category{actor_category::air},
+      .index{1}
+    },
+    {
+      .category{actor_category::ground},
+      .index{2}
+    },
   };
   std::vector<darker::game::scenario_actor> reserves{
-    {.category{actor_category::ground},.index{3}},
-    {.category{actor_category::air},.index{4}},
-    {.category{actor_category::air},.index{5}},
-    {.category{actor_category::air},.index{6}},
+    {
+      .category{actor_category::ground},
+      .index{3}
+    },
+    {
+      .category{actor_category::air},
+      .index{4}
+    },
+    {
+      .category{actor_category::air},
+      .index{5}
+    },
+    {
+      .category{actor_category::air},
+      .index{6}
+    },
   };
   darker::game::activate_scenario_reserves(active,reserves,actor_category::air,2,{},1234);
   REQUIRE(active.size() == 4);

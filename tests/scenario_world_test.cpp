@@ -16,7 +16,9 @@ TEST_CASE("Scenario cell setup and incremental objectives match native execution
     for(size_t i{0}; i < 5; ++i) cells[(i*2+2)*128+i*2+1].state = static_cast<uint8_t>(sample[i+2]);
     darker::game::apply_scenario_cells(cells,record);
     for(size_t i{0}; i < 5; ++i) CHECK(cells[(i*2+2)*128+i*2+1].state == sample[i+7]);
-    darker::game::world_objectives objectives{.list{record.objective_cell_list}};
+    darker::game::world_objectives objectives{
+      .list{record.objective_cell_list}
+    };
     auto const offset{[&]{ return (objectives.list == 1 ? 3u : 8u) + objectives.cursor*2; }};
     CHECK(offset() == sample[12]);
     for(size_t i{0}; i < 8; ++i) {
@@ -30,7 +32,10 @@ TEST_CASE("Scenario cell setup and incremental objectives match native execution
 TEST_CASE("Mission exit extinguishes only queued energy beacons", "[game][scenario]") {
   /// High and low nibbles select column and row on the nine-cell beacon lattice
   darker::game::city_map cells;
-  cells.fill({.type{1},.state{255}});
+  cells.fill({
+    .type{1},
+    .state{255}
+  });
   std::array<std::byte,3> const queue{std::byte{0x00},std::byte{0x1e},std::byte{0xe1}};
   darker::game::commit_beacon_queue(cells,queue);
   for(size_t i{0}; i < cells.size(); ++i) {
@@ -48,7 +53,10 @@ TEST_CASE("Scripted building objective replacement matches native C858", "[game]
     for(size_t i{0}; i < 4; ++i) cells[(i*2+2)*128+i*2+1].state = static_cast<uint8_t>(s[i+1]);
     std::array<std::byte,11> const program{std::byte{1},std::byte{2},std::byte{3},std::byte{4},static_cast<std::byte>(s[0]),
       std::byte{5},std::byte{6},std::byte{7},std::byte{8},std::byte{255},std::byte{35}};
-    darker::game::world_objectives objectives{.list{2},.cursor{17}};
+    darker::game::world_objectives objectives{
+      .list{2},
+      .cursor{17}
+    };
     CHECK(objectives.replace(cells,program) == s[9]);
     for(size_t i{0}; i < 4; ++i) CHECK(cells[(i*2+2)*128+i*2+1].state == s[i+5]);
     auto const offset{[&]{ return (objectives.list == 0 ? 0u : 5u)+objectives.cursor*2; }};

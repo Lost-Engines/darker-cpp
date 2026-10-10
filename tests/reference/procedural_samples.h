@@ -17,295 +17,1451 @@ struct attitude_sample {
 };
 
 inline std::array<attitude_sample, 289> constexpr attitude{{
-  {.pitch{896}, .roll{896}, .checksum{0x73b61efb90eed6c5ULL}},
-  {.pitch{896}, .roll{912}, .checksum{0x20edde4428fbe8abULL}},
-  {.pitch{896}, .roll{928}, .checksum{0x1bab83c676a7e74bULL}},
-  {.pitch{896}, .roll{944}, .checksum{0x6af451982ce8d80bULL}},
-  {.pitch{896}, .roll{960}, .checksum{0x82e9f5bbeb84dcebULL}},
-  {.pitch{896}, .roll{976}, .checksum{0xa566ba78e39bda2bULL}},
-  {.pitch{896}, .roll{992}, .checksum{0x71e99babf0a7f12bULL}},
-  {.pitch{896}, .roll{1008}, .checksum{0xd6a4fbaf276a456bULL}},
-  {.pitch{896}, .roll{0}, .checksum{0x61262411b22b70ebULL}},
-  {.pitch{896}, .roll{16}, .checksum{0xc376cf0f623fdc4bULL}},
-  {.pitch{896}, .roll{32}, .checksum{0x7bef52d2402c2a4bULL}},
-  {.pitch{896}, .roll{48}, .checksum{0x713d4f56e699ca4bULL}},
-  {.pitch{896}, .roll{64}, .checksum{0x62a22c822c4c05cbULL}},
-  {.pitch{896}, .roll{80}, .checksum{0xbb20164a6d776fabULL}},
-  {.pitch{896}, .roll{96}, .checksum{0xd622ce11715b706bULL}},
-  {.pitch{896}, .roll{112}, .checksum{0x23ce46c5da14d90bULL}},
-  {.pitch{896}, .roll{128}, .checksum{0x8e334fc5f0e834cbULL}},
-  {.pitch{912}, .roll{896}, .checksum{0xd51e6f4ba3083d25ULL}},
-  {.pitch{912}, .roll{912}, .checksum{0x6c6a747e4f62dc8bULL}},
-  {.pitch{912}, .roll{928}, .checksum{0xa1c3f9be9c5ee7cbULL}},
-  {.pitch{912}, .roll{944}, .checksum{0xfea47cc8344cd62bULL}},
-  {.pitch{912}, .roll{960}, .checksum{0x602d323406b2de8bULL}},
-  {.pitch{912}, .roll{976}, .checksum{0xe02f114ea0f5f26bULL}},
-  {.pitch{912}, .roll{992}, .checksum{0x6643612a1759f50bULL}},
-  {.pitch{912}, .roll{1008}, .checksum{0xd1a98e8d59d68e6bULL}},
-  {.pitch{912}, .roll{0}, .checksum{0x50a0be3f39775e2bULL}},
-  {.pitch{912}, .roll{16}, .checksum{0x6a8e0cd56961dc8bULL}},
-  {.pitch{912}, .roll{32}, .checksum{0x65b56529c5e4d5ebULL}},
-  {.pitch{912}, .roll{48}, .checksum{0x23d2c69fb4f22d4bULL}},
-  {.pitch{912}, .roll{64}, .checksum{0x845a79626c16fdebULL}},
-  {.pitch{912}, .roll{80}, .checksum{0xeecf1ffc97f2610bULL}},
-  {.pitch{912}, .roll{96}, .checksum{0x39422a386bb6c3abULL}},
-  {.pitch{912}, .roll{112}, .checksum{0x7d9bf8276d758aabULL}},
-  {.pitch{912}, .roll{128}, .checksum{0xcff424fd7a10550bULL}},
-  {.pitch{928}, .roll{896}, .checksum{0x3968e4b632752425ULL}},
-  {.pitch{928}, .roll{912}, .checksum{0xb4e41c815f6f91cbULL}},
-  {.pitch{928}, .roll{928}, .checksum{0x635316c37cb8a32bULL}},
-  {.pitch{928}, .roll{944}, .checksum{0x6a07fbda9e6f270bULL}},
-  {.pitch{928}, .roll{960}, .checksum{0x11592b4442531c0bULL}},
-  {.pitch{928}, .roll{976}, .checksum{0xff94b1c80817a14bULL}},
-  {.pitch{928}, .roll{992}, .checksum{0xdb5879957f482fabULL}},
-  {.pitch{928}, .roll{1008}, .checksum{0x8452f23ae420464bULL}},
-  {.pitch{928}, .roll{0}, .checksum{0xb35a1d3705bb504bULL}},
-  {.pitch{928}, .roll{16}, .checksum{0x028e98bda40987abULL}},
-  {.pitch{928}, .roll{32}, .checksum{0xe9add3e640ac29cbULL}},
-  {.pitch{928}, .roll{48}, .checksum{0x2db9fd9f945da7ebULL}},
-  {.pitch{928}, .roll{64}, .checksum{0xff026a0c9eeae66bULL}},
-  {.pitch{928}, .roll{80}, .checksum{0xc38fdfe7be7028abULL}},
-  {.pitch{928}, .roll{96}, .checksum{0x32e30b919bfcaf0bULL}},
-  {.pitch{928}, .roll{112}, .checksum{0x6b3fe01030576a2bULL}},
-  {.pitch{928}, .roll{128}, .checksum{0xa18f77d4bfeb302bULL}},
-  {.pitch{944}, .roll{896}, .checksum{0x965f231743a51245ULL}},
-  {.pitch{944}, .roll{912}, .checksum{0x2e7c10bea14e0a2bULL}},
-  {.pitch{944}, .roll{928}, .checksum{0x3911e2bc08b6dc4bULL}},
-  {.pitch{944}, .roll{944}, .checksum{0xab2088ded6793cabULL}},
-  {.pitch{944}, .roll{960}, .checksum{0xe1912c05bb71ae4bULL}},
-  {.pitch{944}, .roll{976}, .checksum{0xb2e833cf7869c8ebULL}},
-  {.pitch{944}, .roll{992}, .checksum{0xc4eefc6a81fbd48bULL}},
-  {.pitch{944}, .roll{1008}, .checksum{0xae5b378f71b5d0abULL}},
-  {.pitch{944}, .roll{0}, .checksum{0xeae1c89d87010babULL}},
-  {.pitch{944}, .roll{16}, .checksum{0x47496ccd45d581cbULL}},
-  {.pitch{944}, .roll{32}, .checksum{0xdc80d56b79a1a56bULL}},
-  {.pitch{944}, .roll{48}, .checksum{0x8adee6c0d3c57e8bULL}},
-  {.pitch{944}, .roll{64}, .checksum{0xa6ae42a70df75d2bULL}},
-  {.pitch{944}, .roll{80}, .checksum{0x50375f7c3203ab4bULL}},
-  {.pitch{944}, .roll{96}, .checksum{0x3ced06976717e42bULL}},
-  {.pitch{944}, .roll{112}, .checksum{0x02655d9f09f441cbULL}},
-  {.pitch{944}, .roll{128}, .checksum{0x21359c9977dee72bULL}},
-  {.pitch{960}, .roll{896}, .checksum{0x27bee6700e421985ULL}},
-  {.pitch{960}, .roll{912}, .checksum{0x6a1c9e4a6ee9408bULL}},
-  {.pitch{960}, .roll{928}, .checksum{0x0d595fe1658ca5abULL}},
-  {.pitch{960}, .roll{944}, .checksum{0xc72d368260809a4bULL}},
-  {.pitch{960}, .roll{960}, .checksum{0x0366f7c9e6e237ebULL}},
-  {.pitch{960}, .roll{976}, .checksum{0x1208c98d458c818bULL}},
-  {.pitch{960}, .roll{992}, .checksum{0x7bcc947a05691b0bULL}},
-  {.pitch{960}, .roll{1008}, .checksum{0x07827bb93e8da98bULL}},
-  {.pitch{960}, .roll{0}, .checksum{0x3af77a433a065e8bULL}},
-  {.pitch{960}, .roll{16}, .checksum{0x9dd2832bb9ac8cabULL}},
-  {.pitch{960}, .roll{32}, .checksum{0x4fbc9db141cc2cebULL}},
-  {.pitch{960}, .roll{48}, .checksum{0x0a1e28ced774a7abULL}},
-  {.pitch{960}, .roll{64}, .checksum{0x24094206f68633cbULL}},
-  {.pitch{960}, .roll{80}, .checksum{0x9a4713ff027a386bULL}},
-  {.pitch{960}, .roll{96}, .checksum{0x32df56e0c2a5224bULL}},
-  {.pitch{960}, .roll{112}, .checksum{0xf1f99ed85562eaebULL}},
-  {.pitch{960}, .roll{128}, .checksum{0x1f26c52bd2665d4bULL}},
-  {.pitch{976}, .roll{896}, .checksum{0xf185368cffde27e5ULL}},
-  {.pitch{976}, .roll{912}, .checksum{0xb59dad5ea4ff1e6bULL}},
-  {.pitch{976}, .roll{928}, .checksum{0xd5a879b5733b834bULL}},
-  {.pitch{976}, .roll{944}, .checksum{0x4bf2bc6d18b40c4bULL}},
-  {.pitch{976}, .roll{960}, .checksum{0x7419dad41a756b8bULL}},
-  {.pitch{976}, .roll{976}, .checksum{0x6dd350179081dd2bULL}},
-  {.pitch{976}, .roll{992}, .checksum{0x8b3e96d4c22b188bULL}},
-  {.pitch{976}, .roll{1008}, .checksum{0xd4e3dcec8ee1858bULL}},
-  {.pitch{976}, .roll{0}, .checksum{0xf94699d0cb0d392bULL}},
-  {.pitch{976}, .roll{16}, .checksum{0x7af8ede40afb2febULL}},
-  {.pitch{976}, .roll{32}, .checksum{0x1fb4fc62e39766ebULL}},
-  {.pitch{976}, .roll{48}, .checksum{0xa1a478c0bc316a4bULL}},
-  {.pitch{976}, .roll{64}, .checksum{0x6fff1698cd69bbebULL}},
-  {.pitch{976}, .roll{80}, .checksum{0x2834875b5f8b822bULL}},
-  {.pitch{976}, .roll{96}, .checksum{0xa51030d5f8cb942bULL}},
-  {.pitch{976}, .roll{112}, .checksum{0x9c2b8ad8a1b896cbULL}},
-  {.pitch{976}, .roll{128}, .checksum{0x15523962bfe15d4bULL}},
-  {.pitch{992}, .roll{896}, .checksum{0x1e8061f93a94d885ULL}},
-  {.pitch{992}, .roll{912}, .checksum{0xe75422222873e66bULL}},
-  {.pitch{992}, .roll{928}, .checksum{0xf296d8a5d70c19abULL}},
-  {.pitch{992}, .roll{944}, .checksum{0x64362674eac4548bULL}},
-  {.pitch{992}, .roll{960}, .checksum{0xfbf77e706991310bULL}},
-  {.pitch{992}, .roll{976}, .checksum{0xb5957b083408048bULL}},
-  {.pitch{992}, .roll{992}, .checksum{0x2e0168583c0e84cbULL}},
-  {.pitch{992}, .roll{1008}, .checksum{0xe5d17f624696482bULL}},
-  {.pitch{992}, .roll{0}, .checksum{0xd82535f875bae08bULL}},
-  {.pitch{992}, .roll{16}, .checksum{0x1f6199f1fa251d0bULL}},
-  {.pitch{992}, .roll{32}, .checksum{0x7c7ba6aa253f54ebULL}},
-  {.pitch{992}, .roll{48}, .checksum{0x4c42006d99b33cabULL}},
-  {.pitch{992}, .roll{64}, .checksum{0x5d04e46aa2c7026bULL}},
-  {.pitch{992}, .roll{80}, .checksum{0x8cb35886c4ab45ebULL}},
-  {.pitch{992}, .roll{96}, .checksum{0xd0bd37b3d2ee978bULL}},
-  {.pitch{992}, .roll{112}, .checksum{0x5602ef457bd83fcbULL}},
-  {.pitch{992}, .roll{128}, .checksum{0x319bf348e9dfbf4bULL}},
-  {.pitch{1008}, .roll{896}, .checksum{0xa0a7710bbded1ae5ULL}},
-  {.pitch{1008}, .roll{912}, .checksum{0x1d7644702e48cc6bULL}},
-  {.pitch{1008}, .roll{928}, .checksum{0x1757f90ac77bba4bULL}},
-  {.pitch{1008}, .roll{944}, .checksum{0x94dee58b1aee1cabULL}},
-  {.pitch{1008}, .roll{960}, .checksum{0x21eac64bb45a898bULL}},
-  {.pitch{1008}, .roll{976}, .checksum{0xb567f9c08a571b8bULL}},
-  {.pitch{1008}, .roll{992}, .checksum{0x97ce6a017ddb922bULL}},
-  {.pitch{1008}, .roll{1008}, .checksum{0xb0f65e3839c8386bULL}},
-  {.pitch{1008}, .roll{0}, .checksum{0x2b7a4ffbeffcf86bULL}},
-  {.pitch{1008}, .roll{16}, .checksum{0x58492fb95405ad0bULL}},
-  {.pitch{1008}, .roll{32}, .checksum{0xb4249f1b6784648bULL}},
-  {.pitch{1008}, .roll{48}, .checksum{0xcbe99552891dc2ebULL}},
-  {.pitch{1008}, .roll{64}, .checksum{0x28d9eed40ae966abULL}},
-  {.pitch{1008}, .roll{80}, .checksum{0x575d40f867be794bULL}},
-  {.pitch{1008}, .roll{96}, .checksum{0x33827a58014e262bULL}},
-  {.pitch{1008}, .roll{112}, .checksum{0x89c343a06aca800bULL}},
-  {.pitch{1008}, .roll{128}, .checksum{0x718112c4fba911cbULL}},
-  {.pitch{0}, .roll{896}, .checksum{0x7cc52b008e6152e5ULL}},
-  {.pitch{0}, .roll{912}, .checksum{0x14c5e50207a7062bULL}},
-  {.pitch{0}, .roll{928}, .checksum{0x110421ca25128e4bULL}},
-  {.pitch{0}, .roll{944}, .checksum{0xb029f832578de1abULL}},
-  {.pitch{0}, .roll{960}, .checksum{0xb54b44d41693c88bULL}},
-  {.pitch{0}, .roll{976}, .checksum{0xbb46efcdf148d92bULL}},
-  {.pitch{0}, .roll{992}, .checksum{0x3664f473a378f68bULL}},
-  {.pitch{0}, .roll{1008}, .checksum{0x9f97d7d2b3f9046bULL}},
-  {.pitch{0}, .roll{0}, .checksum{0x97c5dd8c1badc46bULL}},
-  {.pitch{0}, .roll{16}, .checksum{0x70ec8ec57fbf76ebULL}},
-  {.pitch{0}, .roll{32}, .checksum{0x4b1e6840b8319a0bULL}},
-  {.pitch{0}, .roll{48}, .checksum{0xa1da0cc0f1aa1febULL}},
-  {.pitch{0}, .roll{64}, .checksum{0x41c76fd86076534bULL}},
-  {.pitch{0}, .roll{80}, .checksum{0xfc0a3e9456015e2bULL}},
-  {.pitch{0}, .roll{96}, .checksum{0x0f5a3c0b6a73dacbULL}},
-  {.pitch{0}, .roll{112}, .checksum{0xe2c9aed871fe26abULL}},
-  {.pitch{0}, .roll{128}, .checksum{0x6bd2d778c32c9a6bULL}},
-  {.pitch{16}, .roll{896}, .checksum{0x4e60a5b79addeee5ULL}},
-  {.pitch{16}, .roll{912}, .checksum{0xa6f970d38d52a78bULL}},
-  {.pitch{16}, .roll{928}, .checksum{0xaf88ca6a59399dcbULL}},
-  {.pitch{16}, .roll{944}, .checksum{0xe95c11f1b74b194bULL}},
-  {.pitch{16}, .roll{960}, .checksum{0xf07c49428b825eebULL}},
-  {.pitch{16}, .roll{976}, .checksum{0x8955f0556301382bULL}},
-  {.pitch{16}, .roll{992}, .checksum{0x179067494611e96bULL}},
-  {.pitch{16}, .roll{1008}, .checksum{0xf747c944b329934bULL}},
-  {.pitch{16}, .roll{0}, .checksum{0x9a480762a1864c6bULL}},
-  {.pitch{16}, .roll{16}, .checksum{0x85fae8398325feebULL}},
-  {.pitch{16}, .roll{32}, .checksum{0xb8760cbbb439a20bULL}},
-  {.pitch{16}, .roll{48}, .checksum{0xc5c7837a29046f8bULL}},
-  {.pitch{16}, .roll{64}, .checksum{0x47f3afe15e029d4bULL}},
-  {.pitch{16}, .roll{80}, .checksum{0x2e77e2fe4f23892bULL}},
-  {.pitch{16}, .roll{96}, .checksum{0x438e3580a1aae8abULL}},
-  {.pitch{16}, .roll{112}, .checksum{0xca0a7c5cd8aac9ebULL}},
-  {.pitch{16}, .roll{128}, .checksum{0x181494ea6d6c382bULL}},
-  {.pitch{32}, .roll{896}, .checksum{0xbbdea57a2e6234c5ULL}},
-  {.pitch{32}, .roll{912}, .checksum{0x7515a86ad3f4274bULL}},
-  {.pitch{32}, .roll{928}, .checksum{0xa1ae3dfa4c6089cbULL}},
-  {.pitch{32}, .roll{944}, .checksum{0xfe19607526086d6bULL}},
-  {.pitch{32}, .roll{960}, .checksum{0x068adcb28a42aaebULL}},
-  {.pitch{32}, .roll{976}, .checksum{0x3a24b4160de73d2bULL}},
-  {.pitch{32}, .roll{992}, .checksum{0x0d4e492219597cebULL}},
-  {.pitch{32}, .roll{1008}, .checksum{0x37f1ea624dc3d98bULL}},
-  {.pitch{32}, .roll{0}, .checksum{0x9a17ad28e4618a8bULL}},
-  {.pitch{32}, .roll{16}, .checksum{0x65688715a5a226ebULL}},
-  {.pitch{32}, .roll{32}, .checksum{0xe10bf13dffa26f8bULL}},
-  {.pitch{32}, .roll{48}, .checksum{0x00ab3e769b0e87cbULL}},
-  {.pitch{32}, .roll{64}, .checksum{0xb11b3fb3edd63e8bULL}},
-  {.pitch{32}, .roll{80}, .checksum{0xe57b1755e7b4ae8bULL}},
-  {.pitch{32}, .roll{96}, .checksum{0xbb4ec82f7218bb6bULL}},
-  {.pitch{32}, .roll{112}, .checksum{0xc894452c7b97536bULL}},
-  {.pitch{32}, .roll{128}, .checksum{0x23f11a711e175e6bULL}},
-  {.pitch{48}, .roll{896}, .checksum{0xe8a7f5cf021edba5ULL}},
-  {.pitch{48}, .roll{912}, .checksum{0x31b7c7d823df534bULL}},
-  {.pitch{48}, .roll{928}, .checksum{0x2b381d360fa814ebULL}},
-  {.pitch{48}, .roll{944}, .checksum{0x2e7e3375432abd6bULL}},
-  {.pitch{48}, .roll{960}, .checksum{0x5a90b8d14302e42bULL}},
-  {.pitch{48}, .roll{976}, .checksum{0xded4ee516d72b08bULL}},
-  {.pitch{48}, .roll{992}, .checksum{0x0e6070eccf3f472bULL}},
-  {.pitch{48}, .roll{1008}, .checksum{0x874663088e262e2bULL}},
-  {.pitch{48}, .roll{0}, .checksum{0x3d4a3138e959792bULL}},
-  {.pitch{48}, .roll{16}, .checksum{0x2c671305791ec10bULL}},
-  {.pitch{48}, .roll{32}, .checksum{0xcef3d8ea8beb3f8bULL}},
-  {.pitch{48}, .roll{48}, .checksum{0x5fb710ccd7b67a2bULL}},
-  {.pitch{48}, .roll{64}, .checksum{0xd2612ced5a514d0bULL}},
-  {.pitch{48}, .roll{80}, .checksum{0x1c3ba1db4df86e0bULL}},
-  {.pitch{48}, .roll{96}, .checksum{0xd359e5e4fad9040bULL}},
-  {.pitch{48}, .roll{112}, .checksum{0xfd019fcab1560d6bULL}},
-  {.pitch{48}, .roll{128}, .checksum{0x5bfdb5b39ec0c0ebULL}},
-  {.pitch{64}, .roll{896}, .checksum{0xe280cf159e178785ULL}},
-  {.pitch{64}, .roll{912}, .checksum{0x135eb4ab02d9956bULL}},
-  {.pitch{64}, .roll{928}, .checksum{0x4bae432d2c632c4bULL}},
-  {.pitch{64}, .roll{944}, .checksum{0x72c43fbae0d5632bULL}},
-  {.pitch{64}, .roll{960}, .checksum{0x05ad6fde0d4469cbULL}},
-  {.pitch{64}, .roll{976}, .checksum{0xb9b8b6e00d98d02bULL}},
-  {.pitch{64}, .roll{992}, .checksum{0x251c5b53fccba0ebULL}},
-  {.pitch{64}, .roll{1008}, .checksum{0xa7b028658f627a6bULL}},
-  {.pitch{64}, .roll{0}, .checksum{0xb7717bf421bdb28bULL}},
-  {.pitch{64}, .roll{16}, .checksum{0xb42244cd9256f08bULL}},
-  {.pitch{64}, .roll{32}, .checksum{0xe267e60b10e3480bULL}},
-  {.pitch{64}, .roll{48}, .checksum{0x106fddbca1dbeccbULL}},
-  {.pitch{64}, .roll{64}, .checksum{0x56364cf4525ac1abULL}},
-  {.pitch{64}, .roll{80}, .checksum{0x80016148376a3f8bULL}},
-  {.pitch{64}, .roll{96}, .checksum{0xbe5acaeeabbe966bULL}},
-  {.pitch{64}, .roll{112}, .checksum{0xa1b313d825fff50bULL}},
-  {.pitch{64}, .roll{128}, .checksum{0x41944cb3ff16982bULL}},
-  {.pitch{80}, .roll{896}, .checksum{0x0cf5a835baa75e85ULL}},
-  {.pitch{80}, .roll{912}, .checksum{0x5c38879f48f82bcbULL}},
-  {.pitch{80}, .roll{928}, .checksum{0x1a990b81b13b67abULL}},
-  {.pitch{80}, .roll{944}, .checksum{0x709ec2c5f65ccb0bULL}},
-  {.pitch{80}, .roll{960}, .checksum{0xb3289519e5d74f2bULL}},
-  {.pitch{80}, .roll{976}, .checksum{0xac836dedd0dd5f0bULL}},
-  {.pitch{80}, .roll{992}, .checksum{0x566c91c8a31d256bULL}},
-  {.pitch{80}, .roll{1008}, .checksum{0x312d8d6b98aaa34bULL}},
-  {.pitch{80}, .roll{0}, .checksum{0x0f4b327e78a2f3abULL}},
-  {.pitch{80}, .roll{16}, .checksum{0xd0e64c3d6db939ebULL}},
-  {.pitch{80}, .roll{32}, .checksum{0x7380671c74418acbULL}},
-  {.pitch{80}, .roll{48}, .checksum{0x086dd6741004aaabULL}},
-  {.pitch{80}, .roll{64}, .checksum{0xeb8c27c2a7c4a04bULL}},
-  {.pitch{80}, .roll{80}, .checksum{0xb190667bd59da0abULL}},
-  {.pitch{80}, .roll{96}, .checksum{0x915c2a75e055780bULL}},
-  {.pitch{80}, .roll{112}, .checksum{0x0cfdd3249e8f406bULL}},
-  {.pitch{80}, .roll{128}, .checksum{0x10880cf5f298e80bULL}},
-  {.pitch{96}, .roll{896}, .checksum{0x3bf43f9c43c55425ULL}},
-  {.pitch{96}, .roll{912}, .checksum{0xcc09608b5ca785ebULL}},
-  {.pitch{96}, .roll{928}, .checksum{0x0ebe850714b6ac8bULL}},
-  {.pitch{96}, .roll{944}, .checksum{0x3cd9262bcf442eabULL}},
-  {.pitch{96}, .roll{960}, .checksum{0x69804cf2f256a24bULL}},
-  {.pitch{96}, .roll{976}, .checksum{0x43236d3cacf634ebULL}},
-  {.pitch{96}, .roll{992}, .checksum{0x85513dfba8ba9e0bULL}},
-  {.pitch{96}, .roll{1008}, .checksum{0x1d85725455dc59abULL}},
-  {.pitch{96}, .roll{0}, .checksum{0xcc656a2fbe6a4c4bULL}},
-  {.pitch{96}, .roll{16}, .checksum{0x5d915b6b5984100bULL}},
-  {.pitch{96}, .roll{32}, .checksum{0x1bf1443f2adbe92bULL}},
-  {.pitch{96}, .roll{48}, .checksum{0xa81831530381000bULL}},
-  {.pitch{96}, .roll{64}, .checksum{0x2c8928f6d4f9bc2bULL}},
-  {.pitch{96}, .roll{80}, .checksum{0x92caa9319cd3df8bULL}},
-  {.pitch{96}, .roll{96}, .checksum{0x6a0e92fe8f8a77abULL}},
-  {.pitch{96}, .roll{112}, .checksum{0xdda7443fde5925cbULL}},
-  {.pitch{96}, .roll{128}, .checksum{0xd870bc60775b870bULL}},
-  {.pitch{112}, .roll{896}, .checksum{0xdbd8850434c8e0e5ULL}},
-  {.pitch{112}, .roll{912}, .checksum{0x052b36ba90f8412bULL}},
-  {.pitch{112}, .roll{928}, .checksum{0xd324621cf9fef1ebULL}},
-  {.pitch{112}, .roll{944}, .checksum{0xebdce26563cbc3cbULL}},
-  {.pitch{112}, .roll{960}, .checksum{0x1c15f5523fc5f56bULL}},
-  {.pitch{112}, .roll{976}, .checksum{0x87ce2051fbbf7d4bULL}},
-  {.pitch{112}, .roll{992}, .checksum{0x0398a574aded7b4bULL}},
-  {.pitch{112}, .roll{1008}, .checksum{0xb0c29dc0043f478bULL}},
-  {.pitch{112}, .roll{0}, .checksum{0x81d9dd387adc8c2bULL}},
-  {.pitch{112}, .roll{16}, .checksum{0x1c85b47e61d95cebULL}},
-  {.pitch{112}, .roll{32}, .checksum{0x06aba147ea1a896bULL}},
-  {.pitch{112}, .roll{48}, .checksum{0xd0d3af8efb996d2bULL}},
-  {.pitch{112}, .roll{64}, .checksum{0xa116f990d2ae464bULL}},
-  {.pitch{112}, .roll{80}, .checksum{0x022feb3cc34c0eebULL}},
-  {.pitch{112}, .roll{96}, .checksum{0x637a952769eb8f4bULL}},
-  {.pitch{112}, .roll{112}, .checksum{0xd5e9c56475b6448bULL}},
-  {.pitch{112}, .roll{128}, .checksum{0x89abeccd38a3aa2bULL}},
-  {.pitch{128}, .roll{896}, .checksum{0x70ca4df348d942c5ULL}},
-  {.pitch{128}, .roll{912}, .checksum{0x23ba5b923c96a10bULL}},
-  {.pitch{128}, .roll{928}, .checksum{0xa3411678239b786bULL}},
-  {.pitch{128}, .roll{944}, .checksum{0x33f395c1cdbfd7abULL}},
-  {.pitch{128}, .roll{960}, .checksum{0xb7d6d552ebe340cbULL}},
-  {.pitch{128}, .roll{976}, .checksum{0xd3a7ff676dec3dcbULL}},
-  {.pitch{128}, .roll{992}, .checksum{0xf04aae4829d946cbULL}},
-  {.pitch{128}, .roll{1008}, .checksum{0xca5b78c0ed62f44bULL}},
-  {.pitch{128}, .roll{0}, .checksum{0x3115ffff06cd6eebULL}},
-  {.pitch{128}, .roll{16}, .checksum{0x5bf9a8c6d87a2debULL}},
-  {.pitch{128}, .roll{32}, .checksum{0x64683f367c2cb8abULL}},
-  {.pitch{128}, .roll{48}, .checksum{0x0de9c6da5c0b086bULL}},
-  {.pitch{128}, .roll{64}, .checksum{0xe29cd7e940ad256bULL}},
-  {.pitch{128}, .roll{80}, .checksum{0xddc3fe7cbdbb8ccbULL}},
-  {.pitch{128}, .roll{96}, .checksum{0x6c034eea9019674bULL}},
-  {.pitch{128}, .roll{112}, .checksum{0x712fa724d8a01dabULL}},
-  {.pitch{128}, .roll{128}, .checksum{0xda566c220ffbef8bULL}},
+  {
+    .pitch{896},
+    .roll{896},
+    .checksum{0x73b61efb90eed6c5ULL}
+  },
+  {
+    .pitch{896},
+    .roll{912},
+    .checksum{0x20edde4428fbe8abULL}
+  },
+  {
+    .pitch{896},
+    .roll{928},
+    .checksum{0x1bab83c676a7e74bULL}
+  },
+  {
+    .pitch{896},
+    .roll{944},
+    .checksum{0x6af451982ce8d80bULL}
+  },
+  {
+    .pitch{896},
+    .roll{960},
+    .checksum{0x82e9f5bbeb84dcebULL}
+  },
+  {
+    .pitch{896},
+    .roll{976},
+    .checksum{0xa566ba78e39bda2bULL}
+  },
+  {
+    .pitch{896},
+    .roll{992},
+    .checksum{0x71e99babf0a7f12bULL}
+  },
+  {
+    .pitch{896},
+    .roll{1008},
+    .checksum{0xd6a4fbaf276a456bULL}
+  },
+  {
+    .pitch{896},
+    .roll{0},
+    .checksum{0x61262411b22b70ebULL}
+  },
+  {
+    .pitch{896},
+    .roll{16},
+    .checksum{0xc376cf0f623fdc4bULL}
+  },
+  {
+    .pitch{896},
+    .roll{32},
+    .checksum{0x7bef52d2402c2a4bULL}
+  },
+  {
+    .pitch{896},
+    .roll{48},
+    .checksum{0x713d4f56e699ca4bULL}
+  },
+  {
+    .pitch{896},
+    .roll{64},
+    .checksum{0x62a22c822c4c05cbULL}
+  },
+  {
+    .pitch{896},
+    .roll{80},
+    .checksum{0xbb20164a6d776fabULL}
+  },
+  {
+    .pitch{896},
+    .roll{96},
+    .checksum{0xd622ce11715b706bULL}
+  },
+  {
+    .pitch{896},
+    .roll{112},
+    .checksum{0x23ce46c5da14d90bULL}
+  },
+  {
+    .pitch{896},
+    .roll{128},
+    .checksum{0x8e334fc5f0e834cbULL}
+  },
+  {
+    .pitch{912},
+    .roll{896},
+    .checksum{0xd51e6f4ba3083d25ULL}
+  },
+  {
+    .pitch{912},
+    .roll{912},
+    .checksum{0x6c6a747e4f62dc8bULL}
+  },
+  {
+    .pitch{912},
+    .roll{928},
+    .checksum{0xa1c3f9be9c5ee7cbULL}
+  },
+  {
+    .pitch{912},
+    .roll{944},
+    .checksum{0xfea47cc8344cd62bULL}
+  },
+  {
+    .pitch{912},
+    .roll{960},
+    .checksum{0x602d323406b2de8bULL}
+  },
+  {
+    .pitch{912},
+    .roll{976},
+    .checksum{0xe02f114ea0f5f26bULL}
+  },
+  {
+    .pitch{912},
+    .roll{992},
+    .checksum{0x6643612a1759f50bULL}
+  },
+  {
+    .pitch{912},
+    .roll{1008},
+    .checksum{0xd1a98e8d59d68e6bULL}
+  },
+  {
+    .pitch{912},
+    .roll{0},
+    .checksum{0x50a0be3f39775e2bULL}
+  },
+  {
+    .pitch{912},
+    .roll{16},
+    .checksum{0x6a8e0cd56961dc8bULL}
+  },
+  {
+    .pitch{912},
+    .roll{32},
+    .checksum{0x65b56529c5e4d5ebULL}
+  },
+  {
+    .pitch{912},
+    .roll{48},
+    .checksum{0x23d2c69fb4f22d4bULL}
+  },
+  {
+    .pitch{912},
+    .roll{64},
+    .checksum{0x845a79626c16fdebULL}
+  },
+  {
+    .pitch{912},
+    .roll{80},
+    .checksum{0xeecf1ffc97f2610bULL}
+  },
+  {
+    .pitch{912},
+    .roll{96},
+    .checksum{0x39422a386bb6c3abULL}
+  },
+  {
+    .pitch{912},
+    .roll{112},
+    .checksum{0x7d9bf8276d758aabULL}
+  },
+  {
+    .pitch{912},
+    .roll{128},
+    .checksum{0xcff424fd7a10550bULL}
+  },
+  {
+    .pitch{928},
+    .roll{896},
+    .checksum{0x3968e4b632752425ULL}
+  },
+  {
+    .pitch{928},
+    .roll{912},
+    .checksum{0xb4e41c815f6f91cbULL}
+  },
+  {
+    .pitch{928},
+    .roll{928},
+    .checksum{0x635316c37cb8a32bULL}
+  },
+  {
+    .pitch{928},
+    .roll{944},
+    .checksum{0x6a07fbda9e6f270bULL}
+  },
+  {
+    .pitch{928},
+    .roll{960},
+    .checksum{0x11592b4442531c0bULL}
+  },
+  {
+    .pitch{928},
+    .roll{976},
+    .checksum{0xff94b1c80817a14bULL}
+  },
+  {
+    .pitch{928},
+    .roll{992},
+    .checksum{0xdb5879957f482fabULL}
+  },
+  {
+    .pitch{928},
+    .roll{1008},
+    .checksum{0x8452f23ae420464bULL}
+  },
+  {
+    .pitch{928},
+    .roll{0},
+    .checksum{0xb35a1d3705bb504bULL}
+  },
+  {
+    .pitch{928},
+    .roll{16},
+    .checksum{0x028e98bda40987abULL}
+  },
+  {
+    .pitch{928},
+    .roll{32},
+    .checksum{0xe9add3e640ac29cbULL}
+  },
+  {
+    .pitch{928},
+    .roll{48},
+    .checksum{0x2db9fd9f945da7ebULL}
+  },
+  {
+    .pitch{928},
+    .roll{64},
+    .checksum{0xff026a0c9eeae66bULL}
+  },
+  {
+    .pitch{928},
+    .roll{80},
+    .checksum{0xc38fdfe7be7028abULL}
+  },
+  {
+    .pitch{928},
+    .roll{96},
+    .checksum{0x32e30b919bfcaf0bULL}
+  },
+  {
+    .pitch{928},
+    .roll{112},
+    .checksum{0x6b3fe01030576a2bULL}
+  },
+  {
+    .pitch{928},
+    .roll{128},
+    .checksum{0xa18f77d4bfeb302bULL}
+  },
+  {
+    .pitch{944},
+    .roll{896},
+    .checksum{0x965f231743a51245ULL}
+  },
+  {
+    .pitch{944},
+    .roll{912},
+    .checksum{0x2e7c10bea14e0a2bULL}
+  },
+  {
+    .pitch{944},
+    .roll{928},
+    .checksum{0x3911e2bc08b6dc4bULL}
+  },
+  {
+    .pitch{944},
+    .roll{944},
+    .checksum{0xab2088ded6793cabULL}
+  },
+  {
+    .pitch{944},
+    .roll{960},
+    .checksum{0xe1912c05bb71ae4bULL}
+  },
+  {
+    .pitch{944},
+    .roll{976},
+    .checksum{0xb2e833cf7869c8ebULL}
+  },
+  {
+    .pitch{944},
+    .roll{992},
+    .checksum{0xc4eefc6a81fbd48bULL}
+  },
+  {
+    .pitch{944},
+    .roll{1008},
+    .checksum{0xae5b378f71b5d0abULL}
+  },
+  {
+    .pitch{944},
+    .roll{0},
+    .checksum{0xeae1c89d87010babULL}
+  },
+  {
+    .pitch{944},
+    .roll{16},
+    .checksum{0x47496ccd45d581cbULL}
+  },
+  {
+    .pitch{944},
+    .roll{32},
+    .checksum{0xdc80d56b79a1a56bULL}
+  },
+  {
+    .pitch{944},
+    .roll{48},
+    .checksum{0x8adee6c0d3c57e8bULL}
+  },
+  {
+    .pitch{944},
+    .roll{64},
+    .checksum{0xa6ae42a70df75d2bULL}
+  },
+  {
+    .pitch{944},
+    .roll{80},
+    .checksum{0x50375f7c3203ab4bULL}
+  },
+  {
+    .pitch{944},
+    .roll{96},
+    .checksum{0x3ced06976717e42bULL}
+  },
+  {
+    .pitch{944},
+    .roll{112},
+    .checksum{0x02655d9f09f441cbULL}
+  },
+  {
+    .pitch{944},
+    .roll{128},
+    .checksum{0x21359c9977dee72bULL}
+  },
+  {
+    .pitch{960},
+    .roll{896},
+    .checksum{0x27bee6700e421985ULL}
+  },
+  {
+    .pitch{960},
+    .roll{912},
+    .checksum{0x6a1c9e4a6ee9408bULL}
+  },
+  {
+    .pitch{960},
+    .roll{928},
+    .checksum{0x0d595fe1658ca5abULL}
+  },
+  {
+    .pitch{960},
+    .roll{944},
+    .checksum{0xc72d368260809a4bULL}
+  },
+  {
+    .pitch{960},
+    .roll{960},
+    .checksum{0x0366f7c9e6e237ebULL}
+  },
+  {
+    .pitch{960},
+    .roll{976},
+    .checksum{0x1208c98d458c818bULL}
+  },
+  {
+    .pitch{960},
+    .roll{992},
+    .checksum{0x7bcc947a05691b0bULL}
+  },
+  {
+    .pitch{960},
+    .roll{1008},
+    .checksum{0x07827bb93e8da98bULL}
+  },
+  {
+    .pitch{960},
+    .roll{0},
+    .checksum{0x3af77a433a065e8bULL}
+  },
+  {
+    .pitch{960},
+    .roll{16},
+    .checksum{0x9dd2832bb9ac8cabULL}
+  },
+  {
+    .pitch{960},
+    .roll{32},
+    .checksum{0x4fbc9db141cc2cebULL}
+  },
+  {
+    .pitch{960},
+    .roll{48},
+    .checksum{0x0a1e28ced774a7abULL}
+  },
+  {
+    .pitch{960},
+    .roll{64},
+    .checksum{0x24094206f68633cbULL}
+  },
+  {
+    .pitch{960},
+    .roll{80},
+    .checksum{0x9a4713ff027a386bULL}
+  },
+  {
+    .pitch{960},
+    .roll{96},
+    .checksum{0x32df56e0c2a5224bULL}
+  },
+  {
+    .pitch{960},
+    .roll{112},
+    .checksum{0xf1f99ed85562eaebULL}
+  },
+  {
+    .pitch{960},
+    .roll{128},
+    .checksum{0x1f26c52bd2665d4bULL}
+  },
+  {
+    .pitch{976},
+    .roll{896},
+    .checksum{0xf185368cffde27e5ULL}
+  },
+  {
+    .pitch{976},
+    .roll{912},
+    .checksum{0xb59dad5ea4ff1e6bULL}
+  },
+  {
+    .pitch{976},
+    .roll{928},
+    .checksum{0xd5a879b5733b834bULL}
+  },
+  {
+    .pitch{976},
+    .roll{944},
+    .checksum{0x4bf2bc6d18b40c4bULL}
+  },
+  {
+    .pitch{976},
+    .roll{960},
+    .checksum{0x7419dad41a756b8bULL}
+  },
+  {
+    .pitch{976},
+    .roll{976},
+    .checksum{0x6dd350179081dd2bULL}
+  },
+  {
+    .pitch{976},
+    .roll{992},
+    .checksum{0x8b3e96d4c22b188bULL}
+  },
+  {
+    .pitch{976},
+    .roll{1008},
+    .checksum{0xd4e3dcec8ee1858bULL}
+  },
+  {
+    .pitch{976},
+    .roll{0},
+    .checksum{0xf94699d0cb0d392bULL}
+  },
+  {
+    .pitch{976},
+    .roll{16},
+    .checksum{0x7af8ede40afb2febULL}
+  },
+  {
+    .pitch{976},
+    .roll{32},
+    .checksum{0x1fb4fc62e39766ebULL}
+  },
+  {
+    .pitch{976},
+    .roll{48},
+    .checksum{0xa1a478c0bc316a4bULL}
+  },
+  {
+    .pitch{976},
+    .roll{64},
+    .checksum{0x6fff1698cd69bbebULL}
+  },
+  {
+    .pitch{976},
+    .roll{80},
+    .checksum{0x2834875b5f8b822bULL}
+  },
+  {
+    .pitch{976},
+    .roll{96},
+    .checksum{0xa51030d5f8cb942bULL}
+  },
+  {
+    .pitch{976},
+    .roll{112},
+    .checksum{0x9c2b8ad8a1b896cbULL}
+  },
+  {
+    .pitch{976},
+    .roll{128},
+    .checksum{0x15523962bfe15d4bULL}
+  },
+  {
+    .pitch{992},
+    .roll{896},
+    .checksum{0x1e8061f93a94d885ULL}
+  },
+  {
+    .pitch{992},
+    .roll{912},
+    .checksum{0xe75422222873e66bULL}
+  },
+  {
+    .pitch{992},
+    .roll{928},
+    .checksum{0xf296d8a5d70c19abULL}
+  },
+  {
+    .pitch{992},
+    .roll{944},
+    .checksum{0x64362674eac4548bULL}
+  },
+  {
+    .pitch{992},
+    .roll{960},
+    .checksum{0xfbf77e706991310bULL}
+  },
+  {
+    .pitch{992},
+    .roll{976},
+    .checksum{0xb5957b083408048bULL}
+  },
+  {
+    .pitch{992},
+    .roll{992},
+    .checksum{0x2e0168583c0e84cbULL}
+  },
+  {
+    .pitch{992},
+    .roll{1008},
+    .checksum{0xe5d17f624696482bULL}
+  },
+  {
+    .pitch{992},
+    .roll{0},
+    .checksum{0xd82535f875bae08bULL}
+  },
+  {
+    .pitch{992},
+    .roll{16},
+    .checksum{0x1f6199f1fa251d0bULL}
+  },
+  {
+    .pitch{992},
+    .roll{32},
+    .checksum{0x7c7ba6aa253f54ebULL}
+  },
+  {
+    .pitch{992},
+    .roll{48},
+    .checksum{0x4c42006d99b33cabULL}
+  },
+  {
+    .pitch{992},
+    .roll{64},
+    .checksum{0x5d04e46aa2c7026bULL}
+  },
+  {
+    .pitch{992},
+    .roll{80},
+    .checksum{0x8cb35886c4ab45ebULL}
+  },
+  {
+    .pitch{992},
+    .roll{96},
+    .checksum{0xd0bd37b3d2ee978bULL}
+  },
+  {
+    .pitch{992},
+    .roll{112},
+    .checksum{0x5602ef457bd83fcbULL}
+  },
+  {
+    .pitch{992},
+    .roll{128},
+    .checksum{0x319bf348e9dfbf4bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{896},
+    .checksum{0xa0a7710bbded1ae5ULL}
+  },
+  {
+    .pitch{1008},
+    .roll{912},
+    .checksum{0x1d7644702e48cc6bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{928},
+    .checksum{0x1757f90ac77bba4bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{944},
+    .checksum{0x94dee58b1aee1cabULL}
+  },
+  {
+    .pitch{1008},
+    .roll{960},
+    .checksum{0x21eac64bb45a898bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{976},
+    .checksum{0xb567f9c08a571b8bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{992},
+    .checksum{0x97ce6a017ddb922bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{1008},
+    .checksum{0xb0f65e3839c8386bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{0},
+    .checksum{0x2b7a4ffbeffcf86bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{16},
+    .checksum{0x58492fb95405ad0bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{32},
+    .checksum{0xb4249f1b6784648bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{48},
+    .checksum{0xcbe99552891dc2ebULL}
+  },
+  {
+    .pitch{1008},
+    .roll{64},
+    .checksum{0x28d9eed40ae966abULL}
+  },
+  {
+    .pitch{1008},
+    .roll{80},
+    .checksum{0x575d40f867be794bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{96},
+    .checksum{0x33827a58014e262bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{112},
+    .checksum{0x89c343a06aca800bULL}
+  },
+  {
+    .pitch{1008},
+    .roll{128},
+    .checksum{0x718112c4fba911cbULL}
+  },
+  {
+    .pitch{0},
+    .roll{896},
+    .checksum{0x7cc52b008e6152e5ULL}
+  },
+  {
+    .pitch{0},
+    .roll{912},
+    .checksum{0x14c5e50207a7062bULL}
+  },
+  {
+    .pitch{0},
+    .roll{928},
+    .checksum{0x110421ca25128e4bULL}
+  },
+  {
+    .pitch{0},
+    .roll{944},
+    .checksum{0xb029f832578de1abULL}
+  },
+  {
+    .pitch{0},
+    .roll{960},
+    .checksum{0xb54b44d41693c88bULL}
+  },
+  {
+    .pitch{0},
+    .roll{976},
+    .checksum{0xbb46efcdf148d92bULL}
+  },
+  {
+    .pitch{0},
+    .roll{992},
+    .checksum{0x3664f473a378f68bULL}
+  },
+  {
+    .pitch{0},
+    .roll{1008},
+    .checksum{0x9f97d7d2b3f9046bULL}
+  },
+  {
+    .pitch{0},
+    .roll{0},
+    .checksum{0x97c5dd8c1badc46bULL}
+  },
+  {
+    .pitch{0},
+    .roll{16},
+    .checksum{0x70ec8ec57fbf76ebULL}
+  },
+  {
+    .pitch{0},
+    .roll{32},
+    .checksum{0x4b1e6840b8319a0bULL}
+  },
+  {
+    .pitch{0},
+    .roll{48},
+    .checksum{0xa1da0cc0f1aa1febULL}
+  },
+  {
+    .pitch{0},
+    .roll{64},
+    .checksum{0x41c76fd86076534bULL}
+  },
+  {
+    .pitch{0},
+    .roll{80},
+    .checksum{0xfc0a3e9456015e2bULL}
+  },
+  {
+    .pitch{0},
+    .roll{96},
+    .checksum{0x0f5a3c0b6a73dacbULL}
+  },
+  {
+    .pitch{0},
+    .roll{112},
+    .checksum{0xe2c9aed871fe26abULL}
+  },
+  {
+    .pitch{0},
+    .roll{128},
+    .checksum{0x6bd2d778c32c9a6bULL}
+  },
+  {
+    .pitch{16},
+    .roll{896},
+    .checksum{0x4e60a5b79addeee5ULL}
+  },
+  {
+    .pitch{16},
+    .roll{912},
+    .checksum{0xa6f970d38d52a78bULL}
+  },
+  {
+    .pitch{16},
+    .roll{928},
+    .checksum{0xaf88ca6a59399dcbULL}
+  },
+  {
+    .pitch{16},
+    .roll{944},
+    .checksum{0xe95c11f1b74b194bULL}
+  },
+  {
+    .pitch{16},
+    .roll{960},
+    .checksum{0xf07c49428b825eebULL}
+  },
+  {
+    .pitch{16},
+    .roll{976},
+    .checksum{0x8955f0556301382bULL}
+  },
+  {
+    .pitch{16},
+    .roll{992},
+    .checksum{0x179067494611e96bULL}
+  },
+  {
+    .pitch{16},
+    .roll{1008},
+    .checksum{0xf747c944b329934bULL}
+  },
+  {
+    .pitch{16},
+    .roll{0},
+    .checksum{0x9a480762a1864c6bULL}
+  },
+  {
+    .pitch{16},
+    .roll{16},
+    .checksum{0x85fae8398325feebULL}
+  },
+  {
+    .pitch{16},
+    .roll{32},
+    .checksum{0xb8760cbbb439a20bULL}
+  },
+  {
+    .pitch{16},
+    .roll{48},
+    .checksum{0xc5c7837a29046f8bULL}
+  },
+  {
+    .pitch{16},
+    .roll{64},
+    .checksum{0x47f3afe15e029d4bULL}
+  },
+  {
+    .pitch{16},
+    .roll{80},
+    .checksum{0x2e77e2fe4f23892bULL}
+  },
+  {
+    .pitch{16},
+    .roll{96},
+    .checksum{0x438e3580a1aae8abULL}
+  },
+  {
+    .pitch{16},
+    .roll{112},
+    .checksum{0xca0a7c5cd8aac9ebULL}
+  },
+  {
+    .pitch{16},
+    .roll{128},
+    .checksum{0x181494ea6d6c382bULL}
+  },
+  {
+    .pitch{32},
+    .roll{896},
+    .checksum{0xbbdea57a2e6234c5ULL}
+  },
+  {
+    .pitch{32},
+    .roll{912},
+    .checksum{0x7515a86ad3f4274bULL}
+  },
+  {
+    .pitch{32},
+    .roll{928},
+    .checksum{0xa1ae3dfa4c6089cbULL}
+  },
+  {
+    .pitch{32},
+    .roll{944},
+    .checksum{0xfe19607526086d6bULL}
+  },
+  {
+    .pitch{32},
+    .roll{960},
+    .checksum{0x068adcb28a42aaebULL}
+  },
+  {
+    .pitch{32},
+    .roll{976},
+    .checksum{0x3a24b4160de73d2bULL}
+  },
+  {
+    .pitch{32},
+    .roll{992},
+    .checksum{0x0d4e492219597cebULL}
+  },
+  {
+    .pitch{32},
+    .roll{1008},
+    .checksum{0x37f1ea624dc3d98bULL}
+  },
+  {
+    .pitch{32},
+    .roll{0},
+    .checksum{0x9a17ad28e4618a8bULL}
+  },
+  {
+    .pitch{32},
+    .roll{16},
+    .checksum{0x65688715a5a226ebULL}
+  },
+  {
+    .pitch{32},
+    .roll{32},
+    .checksum{0xe10bf13dffa26f8bULL}
+  },
+  {
+    .pitch{32},
+    .roll{48},
+    .checksum{0x00ab3e769b0e87cbULL}
+  },
+  {
+    .pitch{32},
+    .roll{64},
+    .checksum{0xb11b3fb3edd63e8bULL}
+  },
+  {
+    .pitch{32},
+    .roll{80},
+    .checksum{0xe57b1755e7b4ae8bULL}
+  },
+  {
+    .pitch{32},
+    .roll{96},
+    .checksum{0xbb4ec82f7218bb6bULL}
+  },
+  {
+    .pitch{32},
+    .roll{112},
+    .checksum{0xc894452c7b97536bULL}
+  },
+  {
+    .pitch{32},
+    .roll{128},
+    .checksum{0x23f11a711e175e6bULL}
+  },
+  {
+    .pitch{48},
+    .roll{896},
+    .checksum{0xe8a7f5cf021edba5ULL}
+  },
+  {
+    .pitch{48},
+    .roll{912},
+    .checksum{0x31b7c7d823df534bULL}
+  },
+  {
+    .pitch{48},
+    .roll{928},
+    .checksum{0x2b381d360fa814ebULL}
+  },
+  {
+    .pitch{48},
+    .roll{944},
+    .checksum{0x2e7e3375432abd6bULL}
+  },
+  {
+    .pitch{48},
+    .roll{960},
+    .checksum{0x5a90b8d14302e42bULL}
+  },
+  {
+    .pitch{48},
+    .roll{976},
+    .checksum{0xded4ee516d72b08bULL}
+  },
+  {
+    .pitch{48},
+    .roll{992},
+    .checksum{0x0e6070eccf3f472bULL}
+  },
+  {
+    .pitch{48},
+    .roll{1008},
+    .checksum{0x874663088e262e2bULL}
+  },
+  {
+    .pitch{48},
+    .roll{0},
+    .checksum{0x3d4a3138e959792bULL}
+  },
+  {
+    .pitch{48},
+    .roll{16},
+    .checksum{0x2c671305791ec10bULL}
+  },
+  {
+    .pitch{48},
+    .roll{32},
+    .checksum{0xcef3d8ea8beb3f8bULL}
+  },
+  {
+    .pitch{48},
+    .roll{48},
+    .checksum{0x5fb710ccd7b67a2bULL}
+  },
+  {
+    .pitch{48},
+    .roll{64},
+    .checksum{0xd2612ced5a514d0bULL}
+  },
+  {
+    .pitch{48},
+    .roll{80},
+    .checksum{0x1c3ba1db4df86e0bULL}
+  },
+  {
+    .pitch{48},
+    .roll{96},
+    .checksum{0xd359e5e4fad9040bULL}
+  },
+  {
+    .pitch{48},
+    .roll{112},
+    .checksum{0xfd019fcab1560d6bULL}
+  },
+  {
+    .pitch{48},
+    .roll{128},
+    .checksum{0x5bfdb5b39ec0c0ebULL}
+  },
+  {
+    .pitch{64},
+    .roll{896},
+    .checksum{0xe280cf159e178785ULL}
+  },
+  {
+    .pitch{64},
+    .roll{912},
+    .checksum{0x135eb4ab02d9956bULL}
+  },
+  {
+    .pitch{64},
+    .roll{928},
+    .checksum{0x4bae432d2c632c4bULL}
+  },
+  {
+    .pitch{64},
+    .roll{944},
+    .checksum{0x72c43fbae0d5632bULL}
+  },
+  {
+    .pitch{64},
+    .roll{960},
+    .checksum{0x05ad6fde0d4469cbULL}
+  },
+  {
+    .pitch{64},
+    .roll{976},
+    .checksum{0xb9b8b6e00d98d02bULL}
+  },
+  {
+    .pitch{64},
+    .roll{992},
+    .checksum{0x251c5b53fccba0ebULL}
+  },
+  {
+    .pitch{64},
+    .roll{1008},
+    .checksum{0xa7b028658f627a6bULL}
+  },
+  {
+    .pitch{64},
+    .roll{0},
+    .checksum{0xb7717bf421bdb28bULL}
+  },
+  {
+    .pitch{64},
+    .roll{16},
+    .checksum{0xb42244cd9256f08bULL}
+  },
+  {
+    .pitch{64},
+    .roll{32},
+    .checksum{0xe267e60b10e3480bULL}
+  },
+  {
+    .pitch{64},
+    .roll{48},
+    .checksum{0x106fddbca1dbeccbULL}
+  },
+  {
+    .pitch{64},
+    .roll{64},
+    .checksum{0x56364cf4525ac1abULL}
+  },
+  {
+    .pitch{64},
+    .roll{80},
+    .checksum{0x80016148376a3f8bULL}
+  },
+  {
+    .pitch{64},
+    .roll{96},
+    .checksum{0xbe5acaeeabbe966bULL}
+  },
+  {
+    .pitch{64},
+    .roll{112},
+    .checksum{0xa1b313d825fff50bULL}
+  },
+  {
+    .pitch{64},
+    .roll{128},
+    .checksum{0x41944cb3ff16982bULL}
+  },
+  {
+    .pitch{80},
+    .roll{896},
+    .checksum{0x0cf5a835baa75e85ULL}
+  },
+  {
+    .pitch{80},
+    .roll{912},
+    .checksum{0x5c38879f48f82bcbULL}
+  },
+  {
+    .pitch{80},
+    .roll{928},
+    .checksum{0x1a990b81b13b67abULL}
+  },
+  {
+    .pitch{80},
+    .roll{944},
+    .checksum{0x709ec2c5f65ccb0bULL}
+  },
+  {
+    .pitch{80},
+    .roll{960},
+    .checksum{0xb3289519e5d74f2bULL}
+  },
+  {
+    .pitch{80},
+    .roll{976},
+    .checksum{0xac836dedd0dd5f0bULL}
+  },
+  {
+    .pitch{80},
+    .roll{992},
+    .checksum{0x566c91c8a31d256bULL}
+  },
+  {
+    .pitch{80},
+    .roll{1008},
+    .checksum{0x312d8d6b98aaa34bULL}
+  },
+  {
+    .pitch{80},
+    .roll{0},
+    .checksum{0x0f4b327e78a2f3abULL}
+  },
+  {
+    .pitch{80},
+    .roll{16},
+    .checksum{0xd0e64c3d6db939ebULL}
+  },
+  {
+    .pitch{80},
+    .roll{32},
+    .checksum{0x7380671c74418acbULL}
+  },
+  {
+    .pitch{80},
+    .roll{48},
+    .checksum{0x086dd6741004aaabULL}
+  },
+  {
+    .pitch{80},
+    .roll{64},
+    .checksum{0xeb8c27c2a7c4a04bULL}
+  },
+  {
+    .pitch{80},
+    .roll{80},
+    .checksum{0xb190667bd59da0abULL}
+  },
+  {
+    .pitch{80},
+    .roll{96},
+    .checksum{0x915c2a75e055780bULL}
+  },
+  {
+    .pitch{80},
+    .roll{112},
+    .checksum{0x0cfdd3249e8f406bULL}
+  },
+  {
+    .pitch{80},
+    .roll{128},
+    .checksum{0x10880cf5f298e80bULL}
+  },
+  {
+    .pitch{96},
+    .roll{896},
+    .checksum{0x3bf43f9c43c55425ULL}
+  },
+  {
+    .pitch{96},
+    .roll{912},
+    .checksum{0xcc09608b5ca785ebULL}
+  },
+  {
+    .pitch{96},
+    .roll{928},
+    .checksum{0x0ebe850714b6ac8bULL}
+  },
+  {
+    .pitch{96},
+    .roll{944},
+    .checksum{0x3cd9262bcf442eabULL}
+  },
+  {
+    .pitch{96},
+    .roll{960},
+    .checksum{0x69804cf2f256a24bULL}
+  },
+  {
+    .pitch{96},
+    .roll{976},
+    .checksum{0x43236d3cacf634ebULL}
+  },
+  {
+    .pitch{96},
+    .roll{992},
+    .checksum{0x85513dfba8ba9e0bULL}
+  },
+  {
+    .pitch{96},
+    .roll{1008},
+    .checksum{0x1d85725455dc59abULL}
+  },
+  {
+    .pitch{96},
+    .roll{0},
+    .checksum{0xcc656a2fbe6a4c4bULL}
+  },
+  {
+    .pitch{96},
+    .roll{16},
+    .checksum{0x5d915b6b5984100bULL}
+  },
+  {
+    .pitch{96},
+    .roll{32},
+    .checksum{0x1bf1443f2adbe92bULL}
+  },
+  {
+    .pitch{96},
+    .roll{48},
+    .checksum{0xa81831530381000bULL}
+  },
+  {
+    .pitch{96},
+    .roll{64},
+    .checksum{0x2c8928f6d4f9bc2bULL}
+  },
+  {
+    .pitch{96},
+    .roll{80},
+    .checksum{0x92caa9319cd3df8bULL}
+  },
+  {
+    .pitch{96},
+    .roll{96},
+    .checksum{0x6a0e92fe8f8a77abULL}
+  },
+  {
+    .pitch{96},
+    .roll{112},
+    .checksum{0xdda7443fde5925cbULL}
+  },
+  {
+    .pitch{96},
+    .roll{128},
+    .checksum{0xd870bc60775b870bULL}
+  },
+  {
+    .pitch{112},
+    .roll{896},
+    .checksum{0xdbd8850434c8e0e5ULL}
+  },
+  {
+    .pitch{112},
+    .roll{912},
+    .checksum{0x052b36ba90f8412bULL}
+  },
+  {
+    .pitch{112},
+    .roll{928},
+    .checksum{0xd324621cf9fef1ebULL}
+  },
+  {
+    .pitch{112},
+    .roll{944},
+    .checksum{0xebdce26563cbc3cbULL}
+  },
+  {
+    .pitch{112},
+    .roll{960},
+    .checksum{0x1c15f5523fc5f56bULL}
+  },
+  {
+    .pitch{112},
+    .roll{976},
+    .checksum{0x87ce2051fbbf7d4bULL}
+  },
+  {
+    .pitch{112},
+    .roll{992},
+    .checksum{0x0398a574aded7b4bULL}
+  },
+  {
+    .pitch{112},
+    .roll{1008},
+    .checksum{0xb0c29dc0043f478bULL}
+  },
+  {
+    .pitch{112},
+    .roll{0},
+    .checksum{0x81d9dd387adc8c2bULL}
+  },
+  {
+    .pitch{112},
+    .roll{16},
+    .checksum{0x1c85b47e61d95cebULL}
+  },
+  {
+    .pitch{112},
+    .roll{32},
+    .checksum{0x06aba147ea1a896bULL}
+  },
+  {
+    .pitch{112},
+    .roll{48},
+    .checksum{0xd0d3af8efb996d2bULL}
+  },
+  {
+    .pitch{112},
+    .roll{64},
+    .checksum{0xa116f990d2ae464bULL}
+  },
+  {
+    .pitch{112},
+    .roll{80},
+    .checksum{0x022feb3cc34c0eebULL}
+  },
+  {
+    .pitch{112},
+    .roll{96},
+    .checksum{0x637a952769eb8f4bULL}
+  },
+  {
+    .pitch{112},
+    .roll{112},
+    .checksum{0xd5e9c56475b6448bULL}
+  },
+  {
+    .pitch{112},
+    .roll{128},
+    .checksum{0x89abeccd38a3aa2bULL}
+  },
+  {
+    .pitch{128},
+    .roll{896},
+    .checksum{0x70ca4df348d942c5ULL}
+  },
+  {
+    .pitch{128},
+    .roll{912},
+    .checksum{0x23ba5b923c96a10bULL}
+  },
+  {
+    .pitch{128},
+    .roll{928},
+    .checksum{0xa3411678239b786bULL}
+  },
+  {
+    .pitch{128},
+    .roll{944},
+    .checksum{0x33f395c1cdbfd7abULL}
+  },
+  {
+    .pitch{128},
+    .roll{960},
+    .checksum{0xb7d6d552ebe340cbULL}
+  },
+  {
+    .pitch{128},
+    .roll{976},
+    .checksum{0xd3a7ff676dec3dcbULL}
+  },
+  {
+    .pitch{128},
+    .roll{992},
+    .checksum{0xf04aae4829d946cbULL}
+  },
+  {
+    .pitch{128},
+    .roll{1008},
+    .checksum{0xca5b78c0ed62f44bULL}
+  },
+  {
+    .pitch{128},
+    .roll{0},
+    .checksum{0x3115ffff06cd6eebULL}
+  },
+  {
+    .pitch{128},
+    .roll{16},
+    .checksum{0x5bf9a8c6d87a2debULL}
+  },
+  {
+    .pitch{128},
+    .roll{32},
+    .checksum{0x64683f367c2cb8abULL}
+  },
+  {
+    .pitch{128},
+    .roll{48},
+    .checksum{0x0de9c6da5c0b086bULL}
+  },
+  {
+    .pitch{128},
+    .roll{64},
+    .checksum{0xe29cd7e940ad256bULL}
+  },
+  {
+    .pitch{128},
+    .roll{80},
+    .checksum{0xddc3fe7cbdbb8ccbULL}
+  },
+  {
+    .pitch{128},
+    .roll{96},
+    .checksum{0x6c034eea9019674bULL}
+  },
+  {
+    .pitch{128},
+    .roll{112},
+    .checksum{0x712fa724d8a01dabULL}
+  },
+  {
+    .pitch{128},
+    .roll{128},
+    .checksum{0xda566c220ffbef8bULL}
+  },
 }};
 
 inline std::array<std::uint64_t, 3> constexpr markers{
@@ -321,28 +1477,116 @@ struct line_sample {
 };
 
 inline std::array<line_sample, 22> constexpr lines{{
-  {.first{10, 10}, .last{10, 10}, .checksum{0xee349713e570a76bULL}},
-  {.first{0, 20}, .last{319, 20}, .checksum{0x7d5c915970c4ff25ULL}},
-  {.first{0, 20}, .last{319, 21}, .checksum{0x7d5c915970c4ff25ULL}},
-  {.first{0, 21}, .last{319, 20}, .checksum{0x7d5c915970c4ff25ULL}},
-  {.first{10, 10}, .last{10, 160}, .checksum{0xb649e39e1a3b9d25ULL}},
-  {.first{10, 160}, .last{10, 10}, .checksum{0xb649e39e1a3b9d25ULL}},
-  {.first{30, 30}, .last{51, 31}, .checksum{0xbf7920a8577958e5ULL}},
-  {.first{51, 31}, .last{30, 30}, .checksum{0xbf7920a8577958e5ULL}},
-  {.first{30, 30}, .last{51, 32}, .checksum{0xe581db36cb4cf6e5ULL}},
-  {.first{51, 32}, .last{30, 30}, .checksum{0xe581db36cb4cf6e5ULL}},
-  {.first{30, 30}, .last{51, 50}, .checksum{0x36ca9201cc9704e5ULL}},
-  {.first{51, 50}, .last{30, 30}, .checksum{0x36ca9201cc9704e5ULL}},
-  {.first{30, 30}, .last{51, 51}, .checksum{0xf5545700a1d6a4e5ULL}},
-  {.first{51, 51}, .last{30, 30}, .checksum{0xf5545700a1d6a4e5ULL}},
-  {.first{30, 30}, .last{51, 90}, .checksum{0xf8dbb26d47a11d85ULL}},
-  {.first{51, 90}, .last{30, 30}, .checksum{0xf8dbb26d47a11d85ULL}},
-  {.first{30, 30}, .last{51, 100}, .checksum{0x8449156bb1dcfac5ULL}},
-  {.first{51, 100}, .last{30, 30}, .checksum{0x8449156bb1dcfac5ULL}},
-  {.first{30, 30}, .last{40, 120}, .checksum{0x4acd1dfe2328d985ULL}},
-  {.first{40, 120}, .last{30, 30}, .checksum{0x4acd1dfe2328d985ULL}},
-  {.first{30, 30}, .last{41, 120}, .checksum{0xe0fd90e70be24845ULL}},
-  {.first{41, 120}, .last{30, 30}, .checksum{0xe0fd90e70be24845ULL}},
+  {
+    .first{10, 10},
+    .last{10, 10},
+    .checksum{0xee349713e570a76bULL}
+  },
+  {
+    .first{0, 20},
+    .last{319, 20},
+    .checksum{0x7d5c915970c4ff25ULL}
+  },
+  {
+    .first{0, 20},
+    .last{319, 21},
+    .checksum{0x7d5c915970c4ff25ULL}
+  },
+  {
+    .first{0, 21},
+    .last{319, 20},
+    .checksum{0x7d5c915970c4ff25ULL}
+  },
+  {
+    .first{10, 10},
+    .last{10, 160},
+    .checksum{0xb649e39e1a3b9d25ULL}
+  },
+  {
+    .first{10, 160},
+    .last{10, 10},
+    .checksum{0xb649e39e1a3b9d25ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 31},
+    .checksum{0xbf7920a8577958e5ULL}
+  },
+  {
+    .first{51, 31},
+    .last{30, 30},
+    .checksum{0xbf7920a8577958e5ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 32},
+    .checksum{0xe581db36cb4cf6e5ULL}
+  },
+  {
+    .first{51, 32},
+    .last{30, 30},
+    .checksum{0xe581db36cb4cf6e5ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 50},
+    .checksum{0x36ca9201cc9704e5ULL}
+  },
+  {
+    .first{51, 50},
+    .last{30, 30},
+    .checksum{0x36ca9201cc9704e5ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 51},
+    .checksum{0xf5545700a1d6a4e5ULL}
+  },
+  {
+    .first{51, 51},
+    .last{30, 30},
+    .checksum{0xf5545700a1d6a4e5ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 90},
+    .checksum{0xf8dbb26d47a11d85ULL}
+  },
+  {
+    .first{51, 90},
+    .last{30, 30},
+    .checksum{0xf8dbb26d47a11d85ULL}
+  },
+  {
+    .first{30, 30},
+    .last{51, 100},
+    .checksum{0x8449156bb1dcfac5ULL}
+  },
+  {
+    .first{51, 100},
+    .last{30, 30},
+    .checksum{0x8449156bb1dcfac5ULL}
+  },
+  {
+    .first{30, 30},
+    .last{40, 120},
+    .checksum{0x4acd1dfe2328d985ULL}
+  },
+  {
+    .first{40, 120},
+    .last{30, 30},
+    .checksum{0x4acd1dfe2328d985ULL}
+  },
+  {
+    .first{30, 30},
+    .last{41, 120},
+    .checksum{0xe0fd90e70be24845ULL}
+  },
+  {
+    .first{41, 120},
+    .last{30, 30},
+    .checksum{0xe0fd90e70be24845ULL}
+  },
 }};
 
 struct endpoint_sample {
@@ -354,18 +1598,138 @@ struct endpoint_sample {
 };
 
 inline std::array<endpoint_sample, 12> constexpr endpoints{{
-  {.pitch{0}, .roll{0}, .pitch_high{-128}, .alternate{false}, .line{.first{105, 92}, .last{215, 92}, .colour{36}}},
-  {.pitch{0}, .roll{0}, .pitch_high{-1}, .alternate{false}, .line{.first{105, 92}, .last{215, 92}, .colour{14}}},
-  {.pitch{0}, .roll{0}, .pitch_high{127}, .alternate{true}, .line{.first{105, 92}, .last{215, 92}, .colour{3}}},
-  {.pitch{256}, .roll{0}, .pitch_high{64}, .alternate{false}, .line{.first{160, 147}, .last{160, 147}, .colour{25}}},
-  {.pitch{512}, .roll{0}, .pitch_high{0}, .alternate{false}, .line{.first{216, 92}, .last{104, 92}, .colour{14}}},
-  {.pitch{768}, .roll{0}, .pitch_high{-64}, .alternate{true}, .line{.first{160, 36}, .last{160, 36}, .colour{249}}},
-  {.pitch{0}, .roll{256}, .pitch_high{0}, .alternate{false}, .line{.first{160, 147}, .last{160, 37}, .colour{14}}},
-  {.pitch{0}, .roll{512}, .pitch_high{0}, .alternate{false}, .line{.first{216, 92}, .last{104, 92}, .colour{14}}},
-  {.pitch{0}, .roll{768}, .pitch_high{0}, .alternate{false}, .line{.first{160, 36}, .last{160, 148}, .colour{14}}},
-  {.pitch{128}, .roll{1023}, .pitch_high{1}, .alternate{false}, .line{.first{120, 130}, .last{198, 132}, .colour{14}}},
-  {.pitch{1023}, .roll{128}, .pitch_high{-127}, .alternate{true}, .line{.first{120, 130}, .last{198, 52}, .colour{4}}},
-  {.pitch{511}, .roll{511}, .pitch_high{127}, .alternate{true}, .line{.first{105, 91}, .last{215, 93}, .colour{3}}},
+  {
+    .pitch{0},
+    .roll{0},
+    .pitch_high{-128},
+    .alternate{false},
+    .line{
+      .first{105, 92},
+      .last{215, 92},
+      .colour{36}
+    }
+  },
+  {
+    .pitch{0},
+    .roll{0},
+    .pitch_high{-1},
+    .alternate{false},
+    .line{
+      .first{105, 92},
+      .last{215, 92},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{0},
+    .roll{0},
+    .pitch_high{127},
+    .alternate{true},
+    .line{
+      .first{105, 92},
+      .last{215, 92},
+      .colour{3}
+    }
+  },
+  {
+    .pitch{256},
+    .roll{0},
+    .pitch_high{64},
+    .alternate{false},
+    .line{
+      .first{160, 147},
+      .last{160, 147},
+      .colour{25}
+    }
+  },
+  {
+    .pitch{512},
+    .roll{0},
+    .pitch_high{0},
+    .alternate{false},
+    .line{
+      .first{216, 92},
+      .last{104, 92},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{768},
+    .roll{0},
+    .pitch_high{-64},
+    .alternate{true},
+    .line{
+      .first{160, 36},
+      .last{160, 36},
+      .colour{249}
+    }
+  },
+  {
+    .pitch{0},
+    .roll{256},
+    .pitch_high{0},
+    .alternate{false},
+    .line{
+      .first{160, 147},
+      .last{160, 37},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{0},
+    .roll{512},
+    .pitch_high{0},
+    .alternate{false},
+    .line{
+      .first{216, 92},
+      .last{104, 92},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{0},
+    .roll{768},
+    .pitch_high{0},
+    .alternate{false},
+    .line{
+      .first{160, 36},
+      .last{160, 148},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{128},
+    .roll{1023},
+    .pitch_high{1},
+    .alternate{false},
+    .line{
+      .first{120, 130},
+      .last{198, 132},
+      .colour{14}
+    }
+  },
+  {
+    .pitch{1023},
+    .roll{128},
+    .pitch_high{-127},
+    .alternate{true},
+    .line{
+      .first{120, 130},
+      .last{198, 52},
+      .colour{4}
+    }
+  },
+  {
+    .pitch{511},
+    .roll{511},
+    .pitch_high{127},
+    .alternate{true},
+    .line{
+      .first{105, 91},
+      .last{215, 93},
+      .colour{3}
+    }
+  },
 }};
 
 inline std::uint64_t constexpr attitude_surround_checksum{0xcfad67c08afa8f2eULL};

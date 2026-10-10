@@ -20,11 +20,16 @@ TEST_CASE("Object allocation, tail reuse, unlinking and recycling match native l
     auto const pointer{[&](int const index)->record *{ return index == 0 ? nullptr : &records[static_cast<std::size_t>(index - 1)]; }};
     auto const index{[&](record const *value){ return value ? static_cast<int>(value - records.data()) + 1 : 0; }};
     for(int i{1}; i <= 6; ++i) {
-      *pointer(i) = {.next{pointer(i < (i <= sample.active ? sample.active : 6) ? i + 1 : 0)},
-        .previous{pointer(i <= sample.active ? i - 1 : i)}, .payload{i * 17}};
+      *pointer(i) = {
+        .next{pointer(i < (i <= sample.active ? sample.active : 6) ? i + 1 : 0)},
+        .previous{pointer(i <= sample.active ? i - 1 : i)},
+        .payload{i * 17}
+      };
     }
     darker::game::object_list<record> list{
-      .head{pointer(sample.active ? 1 : 0)}, .tail{pointer(sample.active)}, .free{pointer(sample.active < 6 ? sample.active + 1 : 0)},
+      .head{pointer(sample.active ? 1 : 0)},
+      .tail{pointer(sample.active)},
+      .free{pointer(sample.active < 6 ? sample.active + 1 : 0)},
     };
     record *result{nullptr};
     switch(sample.operation) {

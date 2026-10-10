@@ -21,7 +21,11 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   };
   apply_object_definition(actor.parameters, definition, model_token);
   int const height{moving ? definition.role_data.craft().cruise_height * 256 : world_mode == 2 && placement.form == resources::placement_form::absolute_static ? 128 : 0};
-  actor.pose.position = {.column{placement.position.column}, .row{placement.position.row}, .height{static_cast<std::uint16_t>(height - model_height)}};
+  actor.pose.position = {
+    .column{placement.position.column},
+    .row{placement.position.row},
+    .height{static_cast<std::uint16_t>(height - model_height)}
+  };
   actor.pose.angles.heading = placement.heading;
   if(moving && world_mode == 2) {
     auto const column{placement.position.column >> 8}, row{placement.position.row >> 8};
@@ -30,7 +34,9 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     actor.pose.position = start.position;
     actor.pose.position.height = static_cast<uint16_t>(actor.pose.position.height - model_height);
     actor.pose.angles.heading = start.heading;
-    actor.tunnel = tunnel_actor_state{.route{start.route}};
+    actor.tunnel = tunnel_actor_state{
+      .route{start.route}
+    };
   }
   actor.previous_position = actor.pose.position;
   actor.current_cell = static_cast<std::uint16_t>((actor.pose.position.column >> 8) | (actor.pose.position.row & 0xff00));

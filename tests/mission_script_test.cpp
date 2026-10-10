@@ -23,13 +23,21 @@ TEST_CASE("Mission deadlines, checkpoint retries and message scheduling match na
     darker::game::city_map cells{};
     cells[20 * 128 + 10].state = static_cast<std::uint8_t>(input[6]);
     darker::game::mission_script script{
-      .checkpoint{static_cast<std::size_t>(input[3])}, .checkpoint_clock{static_cast<std::uint16_t>(input[4])},
+      .checkpoint{static_cast<std::size_t>(input[3])},
+      .checkpoint_clock{static_cast<std::uint16_t>(input[4])},
       .deadline{static_cast<std::uint16_t>(input[1])},
     };
     darker::game::mission_context context{
-      .program{std::span{program}.first(sample.size)}, .text{text}, .object_flags{flags}, .cells{cells}, .clock{static_cast<std::uint32_t>(input[0])},
-      .time_multiplier{static_cast<std::uint8_t>(input[2])}, .objectives_complete{input[5] == 0},
-      .suppress_messages{input[8] != 0}, .object_counter{static_cast<std::uint8_t>(input[6])}, .counter{static_cast<std::uint8_t>(input[7])},
+      .program{std::span{program}.first(sample.size)},
+      .text{text},
+      .object_flags{flags},
+      .cells{cells},
+      .clock{static_cast<std::uint32_t>(input[0])},
+      .time_multiplier{static_cast<std::uint8_t>(input[2])},
+      .objectives_complete{input[5] == 0},
+      .suppress_messages{input[8] != 0},
+      .object_counter{static_cast<std::uint8_t>(input[6])},
+      .counter{static_cast<std::uint8_t>(input[7])},
     };
     auto const count{darker::game::advance_mission_script(script, context)};
     std::array<int, 8> const result{
@@ -46,8 +54,14 @@ TEST_CASE("First mission waits for objectives before its return message", "[game
   std::array<std::byte, 11> const program{std::byte{0x1a}, std::byte{0x1e}, std::byte{0x22}, std::byte{10},
     std::byte{0x0c}, std::byte{25}, std::byte{27}, std::byte{0x0c}, std::byte{40}, std::byte{42}, std::byte{0x23}};
   std::array<std::byte, 6> const text{std::byte{0}, std::byte{24}, std::byte{3}, std::byte{'A'}, std::byte{'B'}, std::byte{'C'}};
-  darker::game::mission_script script{.deadline{1000}};
-  darker::game::mission_context context{.program{program}, .text{text}, .clock{1000}};
+  darker::game::mission_script script{
+    .deadline{1000}
+  };
+  darker::game::mission_context context{
+    .program{program},
+    .text{text},
+    .clock{1000}
+  };
   darker::game::advance_mission_script(script, context);
   CHECK(script.deadline == 1400);
   context.objectives_complete = true;
@@ -74,12 +88,16 @@ TEST_CASE("Mission scripts diagnose unsupported commands and zero-time loops", "
   for(auto const opcode : {0, 0x22, 0x25}) {
     std::array<std::byte, 1> const program{static_cast<std::byte>(opcode)};
     darker::game::mission_script script;
-    darker::game::mission_context context{.program{program}};
+    darker::game::mission_context context{
+      .program{program}
+    };
     CHECK_THROWS(darker::game::advance_mission_script(script, context));
   }
   std::array<std::byte, 2> const loop{std::byte{0x25}, std::byte{0xfe}};
   darker::game::mission_script script;
-  darker::game::mission_context context{.program{loop}};
+  darker::game::mission_context context{
+    .program{loop}
+  };
   CHECK_THROWS_AS(darker::game::advance_mission_script(script, context), std::runtime_error);
 }
 
@@ -92,12 +110,19 @@ TEST_CASE("Script target assignments match native tokens flags and pacing", "[ga
     program.push_back(std::byte{0x23});
     auto token{static_cast<uint16_t>(v[4])};
     auto flags{static_cast<uint8_t>(v[2])};
-    darker::game::mission_script script{.deadline{static_cast<uint16_t>(v[1])}};
-    darker::game::mission_context context{.program{program},.clock{v[1]},.time_multiplier{static_cast<uint8_t>(v[6])},
-      .current_cell{static_cast<uint16_t>(v[3])},.set_target{[&](uint16_t const target, bool const flag_02){
+    darker::game::mission_script script{
+      .deadline{static_cast<uint16_t>(v[1])}
+    };
+    darker::game::mission_context context{
+      .program{program},
+      .clock{v[1]},
+      .time_multiplier{static_cast<uint8_t>(v[6])},
+      .current_cell{static_cast<uint16_t>(v[3])},
+      .set_target{[&](uint16_t const target, bool const flag_02){
         token = target;
         flags = static_cast<uint8_t>((flags & 0xfd) | (flag_02 ? 2 : 0));
-      }}};
+      }}
+    };
     darker::game::advance_mission_script(script,context);
     CAPTURE(v);
     CHECK(token == v[7]);
@@ -113,15 +138,31 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
   for(auto const &v : darker::test_reference::actor_retirement_samples) {
     CAPTURE(v);
     darker::game::scenario_actor actor;
-    actor.pose.position = {.column{static_cast<uint16_t>(v[0]*256)},.row{static_cast<uint16_t>(v[1]*256)},.height{0}};
+    actor.pose.position = {
+      .column{static_cast<uint16_t>(v[0]*256)},
+      .row{static_cast<uint16_t>(v[1]*256)},
+      .height{0}
+    };
     actor.flags = static_cast<uint8_t>(v[4]);
     actor.parameters.update_entry = darker::game::object_update::surface_actor;
     actor.expiry = 0x1234;
-    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(v[2]*256)},.row{static_cast<uint16_t>(v[3]*256)},.height{0}}};
+    darker::game::object_pose const player{
+      .position{
+        .column{static_cast<uint16_t>(v[2]*256)},
+        .row{static_cast<uint16_t>(v[3]*256)},
+        .height{0}
+      }
+    };
     constexpr std::array program{std::byte{8},std::byte{0x23}};
-    darker::game::mission_script script{.deadline{static_cast<uint16_t>(v[5])}};
-    darker::game::mission_context context{.program{program},.clock{v[5]},.time_multiplier{static_cast<uint8_t>(v[6])},
-      .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player,static_cast<uint16_t>(v[5])); }}};
+    darker::game::mission_script script{
+      .deadline{static_cast<uint16_t>(v[5])}
+    };
+    darker::game::mission_context context{
+      .program{program},
+      .clock{v[5]},
+      .time_multiplier{static_cast<uint8_t>(v[6])},
+      .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player,static_cast<uint16_t>(v[5])); }}
+    };
     darker::game::advance_mission_script(script,context);
     CHECK(actor.flags == v[7]);
     CHECK(script.stopped == (v[8] != 0));
@@ -141,7 +182,9 @@ TEST_CASE("Supply script state and ammunition match the original scheduler", "[g
     auto mask{static_cast<uint16_t>(s.input[1])}, shield{static_cast<uint16_t>(s.input[2])};
     darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(s.input[4]),static_cast<uint8_t>(s.input[5])};
     darker::game::mission_script script;
-    darker::game::mission_context context{.program{program}};
+    darker::game::mission_context context{
+      .program{program}
+    };
     context.progress = static_cast<uint8_t>(s.input[0]);
     context.toggle_weapons = [&](uint16_t const value){ mask ^= value; };
     context.reset_shield = [&]{ shield = static_cast<uint16_t>((shield & 255) | 0xbf00); };

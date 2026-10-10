@@ -8,11 +8,26 @@ TEST_CASE("Straight projectile integration matches native speed smoothing and fr
   for(auto const &sample : darker::test_reference::motion_samples) {
     CAPTURE(sample.heading, sample.pitch, sample.step, sample.speed, sample.base);
     darker::game::object_pose state{
-      .position{.column{0}, .row{65535}, .height{0}}, .fractions{.column{255}, .row{127}, .height{1}},
-      .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}, .roll{1234}},
+      .position{
+        .column{0},
+        .row{65535},
+        .height{0}
+      },
+      .fractions{
+        .column{255},
+        .row{127},
+        .height{1}
+      },
+      .angles{
+        .heading{static_cast<std::uint16_t>(sample.heading)},
+        .pitch{static_cast<std::uint16_t>(sample.pitch)},
+        .roll{1234}
+      },
       .speed{static_cast<std::uint16_t>(sample.speed)},
     };
-    darker::game::object_definition const definition{.base_speed{static_cast<std::uint8_t>(sample.base)}};
+    darker::game::object_definition const definition{
+      .base_speed{static_cast<std::uint8_t>(sample.base)}
+    };
     auto const angles{state.angles};
     darker::game::advance_direct_projectile(state, definition, static_cast<std::uint16_t>(sample.step));
     std::array<int, 7> const actual{state.position.column, state.position.row, state.position.height,

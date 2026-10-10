@@ -87,21 +87,49 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
     auto const type{cells.at((cell >> 8)*128 + (cell & 127)).type};
     auto const marker{type ? bank.city_types()[type - 1].collision_marker : uint8_t{0}};
     advance_tunnel_flight(std::get<caero_flight_state>(craft),*tunnel,
-      {.pitch_reference{controls.pitch.reference},.bank_reference{controls.bank.reference},.pitch_drive{steering.pitch},
-        .forward_setting{forward_setting},.angular_response{gain},
-        .aim_response{static_cast<uint16_t>(original_object_definitions[0].angular_seed*8)},.cell_collision_marker{marker},
-        .engine{(engine_flags & 1) != 0},.brake{brake}},frame_step,cells,*network);
+      {
+        .pitch_reference{controls.pitch.reference},
+        .bank_reference{controls.bank.reference},
+        .pitch_drive{steering.pitch},
+        .forward_setting{forward_setting},
+        .angular_response{gain},
+        .aim_response{static_cast<uint16_t>(original_object_definitions[0].angular_seed*8)},
+        .cell_collision_marker{marker},
+        .engine{(engine_flags & 1) != 0},
+        .brake{brake}
+      },frame_step,cells,*network);
   } else if(caero) {
     advance_caero_flight(std::get<caero_flight_state>(craft),
-      {.angular_response{gain}, .drive_multiplier{static_cast<std::uint16_t>(definition.role_data.player().drive_multiplier * 8)},
-        .vertical_bias{bias}, .desired_height{desired_height}, .height_reference{controls.pitch.reference}},
-      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}, .boost_cheat{boost_cheat}, .unlimited_power{noclip}},
+      {
+        .angular_response{gain},
+        .drive_multiplier{static_cast<std::uint16_t>(definition.role_data.player().drive_multiplier * 8)},
+        .vertical_bias{bias},
+        .desired_height{desired_height},
+        .height_reference{controls.pitch.reference}
+      },
+      {
+        .bank_drive{steering.bank},
+        .pitch_drive{steering.pitch},
+        .engine_flags{engine_flags},
+        .altitude_hold{altitude_hold || scripted_altitude_hold},
+        .brake{brake},
+        .boost_cheat{boost_cheat},
+        .unlimited_power{noclip}
+      },
       frame_step, cells);
   } else if(supply.phase != supply_phase::flight) {
     advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,controls.pitch.reference,frame_step);
   } else {
-    advance_skimma_flight(std::get<skimma_flight_state>(craft), {.angular_response{gain}, .vertical_bias{bias}},
-      {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .forward_setting{forward_setting}, .brake{brake}}, frame_step);
+    advance_skimma_flight(std::get<skimma_flight_state>(craft), {
+      .angular_response{gain},
+      .vertical_bias{bias}
+    },
+      {
+        .bank_drive{steering.bank},
+        .pitch_drive{steering.pitch},
+        .forward_setting{forward_setting},
+        .brake{brake}
+      }, frame_step);
   }
 }
 

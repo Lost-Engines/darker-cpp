@@ -53,10 +53,16 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     do { briefing.advance(4000); } while(briefing.continue_page());
     if(test.stage == 80 && briefing.weapon_toggles != 24) throw std::runtime_error{"Diffuser introduction failed to unlock its two stages"};
     if(test.stage == 50 && briefing.weapon_toggles != 32) throw std::runtime_error{"Brent Ground introduction failed to unlock key 6"};
-    darker::game::world_objectives objectives{.list{record.objective_cell_list}};
-    darker::game::mission_context context{.program{scenario.bytes(record.shared)},
-      .text{scenario.language(index,darker::resources::scenario_language::english)},.cells{cells},
-      .time_multiplier{record.time_multiplier},.text_cursor{briefing.consumed_text()}};
+    darker::game::world_objectives objectives{
+      .list{record.objective_cell_list}
+    };
+    darker::game::mission_context context{
+      .program{scenario.bytes(record.shared)},
+      .text{scenario.language(index,darker::resources::scenario_language::english)},
+      .cells{cells},
+      .time_multiplier{record.time_multiplier},
+      .text_cursor{briefing.consumed_text()}
+    };
     context.activate_reserves = [&](uint8_t const opcode,uint8_t const count){
       combat.activate_reserves(static_cast<darker::game::actor_category>(opcode-9),count,player.pose(),static_cast<uint16_t>(context.clock));
       return objectives.complete(record) && combat.remaining_objectives() == 0;
@@ -75,7 +81,9 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       context.objectives_complete = objectives.complete(record) && combat.remaining_objectives() == 0;
       return consumed;
     };
-    darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
+    darker::game::mission_script script{
+      .continuation{*record.player_program-record.shared.offset}
+    };
     bool message{false};
     unsigned int shots{0};
     uint16_t previous_target{0xffff};
@@ -100,16 +108,31 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         auto const heading{static_cast<uint16_t>(actor_target->pose.angles.heading+(ground_actor ? 0x8000 : 0))};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        player.pose().position = {.column{static_cast<uint16_t>(actor_target->pose.position.column+((sine*200) >> 15))},
-          .row{static_cast<uint16_t>(actor_target->pose.position.row+((cosine*200) >> 15))},.height{static_cast<uint16_t>(actor_target->pose.position.height+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))}};
-        player.pose().angles = {.heading{heading},.pitch{0},.roll{0}};
+        player.pose().position = {
+          .column{static_cast<uint16_t>(actor_target->pose.position.column+((sine*200) >> 15))},
+          .row{static_cast<uint16_t>(actor_target->pose.position.row+((cosine*200) >> 15))},
+          .height{static_cast<uint16_t>(actor_target->pose.position.height+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))}
+        };
+        player.pose().angles = {
+          .heading{heading},
+          .pitch{0},
+          .roll{0}
+        };
         player.pose().speed = 496;
         if(ground_actor && actor_target->category == darker::game::actor_category::ground) {
           auto centre{actor_target->pose.position};
           centre[2] += bank.header_at(actor_target->parameters.model_token).extent/2;
-          player.pose().position = {.column{static_cast<uint16_t>(centre[0]+32)},.row{centre[1]},.height{static_cast<uint16_t>(centre[2]+2048)}};
+          player.pose().position = {
+            .column{static_cast<uint16_t>(centre[0]+32)},
+            .row{centre[1]},
+            .height{static_cast<uint16_t>(centre[2]+2048)}
+          };
           auto const direction{darker::maths::object_target_direction(player.pose().position,centre)};
-          player.pose().angles = {.heading{direction.heading},.pitch{direction.pitch},.roll{0}};
+          player.pose().angles = {
+            .heading{direction.heading},
+            .pitch{direction.pitch},
+            .roll{0}
+          };
         }
         combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,0});
       } else if(target != targets.end()) {
@@ -117,12 +140,24 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
         auto const &cell{cells[target->row*128+target->column]};
         bool const office{cell.type >= 86 && cell.type <= 89};
-        darker::maths::world_position const centre{.column{aim.position.column},.row{aim.position.row},.height{static_cast<uint16_t>(aim.height-aim.height_extent/2)}};
+        darker::maths::world_position const centre{
+          .column{aim.position.column},
+          .row{aim.position.row},
+          .height{static_cast<uint16_t>(aim.height-aim.height_extent/2)}
+        };
         constexpr std::array<int,4> columns{0,200,0,-200}, rows{200,0,-200,0};
         auto const approach{test.stage >= 54 ? (clock/2048)%4 : 0};
-        player.pose().position = {.column{static_cast<uint16_t>(centre[0]+columns[approach])},.row{static_cast<uint16_t>(centre[1]+rows[approach])},.height{static_cast<uint16_t>(office ? 348 : aim.height+512)}};
+        player.pose().position = {
+          .column{static_cast<uint16_t>(centre[0]+columns[approach])},
+          .row{static_cast<uint16_t>(centre[1]+rows[approach])},
+          .height{static_cast<uint16_t>(office ? 348 : aim.height+512)}
+        };
         if(warehouse) {
-          player.pose().position = {.column{static_cast<uint16_t>(centre[0]+32)},.row{centre[1]},.height{static_cast<uint16_t>(aim.height+2048)}};
+          player.pose().position = {
+            .column{static_cast<uint16_t>(centre[0]+32)},
+            .row{centre[1]},
+            .height{static_cast<uint16_t>(aim.height+2048)}
+          };
         }
         auto direction{darker::maths::object_target_direction(player.pose().position,centre)};
         if(office) {
@@ -140,7 +175,11 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           player.pose().position.height += 92;
           direction = darker::maths::object_target_direction(player.pose().position,centre);
         }
-        player.pose().angles = {.heading{direction.heading},.pitch{office ? uint16_t{0} : direction.pitch},.roll{0}};
+        player.pose().angles = {
+          .heading{direction.heading},
+          .pitch{office ? uint16_t{0} : direction.pitch},
+          .roll{0}
+        };
         player.pose().speed = 496;
         combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,0});
         if(token != previous_target) combat.target.clear();
@@ -156,9 +195,20 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         && (!warehouse || weapon == 5 || static_cast<uint16_t>(clock-combat.diffuser.deadline) >= 0xf400)};
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
       combat.advance(player, cells, bank,
-        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock^(clock-8))}},
-        {.primary_pressed{ground_actor && clock%128 == 0}, .secondary_pressed{attacking_actor ? clock%2048 == 8 : fire_building}, .secondary_held{attacking_actor && clock%2048 != 0}},
-        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
+        {
+          .elapsed_ticks{clock},
+          .frame_step{8},
+          .changes{static_cast<uint16_t>(clock^(clock-8))}
+        },
+        {
+          .primary_pressed{ground_actor && clock%128 == 0},
+          .secondary_pressed{attacking_actor ? clock%2048 == 8 : fire_building},
+          .secondary_held{attacking_actor && clock%2048 != 0}
+        },
+        {
+          .routes{scenario.bytes(record.shared)},
+          .time_multiplier{record.time_multiplier}
+        });
       shots += combat.player_fired;
       if(player.lifecycle.crashing) throw std::runtime_error{"Building check crash stage="+std::to_string(test.stage)+" clock="+std::to_string(clock)+" removed="+std::to_string(combat.completed_objectives)+" remaining="+std::to_string(combat.remaining_objectives())};
       darker::game::charge_caero_energy(craft.energy,13056,1,1028,false);
@@ -182,9 +232,19 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         +", stopped="+std::to_string(script.stopped)+", message="+std::to_string(message)+", crashing="+std::to_string(player.lifecycle.crashing)};
     }
     uint16_t const destination{briefing.departure_destination ? briefing.departure_destination : uint16_t{0x7162}};
-    darker::game::hangar_state hangar{.return_site{destination}};
-    player.pose().position = {.column{static_cast<uint16_t>((destination&255)*128+128)},.row{static_cast<uint16_t>((destination&0xff00)+152-700)},.height{500}};
-    player.pose().angles = {.heading{0x8000},.pitch{0},.roll{0}};
+    darker::game::hangar_state hangar{
+      .return_site{destination}
+    };
+    player.pose().position = {
+      .column{static_cast<uint16_t>((destination&255)*128+128)},
+      .row{static_cast<uint16_t>((destination&0xff00)+152-700)},
+      .height{500}
+    };
+    player.pose().angles = {
+      .heading{0x8000},
+      .pitch{0},
+      .roll{0}
+    };
     craft.damage.rotation = {};
     if(!darker::game::begin_hangar_return(player,cells,hangar,true)) throw std::runtime_error{"Ground objectives did not permit docking"};
     for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {

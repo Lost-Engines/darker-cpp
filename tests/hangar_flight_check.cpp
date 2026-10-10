@@ -29,8 +29,14 @@ std::array<int, 27> launch_state(darker::game::player_flight const &player, dark
 
 void check_hangar_flight(darker::resources::archive_set const &archives, std::filesystem::path const &trace) {
   /// Start at HQ, wait six seconds, press boost once and compare every frame without further steering input
-  darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{30}})};
-  auto cells{darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true)};
+  darker::resources::geometry_bank const bank{archives.load({
+    .archive{0},
+    .slot{30}
+  })};
+  auto cells{darker::game::make_city_map(archives.load({
+    .archive{0},
+    .slot{68}
+  }), true)};
   std::array<std::uint8_t, 256> limits{};
   for(std::size_t i{0}; i < bank.city_types().size(); ++i) limits[i + 1] = bank.city_types()[i].variant_limit;
   darker::game::assign_city_variants(cells, limits);
@@ -39,7 +45,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     darker::game::player_flight probe;
     probe.frozen = true;
     probe.noclip = noclip;
-    probe.pose().position = {.column{1100},.row{2020},.height{0}};
+    probe.pose().position = {
+      .column{1100},
+      .row{2020},
+      .height{0}
+    };
     auto standalone{probe};
     auto const contact{standalone.advance({},false,8,8,bank,empty_city)};
     if(standalone.lifecycle.crashing == noclip || (contact.contact == darker::game::city_contact::none) != noclip)
@@ -48,7 +58,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     collision.collide_player(probe,{1000,2000,100},empty_city,bank,8);
     if(probe.lifecycle.crashing == noclip || (collision.player_contact.contact == darker::game::city_contact::none) != noclip)
       throw std::runtime_error{"Noclip did not control campaign terrain collision"};
-    if(noclip && probe.pose().position != darker::maths::world_position{.column{1100},.row{2020},.height{0}})
+    if(noclip && probe.pose().position != darker::maths::world_position{
+      .column{1100},
+      .row{2020},
+      .height{0}
+    })
       throw std::runtime_error{"Noclip still clipped the player position to terrain"};
   }
   {
@@ -57,12 +71,19 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     surface.noclip = true;
     auto &craft{std::get<darker::game::caero_flight_state>(surface.craft)};
     craft.flying = true;
-    craft.pose.position = {.column{40000},.row{40000},.height{1536}};
+    craft.pose.position = {
+      .column{40000},
+      .row{40000},
+      .height{1536}
+    };
     auto underground{surface};
     underground.tunnel.emplace();
     underground.scenario_configuration = 4;
     for(unsigned int frame{0}; frame < 512; ++frame) {
-      darker::game::flight_controls_input const input{.right{frame < 128},.up{frame >= 128 && frame < 256}};
+      darker::game::flight_controls_input const input{
+        .right{frame < 128},
+        .up{frame >= 128 && frame < 256}
+      };
       // No tunnel network is supplied: free flight must never query or follow it.
       surface.advance_motion(input,false,8,bank,unlit_city);
       underground.advance_motion(input,false,8,bank,unlit_city);
@@ -76,7 +97,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
         underground.command(darker::game::flight_command::boost);
       }
     }
-    if(surface.pose().position == darker::maths::world_position{.column{40000},.row{40000},.height{1536}})
+    if(surface.pose().position == darker::maths::world_position{
+      .column{40000},
+      .row{40000},
+      .height{1536}
+    })
       throw std::runtime_error{"Noclip did not move beyond beacon coverage"};
   }
   // B938 freezes the callback, retaining velocity for release while clearing the measured speed.
@@ -84,10 +109,24 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     darker::game::player_flight frozen;
     if(kind == 1) frozen.craft = darker::game::skimma_flight_state{};
     if(kind == 2) frozen.tunnel.emplace();
-    frozen.pose() = {.position{.column{128},.row{2432},.height{2000}},.angles{.heading{123},.pitch{456},.roll{789}},.speed{500}};
+    frozen.pose() = {
+      .position{
+        .column{128},
+        .row{2432},
+        .height{2000}
+      },
+      .angles{
+        .heading{123},
+        .pitch{456},
+        .roll{789}
+      },
+      .speed{500}
+    };
     frozen.toggle_freeze();
     auto const before{frozen.pose()};
-    for(unsigned int tick{0}; tick < 100; ++tick) frozen.advance_motion({.right{true}},false,8,bank,cells);
+    for(unsigned int tick{0}; tick < 100; ++tick) frozen.advance_motion({
+      .right{true}
+    },false,8,bank,cells);
     if(!frozen.frozen || frozen.pose().position != before.position || frozen.pose().angles != before.angles || frozen.pose().speed != 0)
       throw std::runtime_error{"Lyndon freeze allowed player motion"};
     frozen.toggle_freeze();
@@ -103,7 +142,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     darker::game::player_flight ordinary;
     auto &craft{std::get<darker::game::caero_flight_state>(ordinary.craft)};
     craft.flying = true;
-    craft.pose.position = {.column{128},.row{2432},.height{500}};
+    craft.pose.position = {
+      .column{128},
+      .row{2432},
+      .height{500}
+    };
     auto boosted{ordinary};
     boosted.boost_cheat = true;
     ordinary.advance_motion({},false,8,bank,cells);
@@ -140,7 +183,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     auto const previous{player.pose().position};
     player.advance_motion({},false,8,bank,cells);
     combat.advance(player, cells, bank,
-        {.elapsed_ticks{tick}, .frame_step{8}, .changes{0}},
+        {
+          .elapsed_ticks{tick},
+          .frame_step{8},
+          .changes{0}
+        },
         {},
         {}, previous);
     darker::game::advance_hangar_departure(player,cells,hangar,8);
@@ -159,8 +206,15 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
   std::cout << darker::test_reference::hangar_flight_samples.size() << " hands-off HQ launch frames match original execution." << std::endl;
   player = {};
   hangar = {};
-  cells = darker::game::make_city_map(archives.load({.archive{0}, .slot{68}}), true);
-  player.pose().position = {.column{12672}, .row{28380}, .height{500}};
+  cells = darker::game::make_city_map(archives.load({
+    .archive{0},
+    .slot{68}
+  }), true);
+  player.pose().position = {
+    .column{12672},
+    .row{28380},
+    .height{500}
+  };
   player.pose().angles.heading = 0x8000;
   if(darker::game::begin_hangar_return(player, cells, hangar, false)) throw std::runtime_error{"Hangar admitted incomplete objectives"};
   if(!darker::game::begin_hangar_return(player, cells, hangar, true)) throw std::runtime_error{"Hangar rejected native approach"};

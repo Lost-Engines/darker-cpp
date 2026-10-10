@@ -23,7 +23,10 @@ struct angle_components {
 angle_components components(std::uint16_t const angle) noexcept {
   /// The camera caller rounds by fifteen before selecting a 1024-entry phase
   auto const phase{static_cast<std::uint16_t>(angle + 15) >> 6};
-  return {.sine{maths::original_sine[phase]}, .cosine{maths::original_sine[(phase + 256) % 1024]}};
+  return {
+    .sine{maths::original_sine[phase]},
+    .cosine{maths::original_sine[(phase + 256) % 1024]}
+  };
 }
 
 } // namespace

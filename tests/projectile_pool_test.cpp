@@ -11,17 +11,48 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
   for(auto const &sample : darker::test_reference::placement_samples) {
     CAPTURE(sample.strength, sample.heading, sample.pitch, sample.roll, sample.edge);
     darker::game::launch_emitter const emitter{
-      .position{sample.edge ? darker::maths::world_position{.column{0}, .row{65535}, .height{0}} : darker::maths::world_position{.column{1000}, .row{2000}, .height{3000}}},
-      .fractions{sample.edge ? darker::maths::position_fractions{.column{255}, .row{1}, .height{128}} : darker::maths::position_fractions{.column{0}, .row{127}, .height{255}}},
-      .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}, .roll{static_cast<std::uint16_t>(sample.roll)}},
-      .speed{0x9876}, .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)}, .definition_strength{static_cast<std::uint8_t>(sample.strength)},
+      .position{sample.edge ? darker::maths::world_position{
+        .column{0},
+        .row{65535},
+        .height{0}
+      } : darker::maths::world_position{
+        .column{1000},
+        .row{2000},
+        .height{3000}
+      }},
+      .fractions{sample.edge ? darker::maths::position_fractions{
+        .column{255},
+        .row{1},
+        .height{128}
+      } : darker::maths::position_fractions{
+        .column{0},
+        .row{127},
+        .height{255}
+      }},
+      .angles{
+        .heading{static_cast<std::uint16_t>(sample.heading)},
+        .pitch{static_cast<std::uint16_t>(sample.pitch)},
+        .roll{static_cast<std::uint16_t>(sample.roll)}
+      },
+      .speed{0x9876},
+      .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)},
+      .definition_strength{static_cast<std::uint8_t>(sample.strength)},
     };
     auto const &definition{darker::game::original_object_definitions[10]};
-    darker::game::projectile_launch const request{.definition{definition}, .emitter{emitter}, .clock{65530}, .lifetime{0x0a00}};
+    darker::game::projectile_launch const request{
+      .definition{definition},
+      .emitter{emitter},
+      .clock{65530},
+      .lifetime{0x0a00}
+    };
     darker::game::projectile_pool pool;
     auto *previous{pool.launch(request)};
     REQUIRE(previous != nullptr);
-    previous->angular_motion = {.reserved{0xa5a5}, .pitch{0xa5a5}, .turn{0xa5a5}};
+    previous->angular_motion = {
+      .reserved{0xa5a5},
+      .pitch{0xa5a5},
+      .turn{0xa5a5}
+    };
     pool.recycle(*previous);
     auto const *record{pool.launch(request)};
     REQUIRE(record == previous);
@@ -40,10 +71,21 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
 
 TEST_CASE("Projectile pool preserves native allocation order and does not evict on exhaustion") {
   darker::game::projectile_pool pool;
-  darker::game::launch_emitter const emitter{.angles{.heading{0}, .pitch{0}, .roll{0x2345}}, .definition_strength{1}};
+  darker::game::launch_emitter const emitter{
+    .angles{
+      .heading{0},
+      .pitch{0},
+      .roll{0x2345}
+    },
+    .definition_strength{1}
+  };
   darker::game::projectile_launch const request{
-    .definition{darker::game::original_object_definitions[10]}, .emitter{emitter}, .model_token{0x4321},
-    .clock{65530}, .lifetime{256}, .target_token{0x1234},
+    .definition{darker::game::original_object_definitions[10]},
+    .emitter{emitter},
+    .model_token{0x4321},
+    .clock{65530},
+    .lifetime{256},
+    .target_token{0x1234},
   };
   std::array<darker::game::projectile *, 12> allocated{};
   for(std::size_t i{0}; i < allocated.size(); ++i) {
@@ -76,8 +118,13 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
 TEST_CASE("Hostile projectile pool has six independent native slots") {
   /// 1D47 follows the twelve player records with six records at D6E6, ending before the player craft at D986
   darker::game::projectile_pool hostile{darker::game::projectile_list::hostile}, player;
-  darker::game::launch_emitter const emitter{.definition_strength{40}};
-  darker::game::projectile_launch const request{.definition{darker::game::original_object_definitions[10]},.emitter{emitter}};
+  darker::game::launch_emitter const emitter{
+    .definition_strength{40}
+  };
+  darker::game::projectile_launch const request{
+    .definition{darker::game::original_object_definitions[10]},
+    .emitter{emitter}
+  };
   REQUIRE(hostile.records().size() == 6);
   for(unsigned int i{0}; i < 6; ++i) {
     auto *shot{hostile.launch(request)};

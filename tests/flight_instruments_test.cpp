@@ -11,8 +11,19 @@ TEST_CASE("Live flight instrument producers match native damage, charging, altit
   for(auto const &sample : darker::test_reference::flight_instruments_samples) {
     auto const &input{sample.input};
     darker::game::caero_flight_state state{
-      .pose{.position{.column{0}, .row{0}, .height{static_cast<std::uint16_t>(input[2])}}}, .damage{.damage{static_cast<std::uint16_t>(input[0])}},
-      .energy{.boost{static_cast<std::uint16_t>(input[1])}},
+      .pose{
+        .position{
+          .column{0},
+          .row{0},
+          .height{static_cast<std::uint16_t>(input[2])}
+        }
+      },
+      .damage{
+        .damage{static_cast<std::uint16_t>(input[0])}
+      },
+      .energy{
+        .boost{static_cast<std::uint16_t>(input[1])}
+      },
     };
     auto const values{darker::graphics::measure_caero_instruments(state, static_cast<std::uint16_t>(input[3]))};
     CHECK(std::array<int, 6>{values.altitude, values.impact, values.damage_lights, values.power_cells, values.charging,
