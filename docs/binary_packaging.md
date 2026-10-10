@@ -94,6 +94,10 @@ cmake -DPACKAGE_ROOT="$PWD/build-release/stage" \
 
 Use a clean staging directory. Local builds use the libraries/toolchain selected
 at configuration time, so their runtime requirements can differ from CI.
+`DARKER_STATIC_RUNTIME` defaults to on for MinGW and is enabled on all CI builds.
+It links non-system dependencies statically on Windows and GCC's C++ runtimes
+statically on Linux/macOS. macOS uses GCC for C++ and the final link; only the
+Cocoa and CoreAudio device implementations use Apple's Objective-C compiler.
 For example, inspect Linux dependencies with `ldd stage/darker/bin/darker`.
 Configure `DARKER_INSTALL_DIR` and `DARKER_REFERENCE_DIR` for original-pack
 integration tests; optional sound-device verification has separate asset paths.

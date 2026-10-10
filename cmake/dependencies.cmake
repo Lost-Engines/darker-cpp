@@ -44,6 +44,16 @@ FetchContent_Declare(nuked_sc55
 )
 FetchContent_MakeAvailable(nuked_sc55)
 FetchContent_MakeAvailable(glfw miniaudio nuked_opl3 dosbox_opl tinysoundfont munt)
+if(APPLE)
+  # GLFW's C files also include Cocoa headers requiring Apple's blocks extension.
+  get_target_property(glfw_sources glfw SOURCES)
+  foreach(source IN LISTS glfw_sources)
+    if(source MATCHES "\\.c$")
+      get_filename_component(source_path "${source}" ABSOLUTE BASE_DIR "${glfw_SOURCE_DIR}/src")
+      set_source_files_properties("${source_path}" DIRECTORY "${glfw_SOURCE_DIR}/src" PROPERTIES LANGUAGE OBJC)
+    endif()
+  endforeach()
+endif()
 
 if(BUILD_TESTING)
   FetchContent_Declare(catch2
