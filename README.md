@@ -177,7 +177,7 @@ The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mou
 
 The world view now draws the original 17 sky/ground colour bands, moving with pitch and bank. Halon’s distant grey building shades blend into its grey horizon; Delphi uses its own purple night palette. The original model distance-shading tables and draw radius are unchanged.
 
-Source RGB and square-pixel presentation remain inspection conventions pending original palette/display handling. `--output /tmp/frame.ppm` renders the initial frame headlessly (startup presentation for Caero, flight for Skimma); `--seconds` permits timed window runs. These are development options, not proposed game controls.
+Debug builds provide two developer options: `--screenshot=/tmp/frame.ppm` saves a screenshot of the initial scene as a PPM image, then exits without opening a window; `--seconds=10` closes a normal windowed run after ten seconds (zero disables the time limit). The screenshot captures startup for Caero or flight for Skimma; it does not wait for `--seconds`. Both options are excluded from builds that define `NDEBUG`, including Release builds.
 
 ## Structure
 

@@ -170,9 +170,12 @@ auto main(int const argc, char const *const argv[])->int {
     ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland-lapc)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
-    ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city")
-    ("seconds", boost::program_options::value<double>()->default_value(0.0), "close after this many seconds; zero waits")
-    ("output", boost::program_options::value<std::string>(), "write RGB PPM without opening a window");
+    ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city");
+#ifndef NDEBUG
+  options.add_options()
+    ("seconds", boost::program_options::value<double>()->default_value(0.0), "developer use: close after this many seconds; zero disables the time limit")
+    ("screenshot", boost::program_options::value<std::string>(), "developer use: save a screenshot of the initial scene as a PPM image, then exit without opening a window");
+#endif
   boost::program_options::variables_map arguments;
   try {
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), arguments);
@@ -225,8 +228,11 @@ auto main(int const argc, char const *const argv[])->int {
   auto type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
   if(debug_session && name != "caero") return startup_failure("--level selects its own craft; omit --craft");
   bool caero{type == darker::graphics::craft::caero};
+
+#ifndef NDEBUG
   auto const seconds{arguments["seconds"].as<double>()};
   if(!std::isfinite(seconds) || seconds < 0) return startup_failure("--seconds must be finite and non-negative");
+#endif
   auto const user_directory{default_game_directory()};
   auto const data_directory{arguments.contains("data-dir") ? std::filesystem::path{arguments["data-dir"].as<std::string>()}
     : std::filesystem::is_regular_file("DARKER.00") || std::filesystem::is_regular_file("darker.00")
@@ -509,8 +515,10 @@ auto main(int const argc, char const *const argv[])->int {
     return count;
   }};
   render(0, false);
-  if(arguments.contains("output")) {
-    std::ofstream file{arguments["output"].as<std::string>(), std::ios::binary};
+
+#ifndef NDEBUG
+  if(arguments.contains("screenshot")) {
+    std::ofstream file{arguments["screenshot"].as<std::string>(), std::ios::binary};
     file.exceptions(std::ios::failbit | std::ios::badbit);
     file << "P6\n320 240\n255\n";
     for(auto const &pixel : output.pixels) {
@@ -521,6 +529,7 @@ auto main(int const argc, char const *const argv[])->int {
     file.close();
     return EXIT_SUCCESS;
   }
+#endif
   glfwSetErrorCallback([](int const code, char const *const message){
     std::cerr << "ERROR: GLFW " << code << ": " << message << std::endl;
   });
@@ -849,7 +858,9 @@ auto main(int const argc, char const *const argv[])->int {
     }
     auto const now{std::chrono::steady_clock::now()};
     double const elapsed{std::chrono::duration<double>(now - start).count()};
+#ifndef NDEBUG
     if(seconds > 0 && elapsed >= seconds) break;
+#endif
     auto const interrupts{static_cast<std::uint64_t>(elapsed * (1193180.0 / 2386))};
     bool const single_step{std::exchange(host.single_step,false)};
     if(host.paused && !single_step) {
