@@ -220,6 +220,22 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
+  // Level 98 repeats background type 1 at D3A without another portrait blit.
+  // BFE4/C007 retains the underlying portrait while replacing the text page.
+  darker::presentation::player retained_portrait{archives,font,campaign.scenario(98),1};
+  retained_portrait.advance(10000);
+  if(!retained_portrait.continue_page()) throw std::runtime_error{"Missing level 98 portrait page"};
+  retained_portrait.advance(10000);
+  framework::render::cockpit_framebuffer before_page{};
+  retained_portrait.draw(before_page);
+  if(!retained_portrait.continue_page()) throw std::runtime_error{"Missing level 98 continuation page"};
+  retained_portrait.draw(frame);
+  for(size_t y{24}; y < 216; ++y) for(size_t x{16}; x < 112; ++x) {
+    auto const &before{before_page.pixels[y*320+x]};
+    auto const &after{frame.pixels[y*320+x]};
+    if(before.red != after.red || before.green != after.green || before.blue != after.blue)
+      throw std::runtime_error{"Repeated presentation background erased the retained portrait"};
+  }
   for(uint8_t stage{2}; stage <= 16; ++stage) {
     darker::presentation::player next{archives,font,campaign.scenario(stage),darker::resources::select_campaign_stage(stage).record};
     size_t scenes{0};

@@ -35,6 +35,7 @@ private:
   std::array<size_t,2> animation_counts{};
   framework::render::indexed_cockpit_framebuffer background{};
   graphics::palette_state colours;
+  std::optional<uint8_t> background_type;
   std::vector<std::byte> image_pixels;
   graphics::formatted_page page;
   struct caption { std::span<std::byte const> text; uint32_t expiry{0}; int16_t x{0}; uint16_t width{0}; };
