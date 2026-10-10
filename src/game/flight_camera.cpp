@@ -28,7 +28,7 @@ void flight_camera::drop(camera_mode const selected, object_pose const &player) 
   looking = false;
 }
 
-void flight_camera::update_look(flight_steering const drive, bool const held, uint16_t const frame_step, bool const landed) noexcept {
+void flight_camera::update_look(flight_steering const drive, bool const held, game_duration const frame_step, bool const landed) noexcept {
   /// 7872 redirects steering into look offsets; 7CA4 returns the released view along its original maximum-axis vector
   bool const was_looking{looking};
   if(held) {
@@ -62,7 +62,7 @@ camera_mode flight_camera::visible_mode() const noexcept {
   return mode == camera_mode::cockpit && looking ? camera_mode::behind : mode;
 }
 
-object_pose flight_camera::view(object_pose const &player, uint16_t const frame_step, bool const landed, camera_subject const subject, bool const underground) {
+object_pose flight_camera::view(object_pose const &player, game_duration const frame_step, bool const landed, camera_subject const subject, bool const underground) {
   /// Translate the ordinary player views at 24A4/24A7/24E6 and the following-distance path 254D
   if(distance_step >= 6) throw std::out_of_range{"Following camera has six distance settings"};
   bool const absent{subject == camera_subject::absent_object};

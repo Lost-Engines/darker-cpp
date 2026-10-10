@@ -60,21 +60,21 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
     darker::game::effect_system effects;
     effects.gun_impact({1234, 5678, 2400}, v[0] != 0, 65000);
     REQUIRE(effects.trails.size() == 1);
-    REQUIRE(effects.gun_sounds.size() == 1);
-    CHECK(effects.trails[0].flags == v[1]);
+    REQUIRE(effects.gun_sounds().size() == 1);
+    CHECK(effects.trails[0].animation.encoded() == v[1]);
     CHECK(effects.trails[0].position == darker::maths::world_position{
       .column{static_cast<uint16_t>(v[2])},
       .row{static_cast<uint16_t>(v[3])},
       .height{static_cast<uint16_t>(v[4])}
     });
-    auto const &sound{effects.gun_sounds[0]};
+    auto const &sound{effects.gun_sounds()[0]};
     CHECK(sound.definition.pitch == v[5]);
     CHECK(sound.definition.level == v[6]);
     CHECK(sound.deadline == v[7]);
     CHECK(sound.definition.patch == v[8]);
     CHECK(sound.definition.flags == v[9]);
     effects.advance(static_cast<uint16_t>(65000 + 256), 8);
-    CHECK(effects.gun_sounds.empty());
+    CHECK(effects.gun_sounds().empty());
   }
 }
 
@@ -98,7 +98,7 @@ TEST_CASE("World voices retain channels and retrigger replacement sources", "[au
     CHECK(first[i].patch == second[i].patch);
     if(first[i].active) ++active;
   }
-  CHECK(active == combat.effects.sounds.size() + 1);
+  CHECK(active == combat.effects.sounds().size() + 1);
   combat.effects.advance(5000, 8);
   auto const expired{mixer.mix(player, combat, {})};
   active = 0;
@@ -239,9 +239,9 @@ TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audi
     .identity{static_cast<uint32_t>(i * 65536 + 1)}
   };
   mixer.mix({}, combat, {}, 0, louder);
-  REQUIRE_FALSE(combat.effects.sounds.empty());
+  REQUIRE_FALSE(combat.effects.sounds().empty());
   auto const frame{mixer.mix({}, combat, {})};
-  CHECK(combat.effects.sounds.empty());
+  CHECK(combat.effects.sounds().empty());
   CHECK(std::ranges::none_of(frame, [](auto const &note){
     return note.active;
   }));
@@ -380,8 +380,8 @@ TEST_CASE("Transient sound slots follow native oldest eviction and free-list reu
     else effects.retire_sounds([&](auto const &sound){
       return (sample[1] & (1u << (sound.identity - 17))) != 0;
     });
-    REQUIRE(effects.gun_sounds.size() == sample[2]);
-    for(size_t i{0}; i < effects.gun_sounds.size(); ++i) CHECK(effects.gun_sounds[i].identity == sample[3 + i]);
+    REQUIRE(effects.gun_sounds().size() == sample[2]);
+    for(size_t i{0}; i < effects.gun_sounds().size(); ++i) CHECK(effects.gun_sounds()[i].identity == sample[3 + i]);
   }
 }
 
@@ -395,12 +395,12 @@ TEST_CASE("Recycled transient records retrigger a retained physical voice", "[au
   })};
   REQUIRE(active != first.end());
   auto const channel{static_cast<size_t>(active - first.begin())};
-  auto const identity{combat.effects.gun_sounds.front().identity};
+  auto const identity{combat.effects.gun_sounds().front().identity};
   combat.effects.retire_sounds([](auto const&){
     return true;
   });
   combat.effects.spark({}, 3, 50000, 1);
-  REQUIRE(combat.effects.gun_sounds.front().identity == identity);
+  REQUIRE(combat.effects.gun_sounds().front().identity == identity);
   auto const second{mixer.mix({}, combat, {})};
   CHECK(second[channel].active);
   CHECK(second[channel].generation != first[channel].generation);

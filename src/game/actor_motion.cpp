@@ -20,7 +20,7 @@ int16_t product(uint16_t const left, uint16_t const right) noexcept {
 } // anonymous namespace
 
 uint16_t steer_actor(object_pose &pose, actor_attitude &state, actor_steering_parameters const parameters,
-  uint16_t const desired_pitch, uint16_t const turn_drive, uint16_t frame_step) noexcept {
+  uint16_t const desired_pitch, uint16_t const turn_drive, game_duration frame_step) noexcept {
   /// 8351 approaches pitch and bank targets, then derives heading motion from the folded midpoint bank
   auto const pitch{calculate_angular_response(static_cast<uint16_t>(desired_pitch - pose.angles.pitch), state.pitch_rate, parameters.response, frame_step)};
   state.pitch_rate = pitch.rate;
@@ -41,7 +41,7 @@ uint16_t steer_actor(object_pose &pose, actor_attitude &state, actor_steering_pa
 }
 
 void advance_actor_speed(object_pose &pose, uint8_t const desired_speed, uint8_t const acceleration,
-  uint8_t const deceleration, uint16_t const frame_step) noexcept {
+  uint8_t const deceleration, game_duration const frame_step) noexcept {
   /// 8D75 uses definition-specific byte acceleration/deceleration before the shared 8597 displacement path
   auto const previous{signed_word(pose.speed)};
   auto const target{static_cast<int16_t>(desired_speed * 16)};

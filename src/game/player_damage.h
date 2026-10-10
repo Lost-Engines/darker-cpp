@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/object_impact.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -15,8 +16,8 @@ struct player_damage_state {
 void apply_player_damage(player_damage_state &state, uint8_t amount, uint8_t kick_amplitude,
   bool skimma, bool damage_cheat, uint16_t &random_state) noexcept;
 bool player_damage_is_lethal(player_damage_state const &state) noexcept;
-void recharge_skimma_shield(player_damage_state &state, uint16_t frame_step) noexcept;
+void recharge_skimma_shield(player_damage_state &state, game_duration frame_step) noexcept;
 void repair_caero_damage(player_damage_state &state, uint16_t &repair_phase,
-  uint16_t frame_step) noexcept;
+  game_duration frame_step) noexcept;
 
 } // namespace darker::game

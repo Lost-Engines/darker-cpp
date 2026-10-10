@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/object_pose.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -18,8 +19,8 @@ struct actor_steering_parameters {
 };
 
 uint16_t steer_actor(object_pose &pose, actor_attitude &state, actor_steering_parameters parameters,
-  uint16_t desired_pitch, uint16_t turn_drive, uint16_t frame_step) noexcept;
+  uint16_t desired_pitch, uint16_t turn_drive, game_duration frame_step) noexcept;
 void advance_actor_speed(object_pose &pose, uint8_t desired_speed, uint8_t acceleration,
-  uint8_t deceleration, uint16_t frame_step) noexcept;
+  uint8_t deceleration, game_duration frame_step) noexcept;
 
 } // namespace darker::game

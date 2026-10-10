@@ -42,7 +42,7 @@ size_t prepare_halon_aircraft_sites(aircraft_spawning &state, city_map &cells, s
 
 void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_actor> &active,
   std::vector<scenario_actor> &free, city_map const &cells, resources::geometry_bank const &bank,
-  object_pose const &player, uint16_t const clock, uint16_t const frame_step, uint16_t &random_state) {
+  object_pose const &player, clock_tick const clock, game_duration const frame_step, uint16_t &random_state) {
   /// 8E3F counts down occupied-site timers and launches reusable aircraft near the player
   auto const is_aircraft{[](auto const &actor){
     return actor.category == actor_category::air;
@@ -99,7 +99,7 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
   }
 }
 
-void advance_aircraft_departure(scenario_actor &actor, uint16_t const clock, uint16_t const frame_step) noexcept {
+void advance_aircraft_departure(scenario_actor &actor, clock_tick const clock, game_duration const frame_step) noexcept {
   /// 8DDD moves before steering and releases its protected take-off state after four timer pages
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};

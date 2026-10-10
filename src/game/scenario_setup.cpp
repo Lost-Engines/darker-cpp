@@ -79,7 +79,7 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
 }
 
 void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &actor,
-  uint16_t const player_model, uint16_t const clock) {
+  uint16_t const player_model, clock_tick const clock) {
   /// Apply mutations to the most recently allocated actor, retaining fields the native block leaves alone
   switch(kind) {
   case scenario_setup_kind::raise_actor:
@@ -105,7 +105,7 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
 
 scenario_actor_groups make_scenario_actors(resources::scenario_record const &record,
   resources::scenario_resource const &resource, resources::geometry_bank const &bank, player_flight &player,
-  weapon_ammunition &second_weapon, uint16_t const clock, std::optional<tunnel_setup> const tunnel) {
+  weapon_ammunition &second_weapon, clock_tick const clock, std::optional<tunnel_setup> const tunnel) {
   /// Preserve allocation order and translate the inline player, placement and actor mutations between groups
   auto const configuration{record.configuration & 15};
   uint8_t const world{static_cast<uint8_t>(configuration == 4 ? 2 : configuration <= 1 ? 0 : 1)};

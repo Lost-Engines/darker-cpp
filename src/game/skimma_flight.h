@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "game/object_pose.h"
 #include "game/player_damage.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -27,6 +28,6 @@ struct skimma_flight_input {
 };
 
 void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters parameters,
-  skimma_flight_input input, uint16_t frame_step) noexcept;
+  skimma_flight_input input, game_duration frame_step) noexcept;
 
 } // namespace darker::game

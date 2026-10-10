@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include "game/object_pose.h"
+#include "game/time.h"
 
 namespace darker::game {
 
-void advance_speed_motion(object_pose &pose, uint16_t speed, uint16_t frame_step) noexcept;
+void advance_speed_motion(object_pose &pose, uint16_t speed, game_duration frame_step) noexcept;
 
 void advance_horizontal_flight(object_pose &pose, uint16_t &velocity, uint16_t target,
   uint16_t timestep, uint16_t heading, uint16_t pitch) noexcept;

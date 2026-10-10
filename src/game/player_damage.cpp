@@ -26,13 +26,13 @@ bool player_damage_is_lethal(player_damage_state const &state) noexcept {
   return (state.damage >> 8) >= 4;
 }
 
-void recharge_skimma_shield(player_damage_state &state, uint16_t const frame_step) noexcept {
+void recharge_skimma_shield(player_damage_state &state, game_duration const frame_step) noexcept {
   /// Preserve 8108's fractional recharge and one-byte correction, including word wrap at extreme timesteps
   state.shield_charge = static_cast<uint16_t>(state.shield_charge + frame_step * 2);
   if((state.shield_charge >> 8) >= 192) state.shield_charge -= 256;
 }
 
-void repair_caero_damage(player_damage_state &state, uint16_t &repair_phase, uint16_t const frame_step) noexcept {
+void repair_caero_damage(player_damage_state &state, uint16_t &repair_phase, game_duration const frame_step) noexcept {
   /// 8514 repairs one peripheral unit on phase carry; the original 8523 operand is zero
   auto const phase{(repair_phase | 0xfe00u) + frame_step};
   repair_phase = static_cast<uint16_t>(phase);

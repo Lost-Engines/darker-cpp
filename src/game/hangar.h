@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "game/city_map.h"
 #include "game/player_flight.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -15,13 +16,13 @@ struct hangar_state {
   uint16_t extension{0};
   uint8_t sound_level{0};
   hangar_return_phase returning{hangar_return_phase::none};
-  uint16_t deadline{0};
+  clock_tick deadline{0};
 };
 
 void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_state &hangar, int16_t model_height);
-void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t frame_step);
+void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, game_duration frame_step);
 
 bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &hangar, bool objectives_complete);
-void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t frame_step, uint16_t clock);
+void advance_hangar_return(player_flight &player, hangar_state &hangar, game_duration frame_step, clock_tick clock);
 
 } // namespace darker::game

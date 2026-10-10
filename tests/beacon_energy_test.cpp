@@ -32,7 +32,7 @@ TEST_CASE("Caero energy accounting matches native buffers, caps and boost cheat"
       .reserve{static_cast<uint16_t>(sample.reserve)},
       .boost{static_cast<uint16_t>(sample.boost)},
     };
-    darker::game::charge_caero_energy(state, static_cast<uint16_t>(sample.source), static_cast<uint8_t>(sample.flags),
+    state.charge(static_cast<uint16_t>(sample.source), static_cast<uint8_t>(sample.flags),
       static_cast<uint16_t>(sample.step), sample.cheat != 0);
     std::array<int, 5> const actual{state.buffer, state.reserve, state.boost, state.incoming_display, state.reserve_display};
     CHECK(actual == sample.result);

@@ -3,7 +3,7 @@
 
 namespace darker::game {
 
-bool advance_object_deadline(uint8_t &flags, uint16_t &deadline, uint8_t &object_fade, uint16_t const altitude, uint16_t const clock) noexcept {
+bool advance_object_deadline(uint8_t &flags, clock_tick &deadline, uint8_t &object_fade, uint16_t const altitude, clock_tick const clock) noexcept {
   /// 79E5–7A18 update timed flags/fade, stopping before expiry's world and mission effects
   uint8_t constexpr expiring_flag{0x20};
   uint8_t constexpr appearing_flag{0x40};

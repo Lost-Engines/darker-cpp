@@ -8,6 +8,9 @@
 
 namespace darker::game {
 
+using object_definition_index = uint8_t;
+using impact_strength = uint8_t;
+
 template<typename T>
 struct steering_response {
   T bank_response{};

@@ -27,7 +27,7 @@ std::array constexpr actor_collision_groups{actor_category::ground, actor_catego
 std::array constexpr aircraft_collision_group{actor_category::air};
 
 void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const height,
-  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint8_t &counter) {
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, clock_tick const clock, uint8_t &counter) {
   /// 67BF adds a damage stage, carries the resulting high bit into C221 and emits the type's effect at its origin
   auto &cell{cells.at(row * 128 + column)};
   cell.state = static_cast<uint8_t>(cell.state + 32);
@@ -39,7 +39,7 @@ void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const h
 }
 
 void impact_projectile_world(city_collision_result const &contact, maths::world_position const impact, object_definition const &definition,
-  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter, uint8_t const damage_mask) {
+  city_map &cells, resources::geometry_bank const &bank, effect_system &effects, clock_tick const clock, uint16_t const terrain_recipe, uint8_t &counter, uint8_t const damage_mask) {
   /// CDB9 distinguishes marked player targets, hostile bombing and universal category-two breakable components
   if(contact.contact != city_contact::building) {
     effects.spawn(terrain_recipe, impact, clock);
@@ -82,7 +82,7 @@ std::span<uint8_t const> mission_combat::status_flags(uint8_t const player_flags
 void mission_combat::release_target(uint16_t const token) noexcept {
   /// 7A52 makes missiles targeting a removed record self-guiding and releases its selected lock
   for(auto *pool : {&projectiles, &hostile_projectiles}) {
-    for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+    for(auto *shot{pool->objects().head()}; shot; shot = shot->next) {
       if(shot->target_token == token) shot->target_token = shot->native_id;
     }
   }
@@ -90,13 +90,13 @@ void mission_combat::release_target(uint16_t const token) noexcept {
   if(camera_actor && token == static_cast<uint16_t>(0xd986 + *camera_actor * 112)) camera_actor.reset();
 }
 
-void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t const clock, uint16_t const frame_step) {
+void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, clock_tick const clock, game_duration const frame_step) {
   /// 3E02 visits occupied warehouses before the player and other moving-object callbacks
   if(!player.tunnel) advance_aircraft_spawning(spawning, actors, free_actors, cells, bank, player.pose(), clock, frame_step, random_state);
 }
 
 void mission_combat::collide_player(player_flight &player, maths::world_position const &start,
-  city_map &cells, resources::geometry_bank const &bank, uint16_t const clock) {
+  city_map &cells, resources::geometry_bank const &bank, clock_tick const clock) {
   /// 6F0F scans the player before other collision owners; 6ED4 damages the victim before the player
   player_contact = {};
   if(player.noclip || (player.lifecycle.flags & 0x20)) return;
@@ -129,7 +129,7 @@ void mission_combat::collide_player(player_flight &player, maths::world_position
   }
 }
 
-void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, uint16_t const clock, bool const underground) {
+void mission_combat::collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask, clock_tick const clock, bool const underground) {
   /// 6DF1 clips each airborne owner against the city and its own list; 6E6D applies strengths 40h and 60h to the pair
   std::array<uint8_t, 256> owners{};
   size_t count{0};
@@ -175,7 +175,7 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
   }
 }
 
-void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock, bool const underground) {
+void mission_combat::detonate_dual_launch(projectile &shot, clock_tick const clock, bool const underground) {
   /// CBE7 applies separate aircraft, ground and stationary blast passes before retiring both paired projectiles
   for(auto const category : {actor_category::air, actor_category::ground, actor_category::stationary}) {
     for(auto actor{actors.begin()}; actor != actors.end();) {
@@ -207,7 +207,7 @@ void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock
   }
 }
 
-void mission_combat::activate_reserves(actor_category const category, uint8_t const count, object_pose const &player, uint16_t const clock) {
+void mission_combat::activate_reserves(actor_category const category, uint8_t const count, object_pose const &player, clock_tick const clock) {
   /// C37A adds each admitted record's objective bit without the signed clamp used by removal
   auto const counted{[&]{
     return std::ranges::count_if(actors, [](auto const &actor){
@@ -224,7 +224,7 @@ void mission_combat::adjust_objectives(uint8_t const operand) noexcept {
   outstanding_objectives = adjust_objective_counter(outstanding_objectives, operand);
 }
 
-void mission_combat::update_difficulty(uint32_t const clock) noexcept {
+void mission_combat::update_difficulty(campaign_clock const clock) noexcept {
   /// 3DB1–3DCB increase the scenario's firing pressure after four clock wraps, saturating after eight
   auto const wraps{static_cast<uint8_t>(clock >> 16)};
   if(wraps < 4) return;
@@ -238,7 +238,7 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 }
 
 void mission_combat::fire_skimma_primary(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank,
-  uint16_t const clock, uint16_t const frame_step, bool const pressed) {
+  clock_tick const clock, game_duration const frame_step, bool const pressed) {
   /// C950 updates recoil every frame; CD6C traces the short primary ray and applies strength 32h only to aircraft
   auto const recoil{calculate_skimma_recoil(skimma.recoil, frame_step)};
   skimma.recoil = recoil.next;
@@ -425,8 +425,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   };
   weapon_ready = false;
   if(!caero) {
-    skimma.reserves = update_skimma_weapon_status(std::span{skimma.slots}.first(player.upgraded ? 3 : 2), skimma.ring,
-      skimma.selection, clock, std::bit_cast<int16_t>(target.token), projectiles.objects().free ? 1 : 0);
+    skimma.update_status(clock, std::bit_cast<int16_t>(target.token), projectiles.objects().free_head() ? 1 : 0, player.upgraded);
     fire_skimma_primary(player, cells, bank, clock, frame_step, trigger_pressed);
   }
   if(caero && (primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7)) {
@@ -494,7 +493,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(auto const *other{hostile_projectiles.resolve(shot.target_token)}) return &other->placement;
     throw std::logic_error{"Guided projectile target has no active object record"};
   }};
-  for(auto *shot{projectiles.objects().head}; shot;) {
+  for(auto *shot{projectiles.objects().head()}; shot;) {
     auto const destination{resolve_target(*shot)};
     auto const *paired{std::get_if<object_pose const*>(&destination)};
     auto const separation{shot->parameters.update_entry == object_update::dual_launch && paired && *paired && *paired != &shot->placement
@@ -511,7 +510,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     else if(separation) skimma.dual_launch_pitch = static_cast<uint16_t>((0x80c - std::min<uint16_t>(*separation, 0xcd)) >> 2);
     shot = shot->next;
   }
-  for(auto *shot{hostile_projectiles.objects().head}; shot;) {
+  for(auto *shot{hostile_projectiles.objects().head()}; shot;) {
 
     bool const expired{(shot->flags & 8) ? update_projectile_deadline(*shot, clock)
       : update_projectile(*shot, clock, frame_step, resolve_target(*shot)) == projectile_update_result::expired};
@@ -534,8 +533,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         if(found == actors.end()) target.clear();
         else {
           auto const extent{bank.header_at(found->parameters.model_token).extent};
-          if(caero) project_caero_target(target, pose.position, found->pose.position, extent, targeting_basis, secondary_weapon);
-          else project_skimma_target(target, pose.position, found->pose.position, extent, targeting_basis, skimma.selection, true, false, true);
+          if(caero) target.project_caero(pose.position, found->pose.position, extent, targeting_basis, secondary_weapon);
+          else target.project_skimma(pose.position, found->pose.position, extent, targeting_basis, skimma.selection, true, false, true);
         }
       } else {
         auto const aim{resolve_map_guidance(target.token, cells, bank, damage_mask)};
@@ -545,12 +544,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           .row{aim.position.row},
           .height{aim.height}
         };
-        if(caero) project_caero_target(target, pose.position, position, aim.height_extent, targeting_basis, secondary_weapon, cell.type, cell.state);
+        if(caero) target.project_caero(pose.position, position, aim.height_extent, targeting_basis, secondary_weapon, cell.type, cell.state);
         else {
           auto const model{bank.city_model_offset(cell.type, cell.state, damage_mask)};
           auto const bytes{bank.model_pool()};
           bool const linked{bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}};
-          project_skimma_target(target, pose.position, position, aim.height_extent, targeting_basis, skimma.selection, true, false, linked);
+          target.project_skimma(pose.position, position, aim.height_extent, targeting_basis, skimma.selection, true, false, linked);
         }
       }
     }
@@ -559,7 +558,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   if(!caero) skimma.ring.target_spread = target.spread;
   if(player_start) collide_player(player, *player_start, cells, bank, clock);
   collide_aircraft(cells, bank, damage_mask, clock, player.tunnel.has_value());
-  for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {
+  for(auto *shot{projectiles.objects().head()}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
     auto const contact{sweep_city(bank, cells, damage_mask, shot->previous_position, end, 2, 10)};
@@ -569,7 +568,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
     auto const strength{shot->parameters.definition == &original_object_definitions[8]
-      ? chargeable_impact_strength(shot->deadline, clock) : std::optional<uint8_t>{shot->parameters.definition == &original_object_definitions[0]
+      ? chargeable_impact_strength(shot->deadline, clock) : std::optional<impact_strength>{shot->parameters.definition == &original_object_definitions[0]
         ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
       auto const strength_input{shot->parameters.definition == &original_object_definitions[7]
@@ -601,7 +600,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot->parameters.update_entry = object_update::effect_only;
     shot->deadline = static_cast<uint16_t>(clock + 256);
   }
-  for(auto *shot{hostile_projectiles.objects().head}; shot; shot = shot->next) {
+  for(auto *shot{hostile_projectiles.objects().head()}; shot; shot = shot->next) {
     if(shot->flags & 8) continue;
     auto end{shot->placement.position};
     auto const contact{sweep_city(bank, cells, damage_mask, shot->previous_position, end, 2, 10)};

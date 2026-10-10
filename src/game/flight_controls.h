@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -9,11 +10,22 @@ struct steering_axis_state {
   uint16_t mouse_target{0};
   uint16_t previous_mouse{0};
   uint16_t reference{0};
+
+  uint16_t keyboard(bool negative, bool positive, bool control, game_duration step) noexcept;
+  uint16_t mouse(uint16_t position, uint16_t sensitivity, game_duration step) noexcept;
+
+private:
+  uint16_t filtered_drive(uint16_t previous, uint16_t target, game_duration step) noexcept;
 };
+
+struct flight_controls_input;
+struct flight_steering;
 
 struct flight_controls_state {
   steering_axis_state bank{};
   steering_axis_state pitch{};
+
+  flight_steering update(flight_controls_input input, game_duration frame_step) noexcept;
 };
 
 struct flight_controls_input {
@@ -32,7 +44,5 @@ struct flight_steering {
   uint16_t bank{0};
   uint16_t pitch{0};
 };
-
-flight_steering update_flight_controls(flight_controls_state &state, flight_controls_input input, uint16_t frame_step) noexcept;
 
 } // namespace darker::game

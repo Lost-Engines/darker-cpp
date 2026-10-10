@@ -20,7 +20,7 @@ int16_t approach_velocity(uint16_t &velocity, uint16_t const target, uint16_t co
 
 } // anonymous namespace
 
-void advance_speed_motion(object_pose &pose, uint16_t const speed, uint16_t const frame_step) noexcept {
+void advance_speed_motion(object_pose &pose, uint16_t const speed, game_duration const frame_step) noexcept {
   /// 8597 integrates the old/new speed midpoint and projects it through the object's current pitch and heading
   auto const previous{signed_word(pose.speed)};
   auto const midpoint{signed_word(previous + (signed_word(speed - previous) >> 1))};

@@ -41,7 +41,7 @@ bool activate_caero_boost(caero_flight_state &state) noexcept {
 }
 
 void advance_caero_flight(caero_flight_state &state, caero_flight_parameters const parameters,
-  caero_flight_input const input, uint16_t frame_step, std::span<city_cell const, city_map_cell_count> const cells) {
+  caero_flight_input const input, game_duration frame_step, std::span<city_cell const, city_map_cell_count> const cells) {
   /// 7E7F/7EB6 order startup, steering, energy spending, movement, beacon sampling and charging within one callback
   if(input.unlimited_power) {
     state.energy.buffer = caero_energy_state::buffer_capacity;
@@ -119,7 +119,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? unlimited_beacon_strength : beacon_light(cells, state.pose.position, {state.pose.fractions.column, state.pose.fractions.row})) : uint16_t{0}};
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
   state.forward_bias = static_cast<uint16_t>((state.pose.speed + (input.brake ? 0 : incoming >> 1)) >> 3);
-  charge_caero_energy(state.energy, incoming, input.engine_flags, accounting_step, input.boost_cheat);
+  state.energy.charge(incoming, input.engine_flags, accounting_step, input.boost_cheat);
 
   if(input.unlimited_power) {
     state.energy.buffer = caero_energy_state::buffer_capacity;

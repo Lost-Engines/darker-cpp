@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/object_update.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -15,7 +16,7 @@ struct object_impact_state {
   uint16_t impact_accumulator{0};
   uint16_t damage{0};
   object_update update_entry{object_update::inactive};
-  uint16_t deadline{0};
+  clock_tick deadline{0};
   uint8_t flags{0};
 };
 
@@ -26,6 +27,6 @@ enum class impact_effect : uint16_t {
 
 void apply_impact_rotation(impact_rotation &rotation, uint8_t amplitude, uint16_t &random_state) noexcept;
 impact_effect apply_object_impact(object_impact_state &state, uint8_t strength, uint8_t resistance,
-  bool underground, uint16_t clock, uint16_t &random_state);
+  bool underground, clock_tick clock, uint16_t &random_state);
 
 } // namespace darker::game

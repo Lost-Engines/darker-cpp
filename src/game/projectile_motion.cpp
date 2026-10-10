@@ -14,7 +14,7 @@ int16_t signed_word(int const value) {
 
 } // anonymous namespace
 
-void advance_direct_projectile(object_pose &state, object_definition const &definition, uint16_t const frame_step, uint16_t const speed_bonus) {
+void advance_direct_projectile(object_pose &state, object_definition const &definition, game_duration const frame_step, uint16_t const speed_bonus) {
   /// CC64/CC87/858F approach definition speed, integrate its midpoint, then project motion
   auto const old_speed{signed_word(state.speed)};
   auto const target{signed_word(definition.base_speed * 16 + speed_bonus)};
@@ -24,7 +24,7 @@ void advance_direct_projectile(object_pose &state, object_definition const &defi
   advance_speed_motion(state, static_cast<uint16_t>(speed), frame_step);
 }
 
-bool update_projectile_deadline(projectile &record, uint16_t const clock) {
+bool update_projectile_deadline(projectile &record, clock_tick const clock) {
   /// Projectiles share the native object walker's fade and removal deadline rules
   return advance_object_deadline(record.flags, record.deadline, record.fade, record.placement.position.height, clock);
 }

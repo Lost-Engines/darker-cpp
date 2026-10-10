@@ -367,8 +367,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(selection >= 4) mask = static_cast<uint16_t>((mask & 0xff00) | static_cast<uint8_t>(mask + 1));
     host.available_weapons = mask;
     if(!caero) {
-      darker::game::select_skimma_weapon(std::span{combat->skimma.slots}.first(host.player.upgraded ? 3 : 2),
-        combat->skimma.selection, combat->skimma.ring, selection, host.available_weapons, static_cast<uint16_t>(context.clock));
+      combat->skimma.select(host.player.upgraded, selection, host.available_weapons, static_cast<uint16_t>(context.clock));
       combat->target = {};
     } else if(selection > 0 && selection < 4) combat->primary_weapon = selection;
     else if(selection >= 4) combat->secondary_weapon = selection;
@@ -503,7 +502,7 @@ auto main(int const argc, char const *const argv[])->int {
       }
     }
     for(auto const *pool : {&combat->projectiles, &combat->hostile_projectiles}) {
-      for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+      for(auto *shot{pool->objects().head()}; shot; shot = shot->next) {
         if(view.underground && !(shot->flags & 8)) contacts.push_back({
           .position{shot->placement.position.column, shot->placement.position.row},
           .group{darker::graphics::radar_group::underground}
@@ -831,8 +830,7 @@ auto main(int const argc, char const *const argv[])->int {
           if(!(host.available_weapons & (1u << (selection - 1)))) break;
           bool const skimma{std::holds_alternative<darker::game::skimma_flight_state>(host.player.craft)};
           if(skimma && selection < 4) {
-            if(!darker::game::select_skimma_weapon(std::span{host.combat->skimma.slots}.first(host.player.upgraded ? 3 : 2),
-              host.combat->skimma.selection, host.combat->skimma.ring, selection, host.available_weapons, host.clock)) break;
+            if(!host.combat->skimma.select(host.player.upgraded, selection, host.available_weapons, host.clock)) break;
             host.combat->target = {};
           } else if(selection < 4) host.combat->primary_weapon = selection;
           else host.combat->secondary_weapon = selection;

@@ -6,6 +6,7 @@
 #include "game/object_definition.h"
 #include "game/object_list.h"
 #include "game/projectile_placement.h"
+#include "game/time.h"
 #include "maths/world_coordinates.h"
 
 namespace darker::game {
@@ -28,7 +29,7 @@ struct projectile {
   uint8_t lifecycle{0};
   uint8_t fade{0};
   uint16_t inherited_roll{0};
-  uint16_t deadline{0};
+  clock_tick deadline{0};
   // native target encoding pending world-object/cell target resolution
   uint16_t target_token{0xffff};
 };
@@ -37,8 +38,8 @@ struct projectile_launch {
   object_definition const &definition;
   launch_emitter const &emitter;
   uint16_t model_token{0};
-  uint16_t clock{0};
-  uint16_t lifetime{0};
+  clock_tick clock{0};
+  game_duration lifetime{0};
   uint16_t target_token{0xffff};
 };
 

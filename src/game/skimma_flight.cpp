@@ -27,7 +27,7 @@ int16_t high_product(int16_t const left, int16_t const right) noexcept {
 } // anonymous namespace
 
 void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters const parameters,
-  skimma_flight_input const input, uint16_t frame_step) noexcept {
+  skimma_flight_input const input, game_duration frame_step) noexcept {
   /// 8108 combines shield recharge, speed-sensitive steering, pitch limits and the Skimma's forward/vertical drive
   recharge_skimma_shield(state.damage, frame_step);
   auto &angles{state.pose.angles};

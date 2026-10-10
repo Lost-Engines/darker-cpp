@@ -7,8 +7,8 @@
 
 namespace darker::game {
 
-projectile_update_result update_projectile(projectile &record, uint16_t const clock,
-  uint16_t const frame_step, projectile_target const target) {
+projectile_update_result update_projectile(projectile &record, clock_tick const clock,
+  game_duration const frame_step, projectile_target const target) {
   /// 79E5–7A2D handle expiry before saving the old position and invoking a motion callback
   auto remaining{static_cast<uint16_t>(record.deadline - clock)};
   bool const altitude_expiry{(record.flags & 0x60) && remaining >= 256 && !(remaining & 0x8000)

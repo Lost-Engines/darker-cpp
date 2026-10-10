@@ -38,7 +38,7 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
     darker::game::launch_emitter const emitter{};
     if(!s[12]) {
-      while(pool.objects().free) REQUIRE(pool.launch({
+      while(pool.objects().free_head()) REQUIRE(pool.launch({
         .definition{darker::game::original_object_definitions[18]},
         .emitter{emitter}
       }));

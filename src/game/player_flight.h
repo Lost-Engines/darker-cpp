@@ -8,6 +8,7 @@
 #include "game/player_crash.h"
 #include "game/skimma_flight.h"
 #include "game/supply_pad.h"
+#include "game/time.h"
 #include "game/tunnel_flight.h"
 #include "resources/scenario_configuration.h"
 
@@ -40,11 +41,11 @@ struct player_flight {
   object_pose const &pose() const noexcept;
   void command(flight_command command) noexcept;
   void toggle_freeze() noexcept;
-  void advance_motion(flight_controls_input input, bool brake, uint16_t frame_step,
+  void advance_motion(flight_controls_input input, bool brake, game_duration frame_step,
     resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
-  void apply_city_contact(city_collision_result contact, uint16_t clock, resources::geometry_bank const &bank, city_map &cells);
-  city_collision_result advance(flight_controls_input input, bool brake, uint16_t frame_step,
-    uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
+  void apply_city_contact(city_collision_result contact, clock_tick clock, resources::geometry_bank const &bank, city_map &cells);
+  city_collision_result advance(flight_controls_input input, bool brake, game_duration frame_step,
+    clock_tick clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
 };
 
 } // namespace darker::game

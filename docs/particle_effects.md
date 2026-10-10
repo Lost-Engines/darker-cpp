@@ -73,3 +73,14 @@ allocation and stereo limits documented separately.
 We completed the preceding effects-free first mission and confirmed that
 landing was seamless. This change adds the missing aircraft-hit feedback to that
 playable loop; it does not mark the whole reconstruction complete.
+
+The runtime `emitter_animation` value decodes the native byte into a lifetime
+(low seven bits, in 64-tick phases) and an animation mode (high bit selects the
+fire sequence). Recipe data keeps its original byte encoding. This avoids treating
+a packed duration as a collection of independent flags.
+
+Each `effect_sound_pool` owns its active records, free identities and generation
+counters. Read-only spans support inspection; submission and retirement go through
+the pool, retaining newest-first voice admission and native recycling order.
+Recipe sounds and impact sounds have separate sixteen-record pools. Trail and
+recipe-emitter limits are the shared `effect_system` capacity constants.

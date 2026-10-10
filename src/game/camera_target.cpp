@@ -24,7 +24,7 @@ bool camera_target_in_range(object_pose const &player, object_pose const &target
 }
 
 std::optional<camera_target> pick_camera_target(object_pose const &camera, object_pose const &player,
-  uint16_t const player_extent, std::optional<uint8_t> const excluded, std::span<scenario_actor> const actors,
+  uint16_t const player_extent, std::optional<actor_index> const excluded, std::span<scenario_actor> const actors,
   city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
   /// 257D visits player, ground, static and aircraft lists after clipping the ray against the city
   if(!camera_target_in_range(player, camera)) return std::nullopt;

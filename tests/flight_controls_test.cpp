@@ -20,7 +20,7 @@ TEST_CASE("Keyboard and mouse steering preserve native smoothing and source prio
       .pitch{axis(4)}
     };
     auto const held{sample.input[0]};
-    auto const drive{darker::game::update_flight_controls(state,
+    auto const drive{state.update(
       {
         .left{(held & 1) != 0},
         .right{(held & 2) != 0},

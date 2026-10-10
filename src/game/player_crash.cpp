@@ -3,7 +3,7 @@
 
 namespace darker::game {
 
-bool start_player_crash(object_pose &pose, player_crash_state &state, uint16_t const clock) noexcept {
+bool start_player_crash(object_pose &pose, player_crash_state &state, clock_tick const clock) noexcept {
   /// 6F4F installs the crash lifecycle once, retaining unrelated flags and the original wrapping deadline
   uint8_t constexpr dead_flag{0x20};
   uint8_t constexpr crash_flags{0x28};
@@ -18,12 +18,12 @@ bool start_player_crash(object_pose &pose, player_crash_state &state, uint16_t c
   return true;
 }
 
-bool player_crash_finished(player_crash_state const &state, uint16_t const clock) noexcept {
+bool player_crash_finished(player_crash_state const &state, clock_tick const clock) noexcept {
   /// 79E5 expires the player strictly after its wrapping deadline; 798C then requests outcome 2
   return state.crashing && std::bit_cast<int16_t>(static_cast<uint16_t>(state.deadline - clock)) < 0;
 }
 
-void advance_player_crash(object_pose &pose, uint16_t const frame_step) noexcept {
+void advance_player_crash(object_pose &pose, game_duration const frame_step) noexcept {
   /// 6EF7 rotates the destroyed craft and moves its pitch towards EC00 with the original signed scalar step
   int constexpr turn_rate_shift{5};
   int constexpr pitch_rate_shift{3};

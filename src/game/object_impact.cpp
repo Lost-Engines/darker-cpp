@@ -15,7 +15,7 @@ void apply_impact_rotation(impact_rotation &rotation, uint8_t const amplitude, u
 }
 
 impact_effect apply_object_impact(object_impact_state &state, uint8_t const strength, uint8_t const resistance,
-  bool const underground, uint16_t const clock, uint16_t &random_state) {
+  bool const underground, clock_tick const clock, uint16_t &random_state) {
   /// Apply CE38's ordinary object hit; zero resistance and inactive callbacks have separate effect/removal paths
   if(resistance == 0 || state.update_entry == object_update::inactive) {
     throw std::invalid_argument{"Object impact requires nonzero resistance and an active callback"};

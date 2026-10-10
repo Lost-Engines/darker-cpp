@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/caero_flight.h"
+#include "game/time.h"
 #include "game/tunnel_network.h"
 
 namespace darker::game {
@@ -35,9 +36,9 @@ struct tunnel_flight_input {
 };
 
 void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state, tunnel_flight_input input,
-  uint16_t frame_step, city_map const &cells, tunnel_network const &network);
+  game_duration frame_step, city_map const &cells, tunnel_network const &network);
 
 void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state, tunnel_flight_input input,
-  uint16_t frame_step, city_map const &cells, tunnel_network const &network);
+  game_duration frame_step, city_map const &cells, tunnel_network const &network);
 
 } // namespace darker::game

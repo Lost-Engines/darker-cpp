@@ -16,7 +16,7 @@ int constexpr height_clearance{512};                                           /
 
 } // anonymous namespace
 
-bool retire_distant_actor(scenario_actor &actor, object_pose const &player, uint16_t const clock) noexcept {
+bool retire_distant_actor(scenario_actor &actor, object_pose const &player, clock_tick const clock) noexcept {
   /// C30A/8432 stop and expire a scripted actor once its wrapped cell distance reaches 36 cells
   auto const difference{[&](size_t const axis){
     return std::bit_cast<int8_t>(static_cast<uint8_t>((player.position[axis] >> 8) - (actor.pose.position[axis] >> 8)));
@@ -60,7 +60,7 @@ void place_air_reserve(scenario_actor &actor, object_pose const &player, std::sp
 }
 
 void activate_scenario_reserves(std::vector<scenario_actor> &active, std::vector<scenario_actor> &reserves,
-  actor_category const category, uint8_t const count, object_pose const &player, uint16_t const clock) {
+  actor_category const category, uint8_t const count, object_pose const &player, clock_tick const clock) {
   /// C33E pops each category's reserve head and prepends to its active list, reversing a multi-object admission
   unsigned int const requested{count ? count : 256u};
   if(std::ranges::count_if(reserves, [&](auto const &actor){

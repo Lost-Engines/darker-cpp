@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include "game/scenario_actor.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -23,7 +24,7 @@ void prepare_delphi_aircraft_sites(aircraft_spawning &state, city_map &cells);
 
 void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_actor> &active,
   std::vector<scenario_actor> &free, city_map const &cells, resources::geometry_bank const &bank,
-  object_pose const &player, uint16_t clock, uint16_t frame_step, uint16_t &random_state);
-void advance_aircraft_departure(scenario_actor &actor, uint16_t clock, uint16_t frame_step) noexcept;
+  object_pose const &player, clock_tick clock, game_duration frame_step, uint16_t &random_state);
+void advance_aircraft_departure(scenario_actor &actor, clock_tick clock, game_duration frame_step) noexcept;
 
 } // namespace darker::game

@@ -59,7 +59,7 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
   toggle_hangar(player, cells, centre);
 }
 
-void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t const frame_step) {
+void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, game_duration const frame_step) {
   /// C5F9 opens the gate inside its cell, retracts it over the approach lights and closes the site after departure
   if(!(player.lifecycle.flags & 0x10) || player.lifecycle.crashing) return;
   if(hangar.returning == hangar_return_phase::settling || hangar.returning == hangar_return_phase::complete) return;
@@ -127,7 +127,7 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   return true;
 }
 
-void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t frame_step, uint16_t const clock) {
+void advance_hangar_return(player_flight &player, hangar_state &hangar, game_duration frame_step, clock_tick const clock) {
   /// 7CEF/7D32 steer through the approach and inner berth, then turn in place until the original completion deadline
   int constexpr tunnel_berth_row_offset{144};
   int constexpr surface_berth_row_offset{216};

@@ -10,7 +10,7 @@ namespace darker::game {
 
 projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle, object_pose const &player,
   city_map const &cells, std::span<resources::city_type const> const types, uint8_t const direction,
-  uint16_t const clock, uint8_t const difficulty, uint16_t const model) {
+  clock_tick const clock, uint8_t const difficulty, uint16_t const model) {
   /// 9185 checks paired-shot cadence, rearward aim and two clear cells before CAF0 attempts a homing launch
   if(!(vehicle.parameters.definition->role_data.craft().flags & 1)) return nullptr;
   auto const elapsed{static_cast<uint16_t>(clock - vehicle.last_shot)};

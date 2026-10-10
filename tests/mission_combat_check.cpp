@@ -357,7 +357,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           .primary_pressed{true}
         },
         {});
-    auto *capsule{dual.projectiles.objects().tail};
+    auto *capsule{dual.projectiles.objects().tail()};
     if(!dual.player_fired || dual.primary_weapon != 7 || !capsule
       || capsule->parameters.definition != &darker::game::original_object_definitions[2]) {
       throw std::runtime_error{"Dual Launch primary press did not launch its capsule"};
@@ -386,7 +386,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           .primary_released{true}
         },
         {});
-    auto const *followup{dual.projectiles.objects().head};
+    auto const *followup{dual.projectiles.objects().head()};
     if(!dual.player_fired || dual.primary_weapon != 3 || !followup
       || followup->parameters.definition != &darker::game::original_object_definitions[6]
       || followup->target_token != capsule->native_id) {
@@ -646,7 +646,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
       // supply controlled beacon power while isolating aim/collision/completion from navigation
-      darker::game::charge_caero_energy(caero.energy, 13056, 1, 1028, false);
+      caero.energy.charge(13056, 1, 1028, false);
       context.clock = clock;
       context.object_flags = combat.status_flags(player.lifecycle.flags);
       context.objectives_complete = combat.remaining_objectives() == 0;
@@ -945,9 +945,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         },
         {},
         {});
-  auto *missile{missiles.hostile_projectiles.objects().head};
+  auto *missile{missiles.hostile_projectiles.objects().head()};
   if(!missile || missile->parameters.definition != &darker::game::original_object_definitions[10]
-    || missiles.projectiles.objects().head || missiles.actors.front().last_shot != 8192) {
+    || missiles.projectiles.objects().head() || missiles.actors.front().last_shot != 8192) {
     throw std::runtime_error{"Mission-two aircraft did not launch its separate homing missile"};
   }
   missiles.actors.clear();

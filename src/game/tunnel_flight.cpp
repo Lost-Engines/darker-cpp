@@ -22,7 +22,7 @@ uint16_t approach(uint16_t const previous, uint16_t const target, uint16_t const
   return static_cast<uint16_t>(word(previous) < word(target) ? std::min(candidate, word(target)) : std::max(candidate, word(target)));
 }
 
-uint16_t smooth(uint16_t const previous, uint16_t const drive, uint16_t const frame_step) noexcept {
+uint16_t smooth(uint16_t const previous, uint16_t const drive, game_duration const frame_step) noexcept {
   /// D86B clamps steering demand and approaches growing demand twice as quickly as falling demand
   auto const magnitude{std::min(std::abs(word(drive)), 3072)};
   auto const old_magnitude{static_cast<uint16_t>(word(previous) < 0 ? -previous : previous)};
@@ -61,7 +61,7 @@ route_response response(uint16_t const drive, uint16_t const route_error) noexce
 } // anonymous namespace
 
 void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state, tunnel_flight_input const input,
-  uint16_t frame_step, city_map const &cells, tunnel_network const &network) {
+  game_duration frame_step, city_map const &cells, tunnel_network const &network) {
   /// D510 repairs damage, recharges connected flight and separates low-speed aiming from the route-following attitude
   auto &angles{craft.pose.angles};
   repair_caero_damage(craft.damage, craft.repair_phase, frame_step);
@@ -116,7 +116,7 @@ void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state
 }
 
 void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state, tunnel_flight_input const input,
-  uint16_t frame_step, city_map const &cells, tunnel_network const &network) {
+  game_duration frame_step, city_map const &cells, tunnel_network const &network) {
   /// D5C9 smooths steering, follows or reacquires a route, then integrates the tunnel-specific drive and gravity
   auto &pose{craft.pose};
   auto &angles{pose.angles};

@@ -15,16 +15,19 @@
 TEST_CASE("Skimma automatic reload matches original counters, byte signs and deadline wrapping") {
   for(auto const &sample : darker::test_reference::reload_samples) {
     CAPTURE(sample.weapon, sample.clock, sample.working, sample.reserve);
-    darker::game::weapon_ammunition ammunition{
+    darker::game::skimma_armament armament;
+    auto &ammunition{armament.slots[sample.weapon].ammunition};
+    ammunition = {
       .working{static_cast<uint8_t>(sample.working)},
       .reserve{static_cast<uint8_t>(sample.reserve)},
     };
-    darker::game::weapon_ring_state ring{
+    auto &ring{armament.ring};
+    ring = {
       .reload_deadline{123},
       .spread{252},
       .target_spread{17}
     };
-    bool const changed{darker::game::reload_skimma_weapon(ammunition, ring,
+    bool const changed{armament.reload(
       static_cast<uint8_t>(sample.weapon), static_cast<uint16_t>(sample.clock))};
     CHECK(changed == (sample.next_working != sample.working));
     CHECK(ammunition.working == sample.next_working);
@@ -100,7 +103,8 @@ TEST_CASE("Skimma ring draws before smoothing and leaves reload state unchanged 
 TEST_CASE("Skimma status update reloads before reserve selection and preserves native target branches") {
   for(auto const &sample : darker::test_reference::status_samples) {
     CAPTURE(sample.slots, sample.selected, sample.flags, sample.working, sample.reserve, sample.target, sample.count);
-    std::array<darker::game::skimma_weapon_slot, 3> weapons;
+    darker::game::skimma_armament armament;
+    auto &weapons{armament.slots};
     for(auto &slot : weapons) {
       slot = {
         .ammunition{
@@ -110,13 +114,15 @@ TEST_CASE("Skimma status update reloads before reserve selection and preserves n
         .flags{static_cast<uint8_t>(sample.flags)}
       };
     }
-    darker::game::weapon_ring_state ring{
+    auto &ring{armament.ring};
+    ring = {
       .reload_deadline{123},
       .spread{252},
       .target_spread{17}
     };
-    auto const display{darker::game::update_skimma_weapon_status(std::span{weapons}.first(static_cast<size_t>(sample.slots)), ring,
-      static_cast<uint8_t>(sample.selected), 65000, static_cast<int16_t>(sample.target), static_cast<uint16_t>(sample.count))};
+    armament.selection = static_cast<uint8_t>(sample.selected);
+    armament.update_status(65000, static_cast<int16_t>(sample.target), static_cast<uint16_t>(sample.count), sample.slots == 3);
+    auto const display{armament.reserves};
     CHECK(display == sample.display);
     CHECK(weapons[0].flags == sample.flag0);
     CHECK(weapons[1].flags == sample.flag1);
@@ -194,15 +200,25 @@ TEST_CASE("Skimma secondary firing matches native status, reload and ammunition 
   /// Run the same status-before-firing sequence as C90A, retaining all three slots even on the ordinary craft
   for(auto const &sample : darker::test_reference::skimma_firing_samples) {
     CAPTURE(sample);
-    std::array<darker::game::skimma_weapon_slot, 3> weapons;
+    darker::game::skimma_armament armament;
+    auto &weapons{armament.slots};
     for(size_t i{0}; i < 3; ++i) weapons[i] = {
-      .ammunition{static_cast<uint8_t>(sample[5 + i]), static_cast<uint8_t>(sample[8 + i])},
+      .ammunition{
+        .working{static_cast<uint8_t>(sample[5 + i])},
+        .reserve{static_cast<uint8_t>(sample[8 + i])}
+      },
       .flags{static_cast<uint8_t>(sample[2 + i])}
     };
-    darker::game::weapon_ring_state ring{static_cast<uint16_t>(sample[12]), static_cast<uint16_t>(sample[13])};
-    auto const selected{static_cast<uint8_t>(sample[1])};
-    auto const reserve{darker::game::update_skimma_weapon_status(std::span{weapons}.first(sample[0]), ring, selected, static_cast<uint16_t>(sample[11]),
-      std::bit_cast<int16_t>(static_cast<uint16_t>(sample[14])), static_cast<uint16_t>(sample[15]))};
+    auto &ring{armament.ring};
+    ring = {
+      .reload_deadline{static_cast<uint16_t>(sample[12])},
+      .spread{static_cast<uint16_t>(sample[13])}
+    };
+    auto &selected{armament.selection};
+    selected = static_cast<uint8_t>(sample[1]);
+    armament.update_status(static_cast<uint16_t>(sample[11]),
+      std::bit_cast<int16_t>(static_cast<uint16_t>(sample[14])), static_cast<uint16_t>(sample[15]), sample[0] == 3);
+    auto const reserve{armament.reserves};
     darker::game::projectile_pool pool;
     darker::game::launch_emitter const emitter{
       .definition_strength{40}
@@ -249,16 +265,19 @@ TEST_CASE("Skimma selection matches native enable toggles and reload delay", "[g
     auto const word{[](int const value){
       return static_cast<uint16_t>(value);
     }};
-    std::array<darker::game::skimma_weapon_slot, 3> slots{};
+    darker::game::skimma_armament armament;
+    auto &slots{armament.slots};
     for(size_t i{0}; i < 3; ++i) slots[i].flags = byte(s[2 + i]);
-    auto selected{byte(s[1])};
-    darker::game::weapon_ring_state ring{
+    auto &selected{armament.selection};
+    selected = byte(s[1]);
+    auto &ring{armament.ring};
+    ring = {
       .reload_deadline{word(s[7])},
       .spread{word(s[8])},
       .target_spread{508}
     };
     auto target{word(s[9])};
-    if(darker::game::select_skimma_weapon(slots, selected, ring, byte(s[0]), word(s[5]), word(s[6]))) target = 0xffff;
+    if(armament.select(true, byte(s[0]), word(s[5]), word(s[6]))) target = 0xffff;
     CHECK(selected == s[10]);
     CHECK(ring.reload_deadline == s[11]);
     CHECK(ring.spread == s[12]);

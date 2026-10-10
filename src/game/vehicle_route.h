@@ -5,6 +5,7 @@
 #include <optional>
 #include <span>
 #include "game/object_pose.h"
+#include "game/time.h"
 #include "maths/world_coordinates.h"
 
 namespace darker::game {
@@ -32,6 +33,6 @@ struct vehicle_route_result {
 };
 
 vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &pose, uint8_t &flags,
-  std::span<std::byte const> program, uint16_t clock, int16_t model_height, uint16_t &random_state);
+  std::span<std::byte const> program, clock_tick clock, int16_t model_height, uint16_t &random_state);
 
 } // namespace darker::game

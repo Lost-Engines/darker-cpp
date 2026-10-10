@@ -4,7 +4,7 @@
 
 namespace darker::game {
 
-void beacon_changes::command(uint8_t const opcode, uint8_t origin, uint8_t length, uint16_t const clock, std::span<std::byte const> const queue) {
+void beacon_changes::command(uint8_t const opcode, uint8_t origin, uint8_t length, clock_tick const clock, std::span<std::byte const> const queue) {
   /// C442/C467/C470 configure a retained fade; C1A0 reverses its direction without starting a new run
   if(opcode == 0x14) {
     dimming = !dimming;
@@ -24,7 +24,7 @@ void beacon_changes::command(uint8_t const opcode, uint8_t origin, uint8_t lengt
   active = true;
 }
 
-void beacon_changes::advance(city_map &cells, uint16_t const clock) {
+void beacon_changes::advance(city_map &cells, clock_tick const clock) {
   /// C510 fades over 256 ticks; dimming only lowers output, while restoration writes each intermediate value
   if(!active) return;
   auto const remaining{static_cast<uint16_t>(clock - deadline)};

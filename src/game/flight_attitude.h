@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -10,6 +11,6 @@ struct flight_turn {
 };
 
 int16_t project_flight_pitch(uint16_t pitch, uint16_t bank, uint16_t steering_delta) noexcept;
-flight_turn couple_flight_turn(uint16_t bank, uint16_t pitch, uint16_t steering_delta, uint16_t frame_step) noexcept;
+flight_turn couple_flight_turn(uint16_t bank, uint16_t pitch, uint16_t steering_delta, game_duration frame_step) noexcept;
 
 } // namespace darker::game

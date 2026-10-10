@@ -22,7 +22,7 @@ std::array<uint16_t, 2> curve(uint16_t const angle, uint8_t const fraction) {
 } // anonymous namespace
 
 vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &pose, uint8_t &flags,
-  std::span<std::byte const> const program, uint16_t const clock, int16_t const model_height, uint16_t &random_state) {
+  std::span<std::byte const> const program, clock_tick const clock, int16_t const model_height, uint16_t &random_state) {
   /// 8F3B advances one timed route unit per callback, preserving byte coordinates and wrapping clock arithmetic
   vehicle_route_result result;
   uint16_t height{0};

@@ -102,7 +102,7 @@ bool begin_supply_approach(player_flight &player, city_map const &cells, supply_
 }
 
 void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_t const output,
-  bool const supplementary_active, uint16_t const pitch_control, uint16_t const frame_step) {
+  bool const supplementary_active, uint16_t const pitch_control, game_duration const frame_step) {
   /// 7D9A centres in two stages; the shared 7E49 tail ramps output and admits a deliberate pitch-controlled departure
   int constexpr docking_height{328};
   uint16_t constexpr centred_pad_offset{0x8080};

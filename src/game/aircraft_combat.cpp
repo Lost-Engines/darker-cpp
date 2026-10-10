@@ -32,7 +32,7 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
 
 scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resources::geometry_bank const &bank,
   maths::world_position const &start, maths::world_position const &end, uint16_t const expansion,
-  std::span<actor_category const> const categories, std::optional<uint8_t> const excluded) {
+  std::span<actor_category const> const categories, std::optional<actor_index> const excluded) {
   /// 6D60 retains the last intersecting object in list order without shortening the city-clipped sweep
   scenario_actor *result{nullptr};
   for(auto const category : categories) {
@@ -45,7 +45,7 @@ scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resou
   return result;
 }
 
-actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state, bool const underground) {
+actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, clock_tick const clock, uint16_t &random_state, bool const underground) {
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
   if(actor.parameters.update_entry == object_update::inactive) return {
     .effect{0x7296},
@@ -82,7 +82,7 @@ actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uin
   };
 }
 
-void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexcept {
+void advance_falling_aircraft(scenario_actor &actor, game_duration frame_step) noexcept {
   /// 8DAA damps bank motion, pitches down according to bank and approaches the falling speed
   actor.previous_position = actor.pose.position;
   auto const bank{integrate_angular_rate(actor.attitude.bank_rate, 0, frame_step)};
@@ -99,8 +99,8 @@ void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexce
   advance_actor_speed(actor.pose, 17, 64, 223, pitch.frame_step);
 }
 
-std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &actor, uint8_t const target_flags,
-  actor_course const course, uint8_t const distance, uint16_t const clock, uint8_t const difficulty, bool const building_attacks) {
+std::optional<object_definition_index> aircraft_projectile_definition(scenario_actor const &actor, uint8_t const target_flags,
+  actor_course const course, uint8_t const distance, clock_tick const clock, uint8_t const difficulty, bool const building_attacks) {
   /// 8AFD selects object missiles or the adjacent building-attack definition before the common aim and cooldown checks
   if(actor.selected_target != 0xd986 && (actor.flags & 2)) return std::nullopt;
   bool const building{!(actor.selected_target & 0x8000)};
@@ -120,7 +120,7 @@ std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &acto
   return slot;
 }
 
-projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, bool const enabled, uint16_t const clock, uint16_t const model_token) {
+projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, bool const enabled, clock_tick const clock, uint16_t const model_token) {
   /// 8BE6 admits a building-target drop every six timer pages, recording even an unsuccessful allocation attempt
   if((actor.flags & 2) || !enabled || static_cast<uint16_t>(clock - actor.last_shot) < 0x600 || (actor.selected_target & 0x8000)) return nullptr;
   actor.last_shot = clock;
@@ -146,7 +146,7 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
 }
 
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t const player_flags,
-  uint16_t const player_extent, actor_course const course, uint8_t const distance, uint16_t const clock, uint16_t const changes, uint16_t &random_state, uint8_t const target_protection_mask) {
+  uint16_t const player_extent, actor_course const course, uint8_t const distance, clock_tick const clock, uint16_t const changes, uint16_t &random_state, uint8_t const target_protection_mask) {
   /// 8B65's slot-19 close-range gun tests the original DX aim bounds and timer bits, then traces a randomised ray
   // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch
   if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;

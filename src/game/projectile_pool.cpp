@@ -9,14 +9,13 @@ projectile_pool::projectile_pool(projectile_list const category)
   for(auto &record : std::span{storage}.first(count)) {
     record.native_id = id;
     id = static_cast<uint16_t>(id + 112);
-    record.next = list.free;
-    list.free = &record;
+    list.add_free_record(record);
   }
 }
 
 projectile *projectile_pool::launch(projectile_launch const request) {
   /// CB01 expands and positions an allocated record without clearing retained fields
-  auto *record{allocate_object(list)};
+  auto *record{list.allocate()};
   if(!record) return nullptr;
   record->deadline = static_cast<uint16_t>(request.clock + request.lifetime);
   record->inherited_roll = request.emitter.angles.roll;
@@ -32,12 +31,12 @@ projectile *projectile_pool::launch(projectile_launch const request) {
 
 projectile *projectile_pool::recycle(projectile &record) {
   /// Return the next active projectile while putting this active member on the free list
-  return recycle_object(list, record);
+  return list.recycle(record);
 }
 
 projectile *projectile_pool::unlink(projectile &record) {
   /// Remove an active member without making it available for allocation
-  return unlink_object(list, record);
+  return list.unlink(record);
 }
 
 projectile *projectile_pool::resolve(uint16_t const native_id) noexcept {

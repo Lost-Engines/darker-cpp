@@ -91,18 +91,18 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
   for(size_t i{0}; i < allocated.size(); ++i) {
     allocated[i] = pool.launch(request);
     REQUIRE(allocated[i] == &pool.records()[11 - i]);
-    CHECK(pool.objects().head == allocated[i]);
-    CHECK(pool.objects().tail == allocated[0]);
+    CHECK(pool.objects().head() == allocated[i]);
+    CHECK(pool.objects().tail() == allocated[0]);
     CHECK(allocated[i]->deadline == 250);
     CHECK(allocated[i]->target_token == 0x1234);
     CHECK(allocated[i]->parameters.model_token == 0x4321);
   }
-  CHECK(pool.objects().free == nullptr);
+  CHECK(pool.objects().free_head() == nullptr);
   CHECK(pool.launch(request) == nullptr);
-  CHECK(pool.objects().head == allocated.back());
-  CHECK(pool.objects().tail == allocated.front());
-  CHECK(pool.objects().free == nullptr);
-  auto *current{pool.objects().head};
+  CHECK(pool.objects().head() == allocated.back());
+  CHECK(pool.objects().tail() == allocated.front());
+  CHECK(pool.objects().free_head() == nullptr);
+  auto *current{pool.objects().head()};
   for(size_t i{allocated.size()}; i-- >0;) {
     REQUIRE(current == allocated[i]);
     current = current->next;
@@ -110,9 +110,9 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
   CHECK(current == nullptr);
   CHECK(pool.recycle(*allocated[5]) == allocated[4]);
   CHECK(pool.launch(request) == allocated[5]);
-  CHECK(pool.objects().head == allocated[5]);
-  CHECK(pool.objects().tail == allocated[0]);
-  CHECK(pool.objects().free == nullptr);
+  CHECK(pool.objects().head() == allocated[5]);
+  CHECK(pool.objects().tail() == allocated[0]);
+  CHECK(pool.objects().free_head() == nullptr);
 }
 
 TEST_CASE("Hostile projectile pool has six independent native slots") {

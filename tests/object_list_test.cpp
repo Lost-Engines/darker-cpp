@@ -30,27 +30,27 @@ TEST_CASE("Object allocation, tail reuse, unlinking and recycling match native l
         .payload{i * 17}
       };
     }
-    darker::game::object_list<record> list{
+    darker::game::object_list<record> list{{
       .head{pointer(sample.active ? 1 : 0)},
       .tail{pointer(sample.active)},
       .free{pointer(sample.active < 6 ? sample.active + 1 : 0)},
-    };
+    }};
     record *result{nullptr};
     switch(sample.operation) {
       case 0:
-        result = darker::game::allocate_object(list);
+        result = list.allocate();
         break;
       case 1:
-        result = darker::game::allocate_or_reuse_object(list);
+        result = list.allocate_or_reuse();
         break;
       case 2:
-        result = darker::game::unlink_object(list, *pointer(sample.target));
+        result = list.unlink(*pointer(sample.target));
         break;
       case 3:
-        result = darker::game::recycle_object(list, *pointer(sample.target));
+        result = list.recycle(*pointer(sample.target));
         break;
     }
-    std::array<int, 16> actual{index(result), index(list.head), index(list.tail), index(list.free)};
+    std::array<int, 16> actual{index(result), index(list.head()), index(list.tail()), index(list.free_head())};
     for(size_t i{0}; i < records.size(); ++i) {
       actual[4 + i * 2] = index(records[i].next);
       actual[5 + i * 2] = index(records[i].previous);

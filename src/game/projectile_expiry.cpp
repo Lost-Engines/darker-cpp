@@ -6,7 +6,7 @@ namespace darker::game {
 projectile *expire_projectile(projectile_pool &pool, projectile &record, projectile_references &references,
   objective_counters &objectives, weapon_ring_state &ring) {
   /// 7A52 repairs targets and counters before choosing native unlink/recycle disposition
-  for(auto *other{pool.objects().head}; other; other = other->next) {
+  for(auto *other{pool.objects().head()}; other; other = other->next) {
     if(other->target_token == record.native_id) other->target_token = other->native_id;
   }
   record.flags |= 0x20;

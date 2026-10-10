@@ -26,7 +26,7 @@ Tests compare 72 native reload transitions and 120 native ring decisions. Reload
 
 `update_weapon_ring` translates `5D56–5E0F` around the existing pure radius calculation. Its return value describes what to draw **before** the state mutation. A negative signed clock/deadline difference returns without modifying ring state. Otherwise the routine sets the deadline to the current clock and moves spread towards zero by the supplied native frame step (`7A2B`), using the signed comparisons and wrapping arithmetic of `7CDB`. This update happens even when enable bit zero is clear and no ring is drawn. The caller supplies the game-clock step, not a floating-point wall-clock interval.
 
-`update_skimma_weapon_status` translates `C90A–C94E`, stopping before firing logic:
+`skimma_armament::update_status` translates `C90A–C94E`, stopping before firing logic:
 
 1. Attempt automatic reload on the selected weapon, regardless of its enable bit.
 2. Clear reserve display `454E`, then scan available slots in descending order (two for ordinary Skimma, three for upgraded Skimma).
@@ -143,3 +143,9 @@ Debug entry (`--level` and Shift+X) deliberately grants bit 0004 from level 101,
 the first upgraded-craft mission. This avoids requiring a pad visit solely to
 unlock the weapon during testing. It does not change ordinary saves, service
 scripts or the original forward-X cheat.
+
+`skimma_armament` owns selection, ammunition slots, reserve display, shared reload
+ring and recoil state. Its `select`, `reload` and `update_status` members coordinate
+these values, with the ordinary/upgraded slot counts and reload delay named in the
+owner. The unused third slot is retained on the ordinary craft, matching the native
+state. Firing against a separate projectile pool remains a free operation.

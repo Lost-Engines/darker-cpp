@@ -73,7 +73,7 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
       .emitter{emitter}
     });
     if(!s[3]) {
-      while(pool.objects().free) pool.launch({
+      while(pool.objects().free_head()) pool.launch({
         .definition{darker::game::original_object_definitions[0]},
         .emitter{emitter}
       });

@@ -1,23 +1,23 @@
 # Object lists and random sequence
 
-The first shared world primitives live in `src/game`. They have no rendering, window, audio or resource dependencies. They are not yet a running world or a complete projectile constructor.
+The shared world primitives live in `src/game`. The lists and random generator have no rendering, window, audio or resource dependencies and are used by the running game. The later sections record their reconstruction and native-reference verification.
 
 ## Intrusive object lists
 
-`object_list<Record>` retains active head, active tail and free-list head, matching the header words at native offsets +0, +2 and +4. Records supply typed `next` and `previous` pointers. This replaces segment offsets with ordinary C++ pointers while retaining stable identity and native ordering. Records must remain at fixed addresses for the lifetime of their links; ownership and pool construction belong to the caller.
+`object_list<Record>` retains active head, active tail and free-list head, matching the header words at native offsets +0, +2 and +4. Records supply typed `next` and `previous` pointers. This replaces segment offsets with ordinary C++ pointers while retaining stable identity and native ordering. The list privately owns its three roots and exposes read-only root accessors. Records must remain at fixed addresses for the lifetime of their links; `projectile_pool` owns their storage. The list cannot be copied or moved, preventing two independently mutable sets of roots for the same records. `add_free_record` attaches previously unused storage during pool construction.
 
-| Function | Original routine | Behaviour |
+| Member function | Original routine | Behaviour |
 | --- | --- | --- |
-| `allocate_object` | `1C95` | Pop the free head, prepend to active head, repair previous/tail; return null on exhaustion without changing links. |
-| `allocate_or_reuse_object` | `1CBF` | Try allocation first; on exhaustion detach the active tail and prepend it to the active head. |
-| `unlink_object` | `7AB4` | Repair active neighbours/head/tail without adding the record to the free list; return the old next record for list traversal. |
-| `recycle_object` | `1CD4` | Unlink and prepend the removed record to the free list, returning the next active record. |
+| `allocate` | `1C95` | Pop the free head, prepend to active head, repair previous/tail; return null on exhaustion without changing links. |
+| `allocate_or_reuse` | `1CBF` | Try allocation first; on exhaustion detach the active tail and prepend it to the active head. |
+| `unlink` | `7AB4` | Repair active neighbours/head/tail without adding the record to the free list; return the old next record for list traversal. |
+| `recycle` | `1CD4` | Unlink and prepend the removed record to the free list, returning the next active record. |
 
 These operations do not clear payloads. Free records retain stale previous links, which allocation overwrites. Unlinking alone leaves the removed record's links untouched. Callers must supply an active member to either removal function and must not insert the same record into multiple lists. There is no ownership scan in these low-level operations.
 
 The native tail-reuse fallback assumes at least two active records. The C++ implementation reports a logic error if that precondition is violated instead of dereferencing the native equivalent of a null record. The ordinary allocation path has no such minimum.
 
-Projectile launch `CB01` calls `1C95`, **not** `1CBF`; therefore the existence of tail reuse does not establish that firing evicts the oldest projectile. The reused-payload contract also means the subsequent definition expansion and constructor writes must be translated separately. The original fixed-pool setup at `1CFB–1D62` and the full 112-byte runtime object are not implemented here.
+Projectile launch `CB01` calls `1C95`, **not** `1CBF`; therefore the existence of tail reuse does not establish that firing evicts the oldest projectile. The reused-payload contract also means the subsequent definition expansion and constructor writes must be translated separately. `projectile_pool` implements the fixed-pool setup at `1CFB–1D62` with stable native IDs; its typed records preserve the relevant native fields without requiring the original 112-byte memory layout.
 
 ## Original random generator
 
@@ -315,3 +315,22 @@ responses and a compact fingerprint of both folds for every 16-bit angle.
 The existing bounded-error and projectile trajectory fixtures continue to cover
 the third response entry and its callers. No platform input scaling is implied by these shared helpers. The complete
 [Caero callback](caero_flight.md) now composes them in native update order.
+
+## State ownership and semantic types
+
+`clock_tick` names the wrapping 16-bit timer and its deadlines; `game_duration`
+names native tick counts, and `campaign_clock` names the extended mission timer.
+These are integer aliases, preserving the original promotions and truncations,
+not unit-enforcing wrappers. Explicit casts remain at native byte/word boundaries.
+
+Optional impact strengths, damage severities, particle frames, actor indices and
+object-definition indices have names for their numeric meaning. Absence remains
+distinct from a valid zero; these quantities are not enumerations.
+
+Small state owners expose the operations that coordinate their members:
+`steering_axis_state` filters its keyboard/mouse history, `flight_controls_state`
+retains keyboard priority, `caero_energy_state::charge` updates its reserves and
+displays together, and `weapon_target` applies craft-specific projection and
+clearing rules. Their native state remains directly representable for setup and
+reference fixtures. Calculations involving separate actors, maps or projectile
+pools remain free functions; the main update sequence retains its original order.

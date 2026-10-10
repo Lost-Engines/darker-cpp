@@ -1,6 +1,6 @@
 # Flight steering controls
 
-`update_flight_controls` reconstructs the ordinary keyboard/mouse path at
+`flight_controls_state::update` reconstructs the ordinary keyboard/mouse path at
 `7AD6–7BC4` and its response helpers `7C04`, `7C50` and `7C73`. It produces the
 bank and pitch drives consumed by the flight callbacks. Platform event capture,
 joystick and VR orientation are separate integration work.

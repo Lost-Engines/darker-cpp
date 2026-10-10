@@ -6,6 +6,7 @@
 #include "game/city_map.h"
 #include "game/object_pose.h"
 #include "game/player_damage.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -43,6 +44,6 @@ struct caero_flight_input {
 
 bool activate_caero_boost(caero_flight_state &state) noexcept;
 void advance_caero_flight(caero_flight_state &state, caero_flight_parameters parameters,
-  caero_flight_input input, uint16_t frame_step, std::span<city_cell const, city_map_cell_count> cells);
+  caero_flight_input input, game_duration frame_step, std::span<city_cell const, city_map_cell_count> cells);
 
 } // namespace darker::game

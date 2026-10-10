@@ -170,7 +170,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     }
   }};
   for(auto const *pool : {&combat.projectiles, &combat.hostile_projectiles}) {
-    for(auto *shot{pool->objects().head}; shot; shot = shot->next) {
+    for(auto *shot{pool->objects().head()}; shot; shot = shot->next) {
       auto const &definition{*shot->parameters.definition};
       auto note{object_sound(definition, shot->placement,
         {
@@ -245,14 +245,11 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
   append_player(4);
   // 363C retires a previously submitted transient when its voice was rejected or stolen
   combat.effects.retire_sounds([&](auto const &sound){
-    return (sound.definition.flags & 0x20) && std::ranges::find(voices.identities(), sound.identity) == voices.identities().end();
+    return (sound.definition.flags & game::effect_sound_definition::retire_without_voice_flag) && std::ranges::find(voices.identities(), sound.identity) == voices.identities().end();
   });
-  for(auto *pool : {&combat.effects.sounds, &combat.effects.gun_sounds}) {
-    for(auto i{pool->rbegin()}; i != pool->rend(); ++i) {
-      append(*i, nullptr, i->identity);
-      i->definition.flags |= 0x28;
-    }
-  }
+  combat.effects.submit_sounds([&](game::effect_sound const &sound){
+    append(sound, nullptr, sound.identity);
+  });
   return voices.allocate(candidates);
 }
 

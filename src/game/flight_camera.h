@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "game/flight_controls.h"
 #include "game/object_pose.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -21,10 +22,10 @@ struct flight_camera {
 
   void drop(camera_mode selected, object_pose const &player) noexcept;
 
-  void update_look(flight_steering drive, bool held, uint16_t frame_step, bool landed = false) noexcept;
+  void update_look(flight_steering drive, bool held, game_duration frame_step, bool landed = false) noexcept;
   camera_mode visible_mode() const noexcept;
 
-  object_pose view(object_pose const &player, uint16_t frame_step, bool landed = false, camera_subject subject = camera_subject::player, bool underground = false);
+  object_pose view(object_pose const &player, game_duration frame_step, bool landed = false, camera_subject subject = camera_subject::player, bool underground = false);
 };
 
 } // namespace darker::game

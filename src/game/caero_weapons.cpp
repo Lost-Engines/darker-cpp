@@ -7,7 +7,7 @@
 
 namespace darker::game {
 
-diffuser_impact diffuser_state::hit(bool const gas, collision_category const category, uint8_t const state, uint16_t const target, uint16_t const clock) noexcept {
+diffuser_impact diffuser_state::hit(bool const gas, collision_category const category, uint8_t const state, uint16_t const target, clock_tick const clock) noexcept {
   /// CE84 shares one gas target and accepts its trigger only in the final 1000h ticks before the 2800h deadline
   int constexpr gas_lifetime_ticks{0x2800};
   uint16_t constexpr trigger_window_start{0xf000};                             // wrapped -0x1000: the final 4096 ticks
@@ -38,7 +38,7 @@ uint8_t pinner_direct_strength(bool const underground) noexcept {
   return underground ? underground_strength : delphi_strength;
 }
 
-std::optional<uint8_t> chargeable_impact_strength(uint16_t const deadline, uint16_t const clock) noexcept {
+std::optional<impact_strength> chargeable_impact_strength(clock_tick const deadline, clock_tick const clock) noexcept {
   /// CF37 ignores expired and last-page impacts; otherwise AH after the wrapped shift supplies strength
   auto const remaining{static_cast<uint16_t>(deadline - clock)};
   int constexpr minimum_damaging_lifetime_ticks{256};
@@ -53,7 +53,7 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
   if(selection < 1 || selection > 10) throw std::invalid_argument{"Caero weapon selection is outside 1–10"};
   auto const &definition{original_object_definitions[selection - 1]};
   auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data.projectile().launch_cost) * 256 + 255)};
-  if((request.player_flags & 0x30) || !pool.objects().free) return {};
+  if((request.player_flags & 0x30) || !pool.objects().free_head()) return {};
   auto lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)};
   auto target{request.target};
   uint8_t next_selection{0};
@@ -94,7 +94,7 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
   } else {
     if(energy.reserve < cost) return {};
     if(selection == 7) {
-      auto const *capsule{pool.objects().tail};
+      auto const *capsule{pool.objects().tail()};
       if(!capsule || capsule->parameters.definition != &original_object_definitions[2]) return {
         .ready{true},
         .next_selection{3}

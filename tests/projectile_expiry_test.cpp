@@ -43,7 +43,7 @@ TEST_CASE("Projectile expiry repairs native references and counters before list 
       return p ? p->native_id : 0;
     }};
     auto const &list{pool.objects()};
-    std::array<int, 17> const actual{id(list.head), id(list.tail), id(list.free), id(next),
+    std::array<int, 17> const actual{id(list.head()), id(list.tail()), id(list.free_head()), id(next),
       head->target_token, record->target_token, tail->target_token, references.selected_target, references.reference_2449,
       references.missile_view, ring.target_spread, objectives.completed, objectives.outstanding, record->flags, record->lifecycle,
       id(record->next), id(record->previous)};

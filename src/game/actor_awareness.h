@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/object_pose.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -18,6 +19,6 @@ struct awareness_parameters {
 };
 
 void advance_actor_awareness(actor_awareness &state, object_pose const &actor, object_pose const &player,
-  awareness_parameters parameters, uint16_t frame_step) noexcept;
+  awareness_parameters parameters, game_duration frame_step) noexcept;
 
 } // namespace darker::game

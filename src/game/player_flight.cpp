@@ -73,7 +73,7 @@ void player_flight::toggle_freeze() noexcept {
   pose().speed = 0;
 }
 
-void player_flight::advance_motion(flight_controls_input const input, bool const brake, uint16_t const frame_step,
+void player_flight::advance_motion(flight_controls_input const input, bool const brake, game_duration const frame_step,
   resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *const network, supply_control const supply_input) {
   /// Advance controls and craft motion before the campaign's common collision phase
   if(frame_step == 0) return;
@@ -81,7 +81,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
     advance_player_crash(pose(), frame_step);
     return;
   }
-  auto steering{update_flight_controls(controls, input, frame_step)};
+  auto steering{controls.update(input, frame_step)};
   look_drive = input.look_around ? steering : flight_steering{};
   if(input.look_around) {
     controls.bank.reference = 0;
@@ -145,7 +145,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   }
 }
 
-void player_flight::apply_city_contact(city_collision_result const contact, uint16_t const clock,
+void player_flight::apply_city_contact(city_collision_result const contact, clock_tick const clock,
   resources::geometry_bank const &bank, city_map &cells) {
   /// Apply 6EEC/6F84 only after object contacts have had their native chance to supersede the city hit
   if(noclip) return;
@@ -162,8 +162,8 @@ void player_flight::apply_city_contact(city_collision_result const contact, uint
   }
 }
 
-city_collision_result player_flight::advance(flight_controls_input const input, bool const brake, uint16_t const frame_step,
-  uint16_t const clock, resources::geometry_bank const &bank, city_map &cells,
+city_collision_result player_flight::advance(flight_controls_input const input, bool const brake, game_duration const frame_step,
+  clock_tick const clock, resources::geometry_bank const &bank, city_map &cells,
   tunnel_network const *const network, supply_control const supply_input) {
   /// Compose standalone flight and city collision for callers without a mission actor simulation
   bool const collidable{frame_step != 0 && !lifecycle.crashing && !noclip};

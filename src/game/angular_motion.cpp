@@ -18,7 +18,7 @@ int16_t rounded_product(int16_t const value, uint16_t const step) noexcept {
 
 } // anonymous namespace
 
-angular_response integrate_angular_rate(uint16_t const rate, uint16_t const impulse, uint16_t const frame_step) noexcept {
+angular_response integrate_angular_rate(uint16_t const rate, uint16_t const impulse, game_duration const frame_step) noexcept {
   /// 83DF damps the driven angular rate and integrates its midpoint without crossing the driven sign
   auto const doubled{static_cast<uint16_t>(frame_step * 2)};
   auto const previous{signed_word(rate)};
@@ -34,14 +34,14 @@ angular_response integrate_angular_rate(uint16_t const rate, uint16_t const impu
 }
 
 angular_response calculate_driven_angular_response(uint16_t const rate, uint16_t const gain,
-  uint16_t const drive, uint16_t const frame_step) noexcept {
+  uint16_t const drive, game_duration const frame_step) noexcept {
   /// 83D4 rounds the signed gain/drive product before the shared damping and integration
   auto const impulse{static_cast<uint16_t>((signed_word(gain) * signed_word(drive) + 128) >> 8)};
   return integrate_angular_rate(rate, impulse, frame_step);
 }
 
 angular_response calculate_angular_response(uint16_t const error, uint16_t const rate,
-  uint16_t const response, uint16_t const frame_step) noexcept {
+  uint16_t const response, game_duration const frame_step) noexcept {
   /// 83BF clamps the complemented signed error and scales it before the gain stage
   int const sign{signed_word(error) < 0 ? -1 : 0};
   int const magnitude{static_cast<uint16_t>(error ^ sign)};

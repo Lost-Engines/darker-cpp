@@ -31,7 +31,7 @@ map_guidance_target resolve_map_guidance(uint16_t const cell, city_map const &ce
   };
 }
 
-void advance_mimic_projectile(projectile &record, object_pose const &player, uint16_t const remaining, uint16_t const frame_step) {
+void advance_mimic_projectile(projectile &record, object_pose const &player, uint16_t const remaining, game_duration const frame_step) {
   /// CBCE copies player pitch and roll, then 8375 turns using midpoint bank and remaining-life response
   if(!record.parameters.definition) throw std::invalid_argument{"Mimic projectile requires an object definition"};
   auto &angles{record.placement.angles};
@@ -49,7 +49,7 @@ void advance_mimic_projectile(projectile &record, object_pose const &player, uin
 namespace {
 
 uint16_t steer_homing_projectile(projectile &record, uint16_t const target_heading,
-  uint16_t const target_pitch, uint16_t const frame_step) {
+  uint16_t const target_pitch, game_duration const frame_step) {
   /// CCDB updates pitch and heading and returns the adjusted integration step
   if(!record.parameters.definition) throw std::invalid_argument{"homing projectile requires an object definition"};
   auto &angles{record.placement.angles};
@@ -69,13 +69,13 @@ uint16_t steer_homing_projectile(projectile &record, uint16_t const target_headi
 
 } // anonymous namespace
 
-void advance_homing_projectile(projectile &record, uint16_t const target_heading, uint16_t const target_pitch, uint16_t const frame_step) {
+void advance_homing_projectile(projectile &record, uint16_t const target_heading, uint16_t const target_pitch, game_duration const frame_step) {
   /// CC61 steers towards the target before integrating ordinary projectile speed
   auto const step{steer_homing_projectile(record, target_heading, target_pitch, frame_step)};
   advance_direct_projectile(record.placement, *record.parameters.definition, step);
 }
 
-void advance_chargeable_projectile(projectile &record, object_pose const &target, uint16_t const remaining, uint16_t const frame_step) {
+void advance_chargeable_projectile(projectile &record, object_pose const &target, uint16_t const remaining, game_duration const frame_step) {
   /// CC68 retains the steering roll separately and derives visible spin and extra speed from remaining charge
   record.placement.angles.roll = record.inherited_roll;
   auto const angles{&target == &record.placement
@@ -91,7 +91,7 @@ void advance_chargeable_projectile(projectile &record, object_pose const &target
   advance_direct_projectile(record.placement, *record.parameters.definition, step, remaining);
 }
 
-void advance_object_homing_projectile(projectile &record, object_pose const &target, uint16_t const frame_step) {
+void advance_object_homing_projectile(projectile &record, object_pose const &target, game_duration const frame_step) {
   /// CCB9 resolves object positions; self-targeting deliberately retains the current angles
   auto const angles{&target == &record.placement
     ? maths::direction_angles{
@@ -102,14 +102,14 @@ void advance_object_homing_projectile(projectile &record, object_pose const &tar
   advance_homing_projectile(record, angles.heading, angles.pitch, frame_step);
 }
 
-void advance_dual_projectile(projectile &record, object_pose const &target, uint16_t const separation, uint16_t const frame_step) {
+void advance_dual_projectile(projectile &record, object_pose const &target, uint16_t const separation, game_duration const frame_step) {
   /// CC4F steers towards the capsule and adds capped separation to the requested forward speed
   auto const angles{maths::object_target_direction(record.placement.position, target.position)};
   auto const step{steer_homing_projectile(record, angles.heading, angles.pitch, frame_step)};
   advance_direct_projectile(record.placement, *record.parameters.definition, step, std::min<uint16_t>(separation, 0xcd));
 }
 
-void advance_map_homing_projectile(projectile &record, map_guidance_target const target, uint16_t const frame_step) {
+void advance_map_homing_projectile(projectile &record, map_guidance_target const target, game_duration const frame_step) {
   /// CC9C's map branch computes an aim height, then 831E banks towards its resolved position
   if(!record.parameters.definition) throw std::invalid_argument{"map homing requires an object definition"};
   auto const &definition{*record.parameters.definition};

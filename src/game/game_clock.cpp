@@ -26,7 +26,7 @@ void advance_game_clock(game_clock &clock, uint64_t interrupts) noexcept {
   clock.ticks = next;
 }
 
-uint16_t consume_game_frame(game_clock &clock) noexcept {
+game_duration consume_game_frame(game_clock &clock) noexcept {
   /// B0CE publishes the elapsed word, counts its carry and exchanges accumulated interrupt transitions into the frame snapshot
   auto const step{static_cast<uint16_t>(clock.ticks - clock.frame_ticks)};
   if(static_cast<unsigned int>(clock.frame_ticks) + step > 65535) ++clock.wraps;

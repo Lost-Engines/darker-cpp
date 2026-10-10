@@ -13,7 +13,7 @@ uint16_t dual_launch_separation(object_pose const &detonator, object_pose const 
   return static_cast<uint16_t>((horizontal >> 1) + (vertical >> 3));
 }
 
-std::optional<uint8_t> dual_launch_impact(object_pose const &origin, object_pose const &victim, bool const airborne) noexcept {
+std::optional<impact_strength> dual_launch_impact(object_pose const &origin, object_pose const &victim, bool const airborne) noexcept {
   /// 6DB5 bounds each category pass; CD13 derives strength from wrapped squared distances and a word division
   unsigned int const radius{airborne ? 0x500u : 0x1e0u};
   for(size_t axis{0}; axis < 2; ++axis) {

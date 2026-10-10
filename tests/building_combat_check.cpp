@@ -229,7 +229,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         });
       shots += combat.player_fired;
       if(player.lifecycle.crashing) throw std::runtime_error{"Building check crash stage=" + std::to_string(test.stage) + " clock=" + std::to_string(clock) + " removed=" + std::to_string(combat.completed_objectives) + " remaining=" + std::to_string(combat.remaining_objectives())};
-      darker::game::charge_caero_energy(craft.energy, 13056, 1, 1028, false);
+      craft.energy.charge(13056, 1, 1028, false);
       objectives.advance(cells, record, 0x20);
       context.clock = clock;
       context.objectives_complete = objectives.complete(record) && combat.remaining_objectives() == 0;

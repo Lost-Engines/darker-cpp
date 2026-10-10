@@ -46,9 +46,7 @@ uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_acto
   return selected;
 }
 
-namespace {
-
-void project_target(weapon_target &lock, maths::world_position const &player,
+void weapon_target::project(maths::world_position const &player,
   maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state, bool const skimma) noexcept {
   /// CF94–D056 retain a resolved lock only inside its original view cone and target class
@@ -63,14 +61,14 @@ void project_target(weapon_target &lock, maths::world_position const &player,
   int constexpr beacon_model_type{1};
   int constexpr permitted_ground_target_flag{0x40};
   if(!skimma && !secondary_weapon) {
-    lock.clear();
+    clear();
     return;
   }
-  if(lock.token == weapon_target::no_target) return;
+  if(token == weapon_target::no_target) return;
   auto const dx{static_cast<uint16_t>(target.column - player.column)};
   auto const dy{static_cast<uint16_t>(target.row - player.row)};
   if(static_cast<uint8_t>((dx >> 8) + target_window_half_width_cells) >= target_window_width_cells || static_cast<uint8_t>((dy >> 8) + target_window_half_width_cells) >= target_window_width_cells) {
-    lock.clear();
+    clear();
     return;
   }
   auto const height{static_cast<uint16_t>(player.height - target.height + (extent >> 2))};
@@ -84,30 +82,30 @@ void project_target(weapon_target &lock, maths::world_position const &player,
   }};
   auto const depth{transform(&maths::view_axis::depth)};
   if(depth < minimum_projection_depth) {
-    lock.clear();
+    clear();
     return;
   }
-  lock.horizontal = static_cast<int16_t>(transform(&maths::view_axis::horizontal) * projection_scale / depth);
-  auto const horizontal{lock.horizontal < 0 ? ~lock.horizontal : lock.horizontal};
-  if(horizontal >= (skimma ? skimma_axis_limit : caero_axis_limit)) {
-    lock.clear();
+  horizontal = static_cast<int16_t>(transform(&maths::view_axis::horizontal) * projection_scale / depth);
+  auto const horizontal_magnitude{horizontal < 0 ? ~horizontal : horizontal};
+  if(horizontal_magnitude >= (skimma ? skimma_axis_limit : caero_axis_limit)) {
+    clear();
     return;
   }
-  lock.vertical = static_cast<int16_t>(transform(&maths::view_axis::vertical) * projection_scale / depth);
-  auto const vertical{lock.vertical < 0 ? ~lock.vertical : lock.vertical};
-  if(vertical >= (skimma ? skimma_axis_limit : caero_axis_limit)) {
-    lock.clear();
+  vertical = static_cast<int16_t>(transform(&maths::view_axis::vertical) * projection_scale / depth);
+  auto const vertical_magnitude{vertical < 0 ? ~vertical : vertical};
+  if(vertical_magnitude >= (skimma ? skimma_axis_limit : caero_axis_limit)) {
+    clear();
     return;
   }
-  auto const radial{vec2<int>{horizontal, vertical}.length_sq()};
+  auto const radial{vec2<int>{horizontal_magnitude, vertical_magnitude}.length_sq()};
   if(radial >= (skimma ? skimma_radius_squared_limit : caero_radius_squared_limit)) {
-    lock.clear();
+    clear();
     return;
   }
-  if(!skimma) lock.distance = static_cast<uint8_t>(radial >> 8);
+  if(!skimma) distance = static_cast<uint8_t>(radial >> 8);
   bool const ground{original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
-  if(ground ? (lock.token & weapon_target::aircraft_token_bit) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : !(lock.token & weapon_target::aircraft_token_bit)) {
-    lock.clear();
+  if(ground ? (token & weapon_target::aircraft_token_bit) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : !(token & weapon_target::aircraft_token_bit)) {
+    clear();
     return;
   }
   if(skimma) {
@@ -116,30 +114,28 @@ void project_target(weapon_target &lock, maths::world_position const &player,
       auto const candidate{static_cast<uint16_t>(root | bit)};
       if(candidate * candidate <= radial * 4) root = candidate;
     }
-    lock.spread = static_cast<uint16_t>(root * 4);
-  } else lock.spread = height;
+    spread = static_cast<uint16_t>(root * 4);
+  } else spread = height;
 }
 
-} // anonymous namespace
-
-void project_caero_target(weapon_target &lock, maths::world_position const &player,
+void weapon_target::project_caero(maths::world_position const &player,
   maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state) noexcept {
   /// Preserve the Caero target class and marked-building restrictions
-  project_target(lock, player, target, extent, basis, secondary_weapon, cell_type, cell_state, false);
+  project(player, target, extent, basis, secondary_weapon, cell_type, cell_state, false);
 }
 
-void project_skimma_target(weapon_target &lock, maths::world_position const &player,
+void weapon_target::project_skimma(maths::world_position const &player,
   maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const weapon, bool const enabled, bool const reloading, bool const destructible) noexcept {
   /// CF4A accepts enabled, reloaded weapons and rejects indestructible map targets after projection
   uint8_t constexpr selectable_weapon_count{3};
   if(!enabled || reloading || weapon >= selectable_weapon_count) {
-    lock.clear();
+    clear();
     return;
   }
-  project_target(lock, player, target, extent, basis, weapon, 0, 0, true);
-  if(!(lock.token & weapon_target::aircraft_token_bit) && !destructible) lock.clear();
+  project(player, target, extent, basis, weapon, 0, 0, true);
+  if(!(token & weapon_target::aircraft_token_bit) && !destructible) clear();
 }
 
 } // namespace darker::game

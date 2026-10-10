@@ -88,7 +88,7 @@ TEST_CASE("Effect phases and stationary trails match original records", "[effect
   for(auto const &v : darker::test_reference::effect_ages) {
     darker::game::particle_emitter const emitter{
       .start{1000},
-      .flags{static_cast<uint8_t>(v[0])}
+      .animation{darker::game::emitter_animation{static_cast<uint8_t>(v[0])}}
     };
     auto const phase{darker::game::particle_phase(emitter, static_cast<uint16_t>(1000 + v[1]))};
     CHECK((phase ? static_cast<int>(*phase) : -1) == v[2]);
@@ -100,6 +100,6 @@ TEST_CASE("Effect phases and stationary trails match original records", "[effect
       .row{static_cast<uint16_t>(v[3])},
       .height{static_cast<uint16_t>(v[4])}
     });
-    CHECK(emitter.flags == v[5]);
+    CHECK(emitter.animation.encoded() == v[5]);
   }
 }

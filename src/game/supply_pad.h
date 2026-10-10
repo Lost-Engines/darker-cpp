@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "game/city_map.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -23,6 +24,6 @@ struct supply_control {
 void initialise_skimma_pad(player_flight &player, uint16_t site, uint8_t heading, int16_t model_height, bool upgraded);
 bool begin_supply_approach(player_flight &player, city_map const &cells, supply_pad_state &pad) noexcept;
 void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_t output,
-  bool supplementary_active, uint16_t pitch_control, uint16_t frame_step);
+  bool supplementary_active, uint16_t pitch_control, game_duration frame_step);
 
 } // namespace darker::game

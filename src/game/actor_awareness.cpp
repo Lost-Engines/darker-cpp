@@ -4,7 +4,7 @@
 namespace darker::game {
 
 void advance_actor_awareness(actor_awareness &state, object_pose const &actor, object_pose const &player,
-  awareness_parameters const parameters, uint16_t const frame_step) noexcept {
+  awareness_parameters const parameters, game_duration const frame_step) noexcept {
   /// 8AA8–8AFC follows the mission callback with proximity-dependent engagement and cooldown accounting
   auto const distance{horizontal_distance(actor.position, player.position)};
   auto const inverted{static_cast<uint16_t>(~static_cast<uint16_t>((distance < 4096 ? distance : 65535) << 4))};

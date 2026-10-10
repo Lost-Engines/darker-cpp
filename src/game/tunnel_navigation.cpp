@@ -91,7 +91,7 @@ uint8_t choose_tunnel_heading(scenario_actor &actor, city_map const &cells, tunn
 }
 
 void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std::span<scenario_actor> const active,
-  city_map const &cells, tunnel_network const &network, uint16_t frame_step) {
+  city_map const &cells, tunnel_network const &network, game_duration frame_step) {
   /// 8609 follows the tunnel route after script execution, then steers directly and slows for nearby aircraft
   if(actor.parameters.update_entry != object_update::tunnel_actor || !actor.tunnel) throw std::invalid_argument{"Actor requires the underground movement callback"};
   actor.previous_position = actor.pose.position;

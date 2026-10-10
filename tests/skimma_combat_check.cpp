@@ -174,7 +174,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       if(weapon >= 0) darker::game::update_weapon_ring(combat.skimma.slots[weapon].ammunition, combat.skimma.ring,
         static_cast<uint16_t>(clock), combat.skimma.slots[weapon].flags, 8);
       shots += combat.player_fired;
-      effects |= !combat.effects.gun_sounds.empty();
+      effects |= !combat.effects.gun_sounds().empty();
       darker::game::recharge_skimma_shield(craft.damage, 8);
       if(player.lifecycle.crashing) throw std::runtime_error{"Controlled Halon gun run lost the shielded pilot"};
     }
@@ -241,9 +241,9 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       }
     };
     pilot.upgraded = record_index == 6;
-    std::array<darker::game::skimma_weapon_slot, 3> weapons{};
-    darker::game::weapon_ring_state ring;
-    uint8_t selected{0};
+    darker::game::skimma_armament armament;
+    auto &weapons{armament.slots};
+    auto &selected{armament.selection};
     uint16_t available{0};
     std::array<std::byte, 1> const primary{std::byte{0x23}};
     darker::game::mission_script script;
@@ -259,7 +259,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     };
     context.select_weapon = [&](uint8_t const selection){
       available = std::rotl(uint16_t{0x8000}, selection);
-      darker::game::select_skimma_weapon(std::span{weapons}.first(pilot.upgraded ? 3 : 2), selected, ring, selection, available, static_cast<uint16_t>(context.clock));
+      armament.select(pilot.upgraded, selection, available, static_cast<uint16_t>(context.clock));
     };
     context.refill_weapon = [&]{
       darker::game::refill_skimma_weapon(weapons[selected].ammunition, selected);
@@ -397,7 +397,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       }
       combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading, pilot.pose().angles.pitch, 0});
       if(combat.skimma.selection == 2 && !combat.skimma.slots[2].ammunition.working && !combat.skimma.slots[2].ammunition.reserve) {
-        darker::game::select_skimma_weapon(combat.skimma.slots, combat.skimma.selection, combat.skimma.ring, 1, 7, static_cast<uint16_t>(clock));
+        combat.skimma.select(true, 1, 7, static_cast<uint16_t>(clock));
         combat.target.clear();
       }
       // this fixture controls the firing position and shield reserve; hostile damage is checked separately above
@@ -509,8 +509,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     };
     context.select_weapon = [&](uint8_t const selection){
       available = std::rotl(uint16_t{0x8000}, selection);
-      darker::game::select_skimma_weapon(std::span{combat.skimma.slots}.first(pilot.upgraded ? 3 : 2),
-        combat.skimma.selection, combat.skimma.ring, selection, available, static_cast<uint16_t>(context.clock));
+      combat.skimma.select(pilot.upgraded, selection, available, static_cast<uint16_t>(context.clock));
       combat.target.clear();
     };
     context.refill_weapon = [&]{
@@ -596,8 +595,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         returned = true;
       }
       if(!returned && secondary && (combat.skimma.selection != weapon || !(combat.skimma.slots[weapon].flags & 1))) {
-        darker::game::select_skimma_weapon(std::span{combat.skimma.slots}.first(pilot.upgraded ? 3 : 2),
-          combat.skimma.selection, combat.skimma.ring, static_cast<uint8_t>(weapon + 1), available, static_cast<uint16_t>(clock));
+        combat.skimma.select(pilot.upgraded, static_cast<uint8_t>(weapon + 1), available, static_cast<uint16_t>(clock));
       }
       if(token != previous_target) combat.target.clear();
       previous_target = token;

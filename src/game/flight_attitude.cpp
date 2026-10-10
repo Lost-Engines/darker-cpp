@@ -39,7 +39,7 @@ int16_t project_flight_pitch(uint16_t const pitch, uint16_t const bank, uint16_t
 }
 
 flight_turn couple_flight_turn(uint16_t const bank, uint16_t const pitch,
-  uint16_t const steering_delta, uint16_t const frame_step) noexcept {
+  uint16_t const steering_delta, game_duration const frame_step) noexcept {
   /// 802D couples midpoint attitude and pitch steering into heading change and the shared lift projection
   auto const bank_turn{high_product(word(fold_bank_angle(bank)), cosine(pitch))};
   auto const impulse{word((bank_turn * word(frame_step)) >> 9)};

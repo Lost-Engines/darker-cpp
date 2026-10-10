@@ -21,7 +21,7 @@ void validate_weapon(uint8_t const weapon) {
 
 } // anonymous namespace
 
-skimma_recoil_frame calculate_skimma_recoil(int8_t const previous, uint16_t const frame_step) {
+skimma_recoil_frame calculate_skimma_recoil(int8_t const previous, game_duration const frame_step) {
   /// C950–C96A retain the packed pre-clamp word for the shot offset, then clamp sign crossings
   auto const step{static_cast<uint8_t>(frame_step)};
   auto const low{static_cast<uint8_t>(previous + (previous < 0 ? step : -static_cast<int>(step)))};
@@ -76,16 +76,16 @@ projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, 
   return shot;
 }
 
-bool select_skimma_weapon(std::span<skimma_weapon_slot> const weapons, uint8_t &selected, weapon_ring_state &ring,
-  uint8_t const selection, uint16_t const available, uint16_t const clock) {
+bool skimma_armament::select(bool const upgraded, uint8_t const requested, uint16_t const available, clock_tick const clock) {
   /// C8A7 toggles a repeated selection; changing slots disables the others and starts the shared ring delay
-  if(selection == 0 || selection > weapons.size() || selection > 3 || !(available & (1u << (selection - 1)))) return false;
-  auto const index{static_cast<uint8_t>(selection - 1)};
-  if(index == selected) weapons[index].flags = static_cast<uint8_t>(~weapons[index].flags & 1);
+  auto const weapons{std::span{slots}.first(upgraded ? upgraded_slot_count : ordinary_slot_count)};
+  if(requested == 0 || requested > weapons.size() || !(available & (1u << (requested - 1)))) return false;
+  auto const index{static_cast<uint8_t>(requested - 1)};
+  if(index == selection) weapons[index].flags = static_cast<uint8_t>(~weapons[index].flags & 1);
   else {
-    selected = index;
-    ring.spread = 508;
-    ring.reload_deadline = static_cast<uint16_t>(clock + 1024);
+    selection = index;
+    ring.spread = untracked_spread;
+    ring.reload_deadline = static_cast<uint16_t>(clock + reload_delay);
     for(auto &weapon : weapons) weapon.flags &= 0xfe;
     weapons[index].flags = 1;
   }
@@ -101,9 +101,10 @@ void refill_skimma_weapon(weapon_ammunition &ammunition, uint8_t const weapon) {
   };
 }
 
-bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring, uint8_t const weapon, uint16_t const clock) {
+bool skimma_armament::reload(uint8_t const weapon, clock_tick const clock) {
   /// 5E1F consumes one reserve only when empty, then starts the wrapping 1024-tick deadline
   validate_weapon(weapon);
+  auto &ammunition{slots[weapon].ammunition};
   if(ammunition.working != 0) return false;
   auto const next{static_cast<uint8_t>(ammunition.reserve - 1)};
   if((next & 0x80) != 0) return false;
@@ -111,13 +112,13 @@ bool reload_skimma_weapon(weapon_ammunition &ammunition, weapon_ring_state &ring
     .working{working_capacity[weapon]},
     .reserve{next}
   };
-  ring.reload_deadline = static_cast<uint16_t>(clock + 1024);
-  ring.spread = 508;
+  ring.reload_deadline = static_cast<uint16_t>(clock + reload_delay);
+  ring.spread = untracked_spread;
   return true;
 }
 
 std::optional<weapon_ring_display> calculate_weapon_ring(weapon_ammunition const ammunition,
-  weapon_ring_state const ring, uint16_t const clock, uint8_t const enable_flags) {
+  weapon_ring_state const ring, clock_tick const clock, uint8_t const enable_flags) {
   /// 5D66–5DF6 preserve signed deadline comparison and truncation before radius extraction
   if((enable_flags & 1) == 0) return std::nullopt;
   auto const delta{std::bit_cast<int16_t>(static_cast<uint16_t>(clock - ring.reload_deadline))};
@@ -137,7 +138,7 @@ std::optional<weapon_ring_display> calculate_weapon_ring(weapon_ammunition const
 }
 
 std::optional<weapon_ring_display> update_weapon_ring(weapon_ammunition const ammunition,
-  weapon_ring_state &ring, uint16_t const clock, uint8_t const enable_flags, uint16_t const frame_step) {
+  weapon_ring_state &ring, clock_tick const clock, uint8_t const enable_flags, game_duration const frame_step) {
   /// 5DF9 follows drawing only outside reload; even a disabled weapon advances smoothing
   auto const display{calculate_weapon_ring(ammunition, ring, clock, enable_flags)};
   auto const delta{std::bit_cast<int16_t>(static_cast<uint16_t>(clock - ring.reload_deadline))};
@@ -152,27 +153,26 @@ std::optional<weapon_ring_display> update_weapon_ring(weapon_ammunition const am
   return display;
 }
 
-uint8_t update_skimma_weapon_status(std::span<skimma_weapon_slot> const weapons, weapon_ring_state &ring,
-  uint8_t const selected, uint16_t const clock, int16_t const target, uint16_t const target_count) {
+void skimma_armament::update_status(clock_tick const clock, int16_t const target, uint16_t const target_count, bool const upgraded) {
   /// C90A reloads the selected slot first, then updates status bits and the reserve display
-  if((weapons.size() != 2 && weapons.size() != 3) || selected >= weapons.size()) {
+  auto const weapons{std::span{slots}.first(upgraded ? upgraded_slot_count : ordinary_slot_count)};
+  if(selection >= weapons.size()) {
     throw std::invalid_argument{"Skimma status requires two or three slots and an available selection"};
   }
-  reload_skimma_weapon(weapons[selected].ammunition, ring, selected, clock);
-  uint8_t reserve_display{0};
-  for(size_t i{weapons.size()}; i-- >0;) {
+  reload(selection, clock);
+  reserves = 0;
+  for(unsigned int i{static_cast<unsigned int>(weapons.size())}; i-- > 0;) {
     auto &slot{weapons[i]};
     slot.flags &= 0xfd;
     auto reserve{slot.ammunition.reserve};
-    if(i == selected && (slot.flags & 1) != 0) {
-      reserve_display = reserve;
+    if(i == selection && (slot.flags & 1) != 0) {
+      reserves = reserve;
       if(target == -1 || target_count == 0) continue;
       // CBW replaces AH with the sign of AL before testing working ammunition
       reserve = (slot.flags & 0x80) != 0 ? 255 : 0;
     }
     if((reserve | slot.ammunition.working) != 0) slot.flags |= 2;
   }
-  return reserve_display;
 }
 
 } // namespace darker::game

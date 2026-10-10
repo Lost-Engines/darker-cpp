@@ -7,6 +7,7 @@
 #include <span>
 #include <vector>
 #include "game/city_map.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -14,7 +15,7 @@ struct mission_script {
   size_t continuation{0};
   size_t checkpoint{0};
   uint16_t checkpoint_clock{0};
-  uint16_t deadline{0};
+  clock_tick deadline{0};
   bool stopped{false};
 };
 
@@ -34,7 +35,7 @@ struct mission_context {
   std::span<std::byte const> text{};
   std::span<uint8_t const> object_flags{};
   std::span<city_cell const> cells{};
-  uint32_t clock{0};
+  campaign_clock clock{0};
   uint8_t time_multiplier{50};
   bool objectives_complete{false};
   bool at_target_cell{false};

@@ -247,6 +247,7 @@ add_library(darker_game STATIC
   src/game/scenario_actor.h
   src/game/actor_awareness.cpp
   src/game/actor_awareness.h
+  src/game/effect_sound.cpp
   src/game/effects.cpp
   src/game/effects.h
   src/game/effect_sound.h
