@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <bit>
 #include <algorithm>
 #include "game/scenario_setup.h"
@@ -41,7 +42,7 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
       actor.parameters.model_token = word(input[8]);
       actor.expiry = word(input[9]);
       actor.script.deadline = word(input[10]);
-      actor.parameters.update_entry = word(input[11]);
+      actor.parameters.update_entry = static_cast<darker::game::object_update>(word(input[11]));
       actor.previous_position = {word(input[12]),word(input[13]),word(input[14])};
       actor.current_cell = word(input[15]);
       actor.target_token = word(input[16]);
@@ -51,7 +52,7 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
       actual[8] = actor.parameters.model_token;
       actual[9] = actor.expiry;
       actual[10] = actor.script.deadline;
-      actual[11] = actor.parameters.update_entry;
+      actual[11] = std::to_underlying(actor.parameters.update_entry);
       for(size_t i{0}; i < 3; ++i) actual[12+i] = actor.previous_position[i];
       actual[15] = actor.current_cell;
       actual[16] = actor.target_token;

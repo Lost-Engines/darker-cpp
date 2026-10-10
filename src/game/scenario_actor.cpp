@@ -36,15 +36,15 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   actor.current_cell = static_cast<std::uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00));
   actor.target_token = actor.current_cell;
   if(moving) {
-    actor.parameters.update_entry = world_mode == 2 ? 0x8609 : 0x8823;
+    actor.parameters.update_entry = world_mode == 2 ? object_update::tunnel_actor : object_update::surface_actor;
     actor.pose.speed = static_cast<std::uint16_t>(definition.base_speed * 16);
     actor.flags = 2;
     actor.behaviour = {placement.motion[0], placement.motion[1], placement.motion[2], placement.motion[3], placement.motion[4], placement.motion[5]};
   } else if(placement.form == resources::placement_form::compact_special) {
-    actor.parameters.update_entry = 0x8f3b;
+    actor.parameters.update_entry = object_update::ground_vehicle;
     actor.route.emplace();
   } else {
-    actor.parameters.update_entry = 0;
+    actor.parameters.update_entry = object_update::inactive;
     return actor;
   }
   if(placement.program_offset) {

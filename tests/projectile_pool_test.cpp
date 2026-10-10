@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <array>
 #include <cstdint>
 #include "game/object_definitions.h"
@@ -27,7 +28,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
     std::array<int, 10> const placement{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
       p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     auto const &parameters{record->parameters};
-    std::array<int, 15> const metadata{parameters.model_token, parameters.update_entry, parameters.flags_4c, parameters.angular_response,
+    std::array<int, 15> const metadata{parameters.model_token, std::to_underlying(parameters.update_entry), parameters.flags_4c, parameters.angular_response,
       parameters.motion.bank_response, parameters.motion.bank_limit, parameters.motion.turn_response, record->angular_motion[0], record->angular_motion[1], record->angular_motion[2],
       record->flags, record->lifecycle, record->inherited_roll, record->deadline, record->target_token};
     CHECK(placement == sample.result);

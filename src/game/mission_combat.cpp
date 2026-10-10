@@ -153,7 +153,7 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
       if(owner->flags & 8) continue;
       effects.spawn(contact.contact == city_contact::building ? 0x716c : 0x7199,end,clock);
       owner->flags |= 0x28;
-      owner->parameters.update_entry = 0x6ed3;
+      owner->parameters.update_entry = object_update::effect_only;
       owner->expiry = static_cast<uint16_t>(clock+256);
     }
   }
@@ -179,7 +179,7 @@ void mission_combat::detonate_dual_launch(projectile &shot, uint16_t const clock
   if(!capsule) throw std::logic_error{"Dual Launch detonation lost its paired capsule"};
   effects.spawn(0x71e8,capsule->placement.position,clock);
   for(auto *part : {&shot,capsule}) {
-    part->parameters.update_entry = 0x6ed3;
+    part->parameters.update_entry = object_update::effect_only;
     part->flags |= 0x28;
     part->deadline = static_cast<uint16_t>(clock+256);
   }
@@ -281,7 +281,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     for(auto const index : std::span{update_order}.first(count)) {
       auto const find_actor{[&]{ return std::ranges::find(actors,index,&scenario_actor::index); }};
       auto const callback{find_actor()->parameters.update_entry};
-      if((callback == 0x8823 || callback == 0x8609) && !find_actor()->script.stopped) {
+      if((callback == object_update::surface_actor || callback == object_update::tunnel_actor) && !find_actor()->script.stopped) {
         // Script callbacks may insert into actors, so retain the executing record independently of vector storage.
         auto actor{*find_actor()};
         mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
@@ -305,8 +305,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         *find_actor() = std::move(actor);
       }
       auto &actor{*find_actor()};
-      if(actor.parameters.update_entry == 0x6ed3) continue;
-      if(actor.parameters.update_entry == 0x8f3b) {
+      if(actor.parameters.update_entry == object_update::effect_only) continue;
+      if(actor.parameters.update_entry == object_update::ground_vehicle) {
         if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
         actor.previous_position = actor.pose.position;
         auto const event{advance_vehicle_route(*actor.route,actor.pose,actor.flags,routes,clock,bank.header_at(actor.parameters.model_token).height,random_state)};
@@ -323,10 +323,10 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         }
         continue;
       }
-      if(actor.parameters.update_entry == 0) continue;
-      if(callback == 0x8daa) advance_falling_aircraft(actor, frame_step);
-      else if(callback == 0x8ddd) advance_aircraft_departure(actor,clock,frame_step);
-      else if(callback == 0x8609) {
+      if(actor.parameters.update_entry == object_update::inactive) continue;
+      if(callback == object_update::falling_aircraft) advance_falling_aircraft(actor, frame_step);
+      else if(callback == object_update::departing_aircraft) advance_aircraft_departure(actor,clock,frame_step);
+      else if(callback == object_update::tunnel_actor) {
         if(!network) throw std::logic_error{"Underground actor update requires its route network"};
         advance_tunnel_actor(actor,player.pose(),actors,cells,*network,frame_step);
       } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
@@ -393,8 +393,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(shot && missile_camera_enabled) camera_projectile = shot;
   }
   auto const resolve_target{[&](projectile &shot)->projectile_target {
-    if(shot.parameters.update_entry == 0xcbce) return &player.pose();
-    if(shot.parameters.update_entry != 0xcc61 && shot.parameters.update_entry != 0xcc68 && shot.parameters.update_entry != 0xcbe7) return {};
+    if(shot.parameters.update_entry == object_update::mimic) return &player.pose();
+    if(shot.parameters.update_entry != object_update::homing_projectile && shot.parameters.update_entry != object_update::chargeable && shot.parameters.update_entry != object_update::dual_launch) return {};
     if(shot.target_token == 0xd986) return &player.pose();
     if(!(shot.target_token & 0x8000)) return resolve_map_guidance(shot.target_token,cells,bank,damage_mask);
     if(shot.target_token == shot.native_id) return &shot.placement;
@@ -407,7 +407,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   for(auto *shot{projectiles.objects().head}; shot;) {
     auto const destination{resolve_target(*shot)};
     auto const *paired{std::get_if<object_pose const *>(&destination)};
-    auto const separation{shot->parameters.update_entry == 0xcbe7 && paired && *paired && *paired != &shot->placement
+    auto const separation{shot->parameters.update_entry == object_update::dual_launch && paired && *paired && *paired != &shot->placement
       ? std::optional<uint16_t>{dual_launch_separation(shot->placement,**paired)} : std::nullopt};
     auto const result{(shot->flags & 8) ? (update_projectile_deadline(*shot,clock) ? projectile_update_result::expired : projectile_update_result::advanced)
       : update_projectile(*shot,clock,frame_step,destination)};
@@ -498,7 +498,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     }
     else if(!victim) impact_projectile_world(contact,impact,*shot->parameters.definition,cells,bank,effects,clock,player.tunnel ? 0x7386 : 0x721c,world_damage_counter,damage_mask);
     shot->flags |= 0x28;
-    shot->parameters.update_entry = 0x6ed3;
+    shot->parameters.update_entry = object_update::effect_only;
     shot->deadline = static_cast<uint16_t>(clock + 256);
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot; shot = shot->next) {
@@ -520,7 +520,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       impact_projectile_world(contact,end,*shot->parameters.definition,cells,bank,effects,clock,0x7199,world_damage_counter,damage_mask);
     }
     shot->flags |= 0x28;
-    shot->parameters.update_entry = 0x6ed3;
+    shot->parameters.update_entry = object_update::effect_only;
     shot->deadline = static_cast<uint16_t>(clock + 256);
   }
   if(player_damage_is_lethal(damage) && start_player_crash(player.pose(), player.lifecycle, clock)) player.engine_flags = 0;

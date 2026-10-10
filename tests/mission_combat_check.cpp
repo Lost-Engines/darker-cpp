@@ -62,7 +62,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     actor.category = static_cast<actor_category>(v[24]);
     actor.parameters.definition = &original_object_definitions[v[15]];
     actor.parameters.model_token = bank.special_models()[v[15]];
-    actor.parameters.update_entry = 0x8823;
+    actor.parameters.update_entry = darker::game::object_update::surface_actor;
     actor.flags = static_cast<uint8_t>(v[16]);
     actor.attitude = {static_cast<uint16_t>(v[20]),static_cast<uint16_t>(v[21])};
     actor.awareness = {static_cast<uint16_t>(v[22]),static_cast<uint16_t>(v[23])};
@@ -79,7 +79,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::array<int,16> const result{player.pose().position[0],player.pose().position[1],player.pose().position[2],
       damage.rotation.pitch,damage.rotation.turn,damage.damage,damage.shield_charge,combat.random_state,
       after.attitude.pitch_rate,after.attitude.bank_rate,after.awareness.level,after.awareness.cooldown,
-      after.parameters.update_entry,after.expiry,after.flags,combat.player_hit};
+      std::to_underlying(after.parameters.update_entry),after.expiry,after.flags,combat.player_hit};
     for(size_t field{0}; field < result.size(); ++field) if(result[field] != v[26+field]) {
       throw std::runtime_error{"Player ramming differs from native: field="+std::to_string(field)+", seed="+std::to_string(v[1])
         +", actual="+std::to_string(result[field])+", expected="+std::to_string(v[26+field])};
@@ -115,7 +115,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     source.index = 1;
     source.definition_slot = 20;
     darker::game::apply_object_definition(source.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
-    source.parameters.update_entry = 0x8823;
+    source.parameters.update_entry = darker::game::object_update::surface_actor;
     source.pose.position = {12000,12000,4000};
     source.previous_position = source.pose.position;
     source.script.continuation = 0;
@@ -154,7 +154,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       actor.definition_slot = static_cast<uint8_t>(s[at]);
       actor.parameters.definition = &darker::game::original_object_definitions[actor.definition_slot];
       actor.parameters.model_token = bank.special_models()[actor.definition_slot];
-      actor.parameters.update_entry = 0x8823;
+      actor.parameters.update_entry = darker::game::object_update::surface_actor;
       actor.flags = static_cast<uint8_t>(s[at+1]);
       for(size_t axis{0}; axis < 3; ++axis) {
         actor.pose.position[axis] = static_cast<uint16_t>(s[at+2+axis]);
@@ -169,7 +169,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const &actor{combat.actors[i]};
       std::array<unsigned int,10> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
         actor.attitude.pitch_rate,actor.attitude.bank_rate,actor.awareness.level,actor.awareness.cooldown,
-        actor.parameters.update_entry,actor.expiry,actor.flags};
+        std::to_underlying(actor.parameters.update_entry),actor.expiry,actor.flags};
       for(size_t field{0}; field < actual.size(); ++field) {
         if(actual[field] != s[32+i*10+field]) throw std::runtime_error{"Aircraft contact differs from native: actor="+std::to_string(i)
           +", field="+std::to_string(field)+", seed="+std::to_string(s[0])+", actual="+std::to_string(actual[field])+", expected="+std::to_string(s[32+i*10+field])};
@@ -225,14 +225,14 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const &actor{active.front()};
     std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
       actor.pose.angles.heading,actor.pose.angles.pitch,actor.pose.angles.roll,actor.pose.speed,actor.selected_target,actor.target_token,
-      actor.current_cell,actor.parameters.update_entry,actor.expiry,actor.script.deadline,actor.flags,
+      actor.current_cell,std::to_underlying(actor.parameters.update_entry),actor.expiry,actor.script.deadline,actor.flags,
       static_cast<uint16_t>(actor.script.continuation == 0xe800)};
     for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != v[i+15]) throw std::runtime_error{"Warehouse placement differs from native: field=" + std::to_string(i)};
   }
   {
     darker::game::scenario_actor actor;
     darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
-    actor.parameters.update_entry = 0x8ddd;
+    actor.parameters.update_entry = darker::game::object_update::departing_aircraft;
     actor.flags = 0x50;
     actor.pose = {.position{21632,14328,static_cast<uint16_t>(100-bank.header_at(bank.special_models()[20]).height)},.angles{0x8000,0,0},.speed{100}};
     actor.script.deadline = 1024;
@@ -242,7 +242,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       darker::game::advance_aircraft_departure(actor,clock,8);
       std::array<uint16_t,14> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
         actor.pose.angles.heading,actor.pose.angles.pitch,actor.pose.angles.roll,actor.pose.speed,actor.attitude.pitch_rate,actor.attitude.bank_rate,
-        actor.parameters.update_entry,actor.pose.fractions[0],actor.pose.fractions[1],actor.pose.fractions[2],actor.flags};
+        std::to_underlying(actor.parameters.update_entry),actor.pose.fractions[0],actor.pose.fractions[1],actor.pose.fractions[2],actor.flags};
       for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != expected[i]) throw std::runtime_error{"Warehouse departure differs from native: field=" + std::to_string(i)};
     }
   }
@@ -306,7 +306,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       actor.category = i == 0 ? darker::game::actor_category::air : i == 1 ? darker::game::actor_category::ground : darker::game::actor_category::stationary;
       actor.attributes = 1;
       darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[21],bank.special_models()[21]);
-      actor.parameters.update_entry = 0;
+      actor.parameters.update_entry = darker::game::object_update::inactive;
       actor.pose.position = {static_cast<uint16_t>(i == 3 ? 13000 : 10100),10000,10000};
       actor.previous_position = actor.pose.position;
     }
@@ -569,7 +569,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
         {},
         {.routes{source.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
-      if(!combat.actors.empty() && combat.actors.front().parameters.update_entry == 0x8823) departed = true;
+      if(!combat.actors.empty() && std::to_underlying(combat.actors.front().parameters.update_entry) == 0x8823) departed = true;
     }
     if(!departed || !combat.actors.empty() || combat.free_actors.size() != 4 || combat.completed_objectives != 0) {
       throw std::runtime_error{"Warehouse aircraft failed to depart, retire at distance and return to the free list"};
@@ -730,7 +730,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         model,height,static_cast<uint8_t>(sample[2]),2,record.shared.offset,darker::game::tunnel_setup{network,map})};
       if(actor.pose.position != std::array<uint16_t,3>{sample[4],sample[5],static_cast<uint16_t>(sample[6] - height)}
         || actor.pose.angles.heading != sample[7] || !actor.tunnel || actor.tunnel->route != sample[8]
-        || actor.parameters.update_entry != 0x8609) {
+        || std::to_underlying(actor.parameters.update_entry) != 0x8609) {
         throw std::runtime_error{"Underground actor differs from native route placement: archive=" + std::to_string(sample[0])
           + ", record=" + std::to_string(sample[1]) + ", object=" + std::to_string(sample[2])};
       }
@@ -1025,7 +1025,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         if(idle.actors.size() != stationary.size() || idle.completed_objectives != 0) throw std::runtime_error{"Stationary tunnel objects expired without an impact"};
         for(size_t i{0}; i < stationary.size(); ++i) {
           if(idle.actors[i].pose.position != stationary[i].pose.position || idle.actors[i].flags != stationary[i].flags
-            || idle.actors[i].parameters.update_entry != 0) throw std::runtime_error{"Stationary aircraft entered the moving-object collision pass"};
+            || std::to_underlying(idle.actors[i].parameters.update_entry) != 0) throw std::runtime_error{"Stationary aircraft entered the moving-object collision pass"};
         }
       }
       darker::game::mission_script script{.continuation{*underground_record.player_program - underground_record.shared.offset}};
@@ -1133,7 +1133,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     if(!hit_clock || target_convoy.effects.emitters.empty()
       || target_convoy.actors.front().expiry != static_cast<uint16_t>(hit_clock + 256)
-      || target_convoy.actors.front().parameters.update_entry != 0x8f3b) {
+      || std::to_underlying(target_convoy.actors.front().parameters.update_entry) != 0x8f3b) {
       throw std::runtime_error{"Shooting the fourth-mission truck did not schedule its native destruction effect and removal"};
     }
     for(uint16_t elapsed{8}; elapsed <= 264; elapsed += 8) {

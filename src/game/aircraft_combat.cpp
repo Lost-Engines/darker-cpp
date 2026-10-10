@@ -46,7 +46,7 @@ scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resou
 
 actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uint16_t const clock, uint16_t &random_state, bool const underground) {
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
-  if(actor.parameters.update_entry == 0) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
+  if(actor.parameters.update_entry == object_update::inactive) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
   if(actor.parameters.definition->impact_strength == 0) {
     if(actor.parameters.definition->role_data.craft().flags & 2) return {.effect{0x721c}};
     actor.expiry = static_cast<uint16_t>(clock + 256);

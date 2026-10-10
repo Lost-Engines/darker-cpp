@@ -17,7 +17,7 @@ void apply_impact_rotation(impact_rotation &rotation, std::uint8_t const amplitu
 impact_effect apply_object_impact(object_impact_state &state, std::uint8_t const strength, std::uint8_t const resistance,
   bool const underground, std::uint16_t const clock, std::uint16_t &random_state) {
   /// Apply CE38's ordinary object hit; zero resistance and inactive callbacks have separate effect/removal paths
-  if(resistance == 0 || state.update_entry == 0) {
+  if(resistance == 0 || state.update_entry == object_update::inactive) {
     throw std::invalid_argument{"Object impact requires nonzero resistance and an active callback"};
   }
   unsigned int scale{0};
@@ -47,7 +47,7 @@ impact_effect apply_object_impact(object_impact_state &state, std::uint8_t const
   }
   state.deadline = deadline;
   state.flags |= 0x20;
-  state.update_entry = 0x8daa;
+  state.update_entry = object_update::falling_aircraft;
   return impact_effect::fatal;
 }
 

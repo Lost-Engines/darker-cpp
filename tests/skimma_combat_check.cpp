@@ -55,7 +55,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     auto const &actor{active.front()};
     std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
       actor.pose.angles.heading,actor.pose.angles.pitch,actor.pose.angles.roll,actor.pose.speed,actor.selected_target,actor.target_token,
-      actor.current_cell,actor.parameters.update_entry,actor.expiry,actor.script.deadline,actor.flags,
+      actor.current_cell,std::to_underlying(actor.parameters.update_entry),actor.expiry,actor.script.deadline,actor.flags,
       static_cast<uint16_t>(actor.script.continuation == 0xe800)};
     for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != v[i+15])
       throw std::runtime_error{"Halon aircraft placement differs from the original: field="+std::to_string(i)};
@@ -286,7 +286,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     }
     if(!context.progress) for(auto const &actor : combat.actors) {
       std::cerr << "Final actor " << unsigned{actor.index} << " slot " << unsigned{actor.definition_slot}
-        << " flags " << unsigned{actor.flags} << " callback " << actor.parameters.update_entry
+        << " flags " << unsigned{actor.flags} << " callback " << std::to_underlying(actor.parameters.update_entry)
         << " position " << actor.pose.position[0] << ',' << actor.pose.position[1] << ',' << actor.pose.position[2]
         << std::endl;
     }

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <array>
 #include <cstdint>
 #include <stdexcept>
@@ -15,7 +16,7 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
       .rotation{.pitch{static_cast<std::uint16_t>(sample.pitch)}, .turn{static_cast<std::uint16_t>(sample.heading)}},
       .impact_accumulator{static_cast<std::uint16_t>(sample.accumulator)},
       .damage{static_cast<std::uint16_t>(sample.damage)},
-      .update_entry{0x8823},
+      .update_entry{darker::game::object_update::surface_actor},
       .deadline{static_cast<std::uint16_t>(sample.deadline)},
       .flags{static_cast<std::uint8_t>(sample.flags)},
     };
@@ -23,19 +24,19 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
     auto const effect{darker::game::apply_object_impact(state, static_cast<std::uint8_t>(sample.strength),
       static_cast<std::uint8_t>(sample.resistance), sample.mode == 2, static_cast<std::uint16_t>(sample.clock), seed)};
     std::array<int, 9> const actual{state.rotation.pitch, state.rotation.turn, state.impact_accumulator,
-      state.damage, state.update_entry, state.deadline, state.flags, seed, static_cast<int>(effect)};
+      state.damage, std::to_underlying(state.update_entry), state.deadline, state.flags, seed, static_cast<int>(effect)};
     CHECK(actual == sample.result);
   }
 }
 
 TEST_CASE("Ordinary object impact rejects separate removal paths before changing state", "[game][impact]") {
   /// Keep unsupported effect/removal branches explicit at the boundary
-  darker::game::object_impact_state state{.update_entry{0x8823}};
+  darker::game::object_impact_state state{.update_entry{darker::game::object_update::surface_actor}};
   std::uint16_t seed{17};
   REQUIRE_THROWS_AS(darker::game::apply_object_impact(state, 1, 0, false, 0, seed), std::invalid_argument);
   CHECK(seed == 17);
   CHECK(state.damage == 0);
-  state.update_entry = 0;
+  state.update_entry = darker::game::object_update::inactive;
   REQUIRE_THROWS_AS(darker::game::apply_object_impact(state, 1, 1, false, 0, seed), std::invalid_argument);
   CHECK(seed == 17);
 }
@@ -47,7 +48,7 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
     darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}}};
     darker::game::scenario_actor actor;
     actor.parameters.definition = &definition;
-    actor.parameters.update_entry = static_cast<uint16_t>(sample[0]);
+    actor.parameters.update_entry = static_cast<darker::game::object_update>(sample[0]);
     actor.expiry = static_cast<uint16_t>(sample[4]);
     actor.flags = static_cast<uint8_t>(sample[3]);
     uint16_t random{17};
@@ -57,7 +58,7 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
     CHECK(result.remove == static_cast<bool>(sample[7]));
     CHECK(actor.flags == sample[8]);
     CHECK(actor.expiry == sample[9]);
-    CHECK(actor.parameters.update_entry == sample[0]);
+    CHECK(std::to_underlying(actor.parameters.update_entry) == sample[0]);
     CHECK(random == 17);
     CHECK(actor.awareness.level == 0);
     CHECK(actor.awareness.cooldown == 0);

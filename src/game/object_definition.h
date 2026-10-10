@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
+#include "game/object_update.h"
 
 namespace darker::game {
 
@@ -58,7 +59,7 @@ public:
 
 struct object_definition {
   std::uint16_t model_token{0};
-  std::uint16_t update_entry{0};
+  object_update update_entry{object_update::inactive};
   std::uint8_t angular_seed{0};
   steering_response<std::uint8_t> motion_seeds{};
   std::uint8_t impact_strength{0};
@@ -74,7 +75,7 @@ struct object_definition {
 struct object_parameters {
   object_definition const *definition{nullptr};
   std::uint16_t model_token{0};
-  std::uint16_t update_entry{0};
+  object_update update_entry{object_update::inactive};
   std::uint16_t flags_4c{0};
   std::uint16_t angular_response{0};
   steering_response<std::uint16_t> motion{};

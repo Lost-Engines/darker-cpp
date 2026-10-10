@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <array>
 #include <bit>
 #include <cstddef>
@@ -114,7 +115,7 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
     darker::game::scenario_actor actor;
     actor.pose.position = {static_cast<uint16_t>(v[0]*256),static_cast<uint16_t>(v[1]*256),0};
     actor.flags = static_cast<uint8_t>(v[4]);
-    actor.parameters.update_entry = 0x8823;
+    actor.parameters.update_entry = darker::game::object_update::surface_actor;
     actor.expiry = 0x1234;
     darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
     constexpr std::array program{std::byte{8},std::byte{0x23}};
@@ -125,7 +126,7 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
     CHECK(actor.flags == v[7]);
     CHECK(script.stopped == (v[8] != 0));
     CHECK(script.deadline == v[9]);
-    CHECK(actor.parameters.update_entry == v[10]);
+    CHECK(std::to_underlying(actor.parameters.update_entry) == v[10]);
     CHECK(actor.expiry == v[11]);
     if(!script.stopped) CHECK(script.continuation == 0);
   }

@@ -77,7 +77,7 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
       static_cast<uint16_t>((state.halon ? 1160 : 100) - bank.header_at(actor.parameters.model_token).height)};
     actor.previous_position = actor.pose.position;
     actor.current_cell = actor.target_token = site;
-    actor.parameters.update_entry = 0x8ddd;
+    actor.parameters.update_entry = object_update::departing_aircraft;
     actor.flags = 0x50;
     actor.expiry = static_cast<uint16_t>(clock + 256);
     actor.script.continuation = actor.script.checkpoint;
@@ -96,7 +96,7 @@ void advance_aircraft_departure(scenario_actor &actor, uint16_t const clock, uin
   steer_actor(actor.pose,actor.attitude,{.response{actor.parameters.angular_response},.bank_response{actor.parameters.motion.bank_response},
     .bank_limit{actor.parameters.motion.bank_limit},.turn_response{actor.parameters.motion.turn_response}},0x0c00,0,frame_step);
   if(std::bit_cast<int16_t>(static_cast<uint16_t>(clock - actor.script.deadline)) >= 0) {
-    actor.parameters.update_entry = 0x8823;
+    actor.parameters.update_entry = object_update::surface_actor;
     actor.flags &= 0xef;
   }
 }

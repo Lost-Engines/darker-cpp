@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <array>
 #include <stdexcept>
 #include "game/object_definitions.h"
@@ -28,7 +29,7 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
     CAPTURE(v);
     CHECK(std::array<int, 31>{actor.pose.position[0], actor.pose.position[1], actor.pose.position[2],
       actor.pose.angles.heading, actor.pose.speed, actor.flags, actor.attributes, actor.fade,
-      p.update_entry, actor.target_token, actor.current_cell, p.flags_4c, p.angular_response,
+      std::to_underlying(p.update_entry), actor.target_token, actor.current_cell, p.flags_4c, p.angular_response,
       p.motion.bank_response, p.motion.bank_limit, p.motion.turn_response, actor.previous_position[0], actor.previous_position[1], actor.previous_position[2],
       actor.behaviour.attack_control, actor.behaviour.awareness_threshold, actor.behaviour.awareness_decay, actor.behaviour.awareness_rise, actor.behaviour.awareness_strength, actor.behaviour.evasion,
       actor.index, actor.definition_slot, static_cast<int>(actor.route ? actor.route->cursor : actor.script.continuation),

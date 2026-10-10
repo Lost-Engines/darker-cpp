@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <array>
 #include <cstdint>
 #include "game/object_definitions.h"
@@ -16,7 +17,7 @@ TEST_CASE("Projectile update sequences preserve native deadline, snapshot and ca
       record = {};
       auto const mode{static_cast<std::size_t>(sample.mode)};
       record.parameters.definition = &darker::game::original_object_definitions[0];
-      record.parameters.update_entry = static_cast<std::uint16_t>(sample.callback);
+      record.parameters.update_entry = static_cast<darker::game::object_update>(sample.callback);
       record.parameters.angular_response = 480;
       record.placement = {.position{0, 65535, altitudes[mode]}, .fractions{255, 127, 1}, .angles{8192, 4096, 1234}, .speed{1000}};
       record.angular_motion = {0, 100, 65535};

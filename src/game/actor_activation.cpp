@@ -13,7 +13,7 @@ bool retire_distant_actor(scenario_actor &actor, object_pose const &player, uint
   }};
   int const x{difference(0)}, y{difference(1)};
   if(x*x + y*y < 0x510) return false;
-  actor.parameters.update_entry = 0xc002;
+  actor.parameters.update_entry = object_update::retired_actor;
   actor.flags |= 0x28;
   actor.expiry = clock;
   return true;

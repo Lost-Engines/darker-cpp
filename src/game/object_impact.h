@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "game/object_update.h"
 
 namespace darker::game {
 
@@ -13,7 +14,7 @@ struct object_impact_state {
   impact_rotation rotation{};
   std::uint16_t impact_accumulator{0};
   std::uint16_t damage{0};
-  std::uint16_t update_entry{0};
+  object_update update_entry{object_update::inactive};
   std::uint16_t deadline{0};
   std::uint8_t flags{0};
 };

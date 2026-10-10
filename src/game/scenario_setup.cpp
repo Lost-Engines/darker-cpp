@@ -84,7 +84,7 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
     actor.pose.angles.pitch = 0x0c00;
     actor.expiry = static_cast<uint16_t>(clock+256);
     actor.script.deadline = static_cast<uint16_t>(clock+1024);
-    actor.parameters.update_entry = 0x8ddd;
+    actor.parameters.update_entry = object_update::departing_aircraft;
     break;
   case scenario_setup_kind::copy_player_model:
     actor.parameters.model_token = player_model;
