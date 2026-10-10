@@ -2,7 +2,7 @@
 
 The connected campaign now reaches the final battle (115) and ending (116), including the eight Halon flight missions and intervening films. The original packs supply cities, cockpits, actors, scripts, presentations and sound synthesis data. Controlled integration checks cover normal Caero objectives, Halon launch-site destruction and supply-pad returns, and the final battle. These checks control firing position and resources where documented; they do not establish an unassisted, retail-equivalent full playthrough. Explicit `--craft` starts remain development free-flight checkpoints.
 
-`--skip-intro` starts at game selection; it keeps briefings. `--scale` defaults to 4. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
+`--skip-intro` starts at game selection; it keeps briefings. Window sizing defaults to the available screen area; `--scale` overrides it. The original Level X command provides mission skipping. After mission five unlocks Mimic, number-row 2 selects it. M enables the missile camera for subsequent launches; F4 gives the live missile-eye view. The normal radar includes energy towers and applies the small radio-beacon coverage grid to tower and vehicle contacts.
 
 ## Current priorities
 

@@ -133,7 +133,9 @@ also applies to Shift+X; ordinary campaign progression and X retain the original
 It bypasses startup menus and does not write saves. The level selects its own craft;
 do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
 
-Use `--scale N` to set the initial window size to an integer multiple of the 320×240 display: `--scale 2` gives 640×480, `--scale 4` gives 1280×960. The default is 4× (1280×960). The window remains resizable.
+By default, the window uses the largest integer multiple of the 320×240 display that fits in the primary monitor's work area, allowing for its title bar and borders. On Wayland, where GLFW cannot report the usable work area, we ask the compositor for a maximised size, then restore and fit the floating window before drawing. Very small windows use proportional downscaling. The window remains resizable.
+
+Use `--scale N` to override automatic sizing: `--scale 2` requests a 640×480 window, `--scale 4` requests 1280×960. The window manager may still constrain oversized windows.
 
 Use `-DBUILD_TESTING=OFF` for an application-only build. Build artefacts are ignored by Git.
 

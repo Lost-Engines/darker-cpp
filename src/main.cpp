@@ -157,7 +157,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("cheat-level-x", "enable X to advance; Shift+X starts the previous playable level without saving")
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
-    ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
+    ("scale", boost::program_options::value<int>(), "initial window scale: positive integer multiple of 320 x 240 (default: fit available screen)")
     ("music", boost::program_options::value<std::string>()->default_value("soundblaster_awe32"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, roland-scc1a, gravis or soundblaster_awe32")
     ("roland-gm-bank", boost::program_options::value<std::string>(), "load the whole Roland MTGM.MID bank before Darker custom instruments on the same device")
     ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
@@ -191,7 +191,8 @@ auto main(int const argc, char const *const argv[])->int {
   if(language_name != "english" && language_name != "french" && language_name != "german") return startup_failure("--language must be english, french or german");
   auto const language{language_name == "english" ? darker::resources::scenario_language::english
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
-  auto const scale{arguments["scale"].as<int>()};
+  bool const automatic_scale{!arguments.contains("scale")};
+  auto const scale{automatic_scale ? 1 : arguments["scale"].as<int>()};
   auto const music_name{arguments["music"].as<std::string>()};
   if(music_name == "roland") return startup_failure("--music=roland is ambiguous; choose --music=roland-lapc (MT-32/CM-32L family), --music=roland-sc55 or --music=roland-scc1a (Sound Canvas)");
   std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland-lapc", "gravis", "soundblaster_awe32"};
@@ -537,10 +538,41 @@ auto main(int const argc, char const *const argv[])->int {
   boost::scope::scope_exit terminate_glfw{[]{ glfwTerminate(); }};
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+  // Wayland leaves usable desktop space and window placement to the compositor.
+  bool const compositor_sizing{automatic_scale && glfwGetPlatform() == GLFW_PLATFORM_WAYLAND};
+  glfwWindowHint(GLFW_MAXIMIZED, compositor_sizing ? GLFW_TRUE : GLFW_FALSE);
   std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> const window{
     glfwCreateWindow(display_width * scale, display_height * scale, "Darker", nullptr, nullptr), glfwDestroyWindow,
   };
   if(!window) return startup_failure("cannot create the GLFW window");
+  if(automatic_scale && !compositor_sizing) {
+    if(auto *monitor{glfwGetPrimaryMonitor()}) {
+      int x{}, y{}, width{}, height{};
+      glfwGetMonitorWorkarea(monitor, &x, &y, &width, &height);
+      int left{}, top{}, right{}, bottom{};
+      glfwGetWindowFrameSize(window.get(), &left, &top, &right, &bottom);
+      int const available_width{width - left - right};
+      int const available_height{height - top - bottom};
+      if(available_width > 0 && available_height > 0) {
+        auto const fitted{framework::render::fit_viewport(available_width, available_height, display_width, display_height)};
+        glfwSetWindowSize(window.get(), fitted.width, fitted.height);
+        glfwSetWindowPos(window.get(), x + left + fitted.x, y + top + fitted.y);
+      }
+    }
+  }
+  glfwShowWindow(window.get());
+  if(compositor_sizing) {
+    // Ask for the usable content area, then leave maximised mode before presenting.
+    int width{}, height{};
+    glfwGetWindowSize(window.get(), &width, &height);
+    glfwRestoreWindow(window.get());
+    auto const deadline{glfwGetTime() + 1.0};
+    while(glfwGetWindowAttrib(window.get(), GLFW_MAXIMIZED) && glfwGetTime() < deadline)
+      glfwWaitEventsTimeout(0.01);
+    auto const fitted{framework::render::fit_viewport(width, height, display_width, display_height)};
+    glfwSetWindowSize(window.get(), fitted.width, fitted.height);
+  }
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
   glfwSetInputMode(window.get(), GLFW_CURSOR, host.cursor_mode(!caero));
