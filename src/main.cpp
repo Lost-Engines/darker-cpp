@@ -505,11 +505,6 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_message(display,font,darker::resources::font_face::compact,
         message->text.subspan(message->offset,message->length),{.x{x},.y{231}},width,{.ink{24},.edge{18}});
     }
-    if(host.hangar.returning == darker::game::hangar_return_phase::complete) {
-      std::string const complete{"Mission complete"};
-      darker::graphics::draw_text(display, font, darker::resources::font_face::interface,
-        std::as_bytes(std::span{complete}), {.x{104}, .y{72}}, {.ink{255}, .edge{0}});
-    }
     framework::render::expand_palette(display, game_palette.colours, output);
     return count;
   }};

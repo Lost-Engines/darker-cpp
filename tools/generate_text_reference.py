@@ -63,6 +63,11 @@ def main():
     # Controls 6/7 are supported by B292 but absent from the extracted mission pages.
     extra=[bytes([5,11,0xf0,1,20,30,2,0x34,0x12,ord('A'),4,ord('B'),3,7,2,255,255,ord('C'),0]),
            bytes([6])+b'Hello world\0!\0',bytes([7,0])]
+    # Credit pages are language-selected executable data rather than scenario resources.
+    for address in struct.unpack_from('<3H', image, 0x9d7a):
+        # All three end with a centred final line followed by the page terminator.
+        end = image.index(b'\0\0', address) + 2
+        extra.append(image[address:end])
     for i,raw in enumerate(extra):samples.append((16,i,raw))
     for slot,offset,raw in samples:
         cpu.mem_write(0x1f000,raw)

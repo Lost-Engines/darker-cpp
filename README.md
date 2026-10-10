@@ -238,4 +238,6 @@ See [binary packaging](docs/binary_packaging.md) for a clean installation of the
 single executable, documentation and dependency notices.
 
 Use `--language=french` or `--language=german` for the original translated menus,
-briefings and radio messages; English remains the default.
+credits, briefings and radio messages; English remains the default.
+The original shared labels (including NIGHTMARE and the hidden cheat menu) remain
+in English, as in the retail game.

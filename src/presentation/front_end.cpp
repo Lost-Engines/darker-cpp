@@ -46,12 +46,7 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   if(logo.size() != 80*17) throw std::invalid_argument{"Unexpected credits logo size"};
   for(size_t y{0}; y < 17; ++y) for(size_t x{0}; x < 80; ++x)
     credits_background.pixels[(y+48)*320+x+120] = std::to_integer<uint8_t>(logo[y*80+x]);
-  char constexpr credits[]{
-    "\6Written by Jas.C.Brooke\0\3\6Artwork by Lyndon Brooke\0\3\6Music by PC Music\0\3"
-    "\5\0\13\1\242\0\6Producer: Richard Biltcliffe.\0\3"
-    "\6Product managers: Michaela Riches, Nadia Lawlor\0\3\6Music manager: Phil Morris\0\3"
-    "\1\311\0\6Thanks to Mark & Joan Brooke and Rachel Chalmers\0\3\3"
-    "\6A Day 1 production. Copyright (C) 1995 S.I.E.E\0\0"};
+  auto const credits{original_credits.at(static_cast<size_t>(language))};
   auto const credit_page{graphics::lay_out_text(std::as_bytes(std::span{credits}),font,resources::font_face::interface,{.y{96},.colour{0x7d00}})};
   for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background,font,resources::font_face::interface,glyph.code,glyph.position,{.ink{125},.edge{0}});
 

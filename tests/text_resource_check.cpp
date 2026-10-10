@@ -9,6 +9,7 @@
 #include <vector>
 #include "graphics/font.h"
 #include "graphics/formatted_text.h"
+#include "presentation/menu_text.h"
 #include "reference/font_samples.h"
 #include "reference/text_samples.h"
 #include "resources/archive_set.h"
@@ -43,11 +44,13 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   std::cout << "All 300 glyphs, two German out-of-directory glyphs and space advances match native coverage and two-colour patterns at all four alignments." << std::endl;
   std::array<std::vector<std::byte>, 16> resources;
   for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({.archive{4}, .slot{slot}});
-  std::array<std::span<std::uint8_t const>, 3> const extra{
+  std::array<std::span<std::uint8_t const>, 6> const extra{
     darker::test_reference::text_extra_0, darker::test_reference::text_extra_1, darker::test_reference::text_extra_2,
+    darker::test_reference::text_extra_3, darker::test_reference::text_extra_4, darker::test_reference::text_extra_5,
   };
   for(auto const &sample : darker::test_reference::text_samples) {
-    std::span<std::byte const> const bytes{sample.resource == 16 ? std::as_bytes(extra.at(sample.offset))
+    std::span<std::byte const> const bytes{sample.resource == 16 ? (sample.offset < 3 ? std::as_bytes(extra.at(sample.offset))
+        : std::as_bytes(std::span{darker::presentation::original_credits.at(sample.offset-3)}))
       : std::span<std::byte const>{resources.at(sample.resource)}.subspan(sample.offset, sample.size)};
     auto const page{darker::graphics::lay_out_text(bytes, fonts, darker::resources::font_face::interface, {.colour{0x3456}, .runtime_number{195}})};
     std::uint64_t fingerprint{0xcbf29ce484222325};
@@ -69,5 +72,5 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     }
     if(fingerprint != sample.fingerprint) throw std::runtime_error{std::format("Formatted text resource {}, offset {} differs from native layout", sample.resource, sample.offset)};
   }
-  std::cout << "546 original pages and three additional control cases match native layout, including the two German out-of-directory glyphs." << std::endl;
+  std::cout << "546 original pages and three additional control cases and all three translated credits match native layout, including the two German out-of-directory glyphs." << std::endl;
 }

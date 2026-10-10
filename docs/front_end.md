@@ -225,8 +225,10 @@ The title includes the compact-font TM overlay. AFA2 derives brightness from the
 sine table, and AFAD maps each source component into six-bit DAC values. The
 9CFE title path uses CX=0803: 1,024 ticks to full brightness, followed by a
 4,000-tick interruptible hold. The credits page then fades in over 128 ticks and
-waits for input. Its 80×17 logo comes directly from 00/28 at (120,48); its English
-text reproduces the executable's formatted block at 9D80. `--skip-intro` bypasses
+waits for input. Its 80×17 logo comes directly from 00/28 at (120,48). The selected
+language chooses the original formatted credits through table 9D7A: English
+9D80, French 9EA6 and German 9FE1, preserving glyph codes, centring and spacing.
+All three pages are checked against the native B292 formatter. `--skip-intro` bypasses
 all these startup pages and still enters game selection immediately.
 
 Native fixtures cover all 512 fade phases and all 256 component values at all

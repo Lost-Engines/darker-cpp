@@ -2,6 +2,7 @@
 """Extract the original three language menu tables without Unicode substitution."""
 import argparse
 import hashlib
+import struct
 from pathlib import Path
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -59,5 +60,21 @@ for row,block in zip(rows,name_blocks):
       literal(string(question)),literal(string(yes).split(bytes([2]))[0].rstrip()),literal(string(no)),
       positioned(quit-1),literal(string(score)),literal(string(best))]
     lines.append('  {' + ', '.join(values) + '},')
+lines += ['}};', '', 'inline constexpr std::array<std::string_view,3> original_credits{{']
+# 9D7A selects a formatted page, whose centred lines have their own terminators.
+def page_end(address):
+    while True:
+        command = image[address]
+        address += 1
+        if command == 0:
+            return address
+        if command in (1, 2, 5):
+            address += 2
+        elif command == 6:
+            address = page_end(address)
+
+for address in struct.unpack_from('<3H', image, 0x9d7a):
+    page = image[address:page_end(address)]
+    lines.append('  std::string_view{' + literal(page) + ', ' + str(len(page)) + '},')
 lines += ['}};', '', '} // namespace darker::presentation', '']
 (Path(__file__).resolve().parents[1] / 'src/presentation/menu_text.h').write_text('\n'.join(lines))

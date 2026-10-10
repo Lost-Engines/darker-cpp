@@ -23,4 +23,10 @@ inline constexpr std::array<menu_text,3> original_menu_text{{
   {"W\204hlen Sie ein Spiel: 1,2,3,4 oder N", "Spiel ", "Level ", "Neues Spiel starten", {92, "NEUES SPIEL STARTEN"}, {62, "Bitte geben Sie Ihren Namen ein."}, {{{76, "ENTER: Spiel starten"}, {83, "S: Anderes Spiel w\204hlen"}, {83, "E: Spiel l\203schen"}, {76, "ESC: Zur\211ck zu DOS"}}}, {{{114, "SPIEL L\213SCHEN"}, {110, "Spiel kann nicht"}, {81, "wiederhergestellt werden."}}}, {{{95, "HIGHSCORE L\213SCHEN"}, {91, "Highscore wird auf 0%"}, {117, "zur\211ckgesetzt"}}}, "Wollen Sie fortfahren?", "JA", "NEIN", {110, "ZUR\210CK ZU DOS"}, "Punktestand: \007%", "\004Highscore: \007%"},
 }};
 
+inline constexpr std::array<std::string_view,3> original_credits{{
+  std::string_view{"\006Written by Jas.C.Brooke\000\003\006Artwork by Lyndon Brooke\000\003\006Music by PC Music\000\003\005\000\013\001\242\000\006Producer: Richard Biltcliffe.\000\003\006Product managers: Michaela Riches, Nadia Lawlor\000\003\006Music manager: Phil Morris\000\003\001\311\000\006Thanks to Mark & Joan Brooke and Rachel Chalmers\000\003\003\006A Day 1 production. Copyright (C) 1995 S.I.E.E\000\000", 294},
+  std::string_view{"\006R\177alis\177 par Jas.C.Brooke\000\003\006Graphismes de Lyndon Brooke\000\003\006Musique de PC Music\000\003\005\000\013\001\242\000\006Chef de projet: Richard Biltcliffe.\000\003\006Chefs de produit: Michaela Riches, Nadia Lawlor\000\003\006Responsable musique: Phil Morris\000\003\001\311\000\006Remerciements \205 Mark Brooke et Rachel Chalmers\000\003\003\006Une production de Day 1. Copyright (C) 1995 S.I.E.E\000\000", 315},
+  std::string_view{"\006Programmiert von Jas.C.Brooke\000\003\006Artwork von Lyndon Brooke\000\003\006Musik von PC Music\000\003\005\000\013\001\242\000\006Produzent: Richard Biltcliffe.\000\003\006Produkt-Manager: Michaela Riches, Nadia Lawlor\000\003\006Musik-Manager: Phil Morris\000\003\001\311\000\006Dank an Mark & Joan Brooke und Rachel Chalmers\000\003\003\006Eine Day 1 Produktion. Copyright (C) 1995 S.I.E.E\000\000", 303},
+}};
+
 } // namespace darker::presentation
