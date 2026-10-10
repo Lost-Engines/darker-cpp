@@ -41,6 +41,9 @@ void check_camera_targets(darker::resources::archive_set const &archives) {
   combat.camera_actor = 3;
   player_flight flying;
   flying.pose() = player;
-  combat.advance(flying,cells,bank,1,1,0,false);
+  combat.advance(flying, cells, bank,
+        {.elapsed_ticks{1}, .frame_step{1}, .changes{0}},
+        {},
+        {});
   if(combat.camera_actor) throw std::runtime_error{"Removed F7 object retained a camera reference for pool reuse"};
 }

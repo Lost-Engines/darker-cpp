@@ -214,9 +214,9 @@ unsigned int mission_combat::remaining_objectives() const noexcept {
 void mission_combat::fire_skimma_primary(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank,
   uint16_t const clock, uint16_t const frame_step, bool const pressed) {
   /// C950 updates recoil every frame; CD6C traces the short primary ray and applies strength 32h only to aircraft
-  auto const recoil{calculate_skimma_recoil(skimma_recoil,frame_step)};
-  skimma_recoil = recoil.next;
-  skimma_aim_offset = recoil.aim_offset;
+  auto const recoil{calculate_skimma_recoil(skimma.recoil,frame_step)};
+  skimma.recoil = recoil.next;
+  skimma.aim_offset = recoil.aim_offset;
   if(!pressed || (player.lifecycle.flags & 0x20)) return;
   auto end{skimma_gun_endpoint(player.pose(),recoil.shot_offset,random_state)};
   sweep_city(bank,cells,player.world_damage_mask(),player.pose().position,end,0,10);
@@ -236,13 +236,17 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
     }
   }
   effects.gun_impact(impact,hit,clock);
-  skimma_recoil = kick_skimma_recoil(skimma_recoil,static_cast<uint8_t>(next_random(random_state)));
+  skimma.recoil = kick_skimma_recoil(skimma.recoil,static_cast<uint8_t>(next_random(random_state)));
   player_fired = true;
 }
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-  uint32_t const elapsed_ticks, uint16_t const frame_step, uint16_t const changes, bool const trigger_pressed, std::span<std::byte const> const routes, uint8_t const script_multiplier, tunnel_network const *const network, bool const secondary_pressed, bool const secondary_held, std::optional<std::array<uint16_t,3>> const player_start, bool const trigger_released) {
+  combat_timing const timing, combat_input const input, combat_scenario const scenario,
+  std::optional<std::array<uint16_t,3>> const player_start) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
+  auto const [elapsed_ticks, frame_step, changes]{timing};
+  auto const [trigger_pressed, secondary_pressed, secondary_held, trigger_released]{input};
+  auto const [routes, script_multiplier, network]{scenario};
   auto const clock{static_cast<uint16_t>(elapsed_ticks)};
   effects.advance(clock, frame_step);
   threat_errors.fill(64);
@@ -356,8 +360,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     .side_flags{player.lifecycle.flags}, .definition_strength{original_object_definitions[player_definition].impact_strength}};
   weapon_ready = false;
   if(!caero) {
-    skimma_reserves = update_skimma_weapon_status(std::span{skimma_weapons}.first(player.upgraded ? 3 : 2),skimma_ring,
-      skimma_selection,clock,std::bit_cast<int16_t>(target.token),projectiles.objects().free ? 1 : 0);
+    skimma.reserves = update_skimma_weapon_status(std::span{skimma.slots}.first(player.upgraded ? 3 : 2),skimma.ring,
+      skimma.selection,clock,std::bit_cast<int16_t>(target.token),projectiles.objects().free ? 1 : 0);
     fire_skimma_primary(player,cells,bank,clock,frame_step,trigger_pressed);
   }
   if(caero && (primary_weapon == 1 || primary_weapon == 2 || primary_weapon == 3 || primary_weapon == 7)) {
@@ -380,9 +384,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(result.shot && missile_camera_enabled) camera_projectile = result.shot;
   }
   if(!caero) {
-    auto &slot{skimma_weapons.at(skimma_selection)};
-    auto *shot{fire_skimma_weapon(projectiles,slot,{.emitter{emitter},.weapon{skimma_selection},
-      .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.model{bank.special_models()[10+skimma_selection]},
+    auto &slot{skimma.slots.at(skimma.selection)};
+    auto *shot{fire_skimma_weapon(projectiles,slot,{.emitter{emitter},.weapon{skimma.selection},
+      .player_flags{player.lifecycle.flags},.pressed{secondary_pressed},.model{bank.special_models()[10+skimma.selection]},
       .clock{clock},.target{target.token}})};
     secondary_ready = slot.flags == 3;
     player_fired |= shot != nullptr;
@@ -414,7 +418,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       continue;
     }
     if(result == projectile_update_result::detonated) detonate_dual_launch(*shot,clock,player.tunnel.has_value());
-    else if(separation) dual_launch_pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(*separation,0xcd)) >> 2);
+    else if(separation) skimma.dual_launch_pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(*separation,0xcd)) >> 2);
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head}; shot;) {
@@ -424,8 +428,8 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(expired) { release_target(shot->native_id); shot = hostile_projectiles.recycle(*shot); continue; }
     shot = shot->next;
   }
-  bool const reloading{std::bit_cast<int16_t>(static_cast<uint16_t>(clock-skimma_ring.reload_deadline)) < 0};
-  if(caero ? !secondary_weapon : (!(skimma_weapons.at(skimma_selection).flags & 1) || reloading)) target.clear();
+  bool const reloading{std::bit_cast<int16_t>(static_cast<uint16_t>(clock-skimma.ring.reload_deadline)) < 0};
+  if(caero ? !secondary_weapon : (!(skimma.slots.at(skimma.selection).flags & 1) || reloading)) target.clear();
   else {
     if(target.token == 0xffff) target.token = acquire_caero_target(player.pose(),actors,cells,bank,damage_mask);
     if(target.token != 0xffff) {
@@ -435,7 +439,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         else {
           auto const extent{bank.header_at(found->parameters.model_token).extent};
           if(caero) project_caero_target(target,pose.position,found->pose.position,extent,targeting_basis,secondary_weapon);
-          else project_skimma_target(target,pose.position,found->pose.position,extent,targeting_basis,skimma_selection,true,false,true);
+          else project_skimma_target(target,pose.position,found->pose.position,extent,targeting_basis,skimma.selection,true,false,true);
         }
       } else {
         auto const aim{resolve_map_guidance(target.token,cells,bank,damage_mask)};
@@ -446,13 +450,13 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           auto const model{bank.city_model_offset(cell.type,cell.state,damage_mask)};
           auto const bytes{bank.model_pool()};
           bool const linked{bytes[model] != std::byte{0} || bytes[model+1] != std::byte{0}};
-          project_skimma_target(target,pose.position,position,aim.height_extent,targeting_basis,skimma_selection,true,false,linked);
+          project_skimma_target(target,pose.position,position,aim.height_extent,targeting_basis,skimma.selection,true,false,linked);
         }
       }
     }
   }
   if(player.lifecycle.flags & 0x10) target.clear();
-  if(!caero) skimma_ring.target_spread = target.spread;
+  if(!caero) skimma.ring.target_spread = target.spread;
   if(player_start) collide_player(player,*player_start,cells,bank,clock);
   collide_aircraft(cells,bank,damage_mask,clock,player.tunnel.has_value());
   for(auto *shot{projectiles.objects().head}; shot; shot = shot->next) {

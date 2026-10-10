@@ -15,6 +15,35 @@
 
 namespace darker::game {
 
+struct combat_timing {
+  uint32_t elapsed_ticks{};
+  uint16_t frame_step{};
+  uint16_t changes{};
+};
+
+struct combat_input {
+  bool primary_pressed{};
+  bool secondary_pressed{};
+  bool secondary_held{};
+  bool primary_released{};
+};
+
+struct combat_scenario {
+  std::span<std::byte const> routes{};
+  uint8_t time_multiplier{50};
+  tunnel_network const *network{nullptr};
+};
+
+struct skimma_armament {
+  std::array<skimma_weapon_slot,3> slots{};
+  weapon_ring_state ring{.spread{508},.target_spread{508}};
+  uint8_t selection{};
+  uint8_t reserves{};
+  int8_t recoil{};
+  int16_t aim_offset{};
+  uint16_t dual_launch_pitch{614};
+};
+
 class mission_combat {
 public:
   std::vector<scenario_actor> actors;
@@ -28,13 +57,7 @@ public:
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
   std::array<uint8_t,4> threat_errors{64,64,64,64};
-  std::array<skimma_weapon_slot,3> skimma_weapons{};
-  weapon_ring_state skimma_ring{.spread{508},.target_spread{508}};
-  uint8_t skimma_selection{0};
-  uint8_t skimma_reserves{0};
-  int8_t skimma_recoil{0};
-  int16_t skimma_aim_offset{0};
-  uint16_t dual_launch_pitch{614};
+  skimma_armament skimma;
   diffuser_state diffuser;
   uint8_t primary_weapon{0};
   uint8_t secondary_weapon{0};
@@ -64,7 +87,8 @@ public:
   unsigned int remaining_objectives() const noexcept;
   std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
-    uint32_t elapsed_ticks, uint16_t frame_step, uint16_t changes, bool trigger_pressed, std::span<std::byte const> routes = {}, uint8_t script_multiplier = 50, tunnel_network const *network = nullptr, bool secondary_pressed = false, bool secondary_held = false, std::optional<std::array<uint16_t,3>> player_start = std::nullopt, bool trigger_released = false);
+    combat_timing timing, combat_input input = {}, combat_scenario scenario = {},
+    std::optional<std::array<uint16_t,3>> player_start = std::nullopt);
 
 private:
   std::array<uint8_t,256> retained_flags{};

@@ -138,7 +138,10 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
   auto const advance{[&](uint16_t const tick){
     auto const previous{player.pose().position};
     player.advance_motion({},false,8,bank,cells);
-    combat.advance(player,cells,bank,tick,8,0,false,{},50,nullptr,false,false,previous);
+    combat.advance(player, cells, bank,
+        {.elapsed_ticks{tick}, .frame_step{8}, .changes{0}},
+        {},
+        {}, previous);
     darker::game::advance_hangar_departure(player,cells,hangar,8);
   }};
   compare(-3000, darker::test_reference::hangar_flight_initial);

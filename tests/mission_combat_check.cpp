@@ -133,7 +133,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::city_map empty{};
     std::array<std::byte,3> const program{static_cast<std::byte>(sample[1] ? 10 : 9),std::byte{1},std::byte{0x23}};
     for(size_t frame{0}; frame < 2; ++frame) {
-      combat.advance(player,empty,bank,1000+static_cast<uint32_t>(frame),1,0,false,program);
+      combat.advance(player, empty, bank,
+        {.elapsed_ticks{1000+static_cast<uint32_t>(frame)}, .frame_step{1}, .changes{0}},
+        {},
+        {.routes{program}, .time_multiplier{50}});
       if(sample[0] && frame == 0) combat.activate_reserves(reserve.category,1,player.pose(),1000);
       auto const admitted{std::ranges::find(combat.actors,uint8_t{2},&darker::game::scenario_actor::index)};
       if(admitted == combat.actors.end() || admitted->script.stopped != (sample[2+frame] != 0)) {
@@ -263,23 +266,35 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto &craft{std::get<darker::game::caero_flight_state>(player.craft)};
     craft.energy.reserve = 0xffff;
     dual.primary_weapon = 3;
-    dual.advance(player,empty,bank,8,8,0,true);
+    dual.advance(player, empty, bank,
+        {.elapsed_ticks{8}, .frame_step{8}, .changes{0}},
+        {.primary_pressed{true}},
+        {});
     auto *capsule{dual.projectiles.objects().tail};
     if(!dual.player_fired || dual.primary_weapon != 7 || !capsule
       || capsule->parameters.definition != &darker::game::original_object_definitions[2])
       throw std::runtime_error{"Dual Launch primary press did not launch its capsule"};
     for(uint16_t clock{16}; clock <= 512; clock += 8) {
-      dual.advance(player,empty,bank,clock,8,0,false);
+      dual.advance(player, empty, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {});
       if(dual.player_fired || dual.primary_weapon != 7)
         throw std::runtime_error{"Dual Launch follow-up fired before primary release"};
     }
-    dual.advance(player,empty,bank,520,8,0,false,{},50,nullptr,false,false,std::nullopt,true);
+    dual.advance(player, empty, bank,
+        {.elapsed_ticks{520}, .frame_step{8}, .changes{0}},
+        {.primary_pressed{false}, .primary_released{true}},
+        {});
     auto const *followup{dual.projectiles.objects().head};
     if(!dual.player_fired || dual.primary_weapon != 3 || !followup
       || followup->parameters.definition != &darker::game::original_object_definitions[6]
       || followup->target_token != capsule->native_id)
       throw std::runtime_error{"Dual Launch primary release did not launch a capsule-seeking follow-up"};
-    dual.advance(player,empty,bank,528,8,0,false);
+    dual.advance(player, empty, bank,
+        {.elapsed_ticks{528}, .frame_step{8}, .changes{0}},
+        {},
+        {});
     if(dual.player_fired) throw std::runtime_error{"Dual Launch repeated after release"};
   }
   {
@@ -302,7 +317,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::city_map empty{};
     darker::game::player_flight observer;
     observer.pose().position = {15000,15000,10000};
-    blast.advance(observer,empty,bank,8,8,0,false);
+    blast.advance(observer, empty, bank,
+        {.elapsed_ticks{8}, .frame_step{8}, .changes{0}},
+        {},
+        {});
     if(blast.completed_objectives != 3 || blast.remaining_objectives() != 1 || blast.actors.size() != 1 || blast.actors.front().index != 4
       || !(capsule->flags & 8) || !(detonator->flags & 8) || capsule->deadline != 264 || detonator->deadline != 264
       || blast.effects.emitters.size() < 3) throw std::runtime_error{"Paired Dual Launch blast did not damage all three categories and retire both parts"};
@@ -373,7 +391,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
         target_player.pose().position = {static_cast<uint16_t>(launcher.pose.position[0] + ((sine*700) >> 15)),
           static_cast<uint16_t>(launcher.pose.position[1] + ((cosine*700) >> 15)),1600};
-        ground.advance(target_player,cells,bank,clock,8,0,false,scenario.bytes(record.shared),record.time_multiplier);
+        ground.advance(target_player, cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
         fired = std::ranges::any_of(ground.hostile_projectiles.records(),[](auto const &shot){ return shot.parameters.definition == &darker::game::original_object_definitions[18]; });
       }
       if(!fired) throw std::runtime_error{"Mission 48 launcher routes never invoked their missile branch"};
@@ -426,7 +447,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       }
       beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player, cells, bank, clock, 8, static_cast<uint16_t>(clock ^ (clock - 8)), weapon <= 3 && fire, scenario.bytes(record.shared),record.time_multiplier,nullptr,((weapon == 8 || weapon == 10) && fire) || (weapon == 9 && clock % 2048 == 8),weapon == 9 && clock % 2048 != 0);
+      combat.advance(player, cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock ^ (clock - 8))}},
+        {.primary_pressed{weapon <= 3 && fire}, .secondary_pressed{((weapon == 8 || weapon == 10) && fire) || (weapon == 9 && clock % 2048 == 8)}, .secondary_held{weapon == 9 && clock % 2048 != 0}},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
       if(combat.player_fired) ++shots;
       saw_burst |= !combat.effects.emitters.empty();
       saw_trail |= !combat.effects.trails.empty();
@@ -492,7 +516,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::player_flight player;
     darker::game::hangar_state hangar{.return_site{origin},.next_return_site{briefing.departure_destination}};
     darker::game::initialise_caero_hangar(player,transfer_cells,hangar,bank.header_at(bank.special_models()[25]).height);
-    for(uint32_t clock{8}; clock <= 4000; clock += 8) traffic.advance(player,transfer_cells,bank,clock,8,0,false,transfer.bytes(record.shared));
+    for(uint32_t clock{8}; clock <= 4000; clock += 8) traffic.advance(player, transfer_cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{transfer.bytes(record.shared)}, .time_multiplier{50}});
     // Isolate the departure boundary and destination handoff from manual navigation.
     player.pose().position[1] -= 768;
     darker::game::advance_hangar_departure(player,transfer_cells,hangar,8);
@@ -538,7 +565,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     bool departed{false};
     for(uint32_t clock{8}; clock < 5000 && !combat.actors.empty(); clock += 8) {
       if(clock >= 1100) player.pose().position = {};
-      combat.advance(player,city,bank,clock,8,0,false,source.bytes(record.shared),record.time_multiplier);
+      combat.advance(player, city, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{source.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
       if(!combat.actors.empty() && combat.actors.front().parameters.update_entry == 0x8823) departed = true;
     }
     if(!departed || !combat.actors.empty() || combat.free_actors.size() != 4 || combat.completed_objectives != 0) {
@@ -587,7 +617,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto *shot{combat.projectiles.launch({.definition{darker::game::original_object_definitions[9]},.emitter{emitter},
       .model_token{bank.special_models()[9]},.lifetime{2000},.target_token{token}})};
     combat.target.token = token;
-    combat.advance(player,city,bank,8,8,0,false);
+    combat.advance(player, city, bank,
+        {.elapsed_ticks{8}, .frame_step{8}, .changes{0}},
+        {},
+        {});
     if(shot->target_token != shot->native_id || !combat.actors.empty() || combat.free_actors.size() != 1 || combat.target.token != 0xffff
       || !(combat.status_flags(player.lifecycle.flags)[actor.index] & 0x20))
       throw std::runtime_error{"Retired aircraft retained a Hunter or selected-target reference"};
@@ -602,7 +635,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   darker::game::city_map empty_city{};
   darker::game::player_flight target;
   target.pose().position = {10000,10000,10000};
-  missiles.advance(target,empty_city,bank,8192,8,0,false);
+  missiles.advance(target, empty_city, bank,
+        {.elapsed_ticks{8192}, .frame_step{8}, .changes{0}},
+        {},
+        {});
   auto *missile{missiles.hostile_projectiles.objects().head};
   if(!missile || missile->parameters.definition != &darker::game::original_object_definitions[10]
     || missiles.projectiles.objects().head || missiles.actors.front().last_shot != 8192) {
@@ -611,7 +647,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   missiles.actors.clear();
   bool missile_hit{false};
   for(uint16_t clock{8200}; clock < 11000 && !missile_hit; clock += 8) {
-    missiles.advance(target,empty_city,bank,clock,8,0,false);
+    missiles.advance(target, empty_city, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {});
     missile_hit = missiles.player_hit;
   }
   if(!missile_hit || std::get<darker::game::caero_flight_state>(target.craft).damage.damage != 45 || missiles.effects.emitters.empty()) {
@@ -624,12 +663,18 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   std::get<darker::game::caero_flight_state>(gunner.craft).energy.reserve = 0xcfff;
   guided.primary_weapon = 2;
   guided.missile_camera_enabled = true;
-  guided.advance(gunner,empty_city,bank,100,8,0,true);
+  guided.advance(gunner, empty_city, bank,
+        {.elapsed_ticks{100}, .frame_step{8}, .changes{0}},
+        {.primary_pressed{true}},
+        {});
   if(!guided.camera_projectile || guided.camera_projectile->parameters.definition != &darker::game::original_object_definitions[1]) {
     throw std::runtime_error{"Mimic launch did not register the missile camera"};
   }
   guided.primary_weapon = 0;
-  for(uint16_t clock{108}; clock < 2200; clock += 8) guided.advance(gunner,empty_city,bank,clock,8,0,false);
+  for(uint16_t clock{108}; clock < 2200; clock += 8) guided.advance(gunner, empty_city, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {},
+        {});
   if(guided.camera_projectile) throw std::runtime_error{"Expired projectile retained the missile camera"};
   {
     darker::resources::geometry_bank const tunnel_bank{archives.load({0,32})};
@@ -648,7 +693,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     bool sparks{false}, bursts{false};
     for(uint32_t clock{0}; clock <= 280000; clock += 512) {
       std::array<uint8_t,3> const previous{tunnel_cells[doors[0]].state,tunnel_cells[doors[1]].state,tunnel_cells[doors[2]].state};
-      tunnel.advance(observer,tunnel_cells,tunnel_bank,clock,512,0,false,tunnel_scenario.bytes(record.shared));
+      tunnel.advance(observer, tunnel_cells, tunnel_bank,
+        {.elapsed_ticks{clock}, .frame_step{512}, .changes{0}},
+        {},
+        {.routes{tunnel_scenario.bytes(record.shared)}, .time_multiplier{50}});
       sparks |= !tunnel.effects.trails.empty();
       bursts |= !tunnel.effects.emitters.empty();
       for(size_t door{0}; door < doors.size(); ++door) {
@@ -905,8 +953,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto geometry{*maps[0]};
       size_t sample_index{0};
       for(unsigned int frame{0}; frame < 512; ++frame) {
-        underground.advance(observer,geometry,underground_bank,frame*8,8,0,false,
-          campaign.scenario(17).bytes(underground_record.shared),50,&network);
+        underground.advance(observer, geometry, underground_bank,
+        {.elapsed_ticks{frame*8}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{campaign.scenario(17).bytes(underground_record.shared)}, .time_multiplier{50}, .network{&network}});
         if(underground.actors.size() != 3) throw std::runtime_error{"Scripted underground aircraft were unexpectedly removed"};
         for(auto const &actor : underground.actors) {
           auto const &expected{darker::test_reference::tunnel_scripted_actor_samples[sample_index++]};
@@ -968,7 +1018,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         stationary.front().pose.position = {};
         stationary.front().previous_position = {};
         darker::game::mission_combat idle{stationary};
-        for(uint32_t time{8}; time < 1024; time += 8) idle.advance(player,city,underground_bank,time,8,0,false,{},50,&network);
+        for(uint32_t time{8}; time < 1024; time += 8) idle.advance(player, city, underground_bank,
+        {.elapsed_ticks{time}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{}, .time_multiplier{50}, .network{&network}});
         if(idle.actors.size() != stationary.size() || idle.completed_objectives != 0) throw std::runtime_error{"Stationary tunnel objects expired without an impact"};
         for(size_t i{0}; i < stationary.size(); ++i) {
           if(idle.actors[i].pose.position != stationary[i].pose.position || idle.actors[i].flags != stationary[i].flags
@@ -989,8 +1042,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           player.pose().speed = 496;
         }
         craft.energy.reserve = 0xcfff;
-        combat.advance(player,city,underground_bank,clock,8,static_cast<uint16_t>(clock ^ (clock-8)),fire,
-          scenario.bytes(underground_record.shared),underground_record.time_multiplier,&network);
+        combat.advance(player, city, underground_bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock ^ (clock-8))}},
+        {.primary_pressed{fire}},
+        {.routes{scenario.bytes(underground_record.shared)}, .time_multiplier{underground_record.time_multiplier}, .network{&network}});
         shots += combat.player_fired;
         context.clock = clock;
         context.objectives_complete = combat.remaining_objectives() == 0;
@@ -1070,7 +1125,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       attacker.pose().angles = {};
       attacker.pose().speed = 496;
       energy.reserve = 0xcfff;
-      target_convoy.advance(attacker,cells,bank,clock,8,0,clock == 128,scenario.bytes(record.shared));
+      target_convoy.advance(attacker, cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
+        {.primary_pressed{clock == 128}},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{50}});
       if(target_convoy.actors.front().flags & 0x20) { hit_clock = clock; break; }
     }
     if(!hit_clock || target_convoy.effects.emitters.empty()
@@ -1079,7 +1137,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Shooting the fourth-mission truck did not schedule its native destruction effect and removal"};
     }
     for(uint16_t elapsed{8}; elapsed <= 264; elapsed += 8) {
-      target_convoy.advance(attacker,cells,bank,static_cast<uint16_t>(hit_clock + elapsed),8,0,false,scenario.bytes(record.shared));
+      target_convoy.advance(attacker, cells, bank,
+        {.elapsed_ticks{static_cast<uint16_t>(hit_clock + elapsed)}, .frame_step{8}, .changes{0}},
+        {},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{50}});
       if((elapsed <= 256) != !target_convoy.actors.empty()) throw std::runtime_error{"Shot truck disappeared at the wrong deadline"};
     }
     if(target_convoy.completed_objectives != 0) throw std::runtime_error{"Shooting the uncounted truck credited a mission objective"};
@@ -1090,7 +1151,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   auto const before{cells};
   unsigned int calls{0};
   for(unsigned int tick{0}; tick < 200000 && !convoy.actors.empty(); tick += 50) {
-    convoy.advance(observer,cells,bank,static_cast<uint16_t>(tick),50,0,false,scenario.bytes(record.shared));
+    convoy.advance(observer, cells, bank,
+        {.elapsed_ticks{static_cast<uint16_t>(tick)}, .frame_step{50}, .changes{0}},
+        {},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{50}});
     ++calls;
   }
   if(!convoy.actors.empty() || calls != 3120 || convoy.completed_objectives != 0) {

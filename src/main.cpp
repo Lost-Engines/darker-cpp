@@ -325,8 +325,8 @@ auto main(int const argc, char const *const argv[])->int {
     if(selection >= 4) mask = static_cast<uint16_t>((mask & 0xff00) | static_cast<uint8_t>(mask + 1));
     host.available_weapons = mask;
     if(!caero) {
-      darker::game::select_skimma_weapon(std::span{combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
-        combat->skimma_selection,combat->skimma_ring,selection,host.available_weapons,static_cast<uint16_t>(context.clock));
+      darker::game::select_skimma_weapon(std::span{combat->skimma.slots}.first(host.player.upgraded ? 3 : 2),
+        combat->skimma.selection,combat->skimma.ring,selection,host.available_weapons,static_cast<uint16_t>(context.clock));
       combat->target = {};
     } else if(selection > 0 && selection < 4) combat->primary_weapon = selection;
     else if(selection >= 4) combat->secondary_weapon = selection;
@@ -456,7 +456,7 @@ auto main(int const argc, char const *const argv[])->int {
       instruments[0] = measured.low_altitude;
       instruments[1] = measured.shield;
       instruments[2] = darker::graphics::skimma_speed_instrument(pose.speed, host.player.upgraded);
-      instruments[3] = combat->skimma_reserves;
+      instruments[3] = combat->skimma.reserves;
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
     darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{cockpit_visible && caero ? 8 : 0}}, 320, height);
@@ -492,16 +492,16 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_skimma_frame_edges(cache, display);
       darker::graphics::skimma_bitmap_state indicators{.bearing{darker::graphics::skimma_mission_bearing(
         context.hud_reference,pose.position[0],pose.position[1],pose.angles.heading)}};
-      for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;
+      for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma.slots[i].flags;
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, indicators);
     }
     if(sights_visible && !caero) {
-      auto const &weapon{combat->skimma_weapons[combat->skimma_selection]};
-      if(auto const ring{darker::game::update_weapon_ring(weapon.ammunition,combat->skimma_ring,clock,weapon.flags,frame_step)}) {
-        darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma_selection,ring->radius,ring->remaining,sight_y - 2);
+      auto const &weapon{combat->skimma.slots[combat->skimma.selection]};
+      if(auto const ring{darker::game::update_weapon_ring(weapon.ammunition,combat->skimma.ring,clock,weapon.flags,frame_step)}) {
+        darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma.selection,ring->radius,ring->remaining,sight_y - 2);
       }
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
-        {.x{164}, .y{static_cast<int16_t>(sight_y + combat->skimma_aim_offset)}}, 14, 14);
+        {.x{164}, .y{static_cast<int16_t>(sight_y + combat->skimma.aim_offset)}}, 14, 14);
     }
     darker::graphics::draw_missile_camera_indicator(display, clock, combat->missile_camera_enabled, watched != nullptr);
     for(size_t const channel : {1u,0u,2u}) if(auto const &message{messages[channel]}) {
@@ -695,8 +695,8 @@ auto main(int const argc, char const *const argv[])->int {
           if(!(host.available_weapons & (1u << (selection-1)))) break;
           bool const skimma{std::holds_alternative<darker::game::skimma_flight_state>(host.player.craft)};
           if(skimma && selection < 4) {
-            if(!darker::game::select_skimma_weapon(std::span{host.combat->skimma_weapons}.first(host.player.upgraded ? 3 : 2),
-              host.combat->skimma_selection,host.combat->skimma_ring,selection,host.available_weapons,host.clock)) break;
+            if(!darker::game::select_skimma_weapon(std::span{host.combat->skimma.slots}.first(host.player.upgraded ? 3 : 2),
+              host.combat->skimma.selection,host.combat->skimma.ring,selection,host.available_weapons,host.clock)) break;
             host.combat->target = {};
           } else if(selection < 4) host.combat->primary_weapon = selection;
           else host.combat->secondary_weapon = selection;
@@ -1002,10 +1002,10 @@ auto main(int const argc, char const *const argv[])->int {
             combat->spawning.halon = world_mode == 1;
             combat->spawning.sites.clear();
           }
-          for(uint8_t i{0}; i < combat->skimma_weapons.size(); ++i) darker::game::refill_skimma_weapon(combat->skimma_weapons[i].ammunition,i);
+          for(uint8_t i{0}; i < combat->skimma.slots.size(); ++i) darker::game::refill_skimma_weapon(combat->skimma.slots[i].ammunition,i);
           combat->reserves = std::move(groups[1]);
           combat->free_actors = std::move(groups[2]);
-          combat->skimma_weapons[1].ammunition = second_weapon;
+          combat->skimma.slots[1].ammunition = second_weapon;
           combat->difficulty = front->initial_difficulty().value_or(static_cast<uint8_t>(pilot.stage*2));
           host.score_base = front->initial_score();
           host.combat = combat.get();
@@ -1033,7 +1033,7 @@ auto main(int const argc, char const *const argv[])->int {
           context.adjust_objectives = [&](uint8_t const operand){ combat->adjust_objectives(operand); return objectives.complete(mission) && combat->remaining_objectives() == 0; };
           context.replace_world_objectives = replace_world_objectives;
           context.select_weapon = select_weapon;
-          context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat->skimma_weapons[combat->skimma_selection].ammunition,combat->skimma_selection); };
+          context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat->skimma.slots[combat->skimma.selection].ammunition,combat->skimma.selection); };
           context.reset_shield = [&]{
             auto &charge{std::get<darker::game::skimma_flight_state>(host.player.craft).damage.shield_charge};
             charge = static_cast<uint16_t>((charge & 255) | 0xbf00);
@@ -1088,8 +1088,10 @@ auto main(int const argc, char const *const argv[])->int {
         combat->update_difficulty((static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks);
         beacon_changes.advance(cells,game_clock.frame_ticks);
         auto const *previous_missile{combat->camera_projectile};
-        combat->advance(host.player,cells,bank,(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks,
-          step,game_clock.frame_changes,primary_held && !host.primary_held,scenario->bytes(mission.shared),mission.time_multiplier,tunnel_network ? &*tunnel_network : nullptr,secondary_held && !host.secondary_held,secondary_held,player_start,host.primary_held && !primary_held);
+        combat->advance(host.player, cells, bank,
+        {.elapsed_ticks{(static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks}, .frame_step{step}, .changes{game_clock.frame_changes}},
+        {.primary_pressed{primary_held && !host.primary_held}, .secondary_pressed{secondary_held && !host.secondary_held}, .secondary_held{secondary_held}, .primary_released{host.primary_held && !primary_held}},
+        {.routes{scenario->bytes(mission.shared)}, .time_multiplier{mission.time_multiplier}, .network{tunnel_network ? &*tunnel_network : nullptr}}, player_start);
         contact = combat->player_contact;
         if(previous_missile && !combat->camera_projectile) host.camera.distance = 0x8000;
         context.clock = (static_cast<uint32_t>(game_clock.wraps) << 16) | game_clock.frame_ticks;
@@ -1115,7 +1117,7 @@ auto main(int const argc, char const *const argv[])->int {
         } else if(world_mode == 1 && darker::game::begin_supply_approach(host.player,cells,host.player.supply)) {
           host.hangar.return_site = host.player.supply.site;
           host.hangar.next_return_site = host.player.supply.site;
-          for(auto &weapon : combat->skimma_weapons) weapon.flags &= 0xfe;
+          for(auto &weapon : combat->skimma.slots) weapon.flags &= 0xfe;
           exchange.enter_supply(script,context);
         }
         if(context.progress) host.exit_requested = session_exit::completed;

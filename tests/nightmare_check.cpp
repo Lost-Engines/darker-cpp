@@ -68,7 +68,10 @@ void check_nightmare(darker::resources::archive_set const &archives) {
     player.lifecycle = {};
     std::get<darker::game::caero_flight_state>(player.craft).damage = {};
     beacons.advance(cells,static_cast<uint16_t>(tick));
-    combat.advance(player,cells,bank,tick,8,static_cast<uint16_t>(tick^(tick-8)),false,scenario.bytes(record.shared),record.time_multiplier);
+    combat.advance(player, cells, bank,
+        {.elapsed_ticks{tick}, .frame_step{8}, .changes{static_cast<uint16_t>(tick^(tick-8))}},
+        {},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
     context.clock = tick;
     context.objectives_complete = !combat.remaining_objectives();
     context.object_counter = static_cast<uint8_t>(combat.completed_objectives);

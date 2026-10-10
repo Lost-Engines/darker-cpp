@@ -92,8 +92,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     player.engine_flags = 1;
     player.upgraded = weapon == 2;
     if(weapon >= 0) {
-      combat.skimma_selection = static_cast<uint8_t>(weapon);
-      auto &slot{combat.skimma_weapons[weapon]};
+      combat.skimma.selection = static_cast<uint8_t>(weapon);
+      auto &slot{combat.skimma.slots[weapon]};
       darker::game::refill_skimma_weapon(slot.ammunition,static_cast<uint8_t>(weapon));
       slot.flags = 1;
     }
@@ -113,10 +113,12 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       }
       combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,player.pose().angles.roll});
       bool const pressed{target != combat.actors.end() && clock%128 == 0};
-      combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),weapon < 0 && pressed,
-        scenario.bytes(record.shared),record.time_multiplier,nullptr,weapon >= 0 && pressed);
-      if(weapon >= 0) darker::game::update_weapon_ring(combat.skimma_weapons[weapon].ammunition,combat.skimma_ring,
-        static_cast<uint16_t>(clock),combat.skimma_weapons[weapon].flags,8);
+      combat.advance(player, cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock^(clock-8))}},
+        {.primary_pressed{weapon < 0 && pressed}, .secondary_pressed{weapon >= 0 && pressed}},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
+      if(weapon >= 0) darker::game::update_weapon_ring(combat.skimma.slots[weapon].ammunition,combat.skimma.ring,
+        static_cast<uint16_t>(clock),combat.skimma.slots[weapon].flags,8);
       shots += combat.player_fired;
       effects |= !combat.effects.gun_sounds.empty();
       darker::game::recharge_skimma_shield(craft.damage,8);
@@ -135,7 +137,10 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       .model_token{bank.special_models()[18]},.lifetime{4096},.target_token{0xd986}})};
     shot->placement.position = victim.pose().position;
     darker::game::city_map empty{};
-    incoming.advance(victim,empty,bank,8,8,0,false);
+    incoming.advance(victim, empty, bank,
+        {.elapsed_ticks{8}, .frame_step{8}, .changes{0}},
+        {},
+        {});
     auto const &damage{std::get<darker::game::skimma_flight_state>(victim.craft).damage};
     if(!incoming.player_hit || victim.lifecycle.crashing == shield || (shield && damage.shield_charge >= 0xbfff))
       throw std::runtime_error{"Skimma projectile impact did not honour its enabled shield"};
@@ -224,10 +229,10 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Final approach lost its native Skimma profile or empty ground-weapon bay"};
     darker::game::mission_combat combat{std::move(groups[0])};
     combat.reserves = std::move(groups[1]);
-    combat.skimma_selection = 2;
-    combat.skimma_weapons[2].flags = 1;
-    darker::game::refill_skimma_weapon(combat.skimma_weapons[2].ammunition,2);
-    darker::game::refill_skimma_weapon(combat.skimma_weapons[0].ammunition,0);
+    combat.skimma.selection = 2;
+    combat.skimma.slots[2].flags = 1;
+    darker::game::refill_skimma_weapon(combat.skimma.slots[2].ammunition,2);
+    darker::game::refill_skimma_weapon(combat.skimma.slots[0].ammunition,0);
     combat.free_actors = std::move(groups[2]);
     auto &craft{std::get<darker::game::skimma_flight_state>(pilot.craft)};
     craft.damage.shield_enabled = true;
@@ -254,18 +259,20 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         pilot.pose().speed = 496;
       }
       combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading,pilot.pose().angles.pitch,0});
-      if(combat.skimma_selection == 2 && !combat.skimma_weapons[2].ammunition.working && !combat.skimma_weapons[2].ammunition.reserve) {
-        darker::game::select_skimma_weapon(combat.skimma_weapons,combat.skimma_selection,combat.skimma_ring,1,7,static_cast<uint16_t>(clock));
+      if(combat.skimma.selection == 2 && !combat.skimma.slots[2].ammunition.working && !combat.skimma.slots[2].ammunition.reserve) {
+        darker::game::select_skimma_weapon(combat.skimma.slots,combat.skimma.selection,combat.skimma.ring,1,7,static_cast<uint16_t>(clock));
         combat.target.clear();
       }
       // This fixture controls the firing position and shield reserve; hostile damage is checked separately above.
       craft.damage.shield_charge = 0xbf00;
       bool const heavy{target != combat.actors.end() && target->parameters.definition->impact_strength >= 50};
       bool const pressed{target != combat.actors.end() && clock%128 == 0};
-      combat.advance(pilot,city,final_bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),
-        pressed && !heavy,final_scenario.bytes(record.shared),record.time_multiplier,nullptr,pressed && heavy);
-      darker::game::update_weapon_ring(combat.skimma_weapons[combat.skimma_selection].ammunition,combat.skimma_ring,static_cast<uint16_t>(clock),
-        combat.skimma_weapons[combat.skimma_selection].flags,8);
+      combat.advance(pilot, city, final_bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock^(clock-8))}},
+        {.primary_pressed{pressed && !heavy}, .secondary_pressed{pressed && heavy}},
+        {.routes{final_scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
+      darker::game::update_weapon_ring(combat.skimma.slots[combat.skimma.selection].ammunition,combat.skimma.ring,static_cast<uint16_t>(clock),
+        combat.skimma.slots[combat.skimma.selection].flags,8);
       shots += combat.player_fired;
       darker::game::recharge_skimma_shield(craft.damage,8);
       if(pilot.lifecycle.crashing) throw std::runtime_error{"Controlled final battle lost its shielded pilot"};
@@ -315,7 +322,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     combat.free_actors = std::move(groups[2]);
     combat.spawning.sites.clear();
     combat.spawning.halon = true;
-    for(uint8_t i{0}; i < 3; ++i) darker::game::refill_skimma_weapon(combat.skimma_weapons[i].ammunition,i);
+    for(uint8_t i{0}; i < 3; ++i) darker::game::refill_skimma_weapon(combat.skimma.slots[i].ammunition,i);
     darker::game::world_objectives objectives{.list{record.objective_cell_list}};
     darker::game::mission_script script{.continuation{*record.player_program-record.shared.offset}};
     darker::game::mission_context context{.program{source.bytes(record.shared)},
@@ -335,11 +342,11 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     context.mark_aircraft_sites = [&](std::span<std::byte const> const program){ return darker::game::prepare_halon_aircraft_sites(combat.spawning,city,program); };
     context.select_weapon = [&](uint8_t const selection){
       available = std::rotl(uint16_t{0x8000},selection);
-      darker::game::select_skimma_weapon(std::span{combat.skimma_weapons}.first(pilot.upgraded ? 3 : 2),
-        combat.skimma_selection,combat.skimma_ring,selection,available,static_cast<uint16_t>(context.clock));
+      darker::game::select_skimma_weapon(std::span{combat.skimma.slots}.first(pilot.upgraded ? 3 : 2),
+        combat.skimma.selection,combat.skimma.ring,selection,available,static_cast<uint16_t>(context.clock));
       combat.target.clear();
     };
-    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat.skimma_weapons[combat.skimma_selection].ammunition,combat.skimma_selection); };
+    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(combat.skimma.slots[combat.skimma.selection].ammunition,combat.skimma.selection); };
     context.reset_shield = [&]{ craft.damage.shield_charge = static_cast<uint16_t>((craft.damage.shield_charge & 255) | 0xbf00); };
     context.toggle_weapons = [&](uint16_t const mask){ available ^= mask; };
     context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
@@ -350,7 +357,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       bool primary{false}, secondary{false};
       auto const building{std::ranges::find_if(combat.spawning.sites,[&](uint16_t const site){ return !(city[(site >> 8)*128+(site & 127)].state & 0x20); })};
       auto const actor{std::ranges::find_if(combat.actors,[](auto const &candidate){ return !(candidate.flags & 0x20) && (candidate.attributes & 1); })};
-      uint8_t weapon{combat.skimma_selection};
+      uint8_t weapon{combat.skimma.selection};
       uint16_t token{0xffff};
       if(building != combat.spawning.sites.end()) {
         auto const aim{darker::game::resolve_map_guidance(*building,city,bank,0x60)};
@@ -382,13 +389,13 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         craft.horizontal_velocity = 100;
         craft.vertical_velocity = 0xffff;
         if(!darker::game::begin_supply_approach(pilot,city,pilot.supply)) throw std::runtime_error{"Halon objective fixture could not enter its original supply pad"};
-        for(auto &slot : combat.skimma_weapons) slot.flags &= 0xfe;
+        for(auto &slot : combat.skimma.slots) slot.flags &= 0xfe;
         exchange.enter_supply(script,context);
         returned = true;
       }
-      if(!returned && secondary && (combat.skimma_selection != weapon || !(combat.skimma_weapons[weapon].flags & 1))) {
-        darker::game::select_skimma_weapon(std::span{combat.skimma_weapons}.first(pilot.upgraded ? 3 : 2),
-          combat.skimma_selection,combat.skimma_ring,static_cast<uint8_t>(weapon+1),available,static_cast<uint16_t>(clock));
+      if(!returned && secondary && (combat.skimma.selection != weapon || !(combat.skimma.slots[weapon].flags & 1))) {
+        darker::game::select_skimma_weapon(std::span{combat.skimma.slots}.first(pilot.upgraded ? 3 : 2),
+          combat.skimma.selection,combat.skimma.ring,static_cast<uint8_t>(weapon+1),available,static_cast<uint16_t>(clock));
       }
       if(token != previous_target) combat.target.clear();
       previous_target = token;
@@ -397,11 +404,13 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       pilot.pose().speed = 496;
       if(returned) darker::game::advance_supply_motion(pilot,pilot.supply,context.transition_output,exchange.supplementary_active,0,8);
       combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading,pilot.pose().angles.pitch,0});
-      combat.advance(pilot,city,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),primary && clock%128 == 0,
-        source.bytes(record.shared),record.time_multiplier,nullptr,secondary && clock%128 == 0);
+      combat.advance(pilot, city, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock^(clock-8))}},
+        {.primary_pressed{primary && clock%128 == 0}, .secondary_pressed{secondary && clock%128 == 0}},
+        {.routes{source.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
       shots += combat.player_fired;
-      auto const &selected{combat.skimma_weapons[combat.skimma_selection]};
-      darker::game::update_weapon_ring(selected.ammunition,combat.skimma_ring,static_cast<uint16_t>(clock),selected.flags,8);
+      auto const &selected{combat.skimma.slots[combat.skimma.selection]};
+      darker::game::update_weapon_ring(selected.ammunition,combat.skimma.ring,static_cast<uint16_t>(clock),selected.flags,8);
       if(pilot.lifecycle.crashing) throw std::runtime_error{"Halon controlled objective check lost the pilot"};
       objectives.advance(city,record,0x60);
       context.clock = clock;

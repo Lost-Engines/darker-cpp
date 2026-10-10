@@ -154,8 +154,10 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       bool const fire_building{target != targets.end() && clock%256 == 0
         && (!warehouse || weapon == 5 || static_cast<uint16_t>(clock-combat.diffuser.deadline) >= 0xf400)};
       combat.spawn_aircraft(player,cells,bank,static_cast<uint16_t>(clock),8);
-      combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),ground_actor && clock%128 == 0,
-        scenario.bytes(record.shared),record.time_multiplier,nullptr,attacking_actor ? clock%2048 == 8 : fire_building,attacking_actor && clock%2048 != 0);
+      combat.advance(player, cells, bank,
+        {.elapsed_ticks{clock}, .frame_step{8}, .changes{static_cast<uint16_t>(clock^(clock-8))}},
+        {.primary_pressed{ground_actor && clock%128 == 0}, .secondary_pressed{attacking_actor ? clock%2048 == 8 : fire_building}, .secondary_held{attacking_actor && clock%2048 != 0}},
+        {.routes{scenario.bytes(record.shared)}, .time_multiplier{record.time_multiplier}});
       shots += combat.player_fired;
       if(player.lifecycle.crashing) throw std::runtime_error{"Building check crash stage="+std::to_string(test.stage)+" clock="+std::to_string(clock)+" removed="+std::to_string(combat.completed_objectives)+" remaining="+std::to_string(combat.remaining_objectives())};
       darker::game::charge_caero_energy(craft.energy,13056,1,1028,false);

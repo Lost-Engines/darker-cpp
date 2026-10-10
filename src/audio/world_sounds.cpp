@@ -138,7 +138,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       auto note{object_sound(definition,shot->placement,
         {.identity{shot->native_id},.flags{shot->flags},.fade{shot->fade},.deadline{shot->deadline}},clock)};
       if(!note.active) continue;
-      if(&definition == &game::original_object_definitions[6]) note.pitch = combat.dual_launch_pitch;
+      if(&definition == &game::original_object_definitions[6]) note.pitch = combat.skimma.dual_launch_pitch;
       game::effect_sound const sound{.position{shot->placement.position},.definition{
         .duration{0},.pitch{note.pitch},.level{note.level},.patch{note.patch},.flags{0x29}}};
       // Object voices retain their native pool identity across updates.
