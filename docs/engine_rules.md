@@ -13,6 +13,10 @@ arithmetic boundary can share a number without being the same rule.
 | Camera arithmetic | [`render_geometry`](../src/graphics/render_geometry.h) | Camera coordinates, retained projection fractions, accumulator width, signed wrapping, world-to-camera scale, near plane and projection overflow limits. |
 | Scene traversal and fog | [`scene_limits`](../src/graphics/render_geometry.h) | Surface/tunnel traversal radii and distance-shade table limits. Scanner capacity is separate from representable projection distance. |
 | Framebuffer dimensions | [`display_layout`, `source_sheet_layout`](../src/render/frame_layout.h) | Display bounds/strides and original resource-sheet dimensions are separate. Framebuffer templates carry both dimensions. |
+| Borrowed render surfaces | [`indexed_surface`, `const_indexed_surface`](../src/render/indexed_surface.h) | Visible dimensions and storage stride travel with the pixels. Fixed framebuffers lend their storage; blits can use differently sized source and destination surfaces. |
+| Raster arithmetic | [`raster_arithmetic`](../src/graphics/raster_arithmetic.h) | Shared edge-step precision and initial half-pixel bias; palette words and clipping division limits remain separate from camera fractions and screen-coordinate storage. |
+| Raster clipping | [`raster_viewport`](../src/graphics/raster_viewport.h) | Zero-origin bounds shared by scene models, polygons, lines, discs and particles. Right is inclusive; bottom is excluded from raster writes but permitted for clipped vertices. |
+| City scan arithmetic | [`city_scan_rules`, `collect_city_cells`](../src/graphics/city_visibility.h) | Native byte coordinates and carry/borrow stepper, isolated from placement, sorting and rasterisation. |
 | Cockpit viewports | [`cockpit_view_layout`](../src/graphics/screen_layout.h) | Caero and Skimma viewport heights, centres and Caero's top strip. Original artwork coordinates remain artwork coordinates. |
 | Cities and tunnels | [`world_kind`, `world_profiles`](../src/resources/world_profile.h) | Geometry resource, map resource selection, damage-stage mask and beacon lighting. Configuration identifies world independently of craft. |
 | Map dimensions and cell state | [`city_map_size`, `city_cell_index`, `packed_cell_reference`, `city_cell`](../src/game/city_map.h) | The native 128×128 allocation and target permission bit. Model variants/damage and beacon intensity share the state byte deliberately. |
@@ -54,22 +58,38 @@ FOV requires changing projection, including near-plane intersection projection,
 not simply changing that constant.
 
 A wider fork must also check matrix-product overflow, sorting-distance overflow,
-scanner byte arithmetic, near-intersection saturation, culling, fog and tunnel
+scanner byte arithmetic (`city_visibility`), near-intersection saturation, culling, fog and tunnel
 visibility. Resource words need not grow with runtime camera coordinates.
+Screen-coordinate and sorting-distance aliases are independent of camera-coordinate
+width, even though all three currently use native words. Screen-origin wrapping
+has its own helper. Shade interpolation still has native word arithmetic of its
+own: a wider screen does not imply a wider palette accumulator.
+
 Native indexed-pixel comparisons should continue to exercise the unchanged
 reference configuration.
 
 ## Changing internal resolution
 
 `display_layout` describes the 320×240 output; `source_sheet_layout` describes
-320×200 source sheets. Neither should be derived from the other. The current
-blitters, original presentation layout and cockpit assets also assume matching
-row widths in places. Named output bounds do not remove those asset assumptions.
+320×200 source sheets. Neither should be derived from the other. Blits and scene
+rasterisers borrow surfaces with explicit dimensions and row strides. They do not
+require the 320×240 owning framebuffer, and padding is not drawn into. Original
+presentation layout, sprite selection and cockpit artwork still use native asset
+coordinates; making a target larger does not scale that artwork.
 
 A higher-resolution fork needs an explicit policy for placing/scaling original
 artwork, fonts, buttons and masks, and for mapping input back to that artwork.
 Keep those choices separate from polygon clipping bounds, projection centres,
-FOV and host-window scaling. See [software polygons](software_polygons.md),
+FOV and host-window scaling. A `raster_viewport` supplies clipping bounds, not a
+projection centre or a scaling policy. Its zero origin is deliberate; an inset
+view can be represented by a surface borrowing the relevant storage. Keep the
+native clipping order and endpoint rounding when changing these interfaces.
+
+The faithful game still allocates the same fixed buffers and uses the same
+projection equations. Runtime allocation, focal-scale changes and artwork scaling
+remain fork features, not hidden switches in these refactors.
+
+See [software polygons](software_polygons.md),
 [model rendering](model_rendering.md) and [fonts and text](fonts_and_text.md).
 
 ## Adding craft, weapons or actors

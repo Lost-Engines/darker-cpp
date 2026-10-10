@@ -2,14 +2,16 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <limits>
 #include <stdexcept>
+#include "graphics/raster_arithmetic.h"
 
 namespace darker::graphics {
 namespace {
 
-int16_t word(int const value) noexcept {
+render_geometry::screen_coordinate word(int const value) noexcept {
   /// Preserve the original signed word interpolation differences
-  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
+  return render_geometry::wrap_screen(value);
 }
 
 using polygon_buffer = std::array<shaded_vertex, clipped_polygon_vertex_limit>;
@@ -32,16 +34,16 @@ size_t clip(std::span<shaded_vertex const> const input, polygon_buffer &output, 
     auto const &anchor{anchor_a ? a : b}, &outside{anchor_a ? b : a};
     int const distance{word(boundary - coordinate(anchor))};
     int const divisor{word(coordinate(outside) - coordinate(anchor))};
-    auto const interpolate{[&](int const start, int const end){
+    auto const interpolate{[&](int const start, int const end, auto const wrap){
       if(divisor == 0) throw std::domain_error{"Shaded polygon clipping has zero divisor"};
-      int const quotient{distance * word(end - start) / divisor};
-      if(quotient < -32768 || quotient > 32767) throw std::domain_error{"Shaded polygon clipping exceeds the original quotient"};
-      return word(start + quotient);
+      int const quotient{distance * wrap(end - start) / divisor};
+      if(quotient < std::numeric_limits<raster_arithmetic::division_quotient>::min() || quotient > std::numeric_limits<raster_arithmetic::division_quotient>::max()) throw std::domain_error{"Shaded polygon clipping exceeds the original quotient"};
+      return wrap(start + quotient);
     }};
-    auto const other{interpolate(horizontal ? anchor.position.y : anchor.position.x, horizontal ? outside.position.y : outside.position.x)};
+    auto const other{interpolate(horizontal ? anchor.position.y : anchor.position.x, horizontal ? outside.position.y : outside.position.x, word)};
     output.at(count++) = {
       .position{horizontal ? word(boundary) : other, horizontal ? other : word(boundary)},
-      .shade{static_cast<uint16_t>(interpolate(anchor.shade, outside.shade))},
+      .shade{static_cast<uint16_t>(interpolate(anchor.shade, outside.shade, raster_arithmetic::wrap_palette))},
     };
   }
   return count;
@@ -52,9 +54,9 @@ struct edge_walker {
   int direction{1};
   int end_y{0};
   int x{0};
-  int fraction{128};
+  int fraction{raster_arithmetic::edge_start_fraction};
   int step{0};
-  uint16_t shade{0};
+  raster_arithmetic::palette_accumulator shade{0};
   int shade_step{0};
 };
 
@@ -69,30 +71,30 @@ void start_edge(edge_walker &edge, std::span<shaded_vertex const> const points, 
     a = b;
   } while(true);
   auto const delta{vec2<int>{b.position} - vec2<int>{a.position}};
-  int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
+  int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * raster_arithmetic::edge_start_fraction / delta.y};
   edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
   edge.x = a.position.x + (right ? 1 : 0);
-  edge.fraction = 128;
+  edge.fraction = raster_arithmetic::edge_start_fraction;
   edge.end_y = b.position.y;
   edge.shade = a.shade;
-  edge.shade_step = word(b.shade - a.shade + 1) / delta.y;
+  edge.shade_step = raster_arithmetic::wrap_palette(b.shade - a.shade + 1) / delta.y;
 }
 
 void step_edge(edge_walker &edge) noexcept {
   /// AE69 advances both coordinate and colour accumulators before writing each row
-  int const fraction{edge.fraction + (edge.step & 255)};
-  edge.x += (edge.step >> 8) + (fraction >> 8);
-  edge.fraction = fraction & 255;
+  int const fraction{edge.fraction + (edge.step & raster_arithmetic::edge_fraction_mask)};
+  edge.x += (edge.step >> raster_arithmetic::edge_fraction_bits) + (fraction >> raster_arithmetic::edge_fraction_bits);
+  edge.fraction = fraction & raster_arithmetic::edge_fraction_mask;
   edge.shade = static_cast<uint16_t>(edge.shade + edge.shade_step);
 }
 
-void draw_span(framework::render::indexed_cockpit_framebuffer &target, int const y, int const left, int const right, int const first, int const last) {
+void draw_span(framework::render::indexed_surface target, int const y, int const left, int const right, int const first, int const last) {
   /// AE93 chooses per-pixel steps or repeated colour bands using integer quotient/remainder distribution
   int const width{right - left};
   if(width <= 0) return;
   int const direction{last < first ? -1 : 1};
   int const difference{(last - first) * direction};
-  auto output{target.pixels.begin() + y * target.width + left};
+  auto output{target.pixels.begin() + y * target.stride + left};
   if(difference == 0) {
     std::fill_n(output, width, static_cast<uint8_t>(first));
   } else if(difference >= width) {
@@ -121,11 +123,12 @@ void draw_span(framework::render::indexed_cockpit_framebuffer &target, int const
 
 } // anonymous namespace
 
-void draw_gouraud_polygon(framework::render::indexed_cockpit_framebuffer &target,
-  std::span<shaded_vertex const> const vertices, int const right, int const bottom) {
+void draw_gouraud_polygon(framework::render::indexed_surface target,
+  std::span<shaded_vertex const> const vertices, raster_viewport const viewport) {
+  auto const [right, bottom]{viewport};
   /// Translate the original convex palette-index Gouraud path into a contiguous indexed framebuffer
   if(vertices.size() < 3) return;
-  if(vertices.size() > polygon_vertex_limit || right < 0 || right >= static_cast<int>(target.width) || bottom <= 0 || bottom > static_cast<int>(target.height)) {
+  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
     throw std::invalid_argument{"Shaded polygon exceeds supported vertex or viewport bounds"};
   }
   auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
@@ -141,7 +144,7 @@ void draw_gouraud_polygon(framework::render::indexed_cockpit_framebuffer &target
   polygon_buffer first{}, second{};
   std::copy(vertices.begin(), vertices.end(), first.begin());
   size_t count{vertices.size()};
-  for(auto const plane : viewport_clip_planes(right, bottom)) {
+  for(auto const plane : viewport_clip_planes(viewport)) {
     count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
     first.swap(second);
     if(count < 3) return;

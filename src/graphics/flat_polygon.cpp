@@ -1,19 +1,21 @@
 #include "graphics/flat_polygon.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <array>
 #include <bit>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
+#include "graphics/raster_arithmetic.h"
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 namespace {
 
 using polygon_buffer = std::array<screen_vertex, clipped_polygon_vertex_limit>;
 
-int16_t word(int const value) noexcept {
+render_geometry::screen_coordinate word(int const value) noexcept {
   /// Preserve signed word coordinates at clipping boundaries
-  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
+  return render_geometry::wrap_screen(value);
 }
 
 size_t clip(std::span<screen_vertex const> const input, polygon_buffer &output, bool const horizontal, int const boundary, bool const maximum) {
@@ -40,7 +42,7 @@ size_t clip(std::span<screen_vertex const> const input, polygon_buffer &output, 
     auto const delta{word(horizontal ? outside.y - anchor.y : outside.x - anchor.x)};
     if(divisor == 0) throw std::domain_error{"Polygon clipping produces an original division fault"};
     auto const quotient{static_cast<int32_t>(distance) * delta / divisor};
-    if(quotient < -32768 || quotient > 32767) throw std::domain_error{"Polygon clipping exceeds the original signed quotient"};
+    if(quotient < std::numeric_limits<raster_arithmetic::division_quotient>::min() || quotient > std::numeric_limits<raster_arithmetic::division_quotient>::max()) throw std::domain_error{"Polygon clipping exceeds the original signed quotient"};
     auto const interpolated{word((horizontal ? anchor.y : anchor.x) + quotient)};
     output.at(count++) = horizontal ? screen_vertex{word(boundary), interpolated} : screen_vertex{interpolated, word(boundary)};
   }
@@ -52,7 +54,7 @@ struct edge_walker {
   int direction{1};
   int end_y{0};
   int x{0};
-  int fraction{128};
+  int fraction{raster_arithmetic::edge_start_fraction};
   int step{0};
 };
 
@@ -67,18 +69,18 @@ void start_edge(edge_walker &edge, std::span<screen_vertex const> const points, 
     a = b;
   } while(true);
   auto const delta{vec2<int>{b} - vec2<int>{a}};
-  int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
+  int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * raster_arithmetic::edge_start_fraction / delta.y};
   edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
   edge.x = a.x + (right ? 1 : 0);
-  edge.fraction = 128;
+  edge.fraction = raster_arithmetic::edge_start_fraction;
   edge.end_y = b.y;
 }
 
 void step_edge(edge_walker &edge) noexcept {
   /// Advance before drawing, preserving the native half-unit starting bias
-  int const fraction{edge.fraction + (edge.step & 255)};
-  edge.x += (edge.step >> 8) + (fraction >> 8);
-  edge.fraction = fraction & 255;
+  int const fraction{edge.fraction + (edge.step & raster_arithmetic::edge_fraction_mask)};
+  edge.x += (edge.step >> raster_arithmetic::edge_fraction_bits) + (fraction >> raster_arithmetic::edge_fraction_bits);
+  edge.fraction = fraction & raster_arithmetic::edge_fraction_mask;
 }
 
 } // anonymous namespace
@@ -90,11 +92,12 @@ bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_
   return (cross & 0x80000000u) != 0;
 }
 
-void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, std::span<screen_vertex const> const vertices,
-  uint8_t const colour, int const right, int const bottom) {
+void draw_flat_polygon(framework::render::indexed_surface target, std::span<screen_vertex const> const vertices,
+  uint8_t const colour, raster_viewport const viewport) {
+  auto const [right, bottom]{viewport};
   /// Translate A1B6's convex flat-fill path to indexed pixels; VGA plane masks become contiguous spans
   if(vertices.size() < 3) return;
-  if(vertices.size() > polygon_vertex_limit || right < 0 || right >= static_cast<int>(target.width) || bottom <= 0 || bottom > static_cast<int>(target.height)) {
+  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
     throw std::invalid_argument{"Flat polygon exceeds the supported vertex or viewport bounds"};
   }
   auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
@@ -113,7 +116,7 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   polygon_buffer second{};
   std::copy(vertices.begin(), vertices.end(), first.begin());
   size_t count{vertices.size()};
-  for(auto const plane : viewport_clip_planes(right, bottom)) {
+  for(auto const plane : viewport_clip_planes(viewport)) {
     count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
     first.swap(second);
     if(count < 3) return;
@@ -142,7 +145,7 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
     step_edge(right_edge);
     auto const left{std::clamp(left_edge.x, 0, right + 1)};
     auto const end{std::clamp(right_edge.x, left, right + 1)};
-    std::fill(target.pixels.begin() + y * display_layout::width + left, target.pixels.begin() + y * display_layout::width + end, colour);
+    std::fill(target.pixels.begin() + y * target.stride + left, target.pixels.begin() + y * target.stride + end, colour);
   }
 }
 

@@ -1,9 +1,9 @@
 #include "graphics/cockpit.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <stdexcept>
 #include "graphics/cockpit_tables.h"
 #include "graphics/flight_instruments.h"
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 
@@ -49,8 +49,8 @@ size_t instrument_limit(craft const type, size_t const component) {
 framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::render::indexed_framebuffer const &sheet) {
   /// BF72–BF94 copies the top 136 rows and repeats source rows 96–199 below them
   framework::render::indexed_cockpit_framebuffer result;
-  copy_rectangle(sheet.pixels, result.pixels, {0, 0}, {0, 0}, display_layout::width, 136);
-  copy_rectangle(sheet.pixels, result.pixels, {0, 96}, {0, 136}, display_layout::width, 104);
+  copy_rectangle(sheet, result, {0, 0}, {0, 0}, display_layout::width, 136);
+  copy_rectangle(sheet, result, {0, 96}, {0, 136}, display_layout::width, 104);
   return result;
 }
 
@@ -64,7 +64,7 @@ void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer c
   // 51AD converts native BL into a pulse width, with BH selecting its final strip
   for(unsigned int i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
     auto const &strip{descriptor.strips[i]};
-    copy_mask(cache.pixels, target.pixels, {descriptor.on_source.x, descriptor.on_source.y + strip.y_offset},
+    copy_mask(cache, target, {descriptor.on_source.x, descriptor.on_source.y + strip.y_offset},
       {descriptor.destination.x, descriptor.destination.y + strip.y_offset}, strip.rows);
   }
 }
@@ -83,7 +83,7 @@ void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const
     {23, 13}, {14, 27}, {12, 30}, {10, 34}, {9, 37}, {7, 41}, {5, 44},
   }};
   // DFB0 samples logical row 43 through the Caero +8 source row table; destination 169 is unshifted
-  copy_mask(cache.pixels, target.pixels, {72, 51}, {48, 169}, upper_instrument);
+  copy_mask(cache, target, {72, 51}, {48, 169}, upper_instrument);
   std::fill_n(target.pixels.begin() + 8 * display_layout::width + 122, 76, 152);
   std::fill_n(target.pixels.begin() + 175 * display_layout::width + 182, 53, 21);
 }
@@ -103,9 +103,9 @@ void draw_skimma_frame_edges(framework::render::indexed_cockpit_framebuffer cons
     {0, 13}, {0, 15}, {0, 17}, {0, 18}, {0, 20}, {0, 22}, {0, 24}, {0, 26}, {0, 28}, {0, 30},
     {0, 32}, {0, 34}, {0, 37}, {0, 39}, {0, 42}, {0, 45}, {0, 48}, {0, 52}, {0, 58},
   }};
-  copy_mask(cache.pixels, target.pixels, {0, 8}, {0, 0}, top);
-  copy_mask(cache.pixels, target.pixels, {24, 8}, {80, 171}, instruments);
-  copy_mask(cache.pixels, target.pixels, {216, 26}, {0, 151}, left);
+  copy_mask(cache, target, {0, 8}, {0, 0}, top);
+  copy_mask(cache, target, {24, 8}, {80, 171}, instruments);
+  copy_mask(cache, target, {216, 26}, {0, 151}, left);
 }
 
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
@@ -137,7 +137,7 @@ void update_instrument(framework::render::indexed_cockpit_framebuffer const &cac
       // AF57 shifts logical rows 0–167 by eight in the normal Caero cockpit
       int const source_offset{type == craft::caero && source_y < cockpit_view_layout::caero_height ? cockpit_view_layout::caero_top : 0};
       int const destination_offset{type == craft::caero && destination_y < cockpit_view_layout::caero_height ? cockpit_view_layout::caero_top : 0};
-      copy_mask(cache.pixels, target.pixels, {source.x, source_y + source_offset},
+      copy_mask(cache, target, {source.x, source_y + source_offset},
         {descriptor.destination.x, destination_y + destination_offset}, strip.rows.subspan(row, 1));
     }
   }

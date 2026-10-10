@@ -10,6 +10,7 @@
 #include "game/effects.h"
 #include "game/object_pose.h"
 #include "graphics/camera.h"
+#include "graphics/city_visibility.h"
 #include "graphics/model_lighting.h"
 #include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
@@ -45,7 +46,7 @@ struct scene_object {
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool underground = false);
-std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex const &origin, int bottom, uint8_t residue = 0);
+std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex const &origin, raster_viewport viewport, uint8_t residue = 0);
 
 struct city_view {
   maths::world_format::position_component column{0};                                                          // original 1/256-cell position words
@@ -56,7 +57,9 @@ struct city_view {
   camera_angles angles{};
   screen_vertex origin{display_layout::centre_x, cockpit_view_layout::caero_centre_y};
   unsigned int radius{scene_limits::surface_radius_cells};                                                     // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
-  int bottom{cockpit_view_layout::caero_height};
+  raster_viewport viewport{
+    .bottom{cockpit_view_layout::caero_height},
+  };
   bool beacon_lighting{true};
   bool gouraud{true};
   bool underground{false};
@@ -67,7 +70,7 @@ bool within_object_window(city_view const &view, maths::world_position const &po
 
 struct particle_scene {
   game::effect_system const &effects;
-  framework::render::indexed_cockpit_framebuffer const &sheet;
+  framework::render::const_indexed_surface sheet;
   uint16_t clock;
 };
 
@@ -79,12 +82,9 @@ private:
   model_colours retained_colours{};
 
 public:
-  size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
+  size_t draw(framework::render::indexed_surface target, resources::geometry_bank const &bank,
     std::span<game::city_cell const, game::city_map_cell_count> cells, city_view view, uint8_t damage_mask,
     distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {}, particle_scene const *particles = nullptr);
 };
-
-void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> cells, uint8_t column, uint8_t row,
-  camera_angles angles, unsigned int radius, std::vector<uint16_t> &output);
 
 } // namespace darker::graphics

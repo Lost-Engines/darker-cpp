@@ -16,7 +16,10 @@ TEST_CASE("Gouraud polygons match original palette bands and clipping", "[graphi
       };
     }
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_gouraud_polygon(frame, std::span{vertices}.first(sample.count), 319, 168);
+    darker::graphics::draw_gouraud_polygon(frame, std::span{vertices}.first(sample.count), {
+      .right{319},
+      .bottom{168},
+    });
     uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     REQUIRE(fingerprint == sample.fingerprint);

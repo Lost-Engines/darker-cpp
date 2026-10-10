@@ -1,5 +1,4 @@
 #include "graphics/city_scene.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <ranges>
@@ -7,9 +6,10 @@
 #include "game/beacon_light.h"
 #include "graphics/near_clip.h"
 #include "graphics/particles.h"
+#include "graphics/screen_layout.h"
 #include "graphics/tunnel_visibility.h"
-#include "maths/world_coordinates.h"
 #include "maths/angle.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::graphics {
 
@@ -104,20 +104,20 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   return item;
 }
 
-std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const &origin, int const bottom, uint8_t const residue) {
+std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const &origin, raster_viewport const viewport, uint8_t const residue) {
   /// 2D32 consumes traversal AL for the Y divide, then projected Y's low byte for the X divide
   auto point{project_vertex({
     .horizontal{0},
     .vertical{word(placement.vertical.whole) * render_geometry::fraction_scale + residue},
     .depth{word(placement.depth.whole) * render_geometry::fraction_scale}
   }, origin)};
-  if(point.y < 0 || point.y >= bottom) return std::nullopt;
+  if(point.y < 0 || point.y >= viewport.bottom) return std::nullopt;
   point.x = project_vertex({
     .horizontal{word(placement.horizontal.whole) * render_geometry::fraction_scale + static_cast<uint8_t>(point.y)},
     .vertical{0},
     .depth{word(placement.depth.whole) * render_geometry::fraction_scale}
   }, origin).x;
-  if(point.x < 0 || point.x >= display_layout::width || point.y < 0 || point.y >= bottom) return std::nullopt;
+  if(!viewport.contains(point.x, point.y)) return std::nullopt;
   return point;
 }
 
@@ -159,78 +159,11 @@ void order_city_models(std::vector<city_draw_item> &items) {
   });
 }
 
-void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> const cells, uint8_t const column, uint8_t const row,
-  camera_angles const angles, unsigned int const radius, std::vector<uint16_t> &output) {
-  /// 26EE traverses circular row spans, selecting the heading half unless pitch requires the full circle
-  if(radius < scene_limits::minimum_scan_radius_cells || radius > scene_limits::maximum_scan_radius_cells) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
-  output.clear();
-  // angles wrap at 65536 units per turn; discard six bits to use the 1024-step sine-table phase
-  // +15 is the native quantisation bias, not round-to-nearest (+32); its original rationale is unknown
-  auto const heading_phase{maths::view_angle_phase(angles.heading)};
-  auto const pitch_phase{maths::view_angle_phase(angles.pitch)};
-  // 128 phase steps make a 45-degree octant; pair heading octants into four half-map scan directions
-  // 0/2/4/6 are native word-table byte offsets: decreasing columns, increasing rows, increasing columns, decreasing rows
-  auto const scan_direction_offset{((heading_phase >> 7) - 1) & 6};
-  // fold pitch modulo half a turn: octants 1/2 select steep views towards either vertical pole
-  auto const folded_pitch_octant{(pitch_phase >> 7) & 3};
-  bool const scan_full_circle{folded_pitch_octant == 1 || folded_pitch_octant == 2};
-  auto const span{[&](int const y, int const left, int const right){
-    auto const wrapped_row{static_cast<uint8_t>(y)};
-    if(wrapped_row >= game::city_map_size.row) return;
-    for(int x{left}; x <= right; ++x) {
-      auto const wrapped_column{static_cast<uint8_t>(x)};
-      if(wrapped_column >= game::city_map_size.column) continue;
-      auto const index{static_cast<uint16_t>(game::city_cell_index(wrapped_column, wrapped_row))};
-      if(cells[index].type) output.push_back(index);
-    }
-  }};
-  auto const rows{[&](int const width, int const offset){
-    if(scan_full_circle) {
-      span(row + offset, column - width, column + width);
-      span(row - offset, column - width, column + width);
-    } else if(scan_direction_offset == 0 || scan_direction_offset == 4) {
-      int const left{scan_direction_offset == 0 ? column - width : column};
-      int const right{scan_direction_offset == 0 ? column : column + width};
-      span(row - offset, left, right);
-      span(row + offset, left, right);
-    } else {
-      span(scan_direction_offset == 2 ? row + offset : row - offset, column - width, column + width);
-    }
-  }};
-  unsigned int width{0};
-  unsigned int offset{radius};
-  // the circle stepper uses byte subtraction and carry/borrow, not an unbounded signed error accumulator
-  unsigned int constexpr byte_modulus{256};
-  uint8_t error{static_cast<uint8_t>(radius / 2)};
-  do {
-    --offset;
-    error = static_cast<uint8_t>(error - offset);
-    unsigned int sum{0};
-    do {
-      ++width;
-      sum = error + width;
-      error = static_cast<uint8_t>(sum);
-    } while(sum < byte_modulus);
-    rows(static_cast<int>(width), static_cast<int>(offset));
-  } while(width < offset);
-  while(offset > 0) {
-    --offset;
-    bool const borrow{error < offset};
-    error = static_cast<uint8_t>(error - offset);
-    if(borrow) {
-      ++width;
-      error = static_cast<uint8_t>(error + width);
-    } else if(offset == 0) break;
-    rows(static_cast<int>(width), static_cast<int>(offset));
-  }
-  // the native traversal always includes the complete centre row, even for a half-map scan
-  span(row, column - static_cast<int>(width), column + static_cast<int>(width));
-}
-
-size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
+size_t city_renderer::draw(framework::render::indexed_surface target, resources::geometry_bank const &bank,
   std::span<game::city_cell const, game::city_map_cell_count> const cells, city_view const view, uint8_t const damage_mask,
   distance_shading const &lighting, model_animation animation, std::span<scene_object const> const objects, particle_scene const *const particles) {
   /// Assemble the selected native visibility path before sorting world geometry, actors and particle effects
+  if(!view.viewport.fits(target.width, target.height)) throw std::invalid_argument{"City viewport exceeds the framebuffer"};
   auto const basis{make_camera_basis(view.angles)};
   // position words hold 1/256-cell units; the extra fraction byte subdivides those units by another 256
   // projection needs 1/1024-cell units: multiply the word by four and retain the fraction's top two bits
@@ -289,18 +222,18 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
   for(auto const &item : items) {
     if(item.emitter) {
       for(auto const point : project_emitter(*item.emitter, item.placement, basis, view.origin)) {
-        draw_particle(target, particles->sheet, point, item.phase, view.bottom);
+        draw_particle(target, particles->sheet, point, item.phase, view.viewport);
       }
       continue;
     }
     if(item.distant_point) {
-      if(auto const point{project_distant_object(item.placement, view.origin, view.bottom, item.projection_residue)}) {
+      if(auto const point{project_distant_object(item.placement, view.origin, view.viewport, item.projection_residue)}) {
         auto const colour{bank.header_at(item.model_offset).point_colour};
         // 2D71 reuses the last mesh's shade table; it does not calculate distance or fade again
         unsigned int constexpr palette_ramp_mask{model_colours::ramp_mask};    // upper three bits select one of eight 32-colour ramps
         unsigned int constexpr palette_shade_mask{model_colours::shade_mask};  // lower five bits select the shade within that ramp
         auto const shaded_colour{(colour & palette_ramp_mask) + retained_colours.shades.at(colour & palette_shade_mask)};
-        target.pixels[static_cast<size_t>(point->y) * target.width + point->x] = static_cast<uint8_t>(shaded_colour);
+        target.pixels[static_cast<size_t>(point->y) * target.stride + point->x] = static_cast<uint8_t>(shaded_colour);
       }
       continue;
     }
@@ -321,7 +254,7 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     retained_colours = colours;
     animation.cell_state = item.orientation ? 0 : cells[item.cell].state;
-    draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.bottom, item.path, animation,
+    draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.viewport, item.path, animation,
       view.gouraud && !item.force_flat ? model_shading::gouraud : model_shading::flat);
   }
   return items.size();

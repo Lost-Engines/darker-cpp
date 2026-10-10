@@ -1,5 +1,4 @@
 #include "graphics/navigation_hud.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <cstddef>
@@ -7,6 +6,7 @@
 #include "graphics/bitmap_hud.h"
 #include "graphics/cockpit_tables.h"
 #include "graphics/procedural_hud.h"
+#include "graphics/screen_layout.h"
 #include "maths/angle.h"
 
 namespace darker::graphics {
@@ -131,7 +131,7 @@ void draw_navigation_contact(framework::render::indexed_cockpit_framebuffer cons
   int const half{difference >> 1};
   int const magnitude{std::min(10, half < 0 ? ~half : half)};
   auto const colour{static_cast<uint8_t>((half < 0 ? 183 : 151) - magnitude)};
-  copy_mask(cache.pixels, target.pixels, {navigation_source_x[destination.x & 3], 8}, destination, navigation_mask);
+  copy_mask(cache, target, {navigation_source_x[destination.x & 3], 8}, destination, navigation_mask);
   draw_contact_symbol(target, destination, colour);
 }
 
@@ -172,7 +172,7 @@ void draw_enlarged_radar(framework::render::indexed_cockpit_framebuffer const &c
     }
   }
   draw_grid_coordinate(cache, target, {56, 41}, view.row, coordinate_font::large);
-  copy_rectangle(cache.pixels, target.pixels, {312, 85}, {72, 41}, 8, 7);
+  copy_rectangle(cache, target, {312, 85}, {72, 41}, 8, 7);
   draw_grid_coordinate(cache, target, {80, 41}, view.column, coordinate_font::large);
 }
 

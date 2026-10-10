@@ -18,9 +18,6 @@
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
-#include "game/native_object_layout.h"
-#include "game/player_flags.h"
-#include "resources/world_profile.h"
 #include "audio/ambient_sounds.h"
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
@@ -36,6 +33,8 @@
 #include "game/hangar.h"
 #include "game/mission_combat.h"
 #include "game/mission_exchange.h"
+#include "game/native_object_layout.h"
+#include "game/player_flags.h"
 #include "game/player_flight.h"
 #include "game/scenario_setup.h"
 #include "game/scenario_world.h"
@@ -61,6 +60,7 @@
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
 #include "resources/save_file.h"
+#include "resources/world_profile.h"
 
 namespace {
 
@@ -466,7 +466,9 @@ auto main(int const argc, char const *const argv[])->int {
       .altitude{std::bit_cast<int16_t>(camera.position.height)},
       .angles{camera.angles},
       .origin{framework::render::display_layout::centre_x, static_cast<darker::graphics::render_geometry::screen_coordinate>(height / 2)},
-      .bottom{height},
+      .viewport{
+        .bottom{height},
+      },
     };
     combat->targeting_basis = darker::maths::make_view_basis(view.angles);
     view.underground = host.player.tunnel.has_value();
@@ -547,7 +549,7 @@ auto main(int const argc, char const *const argv[])->int {
       instruments[3] = combat->skimma.reserves;
     }
     for(size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
-    darker::graphics::copy_rectangle(world.pixels, display.pixels, {0, 0}, {0, cockpit_visible && caero ? darker::graphics::cockpit_view_layout::caero_top : 0}, framework::render::display_layout::width, height);
+    darker::graphics::copy_rectangle(world, display, {0, 0}, {0, cockpit_visible && caero ? darker::graphics::cockpit_view_layout::caero_top : 0}, framework::render::display_layout::width, height);
     auto const grid{darker::game::beacon_grid_coordinates({host.player.pose().position.column, host.player.pose().position.row})};
     darker::graphics::radar_view_state const navigation{
       .player{view.column, view.row},

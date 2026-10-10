@@ -76,7 +76,7 @@ TEST_CASE("Particle pixels follow native source selection and scanline masks", "
       .x{static_cast<int16_t>(v[2])},
       .y{80},
       .depth{static_cast<int16_t>(v[0])}
-    }, static_cast<uint8_t>(v[1]), 240);
+    }, static_cast<uint8_t>(v[1]), {});
     uint32_t hash{2166136261};
     for(auto const pixel : frame.pixels) hash = (hash ^ pixel) * 16777619;
     CHECK(hash == v[3]);

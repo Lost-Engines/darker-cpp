@@ -13,7 +13,7 @@ render_geometry::accumulator wrap(render_geometry::accumulator const value) noex
 
 render_geometry::screen_coordinate word(render_geometry::accumulator const value) noexcept {
   /// Add the screen origin with the original word wrapping
-  return render_geometry::wrap_coordinate(value);
+  return render_geometry::wrap_screen(value);
 }
 
 render_geometry::screen_coordinate divide(render_geometry::accumulator const numerator, render_geometry::coordinate const depth, render_geometry::screen_coordinate const origin) {
@@ -37,7 +37,7 @@ render_geometry::screen_coordinate intersection_coordinate(render_geometry::accu
 
 screen_vertex project_vertex(camera_vertex const vertex, screen_vertex const &origin) {
   /// Project a retained camera-space vertex using its whole signed depth
-  auto const depth{word(vertex.depth >> render_geometry::fraction_bits)};
+  auto const depth{render_geometry::wrap_coordinate(vertex.depth >> render_geometry::fraction_bits)};
   return {divide(vertex.horizontal, depth, origin.x), divide(vertex.vertical, depth, origin.y)};
 }
 
@@ -110,7 +110,7 @@ size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertices, s
     auto const numerator{static_cast<uint32_t>(depth - render_geometry::near_depth) * 65536};
     if(divisor == 0 || numerator / divisor > 65535) throw std::domain_error{"Near shade interpolation exceeds the original quotient"};
     auto const fraction{static_cast<int16_t>(numerator / divisor)};
-    int const delta{word((shades[outside] - shades[inside]) * 2)};
+    int const delta{std::bit_cast<int16_t>(static_cast<uint16_t>((shades[outside] - shades[inside]) * 2))};
     auto const shade{static_cast<uint16_t>(shades[inside] + ((delta * fraction) >> 16))};
     emit(near_intersection(vertices[inside], vertices[outside], origin), shade);
   }

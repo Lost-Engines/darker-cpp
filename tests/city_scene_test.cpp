@@ -64,7 +64,9 @@ TEST_CASE("Distant moving objects project to the original single pixel", "[graph
         .fraction{255}
       },
     };
-    auto const point{darker::graphics::project_distant_object(placement, {160, static_cast<int16_t>(sample[3] / 2)}, sample[3], static_cast<uint8_t>(sample[4]))};
+    auto const point{darker::graphics::project_distant_object(placement, {160, static_cast<int16_t>(sample[3] / 2)}, {
+      .bottom{sample[3]},
+    }, static_cast<uint8_t>(sample[4]))};
     REQUIRE(point.has_value() == (sample[5] >= 0));
     if(point) {
       CHECK(point->x == sample[5]);

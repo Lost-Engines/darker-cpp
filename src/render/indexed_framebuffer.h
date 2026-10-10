@@ -5,6 +5,7 @@
 #include <cstdint>
 #include "render/frame_layout.h"
 #include "render/framebuffer.h"
+#include "render/indexed_surface.h"
 
 namespace framework::render {
 

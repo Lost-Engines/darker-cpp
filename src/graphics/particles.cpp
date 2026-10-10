@@ -1,8 +1,9 @@
 #include "graphics/particles.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
+#include <stdexcept>
 #include "graphics/particle_tables.h"
+#include "graphics/screen_layout.h"
 #include "maths/angle.h"
 
 namespace darker::graphics {
@@ -70,8 +71,9 @@ std::vector<particle_point> project_emitter(game::particle_emitter const &emitte
   return ordered;
 }
 
-void draw_particle(framework::render::indexed_cockpit_framebuffer &target,
-  framework::render::indexed_cockpit_framebuffer const &sheet, particle_point const point, uint8_t const phase, int const bottom) {
+void draw_particle(framework::render::indexed_surface target,
+  framework::render::const_indexed_surface sheet, particle_point const point, uint8_t const phase, raster_viewport const viewport) {
+  if(!viewport.fits(target.width, target.height)) throw std::invalid_argument{"Particle viewport exceeds the framebuffer"};
   /// 6AA6 selects discrete source artwork and masked rows, preserving even-X destination alignment
   unsigned int constexpr animation_phase_count{22};
   int constexpr near_plane_depth{32};
@@ -80,7 +82,7 @@ void draw_particle(framework::render::indexed_cockpit_framebuffer &target,
   int constexpr animation_column_table{0x6bc7};
   if(phase >= animation_phase_count || point.depth < near_plane_depth) return;
   if(point.depth >= point_sprite_depth) {
-    if(point.x >= 0 && point.x < display_layout::width && point.y >= 0 && point.y < bottom) target.pixels[point.y * display_layout::width + point.x] = particle_point_colours[phase];
+    if(viewport.contains(point.x, point.y)) target.pixels[point.y * target.stride + point.x] = particle_point_colours[phase];
     return;
   }
   // five baked sprite sizes, nearest first; these addresses identify records in the extracted native selector table
@@ -97,11 +99,11 @@ void draw_particle(framework::render::indexed_cockpit_framebuffer &target,
   int const source_y{at(record + 2 + alignment)};
   // radius follows both parity records; subsequent byte pairs give each masked row's skip and width
   for(int row{0}; row < radius * 2; ++row) {
-    if(y + row < 0 || y + row >= bottom) continue;
+    if(y + row < 0 || y + row >= viewport.bottom) continue;
     int const skip{at(table + 11 + row * 2)}, width{at(table + 12 + row * 2)};
     for(int column{skip}; column < skip + width; ++column) {
-      if(destination_x + column < 0 || destination_x + column >= display_layout::width) continue;
-      target.pixels[(y + row) * display_layout::width + destination_x + column] = sheet.pixels[(source_y + row) * display_layout::width + source_x + column];
+      if(destination_x + column < 0 || destination_x + column > viewport.right) continue;
+      target.pixels[(y + row) * target.stride + destination_x + column] = sheet.pixels[(source_y + row) * sheet.stride + source_x + column];
     }
   }
 }

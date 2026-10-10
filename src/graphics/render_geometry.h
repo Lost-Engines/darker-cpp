@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
-#include "maths/world_coordinates.h"
 #include "graphics/screen_layout.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::graphics {
 
@@ -16,8 +16,9 @@ struct render_geometry {
   using fraction = uint8_t;
   using accumulator = int32_t;
   using accumulator_bits = std::make_unsigned_t<accumulator>;
-  using screen_coordinate = coordinate;
-  using sorting_distance = coordinate_bits;
+  using screen_coordinate = int16_t;                                        // raster coordinates need not widen with camera coordinates
+  using screen_coordinate_bits = std::make_unsigned_t<screen_coordinate>;
+  using sorting_distance = uint16_t;                                        // painter ordering has its own unsigned range
 
   static unsigned int constexpr whole_bits{std::numeric_limits<coordinate_bits>::digits};
   static unsigned int constexpr fraction_bits{std::numeric_limits<fraction>::digits};
@@ -50,6 +51,11 @@ struct render_geometry {
   static constexpr coordinate wrap_coordinate(accumulator value) noexcept {
     /// Reinterpret the native low coordinate word as signed
     return std::bit_cast<coordinate>(static_cast<coordinate_bits>(value));
+  }
+
+  static constexpr screen_coordinate wrap_screen(accumulator value) noexcept {
+    /// Raster origin addition wraps independently of camera-coordinate storage
+    return std::bit_cast<screen_coordinate>(static_cast<screen_coordinate_bits>(value));
   }
 
   static constexpr accumulator wrap_projection(accumulator_bits value) noexcept {

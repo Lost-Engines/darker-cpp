@@ -28,7 +28,7 @@ struct model_colours {
   uint8_t dynamic{0};
 };
 
-void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> pool,
-  size_t model_offset, projection_parameters projection, model_colours const &colours, int bottom = display_layout::height, model_path path = model_path::direct, model_animation const &animation = {}, model_shading shading = model_shading::flat);
+void draw_model(framework::render::indexed_surface target, std::span<std::byte const> pool,
+  size_t model_offset, projection_parameters projection, model_colours const &colours, raster_viewport viewport = {}, model_path path = model_path::direct, model_animation const &animation = {}, model_shading shading = model_shading::flat);
 
 } // namespace darker::graphics

@@ -1,10 +1,10 @@
 #include "graphics/model_renderer.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <format>
 #include <stdexcept>
 #include <utility>
+#include "graphics/screen_layout.h"
 #include "graphics/screen_primitives.h"
 #include "maths/sine_table.h"
 
@@ -66,7 +66,7 @@ render_geometry::coordinate signed_word(render_geometry::accumulator const value
 
 class interpreter {
 private:
-  framework::render::indexed_cockpit_framebuffer &target;
+  framework::render::indexed_surface target;
   std::span<std::byte const> pool;
   model_projection projection;
   model_colours const &colours;
@@ -75,7 +75,7 @@ private:
   uint16_t interpolation{0};
   render_geometry::coordinate last_depth{0};
   uint8_t distance_high;
-  int bottom;
+  raster_viewport viewport;
   model_path path;
   model_shading shading;
   screen_vertex screen_origin;
@@ -178,9 +178,9 @@ private:
   }
 
 public:
-  interpreter(framework::render::indexed_cockpit_framebuffer &frame, std::span<std::byte const> const bytes,
-    projection_parameters const parameters, model_colours const &palette, int const height, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, bottom{height}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
+  interpreter(framework::render::indexed_surface frame, std::span<std::byte const> const bytes,
+    projection_parameters const parameters, model_colours const &palette, raster_viewport const bounds, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
+    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, viewport{bounds}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
@@ -220,7 +220,7 @@ public:
           if(path == model_path::near_clipped && depth < render_geometry::near_depth) break;
           if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
           auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : vertices[cursor]};
-          draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, bottom);
+          draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, viewport);
         }
         break;
       case model_opcode::line:
@@ -240,7 +240,7 @@ public:
             first = vertices[a];
             last = vertices[b];
           }
-          draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, bottom);
+          draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, viewport);
         }
         break;
       case model_opcode::call:
@@ -380,12 +380,12 @@ public:
           if(shaded && shading == model_shading::gouraud) {
             auto const projected_count{path == model_path::near_clipped
               ? clip_near_shaded_polygon(std::span{camera_face}.first(count), std::span{vertex_shades}.first(count), screen_origin, shaded_face) : count};
-            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), display_layout::right, bottom);
+            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), viewport);
             break;
           }
           auto const projected_count{path == model_path::near_clipped
             ? clip_near_polygon(std::span{camera_face}.first(count), screen_origin, face) : count};
-          draw_flat_polygon(target, std::span{face}.first(projected_count), index, display_layout::right, bottom);
+          draw_flat_polygon(target, std::span{face}.first(projected_count), index, viewport);
         }
         break;
       case model_opcode::skip_back_facing:
@@ -434,12 +434,12 @@ void update_fountain_parameters(model_animation &animation, uint16_t const clock
   animation.parameters[9 + (band + 1) % 6] -= static_cast<int16_t>((2 * amplitudes[band + 1] * sine) >> 16);
 }
 
-void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> const pool,
-  size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation, model_shading const shading) {
+void draw_model(framework::render::indexed_surface target, std::span<std::byte const> const pool,
+  size_t const model_offset, projection_parameters const projection, model_colours const &colours, raster_viewport const viewport, model_path const path, model_animation const &animation, model_shading const shading) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
-  if(bottom <= 0 || bottom > display_layout::height) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};
-  interpreter{target, pool, projection, colours, bottom, path, animation, shading}.run(model_offset + 11);
+  if(!viewport.fits(target.width, target.height)) throw std::invalid_argument{"Model viewport exceeds the framebuffer"};
+  interpreter{target, pool, projection, colours, viewport, path, animation, shading}.run(model_offset + 11);
 }
 
 } // namespace darker::graphics

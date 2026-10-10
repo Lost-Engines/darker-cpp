@@ -115,6 +115,7 @@ add_library(framework_core STATIC
   src/render/framebuffer.cpp
   src/render/framebuffer.h
   src/render/indexed_framebuffer.h
+  src/render/indexed_surface.h
 )
 target_include_directories(framework_core PUBLIC src)
 configure_first_party(framework_core)
@@ -186,6 +187,12 @@ add_library(darker_graphics STATIC
   src/graphics/particle_tables.h
   src/graphics/city_scene.cpp
   src/graphics/city_scene.h
+  src/graphics/city_visibility.cpp
+  src/graphics/city_visibility.h
+  src/graphics/raster_arithmetic.h
+  src/graphics/raster_viewport.h
+  src/graphics/render_geometry.h
+  src/graphics/screen_layout.h
   src/graphics/tunnel_visibility.cpp
   src/graphics/tunnel_visibility.h
   src/graphics/camera.cpp

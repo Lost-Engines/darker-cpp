@@ -19,7 +19,7 @@ void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cach
   pixel_position const destination{primary ? 260 : 268, 195};
   // zero is an empty selection: restore the panel instead of sampling X=140
   pixel_position const source{selection == 0 ? destination : pixel_position{140 + selection * 8, 8}};
-  copy_rectangle(cache.pixels, target.pixels, source, destination, 8, 12);
+  copy_rectangle(cache, target, source, destination, 8, 12);
 }
 
 void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &cache,
@@ -30,7 +30,7 @@ void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &
   bool const large{font == coordinate_font::large};
   bool const valid{encoded_coordinate > 0 && encoded_coordinate < 128};
   if(!valid && !large) {
-    copy_rectangle(cache.pixels, target.pixels, destination, destination, 8, 5);
+    copy_rectangle(cache, target, destination, destination, 8, 5);
     return;
   }
   int const width{large ? 8 : 4};
@@ -39,7 +39,7 @@ void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &
   int const number{valid ? (encoded_coordinate - 1) / 9 + 1 : 0};
   std::array<int, 2> const digits{valid ? number / 10 : 10, valid ? number % 10 : 10};
   for(int i{0}; i < 2; ++i) {
-    copy_rectangle(cache.pixels, target.pixels, {source_x, 8 + digits[i] * height},
+    copy_rectangle(cache, target, {source_x, 8 + digits[i] * height},
       {destination.x + i * width, destination.y}, width, height);
   }
 }
@@ -65,7 +65,7 @@ void update_skimma_bitmaps(framework::render::indexed_cockpit_framebuffer const 
     if(type == craft::skimma && state.weapons[2] != 0) throw std::invalid_argument{"ordinary Skimma has only two weapon displays"};
   }
   auto const draw_strip{[&](hud_strip const &strip, pixel_position const &source, pixel_position const &destination){
-    copy_mask(cache.pixels, target.pixels, {source.x, source.y + strip.y_offset},
+    copy_mask(cache, target, {source.x, source.y + strip.y_offset},
       {destination.x, destination.y + strip.y_offset}, strip.rows);
   }};
   if(previous.bearing != current.bearing) {
@@ -92,7 +92,7 @@ void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer cons
     int const cosine{maths::original_sine[((offset + 512) % 2048) / 2] >> 8};
     pixel_position const destination{158 + ((sine * radius) >> 8), baseline_y - ((cosine * radius) >> 8)};
     --count;
-    copy_mask(cache.pixels, target.pixels, {8 + 5 * (destination.x & 3), count >= 0 ? 47 : 52}, destination, ring_mask);
+    copy_mask(cache, target, {8 + 5 * (destination.x & 3), count >= 0 ? 47 : 52}, destination, ring_mask);
   }
 }
 

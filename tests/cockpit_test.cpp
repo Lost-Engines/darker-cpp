@@ -26,15 +26,15 @@ TEST_CASE("Opaque blits clip source and destination together, including zero ind
   target.fill(99);
   source[0] = 10;
   source[1] = 20;
-  darker::graphics::copy_rectangle(source, target, {-1, 0}, {318, 0}, 4, 1);
+  darker::graphics::copy_rectangle({source, 320, 2, 320}, {target, 320, 2, 320}, {-1, 0}, {318, 0}, 4, 1);
   REQUIRE(target[318] == 99);
   REQUIRE(target[319] == 10);
   REQUIRE(target[320] == 99);
-  darker::graphics::copy_rectangle(source, target, {1, 0}, {-1, 1}, 3, 1);
+  darker::graphics::copy_rectangle({source, 320, 2, 320}, {target, 320, 2, 320}, {1, 0}, {-1, 1}, 3, 1);
   REQUIRE(target[320] == 0);
   REQUIRE(target[321] == 0);
   REQUIRE(target[322] == 99);
-  REQUIRE_THROWS(darker::graphics::copy_rectangle(source, target, {0, 0}, {0, 0}, -1, 1));
+  REQUIRE_THROWS(darker::graphics::copy_rectangle({source, 320, 2, 320}, {target, 320, 2, 320}, {0, 0}, {0, 0}, -1, 1));
 }
 
 TEST_CASE("Mask row skips are independent and uncovered pixels are preserved") {
@@ -49,7 +49,7 @@ TEST_CASE("Mask row skips are independent and uncovered pixels are preserved") {
     .skip{0},
     .width{1}
   }}};
-  darker::graphics::copy_mask(source, target, {0, 0}, {10, 0}, mask);
+  darker::graphics::copy_mask({source, 320, 2, 320}, {target, 320, 2, 320}, {0, 0}, {10, 0}, mask);
   REQUIRE(target[11] == 99);
   REQUIRE(target[12] == 7);
   REQUIRE(target[13] == 7);
@@ -141,4 +141,34 @@ TEST_CASE("Skimma cockpit edges and moving shield pulse match native blits", "[g
     darker::graphics::draw_skimma_shield_startup(cache, target, phase);
     CHECK(fingerprint(target.pixels) == darker::test_reference::shield_pulse_fingerprints[phase]);
   }
+}
+
+TEST_CASE("Blits respect independent surface sizes and padding") {
+  std::array<uint8_t, 12> source{1, 2, 3, 4, 90, 90, 5, 6, 7, 8, 90, 90};
+  std::array<uint8_t, 21> target;
+  target.fill(99);
+  framework::render::const_indexed_surface const input{source, 4, 2, 6};
+  framework::render::indexed_surface const output{target, 5, 3, 7};
+  darker::graphics::copy_rectangle(input, output, {-1, 0}, {2, 1}, 6, 3);
+  std::array<uint8_t, 21> const expected{
+    99, 99, 99, 99, 99, 99, 99,
+    99, 99, 99, 1, 2, 99, 99,
+    99, 99, 99, 5, 6, 99, 99,
+  };
+  CHECK(target == expected);
+  std::array<darker::graphics::mask_row, 2> const mask{{{
+    .skip{1},
+    .width{2},
+  }, {
+    .skip{0},
+    .width{1},
+  }}};
+  darker::graphics::copy_mask(input, output, {1, 0}, {0, 0}, mask);
+  CHECK(target[1] == 3);
+  CHECK(target[2] == 4);
+  CHECK(target[7] == 6);
+  CHECK(target[5] == 99);
+  CHECK(target[6] == 99);
+  CHECK_THROWS_AS((framework::render::indexed_surface{target, 8, 3, 7}), std::invalid_argument);
+  CHECK_THROWS_AS((framework::render::indexed_surface{target, 5, 4, 7}), std::invalid_argument);
 }
