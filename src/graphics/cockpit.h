@@ -14,9 +14,9 @@ enum class craft { caero, skimma, upgraded_skimma };
 
 enum class cockpit_sheet : unsigned int {
   delphi_skimma = 15,
-  caero = 16,
-  halon_skimma = 17,
-  halon_upgraded_skimma = 18,
+  caero,
+  halon_skimma,
+  halon_upgraded_skimma,
 };
 
 cockpit_sheet cockpit_resource_slot(resources::scenario_configuration configuration);

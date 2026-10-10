@@ -5,11 +5,11 @@
 namespace darker::resources {
 
 enum class scenario_configuration : std::uint8_t {
-  delphi_skimma = 0,
-  delphi_caero = 1,
-  halon_skimma = 2,
-  halon_upgraded_skimma = 3,
-  underground_caero = 4,
+  delphi_skimma,
+  delphi_caero,
+  halon_skimma,
+  halon_upgraded_skimma,
+  underground_caero,
 };
 
 constexpr scenario_configuration decode_scenario_configuration(std::uint8_t packed) noexcept {
