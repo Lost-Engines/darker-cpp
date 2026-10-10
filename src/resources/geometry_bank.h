@@ -8,6 +8,8 @@
 namespace darker::resources {
 
 struct city_type {
+  static std::uint8_t constexpr background_marker{0xff}; // non-colliding geometry drawn before ordinary objects
+
   std::uint16_t model_offset{0};
   std::uint8_t column_fraction{0};
   std::uint8_t row_fraction{0};

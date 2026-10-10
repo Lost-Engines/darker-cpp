@@ -24,7 +24,7 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
   /// 607A–60D2 expands the selected model's collision stream into category-bearing axis-aligned boxes
   auto const model{bank.city_model_offset(type, state, damage_mask)};
   auto const &descriptor{bank.city_types()[type - 1]};
-  if(descriptor.collision_marker == 255) return {};
+  if(descriptor.collision_marker == resources::city_type::background_marker) return {};
   auto const pool{bank.model_pool()};
   auto const pointer{static_cast<unsigned int>(byte(pool, model + 4) | byte(pool, model + 5) << 8)};
   if(pointer < 0x8000) throw std::invalid_argument{"City collision pointer precedes its world data"};

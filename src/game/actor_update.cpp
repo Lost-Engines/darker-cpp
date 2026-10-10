@@ -29,7 +29,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
     auto const row{static_cast<uint8_t>(actor.selected_target >> 8)};
     auto const type{column < city_map_size.column && row < city_map_size.row ? cells[row * city_map_size.column + column].type : 0};
     resources::city_type descriptor{
-      .collision_marker{255}
+      .collision_marker{resources::city_type::background_marker}
     };
     resources::model_header model;
     if(type != 0) {

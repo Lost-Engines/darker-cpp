@@ -9,7 +9,7 @@ bool eligible(city_cell const &cell, std::span<resources::city_type const> const
   /// Descriptor byte +4 excludes decorative types from the original packed stream
   if(cell.type == 0) return false;
   if(cell.type > types.size()) throw std::invalid_argument{"City cell has no type descriptor"};
-  return types[cell.type - 1].collision_marker != 255;
+  return types[cell.type - 1].collision_marker != resources::city_type::background_marker;
 }
 
 void validate_size(city_map const &cells, std::span<resources::city_type const> const types, size_t const bytes) {

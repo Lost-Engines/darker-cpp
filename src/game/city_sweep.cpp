@@ -39,7 +39,7 @@ city_collision_result sweep_city(resources::geometry_bank const &bank, std::span
     if(object.type == 0) continue;
     auto const model{bank.city_model_offset(object.type, object.state, damage_mask)};
     auto const &descriptor{bank.city_types()[object.type - 1]};
-    if(descriptor.collision_marker == 255) continue;
+    if(descriptor.collision_marker == resources::city_type::background_marker) continue;
     auto const header{bank.header_at(model)};
     auto const ceiling{static_cast<std::uint16_t>(header.extent - header.height - (descriptor.collision_marker * 256 + expansion)) >> 1};
     if(std::min(signed_word(previous[2]), signed_word(clipped.height)) >= ceiling) continue;

@@ -52,7 +52,7 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
   auto const offset{bank.city_model_offset(cell.type, cell.state, damage_mask)};
   auto const type{bank.city_types()[cell.type - 1]};
   auto const header{bank.header_at(offset)};
-  bool const background{type.collision_marker == 255};
+  bool const background{type.collision_marker == resources::city_type::background_marker};
   auto placement{place_model(basis, camera, {
     .column{static_cast<std::uint16_t>((index % game::city_map_size.column) * 256 + type.column_fraction)},
     .row{static_cast<std::uint16_t>((index / game::city_map_size.column) * 256 + type.row_fraction)},

@@ -35,7 +35,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     // Native TEST clears carry, so 9210 treats an off-map probe as unobstructed.
     if((column | row) & 128) continue;
     auto const type{cells[row * city_map_size.column+column].type};
-    if(type && types[type-1].collision_marker != 255) return nullptr;
+    if(type && types[type-1].collision_marker != resources::city_type::background_marker) return nullptr;
   }
   vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);
   vehicle.last_shot = clock;
