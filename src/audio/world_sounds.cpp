@@ -29,7 +29,7 @@ uint16_t doppler_factor(game::object_pose const *const motion, uint16_t const he
   /// 3ACD projects wrapping speed onto the source bearing using two cosine table products
   if(!motion) return 0x39d0;
   auto const cosine{[](uint16_t const angle){ return maths::original_sine[((angle >> 6) + 256) % 1024]; }};
-  auto const product{(cosine(static_cast<uint16_t>(motion->angles[1] - pitch)) * cosine(static_cast<uint16_t>(motion->angles[0] - heading))) >> 16};
+  auto const product{(cosine(static_cast<uint16_t>(motion->angles.pitch - pitch)) * cosine(static_cast<uint16_t>(motion->angles.heading - heading))) >> 16};
   auto const speed{std::bit_cast<int16_t>(static_cast<uint16_t>(motion->speed * 4))};
   return static_cast<uint16_t>(0x39d0 - ((speed * product) >> 16));
 }
@@ -80,7 +80,7 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
   }
   case 0x393d: result.active = !(state.flags & 0x28); break;
   case 0x3942:
-    result.pitch = static_cast<uint16_t>(result.pitch-(std::bit_cast<int16_t>(pose.angles[1]) >> 4));
+    result.pitch = static_cast<uint16_t>(result.pitch-(std::bit_cast<int16_t>(pose.angles.pitch) >> 4));
     if(pose.speed == 0) result.pitch >>= 1;
     result.active = !(state.flags & 8);
     break;
@@ -107,7 +107,7 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
 fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat, game::object_pose const &listener, uint16_t const clock, std::span<game::effect_sound const> const ambient, game::object_pose const *const listener_motion, game::object_pose const *const player_source) {
   /// Visit the original source groups before native candidate admission and physical channel allocation
   std::vector<sound_candidate> candidates;
-  auto const basis{maths::make_view_basis({listener.angles[0],listener.angles[1],listener.angles[2]})};
+  auto const basis{maths::make_view_basis(listener.angles)};
   auto const append{[&](game::effect_sound const &sound, game::object_pose const *const motion, uint64_t const identity){
     auto const &definition{sound.definition};
     auto const level{audible_level(sound.position, listener.position, definition.level, definition.flags)};

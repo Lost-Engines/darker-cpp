@@ -76,9 +76,9 @@ void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state
       auto const cell{state.connection.cell};
       auto const type{cells.at((cell >> 8)*128 + (cell & 127)).type};
       auto const edge{network.segment(type,state.connection.route)};
-      auto phase{static_cast<uint8_t>((edge.heading >> 1) + (angles[0] >> 8))};
+      auto phase{static_cast<uint8_t>((edge.heading >> 1) + (angles.heading >> 8))};
       if(edge.first < 0x60 || static_cast<uint8_t>(0xa0 - edge.first) > edge.second) phase = static_cast<uint8_t>(~phase);
-      state.connection.route = network.direction(type,state.connection.route,angles[0]);
+      state.connection.route = network.direction(type,state.connection.route,angles.heading);
       if(static_cast<uint8_t>(phase*2 + 0x98) >= 0x30) state.connection.route |= 0x40;
     }
     advance_tunnel_motion(craft,state,input,frame_step,cells,network);
@@ -88,8 +88,8 @@ void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state
     state.aiming = true;
     state.aim_heading = state.aim_pitch = state.aim_heading_rate = state.aim_pitch_rate = 0;
   }
-  angles[0] = static_cast<uint16_t>(angles[0] - state.aim_heading);
-  angles[1] = static_cast<uint16_t>(angles[1] - state.aim_pitch);
+  angles.heading = static_cast<uint16_t>(angles.heading - state.aim_heading);
+  angles.pitch = static_cast<uint16_t>(angles.pitch - state.aim_pitch);
   auto const gain{word((228 - craft.pose.speed)*128)};
   auto const pitch_drive{static_cast<uint16_t>((gain*word(input.pitch_drive)) >> 15)};
   auto const heading_impulse{static_cast<uint16_t>(std::clamp((gain*word(input.bank_reference)) >> 16,-4096,4096))};
@@ -107,8 +107,8 @@ void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state
   state.aim_pitch_rate = tilt.rate;
   state.aim_pitch = static_cast<uint16_t>(state.aim_pitch + tilt.angle_delta);
   advance_tunnel_motion(craft,state,input,tilt.frame_step,cells,network);
-  angles[0] = static_cast<uint16_t>(angles[0] + state.aim_heading);
-  angles[1] = static_cast<uint16_t>(angles[1] + state.aim_pitch);
+  angles.heading = static_cast<uint16_t>(angles.heading + state.aim_heading);
+  angles.pitch = static_cast<uint16_t>(angles.pitch + state.aim_pitch);
 }
 
 void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state, tunnel_flight_input const input,
@@ -119,7 +119,7 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   auto const type_at{[&](uint16_t const cell){ return cells.at((cell >> 8)*128 + (cell & 127)).type; }};
   state.filtered_pitch = smooth(state.filtered_pitch,input.pitch_reference,frame_step);
   auto const sign{word(state.filtered_pitch) < 0 ? 0xffff : 0};
-  if((state.filtered_pitch ^ sign) >= 0x4d8 && ((state.filtered_pitch ^ angles[1]) & 0x8000) == 0) {
+  if((state.filtered_pitch ^ sign) >= 0x4d8 && ((state.filtered_pitch ^ angles.pitch) & 0x8000) == 0) {
     auto const current{network.junction(type_at(state.connection.cell))};
     auto const same{[](tunnel_segment const a, tunnel_segment const b){ return a.first == b.first && a.second == b.second; }};
     if(current.edges[1].first && same(current.edges[1],current.edges[2])) {
@@ -129,21 +129,21 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
     }
   }
   state.filtered_bank = smooth(state.filtered_bank,static_cast<uint16_t>(word(input.bank_reference) >> 1),frame_step);
-  auto const roll{calculate_angular_response(static_cast<uint16_t>(state.filtered_bank*2 - angles[2]),
+  auto const roll{calculate_angular_response(static_cast<uint16_t>(state.filtered_bank*2 - angles.roll),
     craft.damage.rotation.turn,input.angular_response,frame_step)};
   craft.damage.rotation.turn = roll.rate;
-  angles[2] = static_cast<uint16_t>(angles[2] + roll.angle_delta);
+  angles.roll = static_cast<uint16_t>(angles.roll + roll.angle_delta);
   frame_step = roll.frame_step;
-  auto const bank{static_cast<uint16_t>(std::clamp<int>(word(angles[2]),-0x700,0x700))};
-  auto const preferred{static_cast<uint8_t>(((bank >> 6) - (angles[0] >> 8))*2 ^ 0x80)};
+  auto const bank{static_cast<uint16_t>(std::clamp<int>(word(angles.roll),-0x700,0x700))};
+  auto const preferred{static_cast<uint8_t>(((bank >> 6) - (angles.heading >> 8))*2 ^ 0x80)};
   auto path{input.engine ? network.trace(cells,state.connection,pose.position,state.lookahead,preferred) : std::nullopt};
   if(input.engine && !path) {
     auto const candidate{network.reacquire(cells,state.connection,pose.position,preferred)};
     if(candidate) {
       auto const type{type_at(candidate->cell)};
       auto const edge{network.segment(type,candidate->route)};
-      if(static_cast<uint8_t>((angles[0] >> 8)*2 + edge.heading + 0xa0) < 0x40) {
-        state.connection = {candidate->cell,network.direction(type,candidate->route,angles[0])};
+      if(static_cast<uint8_t>((angles.heading >> 8)*2 + edge.heading + 0xa0) < 0x40) {
+        state.connection = {candidate->cell,network.direction(type,candidate->route,angles.heading)};
         path = network.trace(cells,state.connection,pose.position,state.lookahead,preferred);
         if(path) state.resistance = 0;
       }
@@ -155,17 +155,17 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
     state.progress = path->progress;
     state.off_route_time = 0;
     auto const desired{maths::object_target_direction(pose.position,path->target)};
-    auto const heading{response(static_cast<uint16_t>(-state.filtered_bank*2),static_cast<uint16_t>(desired.heading - angles[0]))};
+    auto const heading{response(static_cast<uint16_t>(-state.filtered_bank*2),static_cast<uint16_t>(desired.heading - angles.heading))};
     auto const turn{calculate_angular_response(heading.error,state.heading_rate,heading.gain,frame_step)};
     state.heading_rate = turn.rate;
     frame_step = turn.frame_step;
     auto const pitch_error{static_cast<uint16_t>((word(0x7fff - pose.speed*32)*word(desired.pitch)) >> 15)};
     auto const pitch{response(static_cast<uint16_t>(state.filtered_pitch*2),pitch_error)};
-    auto const tilt{calculate_angular_response(static_cast<uint16_t>(pitch.error - angles[1]),craft.damage.rotation.pitch,pitch.gain,frame_step)};
+    auto const tilt{calculate_angular_response(static_cast<uint16_t>(pitch.error - angles.pitch),craft.damage.rotation.pitch,pitch.gain,frame_step)};
     craft.damage.rotation.pitch = tilt.rate;
     frame_step = tilt.frame_step;
-    final_heading = static_cast<uint16_t>(angles[0] + turn.angle_delta);
-    final_pitch = static_cast<uint16_t>(angles[1] + tilt.angle_delta);
+    final_heading = static_cast<uint16_t>(angles.heading + turn.angle_delta);
+    final_pitch = static_cast<uint16_t>(angles.pitch + tilt.angle_delta);
     middle_heading = static_cast<uint16_t>(final_heading - (word(turn.angle_delta) >> 1));
     middle_pitch = static_cast<uint16_t>(final_pitch - (word(tilt.angle_delta) >> 1));
     auto const first{heading.resistance}, second{static_cast<uint16_t>(pitch.resistance >> 1)};
@@ -177,17 +177,17 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
       state.off_route_time = static_cast<uint16_t>((state.off_route_time & 255) | 0x300);
       state.connection.route |= 0x5f;
     } else state.connection.route |= 0x40;
-    auto const tilt{calculate_angular_response(static_cast<uint16_t>(state.filtered_pitch - angles[1]),craft.damage.rotation.pitch,
+    auto const tilt{calculate_angular_response(static_cast<uint16_t>(state.filtered_pitch - angles.pitch),craft.damage.rotation.pitch,
       static_cast<uint16_t>(352 - (pose.speed >> 2)),frame_step)};
     craft.damage.rotation.pitch = tilt.rate;
     frame_step = tilt.frame_step;
-    final_pitch = static_cast<uint16_t>(angles[1] + tilt.angle_delta);
+    final_pitch = static_cast<uint16_t>(angles.pitch + tilt.angle_delta);
     middle_pitch = static_cast<uint16_t>(final_pitch - (word(tilt.angle_delta) >> 1));
     auto const turn{calculate_angular_response(static_cast<uint16_t>(-(word(state.filtered_bank) >> 1)),state.heading_rate,
       static_cast<uint16_t>(352 - (pose.speed >> 2)),frame_step)};
     state.heading_rate = turn.rate;
     frame_step = turn.frame_step;
-    final_heading = static_cast<uint16_t>(angles[0] + turn.angle_delta*2);
+    final_heading = static_cast<uint16_t>(angles.heading + turn.angle_delta*2);
     middle_heading = static_cast<uint16_t>(final_heading - (word(turn.angle_delta*2) >> 1));
   }
   state.resistance = approach(state.resistance,target_resistance,static_cast<uint16_t>(frame_step*8));
@@ -206,8 +206,8 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   measure_flight_speed(pose,craft.horizontal_velocity,craft.vertical_velocity);
   if(state.connection.route & 0x40) vertical = word(vertical - 25 + (craft.horizontal_velocity >> 5));
   advance_vertical_flight(pose,craft.vertical_velocity,static_cast<uint16_t>(vertical),time);
-  angles[0] = final_heading;
-  angles[1] = final_pitch;
+  angles.heading = final_heading;
+  angles.pitch = final_pitch;
   normalise_attitude(angles);
 }
 

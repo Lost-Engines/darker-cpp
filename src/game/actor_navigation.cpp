@@ -22,7 +22,7 @@ void consider_aircraft_threat(std::array<std::uint8_t,4> &errors, scenario_actor
     auto const high{static_cast<std::uint8_t>(static_cast<std::uint16_t>(desired - actual) >> 8)};
     return static_cast<std::uint8_t>(high ^ (high & 128 ? 255 : 0));
   }};
-  auto const combined{static_cast<std::uint8_t>(error(course.heading,actor.pose.angles[0]) + error(course.pitch,actor.pose.angles[1]))};
+  auto const combined{static_cast<std::uint8_t>(error(course.heading,actor.pose.angles.heading) + error(course.pitch,actor.pose.angles.pitch))};
   if(combined >= errors.front()) return;
   for(std::size_t i{0}; i + 1 < errors.size(); ++i) errors[i] = errors[i + 1];
   errors.back() = combined;
@@ -112,7 +112,7 @@ void consider_actor_clearance(scenario_actor &actor, scenario_actor const &neigh
   if((distance >> 8) < 252) return;
   distance = static_cast<std::uint16_t>(distance + 1024);
   auto height{static_cast<std::uint16_t>(distance + neighbour.pose.position[2])};
-  auto pitch{std::bit_cast<std::int16_t>(neighbour.pose.angles[1])};
+  auto pitch{std::bit_cast<std::int16_t>(neighbour.pose.angles.pitch)};
   if(pitch > 0) {
     pitch = std::min<std::int16_t>(pitch, 0x05ff);
     height = static_cast<std::uint16_t>(height + pitch);
@@ -157,7 +157,7 @@ actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course
     auto const scaled{(course.climb * definition.role_data[4]) >> 8};
     result.speed = static_cast<std::uint8_t>((definition.role_data[4] + scaled) >> 1);
   } else if(course.distance < 0x8000) {
-    auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(actor.pose.angles[0] - course.heading))};
+    auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(actor.pose.angles.heading - course.heading))};
     auto const error{static_cast<std::uint8_t>((difference >> 8) ^ (difference < 0 ? -1 : 0))};
     auto const distance{static_cast<std::uint8_t>((course.distance * 2) >> 8)};
     if(error < (actor.behaviour[0] >> 2) + 32) {
@@ -173,12 +173,12 @@ actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course
       if(distance < threshold) {
         auto const height{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(definition.role_data[2] * 256 - actor.pose.position[2]))};
         result.pitch = static_cast<std::uint16_t>(height >> 1);
-        course.heading = actor.pose.angles[0];
+        course.heading = actor.pose.angles.heading;
         result.speed = definition.base_speed;
       }
     }
   }
-  auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(course.heading - actor.pose.angles[0]))};
+  auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(course.heading - actor.pose.angles.heading))};
   // The preceding native IMUL result is discarded: 7BF4 clamps pitch and leaves DI as the raw heading error.
   result.turn_drive = static_cast<std::uint16_t>(difference);
   auto const pitch{std::bit_cast<std::int16_t>(result.pitch)};

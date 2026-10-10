@@ -26,7 +26,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
   /// 8F3B advances one timed route unit per callback, preserving byte coordinates and wrapping clock arithmetic
   vehicle_route_result result;
   uint16_t height{0};
-  auto direction{static_cast<unsigned int>((std::rotl(pose.angles[0],3) + 1) & 6)};
+  auto direction{static_cast<unsigned int>((std::rotl(pose.angles.heading,3) + 1) & 6)};
   uint16_t const elapsed{static_cast<uint16_t>(clock - route.origin)};
   uint8_t lookahead{0};
   if(elapsed & 0xf000) {
@@ -47,7 +47,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
       }
     }
     if(flags & 2) {
-      pose.angles[0] = std::rotr(static_cast<uint16_t>(direction),3);
+      pose.angles.heading = std::rotr(static_cast<uint16_t>(direction),3);
       constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
       pose.position[0] = static_cast<uint16_t>(pose.position[0] + columns[direction / 2] * 256);
       pose.position[1] = static_cast<uint16_t>(pose.position[1] + rows[direction / 2] * 256);
@@ -55,7 +55,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
   }
   uint16_t along{static_cast<uint16_t>(elapsed << 4)}, across{0x8000};
   pose.speed = 64;
-  pose.angles[1] = 0;
+  pose.angles.pitch = 0;
   flags |= 2;
   switch(route.command & 15) {
   case 0:
@@ -69,8 +69,8 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
     {
       auto fraction{static_cast<uint8_t>(along)};
       auto angle{static_cast<uint16_t>((along & 0xff00) >> 2)};
-      pose.angles[0] = static_cast<uint16_t>(((pose.angles[0] - 1) | 0x3fff) - angle);
-      bool const second_half{((std::rotl(pose.angles[0],3) ^ direction) & 6) != 0};
+      pose.angles.heading = static_cast<uint16_t>(((pose.angles.heading - 1) | 0x3fff) - angle);
+      bool const second_half{((std::rotl(pose.angles.heading,3) ^ direction) & 6) != 0};
       if(!second_half) { angle ^= 0x3fc0; fraction ^= 0xf0; }
       auto const point{curve(angle,fraction)};
       along = second_half ? point[0] : static_cast<uint16_t>(~point[0]);
@@ -81,11 +81,11 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
     {
       uint8_t const fraction{static_cast<uint8_t>(along)};
       uint16_t const angle{static_cast<uint16_t>((along & 0xff00) >> 2)};
-      pose.angles[0] = static_cast<uint16_t>((pose.angles[0] & 0xc000) + angle);
+      pose.angles.heading = static_cast<uint16_t>((pose.angles.heading & 0xc000) + angle);
       auto const point{curve(angle,fraction)};
       along = point[0];
       across = static_cast<uint16_t>(~point[1]);
-      direction = std::rotl(pose.angles[0],3) & 6;
+      direction = std::rotl(pose.angles.heading,3) & 6;
     }
     break;
   case 4:
@@ -105,7 +105,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
       if(phase < half_width*2) {
         auto const triangle{phase < half_width ? phase : half_width*2 - phase};
         auto const pitch{static_cast<uint16_t>(triangle*maximum_pitch / half_width)};
-        pose.angles[1] = static_cast<uint16_t>(along & 0x8000 ? -pitch : pitch);
+        pose.angles.pitch = static_cast<uint16_t>(along & 0x8000 ? -pitch : pitch);
         height = static_cast<uint16_t>(phase*maximum_height / (half_width*2));
       } else {
         height = std::bit_cast<int16_t>(static_cast<uint16_t>(phase - half_width)) < 0 ? 0 : maximum_height;

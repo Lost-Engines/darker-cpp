@@ -153,7 +153,7 @@ auto main(int const argc, char const *const argv[])->int try {
       auto const velocity{std::visit([](auto const &state){ return std::array<int, 2>{state.vertical_velocity, state.horizontal_velocity}; }, player.craft)};
       auto const &pose{player.pose()};
       if(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} != sample.position || velocity != sample.velocity
-        || std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} != sample.angles
+        || std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} != sample.angles
         || player.lifecycle.crashing != (sample.outcome[0] == 0x6ef7) || cells[20 * 128 + 20].state != sample.outcome[1]) {
         throw std::runtime_error{std::format("Player flight/collision differs from native reference: craft {}, type {}, height {}, engine {}, tick {}: position ({},{},{}) expected ({},{},{})",
           input[0], input[1], input[2], input[3], input[4], pose.position[0], pose.position[1], pose.position[2], sample.position[0], sample.position[1], sample.position[2])};

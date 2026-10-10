@@ -30,7 +30,7 @@ TEST_CASE("Falling aircraft match the original destruction callback", "[combat]"
     actor.pose.speed = static_cast<uint16_t>(v[8]);
     darker::game::advance_falling_aircraft(actor, v[9]);
     std::array<int, 12> const actual{actor.pose.position[0], actor.pose.position[1], actor.pose.position[2], actor.attitude.pitch_rate, actor.attitude.bank_rate,
-      actor.pose.angles[0], actor.pose.angles[1], actor.pose.angles[2], actor.pose.speed, actor.pose.fractions[0], actor.pose.fractions[1], actor.pose.fractions[2]};
+      actor.pose.angles.heading, actor.pose.angles.pitch, actor.pose.angles.roll, actor.pose.speed, actor.pose.fractions[0], actor.pose.fractions[1], actor.pose.fractions[2]};
     for(size_t i{0}; i < actual.size(); ++i) CHECK(actual[i] == v[i + 10]);
   }
 }
@@ -101,7 +101,7 @@ TEST_CASE("Aircraft bomb drops match native target, cooldown and exhausted-pool 
     CHECK((shot != nullptr) == (v[6] != 0));
     CHECK(actor.last_shot == v[7]);
     if(shot) {
-      CHECK(shot->placement.angles[1] == v[8]);
+      CHECK(shot->placement.angles.pitch == v[8]);
       CHECK(shot->target_token == actor.selected_target);
       CHECK(shot->deadline == static_cast<uint16_t>(v[5] + 28*256));
       CHECK(shot->parameters.definition == &darker::game::original_object_definitions[14]);

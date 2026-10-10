@@ -23,7 +23,7 @@ std::array<int, 26> write_state(darker::game::caero_flight_state const &state) {
   /// Compare every persistent field observed by the native callback trace
   return {state.pose.position[0], state.pose.position[1], state.pose.position[2],
     state.pose.fractions[0], state.pose.fractions[1], state.pose.fractions[2],
-    state.pose.angles[0], state.pose.angles[1], state.pose.angles[2], state.pose.speed,
+    state.pose.angles.heading, state.pose.angles.pitch, state.pose.angles.roll, state.pose.speed,
     state.damage.rotation.pitch, state.damage.rotation.turn, state.horizontal_velocity, state.vertical_velocity,
     state.pitch_assist_rate, state.active_boost, state.forward_bias, state.energy.buffer, state.energy.reserve,
     state.energy.boost, state.repair_phase, state.damage.damage, state.startup_energy, state.flying,

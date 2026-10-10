@@ -72,15 +72,15 @@ void advance_falling_aircraft(scenario_actor &actor, uint16_t frame_step) noexce
   actor.previous_position = actor.pose.position;
   auto const bank{integrate_angular_rate(actor.attitude.bank_rate, 0, frame_step)};
   actor.attitude.bank_rate = bank.rate;
-  actor.pose.angles[2] = static_cast<uint16_t>(actor.pose.angles[2] + bank.angle_delta);
+  actor.pose.angles.roll = static_cast<uint16_t>(actor.pose.angles.roll + bank.angle_delta);
   frame_step = bank.frame_step;
-  auto const middle{static_cast<uint16_t>(actor.pose.angles[2] - (std::bit_cast<int16_t>(bank.angle_delta) >> 1))};
+  auto const middle{static_cast<uint16_t>(actor.pose.angles.roll - (std::bit_cast<int16_t>(bank.angle_delta) >> 1))};
   auto const signed_bank{std::bit_cast<int16_t>(fold_bank_angle(middle))};
   auto const half{static_cast<uint16_t>(signed_bank ^ (signed_bank < 0 ? -1 : 0)) >> 1};
   auto const target{static_cast<uint16_t>(0xe800 - half - (half >> 2))};
-  auto const pitch{calculate_angular_response(static_cast<uint16_t>(target - actor.pose.angles[1]), actor.attitude.pitch_rate, 32, frame_step)};
+  auto const pitch{calculate_angular_response(static_cast<uint16_t>(target - actor.pose.angles.pitch), actor.attitude.pitch_rate, 32, frame_step)};
   actor.attitude.pitch_rate = pitch.rate;
-  actor.pose.angles[1] = static_cast<uint16_t>(actor.pose.angles[1] + pitch.angle_delta);
+  actor.pose.angles.pitch = static_cast<uint16_t>(actor.pose.angles.pitch + pitch.angle_delta);
   advance_actor_speed(actor.pose, 17, 64, 223, pitch.frame_step);
 }
 
@@ -91,9 +91,9 @@ std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &acto
   bool const building{!(actor.selected_target & 0x8000)};
   if(building ? (!building_attacks || distance >= 10) : (target_flags & 0x30)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
-  auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles[1]) >> 8) + speed)};
+  auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles.pitch) >> 8) + speed)};
   if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;
-  auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles[0]) >> 8) + distance)};
+  auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles.heading) >> 8) + distance)};
   if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
   if(!building && actor.definition_slot == 19 && distance < 8 && actor.behaviour[0] == 0) return std::nullopt;
   auto const slot{static_cast<uint8_t>(actor.parameters.definition->role_data[6] + (building ? 1 : 0))};
@@ -114,7 +114,7 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
     .speed{actor.pose.speed},.side_flags{actor.flags},.definition_strength{actor.parameters.definition->impact_strength}};
   auto *shot{pool.launch({.definition{definition},.emitter{emitter},.model_token{model_token},.clock{clock},
     .lifetime{static_cast<uint16_t>(definition.role_data[1]*256)},.target_token{actor.selected_target}})};
-  if(shot) shot->placement.angles[1] = 0xc800;
+  if(shot) shot->placement.angles.pitch = 0xc800;
   return shot;
 }
 
@@ -125,9 +125,9 @@ std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pos
   if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;
   if(actor.selected_target != 0xd986 || (player_flags & target_protection_mask)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
-  auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles[1]) >> 8) + speed)};
+  auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles.pitch) >> 8) + speed)};
   if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;
-  auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles[0]) >> 8) + distance)};
+  auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles.heading) >> 8) + distance)};
   if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
   auto const elapsed{static_cast<uint16_t>(clock - actor.last_shot)};
   if((elapsed & 0x100) || !(changes & 0x80)) return std::nullopt;

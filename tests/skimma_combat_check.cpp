@@ -54,7 +54,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     if(active.empty()) continue;
     auto const &actor{active.front()};
     std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
-      actor.pose.angles[0],actor.pose.angles[1],actor.pose.angles[2],actor.pose.speed,actor.selected_target,actor.target_token,
+      actor.pose.angles.heading,actor.pose.angles.pitch,actor.pose.angles.roll,actor.pose.speed,actor.selected_target,actor.target_token,
       actor.current_cell,actor.parameters.update_entry,actor.expiry,actor.script.deadline,actor.flags,
       static_cast<uint16_t>(actor.script.continuation == 0xe800)};
     for(size_t i{0}; i < actual.size(); ++i) if(actual[i] != v[i+15])
@@ -103,7 +103,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     for(uint32_t clock{8}; clock < 100000 && !combat.actors.empty(); clock += 8) {
       auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return !(actor.flags & 0x20); })};
       if(target != combat.actors.end()) {
-        auto const heading{target->pose.angles[0]};
+        auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
         player.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
@@ -111,7 +111,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         player.pose().angles = {heading,0,0};
         player.pose().speed = 496;
       }
-      combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],player.pose().angles[2]});
+      combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,player.pose().angles.roll});
       bool const pressed{target != combat.actors.end() && clock%128 == 0};
       combat.advance(player,cells,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),weapon < 0 && pressed,
         scenario.bytes(record.shared),record.time_multiplier,nullptr,weapon >= 0 && pressed);
@@ -245,7 +245,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     for(uint32_t clock{8}; clock < 500000 && !context.progress; clock += 8) {
       auto const target{std::ranges::find_if(combat.actors,[](auto const &actor){ return !(actor.flags & 0x20); })};
       if(target != combat.actors.end()) {
-        auto const heading{target->pose.angles[0]};
+        auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
         pilot.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
@@ -253,7 +253,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         pilot.pose().angles = {heading,0,0};
         pilot.pose().speed = 496;
       }
-      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles[0],pilot.pose().angles[1],0});
+      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading,pilot.pose().angles.pitch,0});
       if(combat.skimma_selection == 2 && !combat.skimma_weapons[2].ammunition.working && !combat.skimma_weapons[2].ammunition.reserve) {
         darker::game::select_skimma_weapon(combat.skimma_weapons,combat.skimma_selection,combat.skimma_ring,1,7,static_cast<uint16_t>(clock));
         combat.target.clear();
@@ -362,7 +362,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         weapon = 1;
         token = *building;
       } else if(actor != combat.actors.end()) {
-        auto const heading{actor->pose.angles[0]};
+        auto const heading{actor->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
         pilot.pose().position = {static_cast<uint16_t>(actor->pose.position[0]+((sine*200) >> 15)),
@@ -396,7 +396,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       craft.damage.shield_charge = 0xbf00;
       pilot.pose().speed = 496;
       if(returned) darker::game::advance_supply_motion(pilot,pilot.supply,context.transition_output,exchange.supplementary_active,0,8);
-      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles[0],pilot.pose().angles[1],0});
+      combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading,pilot.pose().angles.pitch,0});
       combat.advance(pilot,city,bank,clock,8,static_cast<uint16_t>(clock^(clock-8)),primary && clock%128 == 0,
         source.bytes(record.shared),record.time_multiplier,nullptr,secondary && clock%128 == 0);
       shots += combat.player_fired;

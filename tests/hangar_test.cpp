@@ -14,7 +14,7 @@ TEST_CASE("Caero hangar placement matches native startup", "[game][hangar]") {
     darker::game::initialise_caero_hangar(player, cells, hangar, static_cast<std::int16_t>(sample.model_height));
     auto const &pose{player.pose()};
     CHECK(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} == sample.position);
-    CHECK(std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} == sample.angles);
+    CHECK(std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} == sample.angles);
     CHECK(player.lifecycle.flags == sample.flags);
     CHECK(player.engine_flags == 1);
     CHECK(std::get<darker::game::caero_flight_state>(player.craft).energy.buffer == 0x6000);

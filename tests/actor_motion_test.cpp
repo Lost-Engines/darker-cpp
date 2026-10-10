@@ -13,7 +13,7 @@ TEST_CASE("Actor steering matches the original pitch, bank and heading coupling"
       {.response{static_cast<std::uint16_t>(v[5])}, .bank_response{static_cast<std::uint16_t>(v[6])},
         .bank_limit{static_cast<std::uint16_t>(v[7])}, .turn_response{static_cast<std::uint16_t>(v[8])}},
       static_cast<std::uint16_t>(v[9]), static_cast<std::uint16_t>(v[10]), static_cast<std::uint16_t>(v[11]))};
-    CHECK(std::array<int, 6>{pose.angles[0], pose.angles[1], pose.angles[2], state.pitch_rate, state.bank_rate, step} == sample.output);
+    CHECK(std::array<int, 6>{pose.angles.heading, pose.angles.pitch, pose.angles.roll, state.pitch_rate, state.bank_rate, step} == sample.output);
   }
 }
 

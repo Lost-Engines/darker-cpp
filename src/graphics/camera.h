@@ -6,7 +6,7 @@
 
 namespace darker::graphics {
 
-using camera_angles = maths::view_angles;
+using camera_angles = maths::attitude_angles;
 
 struct camera_position {
   std::uint16_t column{0};                                                      // 1/1024 cell, matching the patched origin subtractors

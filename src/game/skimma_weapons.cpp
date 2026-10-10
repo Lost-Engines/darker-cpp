@@ -41,8 +41,8 @@ std::int8_t kick_skimma_recoil(std::int8_t const current, std::uint8_t const ran
 
 std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t const pitch_offset, uint16_t &random_state) noexcept {
   /// CD84 quarters the sight vector and adds three signed random components before 6D08 constructs the ray
-  auto const heading{player.angles[0] >> 6};
-  auto const pitch{static_cast<uint16_t>(player.angles[1]+pitch_offset) >> 6};
+  auto const heading{player.angles.heading >> 6};
+  auto const pitch{static_cast<uint16_t>(player.angles.pitch+pitch_offset) >> 6};
   auto const cosine{maths::original_sine[(pitch+256)%1024]};
   auto const random{next_random(random_state)};
   auto const horizontal{-(maths::original_sine[heading]*cosine >> 16)};

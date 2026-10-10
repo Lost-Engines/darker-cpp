@@ -30,7 +30,7 @@ TEST_CASE("Homing steering and motion match native updates with supplied target 
       static_cast<std::uint16_t>(sample.pitch), static_cast<std::uint16_t>(sample.step));
     auto const &p{record.placement};
     std::array<int, 12> const actual{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
-      record.angular_motion[1], record.angular_motion[2], p.angles[0], p.angles[1], p.angles[2], p.speed};
+      record.angular_motion[1], record.angular_motion[2], p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     CHECK(actual == sample.result);
   }
 }
@@ -54,7 +54,7 @@ TEST_CASE("Map homing preserves native banked steering and near-target rejection
     CHECK(status == darker::game::projectile_update_result::advanced);
     auto const &p{record.placement};
     std::array<int, 12> const actual{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
-      record.angular_motion[1], record.angular_motion[2], p.angles[0], p.angles[1], p.angles[2], p.speed};
+      record.angular_motion[1], record.angular_motion[2], p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     REQUIRE(actual == sample.result);
   }
 }

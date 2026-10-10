@@ -61,10 +61,12 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
     shot.parameters.definition = &darker::game::original_object_definitions[6];
     shot.parameters.angular_response = 512;
     darker::game::object_pose target;
+    shot.placement.angles.heading = static_cast<uint16_t>(sample[6 + 0]);
+    shot.placement.angles.pitch = static_cast<uint16_t>(sample[6 + 1]);
+    shot.placement.angles.roll = static_cast<uint16_t>(sample[6 + 2]);
     for(size_t axis{0}; axis < 3; ++axis) {
       shot.placement.position[axis] = static_cast<uint16_t>(sample[axis]);
       shot.placement.fractions[axis] = static_cast<uint8_t>(sample[3 + axis]);
-      shot.placement.angles[axis] = static_cast<uint16_t>(sample[6 + axis]);
       target.position[axis] = static_cast<uint16_t>(sample[13 + axis]);
     }
     shot.placement.speed = static_cast<uint16_t>(sample[9]);
@@ -79,10 +81,12 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
       darker::game::advance_dual_projectile(shot,target,separation,static_cast<uint16_t>(sample[17]));
       pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(separation,0xcd)) >> 2);
     }
+    CHECK(shot.placement.angles.heading == sample[27 + 0]);
+    CHECK(shot.placement.angles.pitch == sample[27 + 1]);
+    CHECK(shot.placement.angles.roll == sample[27 + 2]);
     for(size_t axis{0}; axis < 3; ++axis) {
       CHECK(shot.placement.position[axis] == sample[19 + axis]);
       CHECK(shot.placement.fractions[axis] == sample[22 + axis]);
-      CHECK(shot.placement.angles[axis] == sample[27 + axis]);
     }
     CHECK(shot.angular_motion[1] == sample[25]);
     CHECK(shot.angular_motion[2] == sample[26]);

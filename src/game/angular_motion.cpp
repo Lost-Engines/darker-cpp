@@ -56,13 +56,13 @@ std::uint16_t fold_bank_angle(std::uint16_t const angle) noexcept {
   return static_cast<std::uint16_t>(quadrant == 0 || quadrant == 3 ? -angle : angle + 0x8000);
 }
 
-void normalise_attitude(std::array<std::uint16_t, 3> &angles) noexcept {
+void normalise_attitude(maths::attitude_angles &angles) noexcept {
   /// 23A0 folds inverted pitch with XOR and half-turns heading and roll
-  auto const quadrant{angles[1] >> 14};
+  auto const quadrant{angles.pitch >> 14};
   if(quadrant == 1 || quadrant == 2) {
-    angles[0] = static_cast<std::uint16_t>(angles[0] + 0x8000);
-    angles[1] ^= 0x7fff;
-    angles[2] = static_cast<std::uint16_t>(angles[2] + 0x8000);
+    angles.heading = static_cast<std::uint16_t>(angles.heading + 0x8000);
+    angles.pitch ^= 0x7fff;
+    angles.roll = static_cast<std::uint16_t>(angles.roll + 0x8000);
   }
 }
 

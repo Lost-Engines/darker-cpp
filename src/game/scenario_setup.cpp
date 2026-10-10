@@ -32,29 +32,29 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     pose.speed = 200;
     std::visit([](auto &craft){ craft.horizontal_velocity = 400; },player.craft);
     player.lifecycle.flags &= 0xef;
-    pose.angles[1] = 0xff00;
-    pose.angles[0] = 0xec00;
+    pose.angles.pitch = 0xff00;
+    pose.angles.heading = 0xec00;
     height = 2560;
     break;
   case scenario_setup_kind::anchor_escorts:
     pose.position[0] = static_cast<uint16_t>((pose.position[0] & 0xff00) | 0xc8);
     pose.position[1] = static_cast<uint16_t>((pose.position[1] & 0xff00) | 0xbb);
-    pose.angles[1] = 0;
-    pose.angles[0] = 0x0f20;
+    pose.angles.pitch = 0;
+    pose.angles.heading = 0x0f20;
     height = 264;
     break;
   case scenario_setup_kind::final_approach:
     pose.speed = 300;
     std::visit([](auto &craft){ craft.horizontal_velocity = 600; },player.craft);
     player.lifecycle.flags &= 0xef;
-    pose.angles[1] = 0xfe00;
+    pose.angles.pitch = 0xfe00;
     // 5E59 clears 5E11/5E14: the zero-based slot one, displayed as weapon 2.
     second_weapon = {};
     height = 4096;
     break;
   case scenario_setup_kind::nightmare_player:
     player.lifecycle.flags &= 0xef;
-    pose.angles[1] = 0xf500;
+    pose.angles.pitch = 0xf500;
     height = 2432;
     energy = 0x9fff;
     boost = true;
@@ -81,7 +81,7 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
     actor.pose.position[1] = static_cast<uint16_t>((actor.pose.position[1] & 0xff00) | 0x46);
     actor.pose.position[2] = static_cast<uint16_t>(actor.pose.position[2]-2400);
     actor.pose.speed = 200;
-    actor.pose.angles[1] = 0x0c00;
+    actor.pose.angles.pitch = 0x0c00;
     actor.expiry = static_cast<uint16_t>(clock+256);
     actor.script.deadline = static_cast<uint16_t>(clock+1024);
     actor.parameters.update_entry = 0x8ddd;

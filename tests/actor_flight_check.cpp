@@ -27,7 +27,7 @@ void check_actor_flight(darker::resources::archive_set const &archives) {
     for(auto &actor : actors) {
       darker::game::advance_surface_actor(actor, player, actors, cells, bank, 0x20, 8);
       auto const &pose{actor.pose};
-      std::array<int, 17> const actual{pose.position[0], pose.position[1], pose.position[2], pose.angles[0], pose.angles[1], pose.angles[2],
+      std::array<int, 17> const actual{pose.position[0], pose.position[1], pose.position[2], pose.angles.heading, pose.angles.pitch, pose.angles.roll,
         pose.speed, actor.attitude.pitch_rate, actor.attitude.bank_rate, actor.selected_target, actor.parameters.flags_4c,
         actor.clearance_floor, actor.awareness.level, actor.awareness.cooldown, pose.fractions[0], pose.fractions[1], pose.fractions[2]};
       auto const &expected{darker::test_reference::actor_flight_samples[sample++]};

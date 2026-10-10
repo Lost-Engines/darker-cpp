@@ -401,7 +401,7 @@ auto main(int const argc, char const *const argv[])->int {
     darker::graphics::city_view view{
       .column{camera.position[0]}, .row{camera.position[1]}, .column_fraction{camera.fractions[0]}, .row_fraction{camera.fractions[1]},
       .altitude{std::bit_cast<std::int16_t>(camera.position[2])},
-      .angles{.heading{camera.angles[0]}, .pitch{camera.angles[1]}, .roll{camera.angles[2]}},
+      .angles{camera.angles},
       .origin{.x{160}, .y{static_cast<std::int16_t>(height / 2)}}, .bottom{height},
     };
     combat->targeting_basis = darker::maths::make_view_basis(view.angles);
@@ -491,7 +491,7 @@ auto main(int const argc, char const *const argv[])->int {
     } else if(cockpit_visible) {
       darker::graphics::draw_skimma_frame_edges(cache, display);
       darker::graphics::skimma_bitmap_state indicators{.bearing{darker::graphics::skimma_mission_bearing(
-        context.hud_reference,pose.position[0],pose.position[1],pose.angles[0])}};
+        context.hud_reference,pose.position[0],pose.position[1],pose.angles.heading)}};
       for(size_t i{0}; i < indicators.weapons.size(); ++i) indicators.weapons[i] = combat->skimma_weapons[i].flags;
       darker::graphics::update_skimma_bitmaps(cache, display, type, {}, indicators);
     }
@@ -901,7 +901,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(!pause_reported) {
         auto const &pose{host.player.pose()};
         std::cout << "Paused: position " << pose.position[0] << ',' << pose.position[1] << ',' << pose.position[2]
-          << "; heading/pitch/roll " << pose.angles[0] << ',' << pose.angles[1] << ',' << pose.angles[2]
+          << "; heading/pitch/roll " << pose.angles.heading << ',' << pose.angles.pitch << ',' << pose.angles.roll
           << "; player flags " << unsigned{host.player.lifecycle.flags}
           << "; return hangar cell " << ((host.hangar.return_site & 255) >> 1) << ',' << (host.hangar.return_site >> 8)
           << "; objectives complete " << context.objectives_complete << "; clock " << game_clock.frame_ticks << std::endl;
@@ -970,7 +970,7 @@ auto main(int const argc, char const *const argv[])->int {
             host.player = {};
             host.player.pose().position = {static_cast<uint16_t>((entry->site & 255)*128+128),
               static_cast<uint16_t>((entry->site & 0xff00)+128),0};
-            host.player.pose().angles[0] = static_cast<uint16_t>(entry->heading*256);
+            host.player.pose().angles.heading = static_cast<uint16_t>(entry->heading*256);
             std::get<darker::game::caero_flight_state>(host.player.craft).energy.buffer = 0x6000;
           } else if(caero) darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);
           else {

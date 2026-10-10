@@ -59,7 +59,7 @@ bool begin_supply_approach(player_flight &player, city_map const &cells, supply_
   if((craft->vertical_velocity >> 8) != 255 || craft->horizontal_velocity >= 320) return false;
   auto const &pose{craft->pose};
   if(static_cast<uint16_t>(pose.position[2]-264) >= 760) return false;
-  auto const heading{pose.angles[0] >> 6};
+  auto const heading{pose.angles.heading >> 6};
   auto const x{static_cast<uint16_t>(pose.position[0]-(maths::original_sine[heading] >> 8))};
   auto const y{static_cast<uint16_t>(pose.position[1]-(maths::original_sine[(heading+256)%1024] >> 8))};
   if((x | y) & 0x8000) return false;
@@ -97,9 +97,9 @@ void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_
       auto const dx{static_cast<uint16_t>(128-(pose.position[0] & 255))};
       auto const dy{static_cast<uint16_t>(128-(pose.position[1] & 255))};
       auto const desired{static_cast<uint16_t>((dx | dy) ? (maths::direction_index(dx,dy) << 5)^0x8000 : 0)};
-      auto const error{std::bit_cast<int16_t>(static_cast<uint16_t>(desired-pose.angles[0]))};
+      auto const error{std::bit_cast<int16_t>(static_cast<uint16_t>(desired-pose.angles.heading))};
       auto const amount{std::min(error < 0 ? -static_cast<int>(error) : static_cast<int>(error),static_cast<int>(static_cast<uint16_t>(frame_step*7)))};
-      pose.angles[0] = static_cast<uint16_t>(pose.angles[0]+(error < 0 ? -amount : amount));
+      pose.angles.heading = static_cast<uint16_t>(pose.angles.heading+(error < 0 ? -amount : amount));
       if(!amount) {
         if(pad.offset == 0x8080) pad.phase = supply_phase::docked;
         pad.offset = 0x8080;

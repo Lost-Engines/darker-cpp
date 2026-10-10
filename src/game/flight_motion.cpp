@@ -27,8 +27,8 @@ void advance_speed_motion(object_pose &pose, std::uint16_t const speed, std::uin
   pose.speed = speed;
   auto const time{signed_word((frame_step & 255) << 8)};
   auto const distance{signed_word((static_cast<std::int32_t>(midpoint) * time) >> 14)};
-  unsigned int const pitch{static_cast<unsigned int>(pose.angles[1] >> 6)};
-  unsigned int const heading{static_cast<unsigned int>(pose.angles[0] >> 6)};
+  unsigned int const pitch{static_cast<unsigned int>(pose.angles.pitch >> 6)};
+  unsigned int const heading{static_cast<unsigned int>(pose.angles.heading >> 6)};
   auto const sine{[](unsigned int const angle){ return maths::original_sine[angle]; }};
   auto const cosine{[&](unsigned int const angle){ return sine((angle + 256) % 1024); }};
   displace_object(pose, 2, (sine(pitch) * distance) >> 8);

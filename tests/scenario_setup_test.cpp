@@ -57,7 +57,10 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
       actual[16] = actor.target_token;
       actual[17] = actor.flags;
     }
-    for(size_t i{0}; i < 3; ++i) { actual[i] = result.position[i]; actual[i+3] = result.angles[i]; }
+    for(size_t i{0}; i < 3; ++i) actual[i] = result.position[i];
+    actual[3] = result.angles.heading;
+    actual[4] = result.angles.pitch;
+    actual[5] = result.angles.roll;
     actual[6] = result.speed;
     CHECK(std::ranges::equal(actual,output));
   }

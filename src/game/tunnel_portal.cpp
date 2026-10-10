@@ -23,7 +23,7 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
   craft.energy = {.buffer{0x6000},.reserve{0x1fff},.boost{0x1fff}};
   craft.pose.position = {static_cast<uint16_t>((site & 255)*128 + fraction[0]),
     static_cast<uint16_t>((site & 0xff00) + fraction[1]),static_cast<uint16_t>(1536 - model_height)};
-  craft.pose.angles[0] = static_cast<uint16_t>(heading*256);
+  craft.pose.angles.heading = static_cast<uint16_t>(heading*256);
 }
 
 void update_tunnel_portal(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t const frame_step) {

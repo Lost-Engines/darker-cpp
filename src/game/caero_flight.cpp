@@ -61,21 +61,21 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const bank_response{calculate_driven_angular_response(state.damage.rotation.turn, parameters.angular_response, input.bank_drive, frame_step)};
   frame_step = bank_response.frame_step;
   state.damage.rotation.turn = bank_response.rate;
-  angles[2] = static_cast<std::uint16_t>(angles[2] + bank_response.angle_delta);
-  auto const middle_bank{static_cast<std::uint16_t>(angles[2] - (word(bank_response.angle_delta) >> 1))};
+  angles.roll = static_cast<std::uint16_t>(angles.roll + bank_response.angle_delta);
+  auto const middle_bank{static_cast<std::uint16_t>(angles.roll - (word(bank_response.angle_delta) >> 1))};
 
   angular_response pitch_response{};
   if(input.altitude_hold) {
     auto const height_error{word((word(parameters.height_reference) >> 2) + parameters.desired_height - state.pose.position[2])};
     auto const desired_pitch{word(std::clamp<int>(height_error, -512, 512) * 8)};
-    pitch_response = calculate_angular_response(static_cast<std::uint16_t>(desired_pitch - angles[1]), state.damage.rotation.pitch, parameters.angular_response, frame_step);
+    pitch_response = calculate_angular_response(static_cast<std::uint16_t>(desired_pitch - angles.pitch), state.damage.rotation.pitch, parameters.angular_response, frame_step);
   } else {
     pitch_response = calculate_driven_angular_response(state.damage.rotation.pitch, parameters.angular_response, input.pitch_drive, frame_step);
   }
   frame_step = pitch_response.frame_step;
   state.damage.rotation.pitch = pitch_response.rate;
-  auto pitch_delta{project_flight_pitch(angles[1], middle_bank, pitch_response.angle_delta)};
-  auto const tentative_pitch{word(angles[1] + pitch_delta)};
+  auto pitch_delta{project_flight_pitch(angles.pitch, middle_bank, pitch_response.angle_delta)};
+  auto const tentative_pitch{word(angles.pitch + pitch_delta)};
   angular_response assist{};
   if(tentative_pitch > -4096 && state.pose.speed <= 300) {
     assist = calculate_angular_response(static_cast<std::uint16_t>(-4096 - tentative_pitch), state.pitch_assist_rate,
@@ -86,12 +86,12 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   frame_step = assist.frame_step;
   state.pitch_assist_rate = assist.rate;
   pitch_delta = word(pitch_delta + assist.angle_delta);
-  auto const final_pitch{static_cast<std::uint16_t>(angles[1] + pitch_delta)};
+  auto const final_pitch{static_cast<std::uint16_t>(angles.pitch + pitch_delta)};
   auto const middle_pitch{static_cast<std::uint16_t>(final_pitch - (pitch_delta >> 1))};
 
   auto const turn{couple_flight_turn(middle_bank, middle_pitch, pitch_response.angle_delta, frame_step)};
   auto const heading_delta{turn.heading_delta};
-  auto const final_heading{static_cast<std::uint16_t>(angles[0] + heading_delta)};
+  auto const final_heading{static_cast<std::uint16_t>(angles.heading + heading_delta)};
   auto const middle_heading{static_cast<std::uint16_t>(final_heading - (heading_delta >> 1))};
 
   auto const accounting_step{static_cast<std::uint16_t>(((frame_step & 255) * 257) >> 1)};
@@ -132,8 +132,8 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const height_term{word(altitude < 256 ? 256 - altitude : altitude - 256)};
   auto const vertical_target{static_cast<std::uint16_t>(vertical_drive + parameters.vertical_bias + (lift >> 1) - (height_term >> 5))};
   advance_vertical_flight(state.pose, state.vertical_velocity, vertical_target, accounting_step);
-  angles[0] = final_heading;
-  angles[1] = final_pitch;
+  angles.heading = final_heading;
+  angles.pitch = final_pitch;
   normalise_attitude(angles);
 }
 

@@ -86,7 +86,7 @@ uint8_t choose_tunnel_heading(scenario_actor &actor, city_map const &cells, tunn
       desired = static_cast<uint8_t>(turn & 0x80 ? -24 : 24);
     }
   }
-  auto const heading{static_cast<uint8_t>(((actor.pose.angles[0] >> 8) + 0x20) & 0xc0)};
+  auto const heading{static_cast<uint8_t>(((actor.pose.angles.heading >> 8) + 0x20) & 0xc0)};
   return static_cast<uint8_t>((desired - heading)*2 ^ 0x80);
 }
 
@@ -100,7 +100,7 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
     {.decay{actor.behaviour[2]},.rise{actor.behaviour[3]},.strength{actor.behaviour[4]},.cooldown_shift{definition.role_data[3]}},frame_step);
   auto const preferred{choose_tunnel_heading(actor,cells,network)};
   auto const path{network.trace(cells,{actor.current_cell,actor.tunnel->route},actor.pose.position,152,preferred)};
-  auto heading{actor.pose.angles[0]}, pitch{actor.pose.angles[1]};
+  auto heading{actor.pose.angles.heading}, pitch{actor.pose.angles.pitch};
   if(path) {
     actor.current_cell = path->connection.cell;
     actor.tunnel->route = path->connection.route;
@@ -116,15 +116,15 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
     heading = direction.heading;
     pitch = direction.pitch;
   }
-  auto const pitch_motion{calculate_angular_response(static_cast<uint16_t>(pitch - actor.pose.angles[1]),
+  auto const pitch_motion{calculate_angular_response(static_cast<uint16_t>(pitch - actor.pose.angles.pitch),
     actor.attitude.pitch_rate,actor.parameters.angular_response,frame_step)};
   actor.attitude.pitch_rate = pitch_motion.rate;
-  actor.pose.angles[1] = static_cast<uint16_t>(actor.pose.angles[1] + pitch_motion.angle_delta);
-  auto const heading_motion{calculate_angular_response(static_cast<uint16_t>(heading - actor.pose.angles[0]),
+  actor.pose.angles.pitch = static_cast<uint16_t>(actor.pose.angles.pitch + pitch_motion.angle_delta);
+  auto const heading_motion{calculate_angular_response(static_cast<uint16_t>(heading - actor.pose.angles.heading),
     actor.attitude.bank_rate,actor.parameters.angular_response,pitch_motion.frame_step)};
   actor.attitude.bank_rate = heading_motion.rate;
-  actor.pose.angles[0] = static_cast<uint16_t>(actor.pose.angles[0] + heading_motion.angle_delta);
-  actor.pose.angles[2] = static_cast<uint16_t>(-heading_motion.rate);
+  actor.pose.angles.heading = static_cast<uint16_t>(actor.pose.angles.heading + heading_motion.angle_delta);
+  actor.pose.angles.roll = static_cast<uint16_t>(-heading_motion.rate);
   frame_step = heading_motion.frame_step;
   uint16_t target_speed{static_cast<uint16_t>(actor.awareness.level == 0 ? 284 : 512)};
   for(auto &neighbour : active) {
@@ -132,7 +132,7 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
     auto const dx{static_cast<uint16_t>(neighbour.pose.position[0] - actor.pose.position[0])};
     auto const dy{static_cast<uint16_t>(neighbour.pose.position[1] - actor.pose.position[1])};
     if(static_cast<uint16_t>(dx + 256) >= 512 || static_cast<uint16_t>(dy + 256) >= 512) continue;
-    auto const direction{static_cast<uint16_t>((maths::direction_index(dx,dy) << 5) - actor.pose.angles[0])};
+    auto const direction{static_cast<uint16_t>((maths::direction_index(dx,dy) << 5) - actor.pose.angles.heading)};
     if(static_cast<uint8_t>((direction >> 8) - 0x6c) >= 0x28) continue;
     target_speed = 256;
     if(neighbour.awareness.level == 0) neighbour.awareness.level = 0x400;

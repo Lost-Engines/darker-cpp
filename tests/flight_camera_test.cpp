@@ -11,9 +11,11 @@ TEST_CASE("Player camera position and distance smoothing match native views", "[
   /// Cover all four attached views, distance settings, fractional positions and ground clamping
   for(auto const &sample : darker::test_reference::flight_camera_samples) {
     darker::game::object_pose player;
+    player.angles.heading = static_cast<std::uint16_t>(sample.angles[0]);
+    player.angles.pitch = static_cast<std::uint16_t>(sample.angles[1]);
+    player.angles.roll = static_cast<std::uint16_t>(sample.angles[2]);
     for(std::size_t i{0}; i < 3; ++i) {
       player.position[i] = static_cast<std::uint16_t>(sample.position[i]);
-      player.angles[i] = static_cast<std::uint16_t>(sample.angles[i]);
     }
     for(std::size_t i{0}; i < 2; ++i) player.fractions[i] = static_cast<std::uint8_t>(sample.fractions[i]);
     auto const &v{sample.input};
@@ -21,7 +23,7 @@ TEST_CASE("Player camera position and distance smoothing match native views", "[
     auto const result{camera.view(player, static_cast<std::uint16_t>(v[1]), v[4] != 0)};
     CAPTURE(sample.position, sample.angles, v);
     CHECK(std::array<int, 9>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
-      result.angles[0], result.angles[1], result.angles[2], camera.distance} == sample.output);
+      result.angles.heading, result.angles.pitch, result.angles.roll, camera.distance} == sample.output);
   }
 }
 
@@ -43,9 +45,11 @@ TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game]
   /// Drop at the craft's whole-word position, then move the craft before viewing it
   for(auto const &sample : darker::test_reference::dropped_camera_samples) {
     darker::game::object_pose anchor, player;
+    anchor.angles.heading = static_cast<std::uint16_t>(sample.angles[0]);
+    anchor.angles.pitch = static_cast<std::uint16_t>(sample.angles[1]);
+    anchor.angles.roll = static_cast<std::uint16_t>(sample.angles[2]);
     for(std::size_t i{0}; i < 3; ++i) {
       anchor.position[i] = static_cast<std::uint16_t>(sample.anchor[i]);
-      anchor.angles[i] = static_cast<std::uint16_t>(sample.angles[i]);
       player.position[i] = static_cast<std::uint16_t>(sample.player[i]);
     }
     darker::game::flight_camera camera;
@@ -53,13 +57,13 @@ TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game]
     auto const result{camera.view(player, 1)};
     CAPTURE(sample.anchor, sample.player, sample.mode);
     CHECK(std::array<int, 8>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
-      result.angles[0], result.angles[1], result.angles[2]} == sample.output);
+      result.angles.heading, result.angles.pitch, result.angles.roll} == sample.output);
     if(sample.mode[0] == 5) {
       // Native 2448 jumps to the same fixed-anchor branch when the selected object disappears.
       camera.mode = darker::game::camera_mode::object;
       auto const fallback{camera.view(player,1,false,darker::game::camera_subject::absent_object)};
       CHECK(std::array<int,8>{fallback.position[0],fallback.position[1],fallback.position[2],fallback.fractions[0],fallback.fractions[1],
-        fallback.angles[0],fallback.angles[1],fallback.angles[2]} == sample.output);
+        fallback.angles.heading,fallback.angles.pitch,fallback.angles.roll} == sample.output);
     }
   }
 }
@@ -68,9 +72,11 @@ TEST_CASE("Missile camera positions match native attached and impact views", "[g
   /// Cover all four attached missile modes, both visibility phases, original distances and ground adjustment
   for(auto const &sample : darker::test_reference::missile_camera_samples) {
     darker::game::object_pose shot;
+    shot.angles.heading = static_cast<uint16_t>(sample.angles[0]);
+    shot.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
+    shot.angles.roll = static_cast<uint16_t>(sample.angles[2]);
     for(size_t axis{0}; axis < 3; ++axis) {
       shot.position[axis] = static_cast<uint16_t>(sample.position[axis]);
-      shot.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
     }
     for(size_t axis{0}; axis < 2; ++axis) shot.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
     auto const &v{sample.input};
@@ -79,7 +85,7 @@ TEST_CASE("Missile camera positions match native attached and impact views", "[g
       v[5] ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile)};
     CAPTURE(sample.position,sample.angles,v);
     CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
-      result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
+      result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
   }
 }
 
@@ -88,9 +94,11 @@ TEST_CASE("Underground following and death views retain the player position", "[
   for(auto const &sample : darker::test_reference::flight_camera_samples) {
     if(sample.input[0] != 3) continue;
     darker::game::object_pose player;
+    player.angles.heading = static_cast<uint16_t>(sample.angles[0]);
+    player.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
+    player.angles.roll = static_cast<uint16_t>(sample.angles[2]);
     for(size_t i{0}; i < 3; ++i) {
       player.position[i] = static_cast<uint16_t>(sample.position[i]);
-      player.angles[i] = static_cast<uint16_t>(sample.angles[i]);
     }
     for(size_t i{0}; i < 2; ++i) player.fractions[i] = static_cast<uint8_t>(sample.fractions[i]);
     for(auto const mode : {darker::game::camera_mode::behind,darker::game::camera_mode::level}) {
@@ -98,7 +106,7 @@ TEST_CASE("Underground following and death views retain the player position", "[
         .distance{static_cast<uint16_t>(sample.input[3])}};
       auto const result{camera.view(player,static_cast<uint16_t>(sample.input[1]),sample.input[4] != 0,darker::game::camera_subject::player,true)};
       CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
-        result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
+        result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
     }
   }
 }
@@ -106,9 +114,11 @@ TEST_CASE("Underground following and death views retain the player position", "[
 TEST_CASE("F7 rays and range rejection match native camera selection", "[game][camera]") {
   for(auto const &sample : darker::test_reference::object_camera_rays) {
     darker::game::object_pose camera, target;
+    camera.angles.heading = static_cast<uint16_t>(sample.angles[0]);
+    camera.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
+    camera.angles.roll = static_cast<uint16_t>(sample.angles[2]);
     for(size_t axis{0}; axis < 3; ++axis) {
       camera.position[axis] = static_cast<uint16_t>(sample.position[axis]);
-      camera.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
       target.position[axis] = static_cast<uint16_t>(sample.target[axis]);
     }
     auto const end{darker::game::camera_ray_end(camera)};
@@ -121,9 +131,11 @@ TEST_CASE("F7 rays and range rejection match native camera selection", "[game][c
 TEST_CASE("F7 follows live and destroyed objects at the original distances", "[game][camera]") {
   for(auto const &sample : darker::test_reference::object_camera_views) {
     darker::game::object_pose object;
+    object.angles.heading = static_cast<uint16_t>(sample.angles[0]);
+    object.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
+    object.angles.roll = static_cast<uint16_t>(sample.angles[2]);
     for(size_t axis{0}; axis < 3; ++axis) {
       object.position[axis] = static_cast<uint16_t>(sample.position[axis]);
-      object.angles[axis] = static_cast<uint16_t>(sample.angles[axis]);
     }
     for(size_t axis{0}; axis < 2; ++axis) object.fractions[axis] = static_cast<uint8_t>(sample.fractions[axis]);
     auto const &v{sample.input};
@@ -133,6 +145,6 @@ TEST_CASE("F7 follows live and destroyed objects at the original distances", "[g
       v[3] ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)};
     CAPTURE(sample.position,sample.angles,v);
     CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
-      result.angles[0],result.angles[1],result.angles[2],camera.distance} == sample.output);
+      result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
   }
 }

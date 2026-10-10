@@ -25,7 +25,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
     REQUIRE(record == previous);
     auto const &p{record->placement};
     std::array<int, 10> const placement{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
-      p.angles[0], p.angles[1], p.angles[2], p.speed};
+      p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     auto const &parameters{record->parameters};
     std::array<int, 15> const metadata{parameters.model_token, parameters.update_entry, parameters.flags_4c, parameters.angular_response,
       parameters.motion[0], parameters.motion[1], parameters.motion[2], record->angular_motion[0], record->angular_motion[1], record->angular_motion[2],

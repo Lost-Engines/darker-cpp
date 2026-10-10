@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include "maths/view_basis.h"
 
 namespace darker::game {
 
@@ -15,6 +16,6 @@ angular_response integrate_angular_rate(std::uint16_t rate, std::uint16_t impuls
 angular_response calculate_driven_angular_response(std::uint16_t rate, std::uint16_t gain, std::uint16_t drive, std::uint16_t frame_step) noexcept;
 angular_response calculate_angular_response(std::uint16_t error, std::uint16_t rate, std::uint16_t response, std::uint16_t frame_step) noexcept;
 std::uint16_t fold_bank_angle(std::uint16_t angle) noexcept;
-void normalise_attitude(std::array<std::uint16_t, 3> &angles) noexcept;
+void normalise_attitude(maths::attitude_angles &angles) noexcept;
 
 } // namespace darker::game

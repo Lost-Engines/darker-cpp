@@ -15,7 +15,7 @@ void weapon_target::clear() noexcept {
 
 std::array<uint16_t, 3> target_ray_end(object_pose const &player) noexcept {
   /// 1E77/6D08 construct the unrolled forward targeting ray with the original truncation points
-  auto const heading{player.angles[0] >> 6}, pitch{player.angles[1] >> 6};
+  auto const heading{player.angles.heading >> 6}, pitch{player.angles.pitch >> 6};
   auto const sine{maths::original_sine[heading]}, cosine{maths::original_sine[(heading + 256) % 1024]};
   auto const pitch_cosine{maths::original_sine[(pitch + 256) % 1024]};
   auto const x{(-(sine * pitch_cosine >> 16)) >> 2};

@@ -83,7 +83,7 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   auto item{classify_model(placement, header)};
   if(item) {
     item->model_offset = object.model_offset;
-    item->orientation = orient_model(basis, {.heading{object.pose.angles[0]}, .pitch{object.pose.angles[1]}, .roll{object.pose.angles[2]}});
+    item->orientation = orient_model(basis, object.pose.angles);
     item->object_light = object.light;
     item->draw_record = object.native_id ? static_cast<uint16_t>(object.native_id + 14) : 0;
     item->distant_point = item->force_flat

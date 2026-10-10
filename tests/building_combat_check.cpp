@@ -96,7 +96,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       combat.primary_weapon = weapon <= 3 ? weapon : 0;
       combat.secondary_weapon = weapon > 3 ? weapon : 0;
       if(attacking_actor) {
-        auto const heading{static_cast<uint16_t>(actor_target->pose.angles[0]+(ground_actor ? 0x8000 : 0))};
+        auto const heading{static_cast<uint16_t>(actor_target->pose.angles.heading+(ground_actor ? 0x8000 : 0))};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
         player.pose().position = {static_cast<uint16_t>(actor_target->pose.position[0]+((sine*200) >> 15)),
@@ -110,7 +110,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           auto const direction{darker::maths::object_target_direction(player.pose().position,centre)};
           player.pose().angles = {direction.heading,direction.pitch,0};
         }
-        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],0});
+        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,0});
       } else if(target != targets.end()) {
         auto const token{static_cast<uint16_t>(target->row*256+target->column)};
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
@@ -141,7 +141,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         }
         player.pose().angles = {direction.heading,office ? uint16_t{0} : direction.pitch,0};
         player.pose().speed = 496;
-        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles[0],player.pose().angles[1],0});
+        combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,0});
         if(token != previous_target) combat.target.clear();
         previous_target = token;
       }

@@ -13,9 +13,9 @@ TEST_CASE("Player crash transition and rotation match native lifecycle updates",
     };
     darker::game::player_crash_state state{.flags{static_cast<std::uint8_t>(before[4])}, .deadline{static_cast<std::uint16_t>(before[5])}};
     REQUIRE(darker::game::start_player_crash(pose, state, static_cast<std::uint16_t>(sample.input[0])) == sample.started);
-    CHECK(std::array<int, 6>{pose.angles[0], pose.angles[1], pose.angles[2], pose.speed, state.flags, state.deadline} == sample.after);
+    CHECK(std::array<int, 6>{pose.angles.heading, pose.angles.pitch, pose.angles.roll, pose.speed, state.flags, state.deadline} == sample.after);
     darker::game::advance_player_crash(pose, static_cast<std::uint16_t>(sample.input[1]));
-    CHECK(std::array<int, 3>{pose.angles[0], pose.angles[1], pose.angles[2]} == sample.advanced);
+    CHECK(std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} == sample.advanced);
   }
 }
 

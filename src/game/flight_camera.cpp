@@ -22,7 +22,7 @@ void flight_camera::drop(camera_mode const selected, object_pose const &player) 
   mode = selected;
   anchor = player;
   anchor.fractions = {};
-  anchor.angles[2] = 0;
+  anchor.angles.roll = 0;
   look_heading = 0;
   look_pitch = 0;
   looking = false;
@@ -83,13 +83,14 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
   bool const object{subject == camera_subject::object || subject == camera_subject::object_effect};
   bool const following{(active == camera_mode::object && !absent) || active == camera_mode::behind || active == camera_mode::level || (missile && (active == camera_mode::cockpit || (subject == camera_subject::missile_effect && active == camera_mode::fullscreen)))};
   if(subject == camera_subject::missile_effect && active == camera_mode::fullscreen && (distance & 0x8000)) distance = 0x200;
-  result.angles[0] = static_cast<std::uint16_t>(result.angles[0] + look_heading);
-  result.angles[1] = static_cast<std::uint16_t>(result.angles[1] + look_pitch);
-  if(active == camera_mode::level) result.angles[2] = 0;
-  if(following && missile) result.angles[1] = static_cast<uint16_t>(result.angles[1] - 0x800);
-  if(following && landed && !missile) result.angles[1] = static_cast<std::uint16_t>(result.angles[1] - 1024);
+  result.angles.heading = static_cast<std::uint16_t>(result.angles.heading + look_heading);
+  result.angles.pitch = static_cast<std::uint16_t>(result.angles.pitch + look_pitch);
+  if(active == camera_mode::level) result.angles.roll = 0;
+  if(following && missile) result.angles.pitch = static_cast<uint16_t>(result.angles.pitch - 0x800);
+  if(following && landed && !missile) result.angles.pitch = static_cast<std::uint16_t>(result.angles.pitch - 1024);
   normalise_attitude(result.angles);
-  for(auto &angle : result.angles) angle = static_cast<std::uint16_t>(static_cast<std::uint16_t>(angle + 15) & 0xffc0);
+  for(auto *angle : {&result.angles.heading, &result.angles.pitch, &result.angles.roll})
+    *angle = static_cast<std::uint16_t>(static_cast<std::uint16_t>(*angle + 15) & 0xffc0);
   if(!following) return result;
   std::array<int, 6> constexpr steps{6, 9, 13, 18, 26, 34};
   constexpr std::array<int,6> object_effect_steps{10,11,13,18,29,34};
@@ -102,14 +103,14 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
     int const next{word(old + (old < target ? frame_step * 8 : -frame_step * 8))};
     distance = static_cast<std::uint16_t>(old < target ? std::min(next, target) : std::max(next, target));
   }
-  auto pitch{result.angles[1] >> 6};
-  auto const heading{result.angles[0] >> 6};
+  auto pitch{result.angles.pitch >> 6};
+  auto const heading{result.angles.heading >> 6};
   int const vertical{(word(distance) * maths::original_sine[pitch]) >> 16};
   auto height{word(result.position[2] + (distance >> 4) - vertical)};
   if(height < 82 && vertical != 0 && !landed) {
     auto const index{maths::direction_index(static_cast<std::uint16_t>((vertical + pitch * 2) * 2), distance)};
     pitch = index >> 1;
-    result.angles[1] = static_cast<std::uint16_t>(index * 32);
+    result.angles.pitch = static_cast<std::uint16_t>(index * 32);
     height = 82;
   }
   result.position[2] = static_cast<std::uint16_t>(height);

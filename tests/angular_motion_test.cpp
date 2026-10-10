@@ -22,10 +22,10 @@ TEST_CASE("Bank folding and attitude normalisation match every native angle", "[
   /// Fingerprint native words in little-endian order, without storing half a million fixture bytes
   std::uint64_t fingerprint{0xcbf29ce484222325};
   for(unsigned int angle{0}; angle < 65536; ++angle) {
-    std::array<std::uint16_t, 3> angles{0x1234, static_cast<std::uint16_t>(angle), 0x5678};
+    darker::maths::attitude_angles angles{0x1234, static_cast<std::uint16_t>(angle), 0x5678};
     auto const folded{darker::game::fold_bank_angle(static_cast<std::uint16_t>(angle))};
     darker::game::normalise_attitude(angles);
-    for(auto const word : {folded, angles[0], angles[1], angles[2]}) {
+    for(auto const word : {folded, angles.heading, angles.pitch, angles.roll}) {
       for(auto const byte : {word & 255, word >> 8}) {
         fingerprint = (fingerprint ^ static_cast<std::uint64_t>(byte)) * 0x100000001b3;
       }

@@ -5,10 +5,12 @@
 
 namespace darker::maths {
 
-struct view_angles {
+struct attitude_angles {
   uint16_t heading{0};
   uint16_t pitch{0};
   uint16_t roll{0};
+
+  bool operator==(attitude_angles const &) const = default;
 };
 
 struct view_axis {
@@ -18,6 +20,6 @@ struct view_axis {
 };
 
 using view_basis = std::array<view_axis, 3>;
-view_basis make_view_basis(view_angles angles) noexcept;
+view_basis make_view_basis(attitude_angles angles) noexcept;
 
 } // namespace darker::maths

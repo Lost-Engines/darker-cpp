@@ -37,7 +37,7 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   auto const bank_response{calculate_driven_angular_response(state.damage.rotation.turn, parameters.angular_response, static_cast<std::uint16_t>(bank_drive), frame_step)};
   frame_step = bank_response.frame_step;
   state.damage.rotation.turn = bank_response.rate;
-  auto bank{word(angles[2] + bank_response.angle_delta)};
+  auto bank{word(angles.roll + bank_response.angle_delta)};
   auto const half_bank_delta{word(bank_response.angle_delta) >> 1};
   auto const middle{word(bank - half_bank_delta)};
   int const sign{middle < 0 ? -1 : 0};
@@ -47,15 +47,15 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   auto const damping{word((excess * word(frame_step)) >> 8)};
   state.damage.rotation.turn = static_cast<std::uint16_t>(state.damage.rotation.turn - damping);
   bank = word(bank - high_product(damping, word(frame_step)));
-  angles[2] = static_cast<std::uint16_t>(bank);
+  angles.roll = static_cast<std::uint16_t>(bank);
   auto const middle_bank{static_cast<std::uint16_t>(bank - half_bank_delta)};
 
   auto const pitch_drive{high_product(word(gain), word(input.pitch_drive * 2))};
   auto const pitch_response{calculate_driven_angular_response(state.damage.rotation.pitch, parameters.angular_response, static_cast<std::uint16_t>(pitch_drive), frame_step)};
   frame_step = pitch_response.frame_step;
   state.damage.rotation.pitch = pitch_response.rate;
-  auto pitch_delta{project_flight_pitch(angles[1], middle_bank, pitch_response.angle_delta)};
-  auto const tentative_pitch{word(angles[1] + pitch_delta)};
+  auto pitch_delta{project_flight_pitch(angles.pitch, middle_bank, pitch_response.angle_delta)};
+  auto const tentative_pitch{word(angles.pitch + pitch_delta)};
   auto const assist_limit{static_cast<std::uint16_t>(std::max(0, (word(state.pose.position[2]) >> 3) - 1024) + 256)};
   auto desired_pitch{word(0x3800 - state.pose.position[2])};
   bool force_assist{tentative_pitch > desired_pitch};
@@ -73,11 +73,11 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   frame_step = assist.frame_step;
   state.pitch_assist_rate = assist.rate;
   pitch_delta = word(pitch_delta + assist.angle_delta);
-  auto const final_pitch{static_cast<std::uint16_t>(angles[1] + pitch_delta)};
+  auto const final_pitch{static_cast<std::uint16_t>(angles.pitch + pitch_delta)};
   auto const middle_pitch{static_cast<std::uint16_t>(final_pitch - (pitch_delta >> 1))};
   auto const turn{couple_flight_turn(middle_bank, middle_pitch, pitch_response.angle_delta, frame_step)};
   auto const heading_delta{word((word(gain) * turn.heading_delta) >> 14)};
-  auto const final_heading{static_cast<std::uint16_t>(angles[0] + heading_delta)};
+  auto const final_heading{static_cast<std::uint16_t>(angles.heading + heading_delta)};
   auto const middle_heading{static_cast<std::uint16_t>(final_heading - (heading_delta >> 1))};
 
   auto const movement_step{static_cast<std::uint16_t>((frame_step & 255) * 257)};
@@ -90,8 +90,8 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   auto const height_term{word(altitude < 256 ? 256 - altitude : altitude - 256)};
   auto const vertical_target{static_cast<std::uint16_t>(vertical_drive + parameters.vertical_bias + lift - (height_term >> 5))};
   advance_vertical_flight(state.pose, state.vertical_velocity, vertical_target, movement_step);
-  angles[0] = final_heading;
-  angles[1] = final_pitch;
+  angles.heading = final_heading;
+  angles.pitch = final_pitch;
   normalise_attitude(angles);
 }
 

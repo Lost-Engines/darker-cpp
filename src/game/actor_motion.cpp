@@ -22,21 +22,21 @@ std::int16_t product(std::uint16_t const left, std::uint16_t const right) noexce
 std::uint16_t steer_actor(object_pose &pose, actor_attitude &state, actor_steering_parameters const parameters,
   std::uint16_t const desired_pitch, std::uint16_t const turn_drive, std::uint16_t frame_step) noexcept {
   /// 8351 approaches pitch and bank targets, then derives heading motion from the folded midpoint bank
-  auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(desired_pitch - pose.angles[1]), state.pitch_rate, parameters.response, frame_step)};
+  auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(desired_pitch - pose.angles.pitch), state.pitch_rate, parameters.response, frame_step)};
   state.pitch_rate = pitch.rate;
-  pose.angles[1] = static_cast<std::uint16_t>(pose.angles[1] + pitch.angle_delta);
+  pose.angles.pitch = static_cast<std::uint16_t>(pose.angles.pitch + pitch.angle_delta);
   frame_step = pitch.frame_step;
   auto const drive{product(turn_drive, parameters.bank_response)};
   auto const magnitude{std::min<unsigned int>(drive < 0 ? -drive : drive, parameters.bank_limit)};
   auto const target{static_cast<std::uint16_t>((drive < 0 ? -static_cast<int>(magnitude) : static_cast<int>(magnitude)) * 2)};
-  auto const bank{calculate_angular_response(static_cast<std::uint16_t>(target - pose.angles[2]), state.bank_rate, parameters.response, frame_step)};
+  auto const bank{calculate_angular_response(static_cast<std::uint16_t>(target - pose.angles.roll), state.bank_rate, parameters.response, frame_step)};
   state.bank_rate = bank.rate;
-  pose.angles[2] = static_cast<std::uint16_t>(pose.angles[2] + bank.angle_delta);
+  pose.angles.roll = static_cast<std::uint16_t>(pose.angles.roll + bank.angle_delta);
   frame_step = bank.frame_step;
-  auto const middle{static_cast<std::uint16_t>(pose.angles[2] - (signed_word(bank.angle_delta) >> 1))};
+  auto const middle{static_cast<std::uint16_t>(pose.angles.roll - (signed_word(bank.angle_delta) >> 1))};
   auto const turn{product(parameters.turn_response, fold_bank_angle(middle))};
   auto const delta{product(static_cast<std::uint16_t>((frame_step & 255) * 257), static_cast<std::uint16_t>(turn))};
-  pose.angles[0] = static_cast<std::uint16_t>(pose.angles[0] + delta);
+  pose.angles.heading = static_cast<std::uint16_t>(pose.angles.heading + delta);
   return frame_step;
 }
 

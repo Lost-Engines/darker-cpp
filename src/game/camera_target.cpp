@@ -9,7 +9,7 @@ namespace darker::game {
 
 std::array<uint16_t,3> camera_ray_end(object_pose const &camera) noexcept {
   /// 2591 casts from the rendered camera along its installed depth coefficients.
-  auto const basis{maths::make_view_basis({camera.angles[0],camera.angles[1],camera.angles[2]})};
+  auto const basis{maths::make_view_basis(camera.angles)};
   return {static_cast<uint16_t>(camera.position[0] + (basis[1].depth >> 3)),
     static_cast<uint16_t>(camera.position[1] - (basis[0].depth >> 3)),
     static_cast<uint16_t>(((std::bit_cast<int16_t>(camera.position[2]) >> 1) - (basis[2].depth >> 1))*2)};

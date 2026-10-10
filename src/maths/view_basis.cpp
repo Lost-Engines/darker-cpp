@@ -28,7 +28,7 @@ angle_components components(std::uint16_t const angle) noexcept {
 
 } // namespace
 
-view_basis make_view_basis(view_angles const angles) noexcept {
+view_basis make_view_basis(attitude_angles const angles) noexcept {
   /// Translate 1D63's ordered fixed-point products and 1E40's local-axis installation
   auto const pitch{components(angles.pitch)};
   auto const roll{components(angles.roll)};

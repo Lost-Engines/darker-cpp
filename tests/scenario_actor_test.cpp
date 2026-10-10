@@ -27,7 +27,7 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
     auto const &p{actor.parameters};
     CAPTURE(v);
     CHECK(std::array<int, 31>{actor.pose.position[0], actor.pose.position[1], actor.pose.position[2],
-      actor.pose.angles[0], actor.pose.speed, actor.flags, actor.attributes, actor.fade,
+      actor.pose.angles.heading, actor.pose.speed, actor.flags, actor.attributes, actor.fade,
       p.update_entry, actor.target_token, actor.current_cell, p.flags_4c, p.angular_response,
       p.motion[0], p.motion[1], p.motion[2], actor.previous_position[0], actor.previous_position[1], actor.previous_position[2],
       actor.behaviour[0], actor.behaviour[1], actor.behaviour[2], actor.behaviour[3], actor.behaviour[4], actor.behaviour[5],

@@ -17,7 +17,7 @@ TEST_CASE("Projectile placement matches both native launch paths including fract
     auto const result{darker::game::place_projectile(emitter)};
     std::array<int, 10> const actual{
       result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1], result.fractions[2],
-      result.angles[0], result.angles[1], result.angles[2], result.speed,
+      result.angles.heading, result.angles.pitch, result.angles.roll, result.speed,
     };
     CHECK(actual == sample.result);
   }

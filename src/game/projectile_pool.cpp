@@ -19,7 +19,7 @@ projectile *projectile_pool::launch(projectile_launch const request) {
   auto *record{allocate_object(list)};
   if(!record) return nullptr;
   record->deadline = static_cast<std::uint16_t>(request.clock + request.lifetime);
-  record->inherited_roll = request.emitter.angles[2];
+  record->inherited_roll = request.emitter.angles.roll;
   record->target_token = request.target_token;
   apply_object_definition(record->parameters, request.definition, request.model_token);
   record->placement = place_projectile(request.emitter);

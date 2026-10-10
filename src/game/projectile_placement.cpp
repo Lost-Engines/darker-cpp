@@ -21,7 +21,7 @@ object_pose place_projectile(launch_emitter const &emitter) {
   /// CB1F–CBCD calculate launch position and copy heading, pitch, roll and speed
   object_pose result{.position{emitter.position}, .fractions{emitter.fractions}, .angles{emitter.angles}, .speed{emitter.speed}};
   if(emitter.definition_strength == 0) {
-    unsigned int const quadrant{static_cast<unsigned int>(static_cast<std::uint16_t>(emitter.angles[0] + 0x2000) >> 14)};
+    unsigned int const quadrant{static_cast<unsigned int>(static_cast<std::uint16_t>(emitter.angles.heading + 0x2000) >> 14)};
     std::array<int, 5> constexpr masks{-1, -1, 0, 0, -1};
     int x{((emitter.side_flags & 0x80) != 0 ? -6 : 6) ^ masks[quadrant]};
     int y{36 ^ masks[quadrant + 1]};
@@ -29,13 +29,13 @@ object_pose place_projectile(launch_emitter const &emitter) {
     result.position[0] = static_cast<std::uint16_t>(emitter.position[0] + x);
     result.position[1] = static_cast<std::uint16_t>(emitter.position[1] + ~y);
     result.position[2] = static_cast<std::uint16_t>(emitter.position[2] + 160);
-    result.angles[0] = static_cast<std::uint16_t>(emitter.angles[0] + 0x8000);
-    result.angles[1] = 0x0abe;
+    result.angles.heading = static_cast<std::uint16_t>(emitter.angles.heading + 0x8000);
+    result.angles.pitch = 0x0abe;
     return result;
   }
-  unsigned int const heading{(static_cast<std::uint16_t>(0x8000 - emitter.angles[0]) >> 6) ^ 1023u};
-  unsigned int const pitch{static_cast<unsigned int>(emitter.angles[1] >> 6)};
-  unsigned int const roll{static_cast<unsigned int>(emitter.angles[2] >> 6) ^ 1023u};
+  unsigned int const heading{(static_cast<std::uint16_t>(0x8000 - emitter.angles.heading) >> 6) ^ 1023u};
+  unsigned int const pitch{static_cast<unsigned int>(emitter.angles.pitch >> 6)};
+  unsigned int const roll{static_cast<unsigned int>(emitter.angles.roll >> 6) ^ 1023u};
   auto const sine{[](unsigned int const index){ return maths::original_sine[index]; }};
   auto const cosine{[&](unsigned int const index){ return sine((index + 256) % 1024); }};
   auto const intermediate{product(cosine(roll), sine(pitch))};
