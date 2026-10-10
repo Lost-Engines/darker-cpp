@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(darker VERSION 0.1.0 LANGUAGES C CXX)
+if(APPLE)
+  enable_language(OBJC)
+endif()
 
 include(CTest)
 find_package(Boost 1.85 CONFIG REQUIRED COMPONENTS program_options)
@@ -18,7 +21,6 @@ endfunction()
 # Third-party device implementation, compiled separately from first-party warning settings
 if(APPLE)
   # CoreAudio headers require Apple's blocks extension, as Cocoa does for GLFW.
-  enable_language(OBJC)
   set_source_files_properties(src/platform/miniaudio_implementation.c PROPERTIES LANGUAGE OBJC)
 endif()
 add_library(pcm_device STATIC src/platform/miniaudio_implementation.c)

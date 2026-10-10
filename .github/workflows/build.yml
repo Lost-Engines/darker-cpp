@@ -120,7 +120,7 @@ jobs:
           echo "CC=$gcc_prefix/bin/gcc-$gcc_version" >> "$GITHUB_ENV"
           echo "CXX=${gcc_cxx[0]}" >> "$GITHUB_ENV"
           # GLFW's Cocoa integration uses Apple's Objective-C compiler.
-          echo OBJC=clang >> "$GITHUB_ENV"
+          echo "OBJC=$(xcrun --find clang)" >> "$GITHUB_ENV"
           echo 'ARCHFLAGS=-arch arm64' >> "$GITHUB_ENV"
           echo MACOSX_DEPLOYMENT_TARGET=15.0 >> "$GITHUB_ENV"
 
@@ -163,7 +163,7 @@ jobs:
               "-DCMAKE_EXE_LINKER_FLAGS=-static-libgcc -static-libstdc++")
           fi
           if [[ "$RUNNER_OS" == macOS ]]; then
-            extra+=(-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OBJC_COMPILER=clang)
+            extra+=(-DCMAKE_OSX_ARCHITECTURES=arm64 "-DCMAKE_OBJC_COMPILER=$OBJC")
           fi
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} \
             -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON \
