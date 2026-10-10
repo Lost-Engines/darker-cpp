@@ -16,9 +16,9 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
   auto centre{target.position};
   centre.height = static_cast<uint16_t>(std::bit_cast<int16_t>(centre.height) >> 3);
   collision_box box;
-  for(size_t axis{0}; axis < 3; ++axis) {
-    box.minimum[axis] = static_cast<uint16_t>(centre[axis] - radius);
-    box.maximum[axis] = static_cast<uint16_t>(centre[axis] + radius);
+  for(unsigned int axis{0}; axis < 3; ++axis) {
+    box.bounds.min[axis] = static_cast<uint16_t>(centre[axis] - radius);
+    box.bounds.max[axis] = static_cast<uint16_t>(centre[axis] + radius);
   }
   auto previous{start};
   auto next{end};

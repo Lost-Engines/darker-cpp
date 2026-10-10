@@ -8,15 +8,15 @@
 
 TEST_CASE("Palette skips retain previous colours and literals replace single entries") {
   darker::graphics::palette_state previous;
-  previous.colours[0] = {.red{10}, .green{20}, .blue{30}};
+  previous.colours[0] = {10, 20, 30};
   previous.defined.set(0);
   std::array const data{std::byte{1}, std::byte{42}, std::byte{13}, std::byte{255}, std::byte{255}, std::byte{251}, std::byte{99}};
   auto const decoded{darker::graphics::decode_palette(data, previous)};
   REQUIRE(decoded.bytes_consumed == 6);
-  REQUIRE(decoded.palette.colours[0].red == 10);
-  REQUIRE(decoded.palette.colours[1].red == 42);
-  REQUIRE(decoded.palette.colours[1].green == 13);
-  REQUIRE(decoded.palette.colours[1].blue == 255);
+  REQUIRE(decoded.palette.colours[0].r == 10);
+  REQUIRE(decoded.palette.colours[1].r == 42);
+  REQUIRE(decoded.palette.colours[1].g == 13);
+  REQUIRE(decoded.palette.colours[1].b == 255);
   REQUIRE(decoded.palette.defined.count() == 2);
   REQUIRE_FALSE(previous.defined[1]);
 }
@@ -35,11 +35,12 @@ TEST_CASE("Indexed bitmap keeps indices independent of palette presentation") {
   auto bitmap{darker::graphics::decode_bitmap(data)};
   framework::render::framebuffer output;
   framework::render::expand_palette(bitmap.image, bitmap.palette.colours, output);
-  REQUIRE(output.pixels.front().red == 20);
-  REQUIRE(output.pixels.back().blue == 60);
-  bitmap.palette.colours[0].red = 100;
+  REQUIRE(output.pixels.front().r == 20);
+  REQUIRE(output.pixels.front().a == 255);
+  REQUIRE(output.pixels.back().b == 60);
+  bitmap.palette.colours[0].r = 100;
   framework::render::expand_palette(bitmap.image, bitmap.palette.colours, output);
-  REQUIRE(output.pixels.front().red == 100);
+  REQUIRE(output.pixels.front().r == 100);
   REQUIRE(bitmap.image.pixels.front() == 0);
   data.back() = std::byte{1};
   REQUIRE_THROWS(darker::graphics::decode_bitmap(data));

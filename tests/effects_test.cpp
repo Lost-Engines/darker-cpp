@@ -16,7 +16,7 @@ TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {
       {static_cast<int16_t>(v[7]), static_cast<int16_t>(v[9]), static_cast<int16_t>(v[11])},
       {static_cast<int16_t>(v[6]), static_cast<int16_t>(v[8]), static_cast<int16_t>(v[10])}, {},
     }};
-    auto const points{darker::graphics::project_emitter(emitter, centre, basis, {.x{160}, .y{84}})};
+    auto const points{darker::graphics::project_emitter(emitter, centre, basis, {160, 84})};
     uint32_t hash{2166136261};
     for(auto const &point : points) for(auto const value : {point.x, point.y, point.depth}) hash = (hash ^ static_cast<uint16_t>(value)) * 16777619;
     CHECK(points.size() == static_cast<size_t>(v[12]));

@@ -34,7 +34,7 @@ void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer cons
 void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, weapon_icon_slot slot, std::uint8_t selection);
 void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, pixel_position destination, std::uint8_t encoded_coordinate, coordinate_font font = coordinate_font::small);
+  framework::render::indexed_cockpit_framebuffer &target, pixel_position const &destination, std::uint8_t encoded_coordinate, coordinate_font font = coordinate_font::small);
 void update_caero_bitmaps(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, caero_bitmap_state previous, caero_bitmap_state current);
 

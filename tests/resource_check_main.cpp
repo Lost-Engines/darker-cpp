@@ -106,7 +106,7 @@ auto main(int const argc, char const *const argv[])->int try {
         static_cast<std::uint8_t>(sample.slot == 30 ? 0x20 : 0x60), 20, 20, static_cast<std::uint16_t>(sample.expansion))};
       std::uint64_t fingerprint{0xcbf29ce484222325};
       for(auto const &box : boxes) {
-        for(unsigned int const value : {box.minimum[0], box.minimum[1], box.minimum[2], box.maximum[0], box.maximum[1], box.maximum[2], static_cast<std::uint16_t>(box.category)}) {
+        for(unsigned int const value : {box.bounds.min[0], box.bounds.min[1], box.bounds.min[2], box.bounds.max[0], box.bounds.max[1], box.bounds.max[2], static_cast<std::uint16_t>(box.category)}) {
           for(auto const byte : {value & 255, value >> 8}) fingerprint = (fingerprint ^ byte) * 0x100000001b3;
         }
       }
@@ -169,7 +169,7 @@ auto main(int const argc, char const *const argv[])->int try {
         {.horizontal{4096}, .vertical{static_cast<std::int16_t>(sample.view ? 4096 : -4096)}},
         {.vertical{16384}},
       }},
-      .horizontal{.fraction{11}}, .vertical{.fraction{19}}, .depth{.whole{1024}}, .origin{.x{160}, .y{120}},
+      .horizontal{.fraction{11}}, .vertical{.fraction{19}}, .depth{.whole{1024}}, .origin{160, 120},
     };
     darker::graphics::model_colours colours{.dynamic{17}};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
@@ -190,7 +190,7 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::resources::geometry_bank const bank{archives.load({.archive{0}, .slot{sample.slot}})};
     darker::graphics::projection_parameters const projection{
       .axes{darker::graphics::make_camera_basis({.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}})},
-      .depth{.whole{2048}}, .origin{.x{160}, .y{110}},
+      .depth{.whole{2048}}, .origin{160, 110},
     };
     darker::graphics::model_colours colours{.dynamic{17}};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);
@@ -237,7 +237,7 @@ auto main(int const argc, char const *const argv[])->int try {
     darker::graphics::projection_parameters const projection{
       .axes{darker::graphics::make_camera_basis({.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{61440}})},
       .horizontal{.fraction{11}}, .vertical{.fraction{19}},
-      .depth{.whole{static_cast<std::uint16_t>(sample.near ? 64 : 2048)}, .fraction{83}}, .origin{.x{160}, .y{84}},
+      .depth{.whole{static_cast<std::uint16_t>(sample.near ? 64 : 2048)}, .fraction{83}}, .origin{160, 84},
     };
     darker::graphics::model_colours colours{.dynamic{17}};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);

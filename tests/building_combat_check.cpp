@@ -130,9 +130,9 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           auto const door{std::ranges::find_if(boxes,[](auto const &box){ return box.category == 0; })};
           if(door == boxes.end()) throw std::runtime_error{"Office target has no vulnerable entrance"};
           darker::maths::world_position point{};
-          for(size_t axis{0}; axis < 3; ++axis) point[axis] = static_cast<uint16_t>((door->minimum[axis]+door->maximum[axis])/2);
-          auto const along{door->maximum[0]-door->minimum[0] < door->maximum[1]-door->minimum[1] ? 1 : 0};
-          auto const nearer{point[along] > centre[along] ? door->minimum[along] : door->maximum[along]};
+          for(size_t axis{0}; axis < 3; ++axis) point[axis] = static_cast<uint16_t>((door->bounds.min[axis]+door->bounds.max[axis])/2);
+          auto const along{door->bounds.max[0]-door->bounds.min[0] < door->bounds.max[1]-door->bounds.min[1] ? 1 : 0};
+          auto const nearer{point[along] > centre[along] ? door->bounds.min[along] : door->bounds.max[along]};
           point[along] = static_cast<uint16_t>((point[along]+nearer)/2);
           point[2] *= 8;
           player.pose().position = point;

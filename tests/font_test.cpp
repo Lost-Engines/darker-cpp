@@ -60,7 +60,7 @@ TEST_CASE("Font drawing preserves transparency and clips at framebuffer edges", 
   for(std::int16_t const x : std::array<std::int16_t, 9>{-2, -1, 0, 1, 2, 3, 318, 319, 320}) {
     framework::render::indexed_cockpit_framebuffer frame;
     frame.pixels.fill(7);
-    CHECK(darker::graphics::draw_glyph(frame, font, darker::resources::font_face::interface, 'A', {.x{x}, .y{239}}, {.ink{9}, .edge{4}}) == static_cast<std::uint16_t>(x + 3));
+    CHECK(darker::graphics::draw_glyph(frame, font, darker::resources::font_face::interface, 'A', {x, 239}, {.ink{9}, .edge{4}}) == static_cast<std::uint16_t>(x + 3));
     for(int column{0}; column < 320; ++column) {
       CHECK(frame.pixels[239 * 320 + column] == (column == x ? 4 : column == x + 1 ? 9 : 7));
     }

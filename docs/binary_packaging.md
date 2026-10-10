@@ -18,11 +18,11 @@ libraries use the pinned archives in `cmake/dependencies.cmake`.
 
 Pushes to `master`, pull requests and manual dispatch can run CI. Automatic
 runs are filtered to `src/`, `tests/`, `cmake/`, `CMakeLists.txt`,
-`CMakePresets.json`, `third_party/`, `scripts/`, `tools/` and workflow files.
+`CMakePresets.json`, `vectorstorm/`, `scripts/`, `tools/` and workflow files.
 README and documentation-only changes do not start builds. Pull requests run
 once through the pull-request event, rather than also building every branch push.
 
-Only a push to `master` that changes `src/`, `CMakeLists.txt` or `cmake/`
+Only a push to `master` that changes `src/`, `vectorstorm/`, `CMakeLists.txt` or `cmake/`
 (excluding `cmake/package.cmake`) is eligible for an automatic release.
 These include compiler and linked-dependency changes that alter the executable.
 Tests, docs, workflow files, packaging scripts and asset-fetch helper updates

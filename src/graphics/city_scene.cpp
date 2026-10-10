@@ -93,7 +93,7 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   return item;
 }
 
-std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const origin, int const bottom, uint8_t const residue) {
+std::optional<screen_vertex> project_distant_object(model_placement const placement, screen_vertex const &origin, int const bottom, uint8_t const residue) {
   /// 2D32 consumes traversal AL for the Y divide, then projected Y's low byte for the X divide
   auto point{project_vertex({.horizontal{0}, .vertical{word(placement.vertical.whole)*256+residue},
     .depth{word(placement.depth.whole)*256}},origin)};
@@ -256,7 +256,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
     }
     projection_parameters const projection{
       .axes{item.orientation.value_or(basis)}, .horizontal{item.placement.horizontal}, .vertical{item.placement.vertical},
-      .depth{item.placement.depth}, .origin{view.origin},
+      .depth{item.placement.depth}, .origin{screen_vertex{view.origin}},
     };
     std::uint8_t light{item.orientation ? item.object_light : std::uint8_t{255}};
     if(view.beacon_lighting && !item.orientation) {

@@ -28,7 +28,7 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     for(auto const code : codes) {
       framework::render::indexed_cockpit_framebuffer frame{};
       auto const cursor{darker::graphics::draw_glyph(frame, fonts, static_cast<darker::resources::font_face>(sample.face),
-        static_cast<std::uint8_t>(code), {.x{static_cast<std::int16_t>(8 + sample.phase)}, .y{9}}, {.ink{2}, .edge{1}})};
+        static_cast<std::uint8_t>(code), {static_cast<std::int16_t>(8 + sample.phase), 9}, {.ink{2}, .edge{1}})};
       add(cursor);
       std::uint32_t count{0};
       for(auto const pixel : frame.pixels) count += pixel != 0;
@@ -45,7 +45,7 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   // The wide-font lookup for German level 76 leaves the resource. It must remain drawable at every alignment.
   for(unsigned int phase{0}; phase < 4; ++phase) {
     framework::render::indexed_cockpit_framebuffer actual{}, expected{};
-    auto const position{darker::graphics::pixel_position{.x{static_cast<int16_t>(8+phase)}, .y{9}}};
+    auto const position{darker::graphics::pixel_position{static_cast<int16_t>(8+phase), 9}};
     auto const advance{darker::graphics::draw_glyph(actual,fonts,darker::resources::font_face::wide,153,position,{.ink{2},.edge{1}})};
     auto const replacement{darker::graphics::draw_glyph(expected,fonts,darker::resources::font_face::wide,'?',position,{.ink{2},.edge{1}})};
     if(advance != replacement || actual.pixels != expected.pixels) throw std::runtime_error{"Undefined German glyph does not use a stable replacement"};

@@ -1155,15 +1155,15 @@ inline std::array<hud_strip, 3> constexpr strips_4d38{{
 }};
 
 inline std::array<hud_component, 9> constexpr components_4615{{
-  {.address{0x463e}, .field{0x454b}, .label{"Altitude"}, .on_source{.x{120}, .y{0}}, .destination{.x{8}, .y{189}}, .alternate_source{.x{154}, .y{56}}, .strips{strips_463e}},
-  {.address{0x46f4}, .field{0x454c}, .label{"Impact damage"}, .on_source{.x{0}, .y{0}}, .destination{.x{200}, .y{201}}, .alternate_source{.x{4}, .y{24}}, .strips{strips_46f4}},
-  {.address{0x4888}, .field{0x454d}, .label{"Inner damage lights"}, .on_source{.x{0}, .y{0}}, .destination{.x{200}, .y{201}}, .alternate_source{.x{4}, .y{19}}, .strips{strips_4888}},
-  {.address{0x4a2e}, .field{0x454e}, .label{"Stored power cells"}, .on_source{.x{32}, .y{25}}, .destination{.x{96}, .y{203}}, .alternate_source{.x{4}, .y{43}}, .strips{strips_4a2e}},
-  {.address{0x48ca}, .field{0x454f}, .label{"Cell charging"}, .on_source{.x{32}, .y{25}}, .destination{.x{96}, .y{203}}, .alternate_source{.x{6}, .y{26}}, .strips{strips_48ca}},
-  {.address{0x4a8c}, .field{0x4550}, .label{"Incoming power"}, .on_source{.x{40}, .y{0}}, .destination{.x{136}, .y{185}}, .alternate_source{.x{10}, .y{36}}, .strips{strips_4a8c}},
-  {.address{0x4be6}, .field{0x4551}, .label{"Weapon charge"}, .on_source{.x{72}, .y{16}}, .destination{.x{240}, .y{181}}, .alternate_source{.x{10}, .y{37}}, .strips{strips_4be6}},
-  {.address{0x4d1c}, .field{0x4552}, .label{"Engine light"}, .on_source{.x{40}, .y{14}}, .destination{.x{136}, .y{199}}, .alternate_source{.x{64}, .y{0}}, .strips{strips_4d1c}},
-  {.address{0x4d38}, .field{0x4553}, .label{"Nayas receiver"}, .on_source{.x{88}, .y{29}}, .destination{.x{176}, .y{222}}, .alternate_source{.x{14}, .y{21}}, .strips{strips_4d38}},
+  {.address{0x463e}, .field{0x454b}, .label{"Altitude"}, .on_source{120, 0}, .destination{8, 189}, .alternate_source{154, 56}, .strips{strips_463e}},
+  {.address{0x46f4}, .field{0x454c}, .label{"Impact damage"}, .on_source{0, 0}, .destination{200, 201}, .alternate_source{4, 24}, .strips{strips_46f4}},
+  {.address{0x4888}, .field{0x454d}, .label{"Inner damage lights"}, .on_source{0, 0}, .destination{200, 201}, .alternate_source{4, 19}, .strips{strips_4888}},
+  {.address{0x4a2e}, .field{0x454e}, .label{"Stored power cells"}, .on_source{32, 25}, .destination{96, 203}, .alternate_source{4, 43}, .strips{strips_4a2e}},
+  {.address{0x48ca}, .field{0x454f}, .label{"Cell charging"}, .on_source{32, 25}, .destination{96, 203}, .alternate_source{6, 26}, .strips{strips_48ca}},
+  {.address{0x4a8c}, .field{0x4550}, .label{"Incoming power"}, .on_source{40, 0}, .destination{136, 185}, .alternate_source{10, 36}, .strips{strips_4a8c}},
+  {.address{0x4be6}, .field{0x4551}, .label{"Weapon charge"}, .on_source{72, 16}, .destination{240, 181}, .alternate_source{10, 37}, .strips{strips_4be6}},
+  {.address{0x4d1c}, .field{0x4552}, .label{"Engine light"}, .on_source{40, 14}, .destination{136, 199}, .alternate_source{64, 0}, .strips{strips_4d1c}},
+  {.address{0x4d38}, .field{0x4553}, .label{"Nayas receiver"}, .on_source{88, 29}, .destination{176, 222}, .alternate_source{14, 21}, .strips{strips_4d38}},
 }};
 
 inline std::array<mask_row, 17> constexpr rows_4f63_0{{
@@ -1849,10 +1849,10 @@ inline std::array<hud_strip, 5> constexpr strips_5159{{
 }};
 
 inline std::array<hud_component, 4> constexpr components_4d70{{
-  {.address{0x4f63}, .field{0x454b}, .label{"Low altitude"}, .on_source{.x{288}, .y{13}}, .destination{.x{72}, .y{193}}, .alternate_source{.x{12}, .y{125}}, .strips{strips_4f63}},
-  {.address{0x4f8b}, .field{0x454c}, .label{"Directional shields"}, .on_source{.x{224}, .y{16}}, .destination{.x{8}, .y{196}}, .alternate_source{.x{10}, .y{13}}, .strips{strips_4f8b}},
-  {.address{0x4d8f}, .field{0x454d}, .label{"Engine output"}, .on_source{.x{0}, .y{17}}, .destination{.x{112}, .y{183}}, .alternate_source{.x{162}, .y{89}}, .strips{strips_4d8f}},
-  {.address{0x5159}, .field{0x454e}, .label{"Selected weapon reserve"}, .on_source{.x{0}, .y{43}}, .destination{.x{264}, .y{191}}, .alternate_source{.x{12}, .y{17}}, .strips{strips_5159}},
+  {.address{0x4f63}, .field{0x454b}, .label{"Low altitude"}, .on_source{288, 13}, .destination{72, 193}, .alternate_source{12, 125}, .strips{strips_4f63}},
+  {.address{0x4f8b}, .field{0x454c}, .label{"Directional shields"}, .on_source{224, 16}, .destination{8, 196}, .alternate_source{10, 13}, .strips{strips_4f8b}},
+  {.address{0x4d8f}, .field{0x454d}, .label{"Engine output"}, .on_source{0, 17}, .destination{112, 183}, .alternate_source{162, 89}, .strips{strips_4d8f}},
+  {.address{0x5159}, .field{0x454e}, .label{"Selected weapon reserve"}, .on_source{0, 43}, .destination{264, 191}, .alternate_source{12, 17}, .strips{strips_5159}},
 }};
 
 inline std::array<mask_row, 6> constexpr bearing_rows_0{{
@@ -1934,7 +1934,7 @@ inline std::array<mask_row, 5> constexpr bearing_rows_6{{
   {.skip{32}, .width{3}},
 }};
 
-inline pixel_position constexpr bearing_destination{.x{120}, .y{198}};
+inline pixel_position constexpr bearing_destination{120, 198};
 inline std::array<hud_strip, 7> constexpr bearing_strips{{
   {.y_offset{7}, .rows{bearing_rows_0}},
   {.y_offset{5}, .rows{bearing_rows_1}},
@@ -2009,7 +2009,7 @@ inline std::array<mask_row, 18> constexpr weapon_status_rows_2{{
   {.skip{32}, .width{9}},
 }};
 
-inline pixel_position constexpr weapon_status_destination{.x{272}, .y{194}};
+inline pixel_position constexpr weapon_status_destination{272, 194};
 inline std::array<hud_strip, 3> constexpr weapon_status_strips{{
   {.y_offset{0}, .rows{weapon_status_rows_0}},
   {.y_offset{0}, .rows{weapon_status_rows_1}},
@@ -2017,52 +2017,52 @@ inline std::array<hud_strip, 3> constexpr weapon_status_strips{{
 }};
 
 inline std::array<pixel_position, 4> constexpr weapon_status_sources{{
-  {.x{272}, .y{194}},
-  {.x{120}, .y{31}},
-  {.x{40}, .y{31}},
-  {.x{80}, .y{31}},
+  {272, 194},
+  {120, 31},
+  {40, 31},
+  {80, 31},
 }};
 
 // Compass paired signed-byte offsets at 53DD
 inline std::array<pixel_position, 38> constexpr compass_offsets{{
-  {.x{24}, .y{-2}},
-  {.x{24}, .y{-1}},
-  {.x{24}, .y{0}},
-  {.x{24}, .y{1}},
-  {.x{24}, .y{2}},
-  {.x{24}, .y{3}},
-  {.x{24}, .y{4}},
-  {.x{23}, .y{5}},
-  {.x{23}, .y{6}},
-  {.x{23}, .y{7}},
-  {.x{23}, .y{8}},
-  {.x{22}, .y{9}},
-  {.x{22}, .y{10}},
-  {.x{21}, .y{11}},
-  {.x{21}, .y{12}},
-  {.x{20}, .y{13}},
-  {.x{19}, .y{14}},
-  {.x{19}, .y{15}},
-  {.x{18}, .y{16}},
-  {.x{17}, .y{17}},
-  {.x{16}, .y{18}},
-  {.x{15}, .y{19}},
-  {.x{14}, .y{19}},
-  {.x{13}, .y{20}},
-  {.x{12}, .y{21}},
-  {.x{11}, .y{21}},
-  {.x{10}, .y{22}},
-  {.x{9}, .y{22}},
-  {.x{8}, .y{23}},
-  {.x{7}, .y{23}},
-  {.x{6}, .y{23}},
-  {.x{5}, .y{23}},
-  {.x{4}, .y{24}},
-  {.x{3}, .y{24}},
-  {.x{2}, .y{24}},
-  {.x{1}, .y{24}},
-  {.x{0}, .y{24}},
-  {.x{-1}, .y{24}},
+  {24, -2},
+  {24, -1},
+  {24, 0},
+  {24, 1},
+  {24, 2},
+  {24, 3},
+  {24, 4},
+  {23, 5},
+  {23, 6},
+  {23, 7},
+  {23, 8},
+  {22, 9},
+  {22, 10},
+  {21, 11},
+  {21, 12},
+  {20, 13},
+  {19, 14},
+  {19, 15},
+  {18, 16},
+  {17, 17},
+  {16, 18},
+  {15, 19},
+  {14, 19},
+  {13, 20},
+  {12, 21},
+  {11, 21},
+  {10, 22},
+  {9, 22},
+  {8, 23},
+  {7, 23},
+  {6, 23},
+  {5, 23},
+  {4, 24},
+  {3, 24},
+  {2, 24},
+  {1, 24},
+  {0, 24},
+  {-1, 24},
 }};
 
 inline std::array<std::uint8_t, 3> constexpr ring_steps{146, 255, 205};

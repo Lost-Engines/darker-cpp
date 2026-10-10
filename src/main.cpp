@@ -403,7 +403,7 @@ auto main(int const argc, char const *const argv[])->int {
       .column{camera.position.column}, .row{camera.position.row}, .column_fraction{camera.fractions.column}, .row_fraction{camera.fractions.row},
       .altitude{std::bit_cast<std::int16_t>(camera.position.height)},
       .angles{camera.angles},
-      .origin{.x{160}, .y{static_cast<std::int16_t>(height / 2)}}, .bottom{height},
+      .origin{160, static_cast<std::int16_t>(height / 2)}, .bottom{height},
     };
     combat->targeting_basis = darker::maths::make_view_basis(view.angles);
     view.underground = host.player.tunnel.has_value();
@@ -460,10 +460,10 @@ auto main(int const argc, char const *const argv[])->int {
       instruments[3] = combat->skimma.reserves;
     }
     for(std::size_t i{0}; i < components.size(); ++i) darker::graphics::update_instrument(cache, display, type, i, 0, instruments[i]);
-    darker::graphics::copy_rectangle(world.pixels, display.pixels, {.x{0}, .y{0}}, {.x{0}, .y{cockpit_visible && caero ? 8 : 0}}, 320, height);
+    darker::graphics::copy_rectangle(world.pixels, display.pixels, {0, 0}, {0, cockpit_visible && caero ? 8 : 0}, 320, height);
     auto const grid{darker::game::beacon_grid_coordinates({host.player.pose().position.column,host.player.pose().position.row})};
     darker::graphics::radar_view_state const navigation{
-      .player{.x{view.column}, .y{view.row}}, .heading{view.angles.heading},
+      .player{view.column, view.row}, .heading{view.angles.heading},
       .row{host.player.tunnel ? uint8_t{0} : grid[1]}, .column{host.player.tunnel ? uint8_t{0} : grid[0]},
     };
     bool const sights_visible{!watched && (cockpit_visible || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
@@ -476,7 +476,7 @@ auto main(int const argc, char const *const argv[])->int {
         bool const centred{combat->target.distance < 2};
         uint16_t const colours{static_cast<uint16_t>((combat->secondary_ready ? 0xe9f3 : 0x030c) + (centred ? 0x0606 : 0))};
         darker::graphics::draw_target_marker(display,centred ? darker::graphics::target_marker::small : darker::graphics::target_marker::large,
-          {.x{static_cast<int16_t>(160 + combat->target.horizontal)},.y{static_cast<int16_t>(sight_y + combat->target.vertical)}},
+          {static_cast<int16_t>(160 + combat->target.horizontal), static_cast<int16_t>(sight_y + combat->target.vertical)},
           static_cast<uint8_t>(colours),static_cast<uint8_t>(colours >> 8));
       }
     }
@@ -502,7 +502,7 @@ auto main(int const argc, char const *const argv[])->int {
         darker::graphics::draw_skimma_weapon_ring(cache,display,type,combat->skimma.selection,ring->radius,ring->remaining,sight_y - 2);
       }
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
-        {.x{164}, .y{static_cast<int16_t>(sight_y + combat->skimma.aim_offset)}}, 14, 14);
+        {164, static_cast<int16_t>(sight_y + combat->skimma.aim_offset)}, 14, 14);
     }
     darker::graphics::draw_missile_camera_indicator(display, clock, combat->missile_camera_enabled, watched != nullptr);
     for(size_t const channel : {1u,0u,2u}) if(auto const &message{messages[channel]}) {
@@ -511,7 +511,7 @@ auto main(int const argc, char const *const argv[])->int {
       int const x{message->alignment == darker::game::message_alignment::left ? 12
         : message->alignment == darker::game::message_alignment::right ? 308-width : (321-width)/2};
       darker::graphics::draw_message(display,font,darker::resources::font_face::compact,
-        message->text.subspan(message->offset,message->length),{.x{x},.y{231}},width,{.ink{24},.edge{18}});
+        message->text.subspan(message->offset,message->length),{x, 231},width,{.ink{24},.edge{18}});
     }
     framework::render::expand_palette(display, game_palette.colours, output);
     return count;
@@ -524,9 +524,9 @@ auto main(int const argc, char const *const argv[])->int {
     file.exceptions(std::ios::failbit | std::ios::badbit);
     file << "P6\n320 240\n255\n";
     for(auto const &pixel : output.pixels) {
-      file.put(static_cast<char>(pixel.red));
-      file.put(static_cast<char>(pixel.green));
-      file.put(static_cast<char>(pixel.blue));
+      file.put(static_cast<char>(pixel.r));
+      file.put(static_cast<char>(pixel.g));
+      file.put(static_cast<char>(pixel.b));
     }
     file.close();
     return EXIT_SUCCESS;

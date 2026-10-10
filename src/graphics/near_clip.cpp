@@ -35,13 +35,13 @@ std::int16_t intersection_coordinate(std::int32_t const value, std::int16_t cons
 
 } // namespace
 
-screen_vertex project_vertex(camera_vertex const vertex, screen_vertex const origin) {
+screen_vertex project_vertex(camera_vertex const vertex, screen_vertex const &origin) {
   /// Project a retained camera-space vertex using its whole signed depth
   auto const depth{word(vertex.depth >> 8)};
-  return {.x{divide(vertex.horizontal, depth, origin.x)}, .y{divide(vertex.vertical, depth, origin.y)}};
+  return {divide(vertex.horizontal, depth, origin.x), divide(vertex.vertical, depth, origin.y)};
 }
 
-screen_vertex near_intersection(camera_vertex const inside, camera_vertex const outside, screen_vertex const origin) {
+screen_vertex near_intersection(camera_vertex const inside, camera_vertex const outside, screen_vertex const &origin) {
   /// 22B4 searches the depth-32 crossing with ordered arithmetic halvings, retaining the native asymmetric rounding
   auto horizontal{inside.horizontal};
   auto vertical{inside.vertical};
@@ -65,14 +65,14 @@ screen_vertex near_intersection(camera_vertex const inside, camera_vertex const 
       distance = wrap(distance + depth_step);
     }
   }
-  return {.x{intersection_coordinate(horizontal, origin.x)}, .y{intersection_coordinate(vertical, origin.y)}};
+  return {intersection_coordinate(horizontal, origin.x), intersection_coordinate(vertical, origin.y)};
 }
 
-std::size_t clip_near_polygon(std::span<camera_vertex const> const vertices, screen_vertex const origin, std::span<screen_vertex> const output) {
+std::size_t clip_near_polygon(std::span<camera_vertex const> const vertices, screen_vertex const &origin, std::span<screen_vertex> const output) {
   /// 20EF emits each visible vertex then its outgoing crossing, retaining the original cyclic order
   if(vertices.empty()) return 0;
   std::size_t count{0};
-  auto const emit{[&](screen_vertex const point){
+  auto const emit{[&](screen_vertex const &point){
     if(count == output.size()) throw std::invalid_argument{"Near-clipped polygon exceeds its output buffer"};
     output[count++] = point;
   }};
@@ -88,11 +88,11 @@ std::size_t clip_near_polygon(std::span<camera_vertex const> const vertices, scr
 }
 
 std::size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertices, std::span<std::uint16_t const> const shades,
-  screen_vertex const origin, std::span<shaded_vertex> const output) {
+  screen_vertex const &origin, std::span<shaded_vertex> const output) {
   /// 2195 retains geometric halving but interpolates colour using a separate ratio of whole depths
   if(vertices.size() != shades.size()) throw std::invalid_argument{"Near polygon colour count differs from its vertices"};
   std::size_t count{0};
-  auto const emit{[&](screen_vertex const point, std::uint16_t const shade){
+  auto const emit{[&](screen_vertex const &point, std::uint16_t const shade){
     if(count == output.size()) throw std::invalid_argument{"Near shaded polygon exceeds its output buffer"};
     output[count++] = {.x{point.x}, .y{point.y}, .shade{shade}};
   }};

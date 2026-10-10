@@ -12,7 +12,7 @@ TEST_CASE("Near-plane intersections match original integer halving and saturatio
     auto const point{darker::graphics::near_intersection(
       {.horizontal{sample.inside[0]}, .vertical{sample.inside[1]}, .depth{sample.inside[2]}},
       {.horizontal{sample.outside[0]}, .vertical{sample.outside[1]}, .depth{sample.outside[2]}},
-      {.x{sample.origin[0]}, .y{sample.origin[1]}})};
+      {sample.origin[0], sample.origin[1]})};
     REQUIRE(point.x == sample.result[0]);
     REQUIRE(point.y == sample.result[1]);
     ++index;
@@ -29,7 +29,7 @@ TEST_CASE("Near model bytecode reproduces native clipped frames", "[graphics][ne
       .axes{{{.horizontal{16384}, .vertical{4096}}, {.depth{16384}}, {.vertical{16384}}}},
       .horizontal{.fraction{11}}, .vertical{.fraction{19}},
       .depth{.whole{static_cast<std::uint16_t>(sample.depth)}, .fraction{static_cast<std::uint8_t>(sample.fraction)}},
-      .origin{.x{160}, .y{84}},
+      .origin{160, 84},
     };
     darker::graphics::model_colours colours{};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);

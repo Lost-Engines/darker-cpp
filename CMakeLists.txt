@@ -21,6 +21,8 @@ include(cmake/dependencies.cmake)
 
 function(configure_first_party target)
   target_compile_features(${target} PUBLIC cxx_std_23)
+  target_include_directories(${target} PUBLIC "${PROJECT_SOURCE_DIR}")
+  target_link_libraries(${target} PUBLIC Boost::headers)
   set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
   target_compile_options(${target} PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall;-Wextra;-Wpedantic;-Wconversion>

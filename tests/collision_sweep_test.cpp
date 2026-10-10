@@ -12,7 +12,10 @@ TEST_CASE("Swept collision boxes match native intersection and impact rounding",
     auto const words{[](std::array<int, 3> const &values){
       return darker::maths::world_position{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
     }};
-    darker::game::collision_box const box{.minimum{words(sample.minimum)}, .maximum{words(sample.maximum)}};
+    auto const point{[](std::array<int, 3> const &values){
+      return vector3<std::uint16_t>{vector3<int>{values[0], values[1], values[2]}};
+    }};
+    darker::game::collision_box const box{.bounds{point(sample.minimum), point(sample.maximum)}};
     auto end{words(sample.end)};
     REQUIRE(darker::game::sweep_collision_box(box, words(sample.start), end) == sample.hit);
     CHECK(end == words(sample.result));

@@ -18,8 +18,8 @@ std::int16_t word(int const value) noexcept {
 std::size_t clip(std::span<screen_vertex const> const input, polygon_buffer &output, bool const horizontal, int const boundary, bool const maximum) {
   /// Bottom clipping anchors at the next vertex; the other planes anchor at the inside endpoint
   std::size_t count{0};
-  auto const coordinate{[horizontal](screen_vertex const point){ return horizontal ? point.x : point.y; }};
-  auto const inside{[&](screen_vertex const point){ return maximum ? coordinate(point) <= boundary : coordinate(point) >= boundary; }};
+  auto const coordinate{[horizontal](screen_vertex const &point){ return horizontal ? point.x : point.y; }};
+  auto const inside{[&](screen_vertex const &point){ return maximum ? coordinate(point) <= boundary : coordinate(point) >= boundary; }};
   for(std::size_t i{0}; i < input.size(); ++i) {
     auto const a{input[i]};
     auto const b{input[(i + 1) % input.size()]};
@@ -37,7 +37,7 @@ std::size_t clip(std::span<screen_vertex const> const input, polygon_buffer &out
     auto const quotient{static_cast<std::int32_t>(distance) * delta / divisor};
     if(quotient < -32768 || quotient > 32767) throw std::domain_error{"Polygon clipping exceeds the original signed quotient"};
     auto const interpolated{word((horizontal ? anchor.y : anchor.x) + quotient)};
-    output.at(count++) = horizontal ? screen_vertex{.x{word(boundary)}, .y{interpolated}} : screen_vertex{.x{interpolated}, .y{word(boundary)}};
+    output.at(count++) = horizontal ? screen_vertex{word(boundary), interpolated} : screen_vertex{interpolated, word(boundary)};
   }
   return count;
 }
@@ -79,7 +79,7 @@ void step_edge(edge_walker &edge) noexcept {
 
 } // namespace
 
-bool back_facing(screen_vertex const origin, screen_vertex const next, screen_vertex const previous) noexcept {
+bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_vertex const &previous) noexcept {
   /// Preserve the signed high word of the native cross product, including word differences and subtraction wrap
   auto const cross{static_cast<std::uint32_t>(word(next.x - origin.x) * word(previous.y - origin.y))
     - static_cast<std::uint32_t>(word(next.y - origin.y) * word(previous.x - origin.x))};
@@ -93,8 +93,8 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   if(vertices.size() > 256 || right < 0 || right >= 320 || bottom <= 0 || bottom > 240) {
     throw std::invalid_argument{"Flat polygon exceeds the supported vertex or viewport bounds"};
   }
-  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const a, auto const b){ return a.x < b.x; })};
-  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const a, auto const b){ return a.y < b.y; })};
+  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){ return a.x < b.x; })};
+  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){ return a.y < b.y; })};
   if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
   auto const index{static_cast<std::size_t>(top - vertices.begin())};
   auto const next{vertices[(index + 1) % vertices.size()]};
@@ -111,8 +111,8 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
     if(count < 3) return;
   }
   auto const points{std::span{first}.first(count)};
-  auto const first_point{std::min_element(points.begin(), points.end(), [](auto const a, auto const b){ return a.y < b.y; })};
-  auto const last_point{std::max_element(points.begin(), points.end(), [](auto const a, auto const b){ return a.y < b.y; })};
+  auto const first_point{std::min_element(points.begin(), points.end(), [](auto const &a, auto const &b){ return a.y < b.y; })};
+  auto const last_point{std::max_element(points.begin(), points.end(), [](auto const &a, auto const &b){ return a.y < b.y; })};
   auto const start{static_cast<std::size_t>(first_point - points.begin())};
   edge_walker left_edge{.index{start}, .direction{-1}, .end_y{first_point->y}};
   edge_walker right_edge{.index{start}, .end_y{first_point->y}};

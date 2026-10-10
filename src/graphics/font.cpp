@@ -5,7 +5,7 @@
 namespace darker::graphics {
 
 std::uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
-  resources::font_face const face, std::uint8_t const code, pixel_position const position, text_colours const colours) {
+  resources::font_face const face, std::uint8_t const code, pixel_position const &position, text_colours const colours) {
   /// Translate E1FE's planar coverage and foreground/shadow pattern to indexed pixels without antialiasing
   unsigned int const phase{static_cast<std::uint16_t>(position.x) & 3u};
   auto const glyph{font.glyph(face, code, phase)};
@@ -24,7 +24,7 @@ std::uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target,
 }
 
 void draw_message(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
-  resources::font_face const face, std::span<std::byte const> const text, pixel_position const position,
+  resources::font_face const face, std::span<std::byte const> const text, pixel_position const &position,
   uint16_t const width, text_colours const colours) {
   /// B221 clears a nine-row backing strip with three-pixel side margins before drawing the counted glyphs
   if(width < 2) return;
@@ -37,10 +37,11 @@ void draw_message(framework::render::indexed_cockpit_framebuffer &target, resour
 }
 
 std::uint16_t draw_text(framework::render::indexed_cockpit_framebuffer &target, resources::font_resource const &font,
-  resources::font_face const face, std::span<std::byte const> const text, pixel_position position, text_colours const colours) {
+  resources::font_face const face, std::span<std::byte const> const text, pixel_position const &position, text_colours const colours) {
   /// Counted message payloads contain glyph codes; their length and timing belong to the script consumer
-  for(auto const byte : text) position.x = std::bit_cast<std::int16_t>(draw_glyph(target, font, face, std::to_integer<std::uint8_t>(byte), position, colours));
-  return static_cast<std::uint16_t>(position.x);
+  auto cursor{position};
+  for(auto const byte : text) cursor.x = std::bit_cast<std::int16_t>(draw_glyph(target, font, face, std::to_integer<std::uint8_t>(byte), cursor, colours));
+  return static_cast<std::uint16_t>(cursor.x);
 }
 
 } // namespace darker::graphics

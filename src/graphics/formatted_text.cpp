@@ -22,7 +22,7 @@ private:
   void glyph(std::uint8_t const code) {
     /// Record original coordinates and colour tokens; palette translation remains the drawing consumer's job
     auto &cursor{page.cursor};
-    page.glyphs.push_back({.position{.x{std::bit_cast<std::int16_t>(cursor.x)}, .y{std::bit_cast<std::int16_t>(cursor.y)}}, .colour{cursor.colour}, .code{code}});
+    page.glyphs.push_back({.position{std::bit_cast<std::int16_t>(cursor.x), std::bit_cast<std::int16_t>(cursor.y)}, .colour{cursor.colour}, .code{code}});
     cursor.x = static_cast<std::uint16_t>(cursor.x + font.glyph(face, code).advance);
   }
 

@@ -259,14 +259,14 @@ void player::draw(framework::render::cockpit_framebuffer &output, std::array<int
   for(size_t const channel : {1u,0u,2u}) {
     auto const &caption{captions[channel]};
     if(ticks >= caption.expiry) continue;
-    graphics::draw_message(frame,font,face,caption.text,{.x{caption.x},.y{caption_y}},caption.width,
+    graphics::draw_message(frame,font,face,caption.text,{caption.x, caption_y},caption.width,
       {.ink{static_cast<uint8_t>(caption_colours >> 8)},.edge{static_cast<uint8_t>(caption_colours)}});
   }
   // DA75 selects a hover bit below row 225, split at columns 284 and 302; DA48 selects its palette pair.
   auto const hover{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 4 : 1) : 0};
-  if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{.x{305},.y{226}},
+  if(input_policy & 1) graphics::draw_glyph(frame,font,face,62,{305, 226},
     {.ink{static_cast<uint8_t>(hover == 1 ? 253 : 255)},.edge{static_cast<uint8_t>(hover == 1 ? 252 : 254)}});
-  if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{.x{287},.y{226}},
+  if(input_policy & 4) graphics::draw_glyph(frame,font,face,60,{287, 226},
     {.ink{static_cast<uint8_t>(hover == 4 ? 253 : 255)},.edge{static_cast<uint8_t>(hover == 4 ? 252 : 254)}});
   framework::render::expand_palette(frame,colours.colours,output);
 }

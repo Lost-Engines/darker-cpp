@@ -7,7 +7,7 @@
 namespace darker::graphics {
 
 void copy_rectangle(std::span<std::uint8_t const> const source, std::span<std::uint8_t> const target,
-  pixel_position const source_origin, pixel_position const destination, int const width, int const height) {
+  pixel_position const &source_origin, pixel_position const &destination, int const width, int const height) {
   /// Copy opaque indices, clipping both surfaces without shifting their correspondence
   if(source.size() % 320 || target.size() % 320 || source.size() > 320 * 240 || target.size() > 320 * 240) {
     throw std::invalid_argument{"blit surfaces must contain complete 320-pixel rows, at most 240"};
@@ -30,7 +30,7 @@ void copy_rectangle(std::span<std::uint8_t const> const source, std::span<std::u
 }
 
 void copy_mask(std::span<std::uint8_t const> const source, std::span<std::uint8_t> const target,
-  pixel_position const source_origin, pixel_position const destination, std::span<mask_row const> const rows) {
+  pixel_position const &source_origin, pixel_position const &destination, std::span<mask_row const> const rows) {
   /// Each row's skip is relative to the common origin, not to the preceding row
   if(rows.size() > 240 || source_origin.x < -320 || source_origin.x > 320 || destination.x < -320 || destination.x > 320
     || source_origin.y < -240 || source_origin.y > 240 || destination.y < -240 || destination.y > 240) {
@@ -38,8 +38,8 @@ void copy_mask(std::span<std::uint8_t const> const source, std::span<std::uint8_
   }
   for(std::size_t y{0}; y < rows.size(); ++y) {
     auto const &row{rows[y]};
-    copy_rectangle(source, target, {.x{source_origin.x + row.skip}, .y{source_origin.y + static_cast<int>(y)}},
-      {.x{destination.x + row.skip}, .y{destination.y + static_cast<int>(y)}}, row.width, 1);
+    auto const offset{pixel_position{row.skip, static_cast<int>(y)}};
+    copy_rectangle(source, target, source_origin + offset, destination + offset, row.width, 1);
   }
 }
 

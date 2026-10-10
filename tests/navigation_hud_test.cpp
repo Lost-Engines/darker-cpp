@@ -29,8 +29,8 @@ TEST_CASE("Every compass phase matches original-code pixel captures") {
 
 TEST_CASE("Normal radar projection matches all captured headings, clipping and group colours") {
   for(auto const &sample : darker::test_reference::radar) {
-    auto const actual{darker::graphics::project_radar_contact({.x{60 * 256}, .y{60 * 256}}, sample.heading,
-      {.position{.x{static_cast<std::uint16_t>((60 + sample.x) * 256)}, .y{static_cast<std::uint16_t>((60 + sample.y) * 256)}}, .group{sample.group}})};
+    auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
+      {.position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)}, .group{sample.group}})};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.pixel->position.x);
@@ -41,8 +41,8 @@ TEST_CASE("Normal radar projection matches all captured headings, clipping and g
 }
 
 TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw order") {
-  darker::graphics::world_position const player{.x{0}, .y{0}};
-  darker::graphics::radar_contact contact{.position{player}, .group{darker::graphics::radar_group::a}, .hidden{true}};
+  darker::graphics::world_position const player{0, 0};
+  darker::graphics::radar_contact contact{.position{darker::graphics::world_position{player}}, .group{darker::graphics::radar_group::a}, .hidden{true}};
   REQUIRE_FALSE(darker::graphics::project_radar_contact(player, 0, contact));
   contact.hidden = false;
   contact.covered = false;
@@ -50,7 +50,7 @@ TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw ord
   contact.covered = true;
   framework::render::indexed_cockpit_framebuffer screen;
   screen.pixels.fill(99);
-  std::array<darker::graphics::radar_contact, 2> const contacts{{contact, {.position{player}, .group{darker::graphics::radar_group::b}}}};
+  std::array<darker::graphics::radar_contact, 2> const contacts{{contact, {.position{darker::graphics::world_position{player}}, .group{darker::graphics::radar_group::b}}}};
   darker::graphics::draw_radar_contacts(screen, player, 0, contacts);
   REQUIRE(screen.pixels[215 * 320 + 54] == 242);
   REQUIRE(screen.pixels[215 * 320 + 55] == 99);
@@ -90,7 +90,7 @@ TEST_CASE("Radar retains fractional positions and native word wrapping at world 
     {.player{0, 0}, .contact{60159, 511}, .heading{65535}, .expected{}},
   }};
   for(auto const &sample : samples) {
-    auto const actual{darker::graphics::project_radar_contact(sample.player, sample.heading, {.position{sample.contact}, .group{darker::graphics::radar_group::a}})};
+    auto const actual{darker::graphics::project_radar_contact(sample.player, sample.heading, {.position{darker::graphics::world_position{sample.contact}}, .group{darker::graphics::radar_group::a}})};
     REQUIRE(actual.has_value() == sample.expected.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.expected->position.x);
@@ -127,8 +127,8 @@ TEST_CASE("Enlarged radar disc and heading match all 256 captured native surroun
 
 TEST_CASE("Enlarged contact scale, clipping and palette colours match native captures") {
   for(auto const &sample : darker::test_reference::enlarged_radar) {
-    auto const actual{darker::graphics::project_radar_contact({.x{60 * 256}, .y{60 * 256}}, sample.heading,
-      {.position{.x{static_cast<std::uint16_t>((60 + sample.x) * 256)}, .y{static_cast<std::uint16_t>((60 + sample.y) * 256)}}, .group{sample.group}}, darker::graphics::radar_scale::enlarged)};
+    auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
+      {.position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)}, .group{sample.group}}, darker::graphics::radar_scale::enlarged)};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(actual) {
       REQUIRE(actual->position.x == sample.pixel->position.x);
@@ -143,7 +143,7 @@ TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and al
   for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
   for(auto const &sample : darker::test_reference::heights) {
     auto target{cache};
-    darker::graphics::draw_navigation_contact(cache, target, {.x{156 + sample.alignment}, .y{81}}, sample.height, sample.reference);
+    darker::graphics::draw_navigation_contact(cache, target, {156 + sample.alignment, 81}, sample.height, sample.reference);
     std::uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
     REQUIRE(checksum == sample.checksum);
@@ -153,8 +153,8 @@ TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and al
 TEST_CASE("Underground radar shares the grey contact ramp for every actor group") {
   /// 5876 selects 5C04 instead of the 5BFE/5C01 coloured entries; only the base colour changes
   for(auto const &sample : darker::test_reference::radar) {
-    auto const actual{darker::graphics::project_radar_contact({.x{60*256},.y{60*256}},sample.heading,
-      {.position{.x{static_cast<uint16_t>((60+sample.x)*256)},.y{static_cast<uint16_t>((60+sample.y)*256)}},
+    auto const actual{darker::graphics::project_radar_contact({60*256, 60*256},sample.heading,
+      {.position{static_cast<uint16_t>((60+sample.x)*256), static_cast<uint16_t>((60+sample.y)*256)},
         .group{darker::graphics::radar_group::underground}})};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
     if(!actual) continue;

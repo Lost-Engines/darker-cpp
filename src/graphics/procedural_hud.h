@@ -27,6 +27,6 @@ attitude_line calculate_attitude(std::uint16_t pitch_index, std::uint16_t roll_i
   std::int8_t pitch_high, bool alternate_colour, int centre_y = 92);
 void draw_attitude_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t colour_parameter, int centre_y = 92);
 void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
-  target_marker marker, pixel_position centre, std::uint8_t upper_colour, std::uint8_t lower_colour);
+  target_marker marker, pixel_position const &centre, std::uint8_t upper_colour, std::uint8_t lower_colour);
 
 } // namespace darker::graphics

@@ -41,7 +41,7 @@ TEST_CASE("Grid coordinate glyphs match native signed-byte and divide-by-nine bo
   for(auto const &sample : samples) {
     auto target{cache};
     target.pixels.fill(99);
-    darker::graphics::draw_grid_coordinate(cache, target, {.x{44}, .y{185}}, sample.encoded);
+    darker::graphics::draw_grid_coordinate(cache, target, {44, 185}, sample.encoded);
     for(unsigned int row{185}; row < 190; ++row) {
       for(unsigned int x{44}; x < 52; ++x) REQUIRE(target.pixels[row * 320 + x] == (x < 48 ? sample.tens : sample.units));
     }
@@ -127,7 +127,7 @@ TEST_CASE("Large coordinate font uses blank glyphs for unavailable coordinates")
   }
   for(auto const encoded : {0, 1, 82, 127, 128, 255}) {
     auto target{cache};
-    darker::graphics::draw_grid_coordinate(cache, target, {.x{56}, .y{41}}, static_cast<std::uint8_t>(encoded), darker::graphics::coordinate_font::large);
+    darker::graphics::draw_grid_coordinate(cache, target, {56, 41}, static_cast<std::uint8_t>(encoded), darker::graphics::coordinate_font::large);
     auto const tens{target.pixels[41 * 320 + 56]};
     auto const units{target.pixels[47 * 320 + 71]};
     if(encoded == 0 || encoded >= 128) {

@@ -14,9 +14,11 @@ void put_pixel(framework::render::indexed_cockpit_framebuffer &target, int const
 } // namespace
 
 void draw_screen_line(framework::render::indexed_cockpit_framebuffer &target,
-  pixel_position first, pixel_position last, std::uint8_t const colour) {
+  pixel_position const &start, pixel_position const &end, std::uint8_t const colour) {
   /// A77B draws clipped endpoints with its original half-open vertical coverage
-  auto const inside{[](pixel_position const point){ return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y <= 240; }};
+  auto first{start};
+  auto last{end};
+  auto const inside{[](pixel_position const &point){ return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y <= 240; }};
   if(!inside(first) || !inside(last)) throw std::invalid_argument{"Line endpoints exceed the display boundary"};
   if(first.x >= last.x) std::swap(first, last);
   int const width{last.x - first.x + 1};
@@ -93,13 +95,15 @@ bool clip_world_line(pixel_position &first, pixel_position &last, int const bott
   return first.y != bottom || last.y < bottom;
 }
 
-void draw_world_line(framework::render::indexed_cockpit_framebuffer &target, pixel_position first, pixel_position last,
+void draw_world_line(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &start, pixel_position const &end,
   std::uint8_t const colour, int const bottom) {
   /// Share the original line rasteriser with the HUD after the model line's viewport clipping
+  auto first{start};
+  auto last{end};
   if(clip_world_line(first, last, bottom)) draw_screen_line(target, first, last, colour);
 }
 
-void draw_disc(framework::render::indexed_cockpit_framebuffer &target, pixel_position const centre, unsigned int radius,
+void draw_disc(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &centre, unsigned int radius,
   std::uint8_t const colour, int const bottom) {
   /// A5C4 constructs mirrored spans through overlapping front/back writes; preserve its small-radius asymmetry
   if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Disc viewport exceeds the framebuffer"};

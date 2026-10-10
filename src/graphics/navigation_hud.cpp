@@ -38,7 +38,7 @@ std::array<pixel_position, 5> compass_points(std::uint8_t const phase) {
   std::array<pixel_position, 5> result;
   for(std::size_t i{0}; i < result.size(); ++i) {
     auto const offset{compass_offsets[index + i]};
-    result[i] = {.x{54 + x_sign * offset.x}, .y{215 + y_sign * offset.y}};
+    result[i] = {54 + x_sign * offset.x, 215 + y_sign * offset.y};
   }
   return result;
 }
@@ -48,14 +48,14 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, std:
   auto const old_points{compass_points(previous)};
   auto const new_points{compass_points(current)};
   std::array<std::uint8_t, 5> constexpr colours{0x9e, 0x9c, 0x9c, 0x9c, 0x9e};
-  for(auto const point : old_points) target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = 0;
+  for(auto const &point : old_points) target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = 0;
   for(std::size_t i{0}; i < new_points.size(); ++i) {
     auto const point{new_points[i]};
     target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = colours[i];
   }
 }
 
-std::optional<radar_pixel> project_radar_contact(world_position const player, std::uint16_t const heading, radar_contact const contact, radar_scale const scale) {
+std::optional<radar_pixel> project_radar_contact(world_position const &player, std::uint16_t const heading, radar_contact const contact, radar_scale const scale) {
   /// 5AC9–5B55 retain byte-window rejection, signed high products and word truncation
   if(contact.group != radar_group::a && contact.group != radar_group::b && contact.group != radar_group::underground) throw std::invalid_argument{"unknown radar contact group"};
   if(scale != radar_scale::normal && scale != radar_scale::enlarged) throw std::invalid_argument{"unknown radar scale"};
@@ -71,25 +71,26 @@ std::optional<radar_pixel> project_radar_contact(world_position const player, st
   int const multiplier{scale == radar_scale::enlarged ? 3 : 1};
   int const pixel_y{signed_word(signed_word(((x * sine) >> 16) + ((y * cosine) >> 16)) * multiplier) >> 8};
   int const pixel_x{signed_word(signed_word(((x * cosine) >> 16) - ((y * sine) >> 16)) * multiplier) >> 8};
-  int const radius_squared{pixel_x * pixel_x + pixel_y * pixel_y};
+  pixel_position const offset{pixel_x, pixel_y};
+  int const radius_squared{offset.dot(offset)};
   if(scale == radar_scale::enlarged) {
     if(radius_squared >= 3965) return std::nullopt;
     int const shift{contact.group == radar_group::a ? 8 : 9};
     return radar_pixel{
-      .position{.x{73 + pixel_x}, .y{105 + pixel_y}},
+      .position{pixel_position{73, 105} + offset},
       .colour{static_cast<std::uint8_t>(7 - ((radius_squared - 3965) >> shift))},
     };
   }
   if(radius_squared > 441) return std::nullopt;
   int const base_colour{contact.group == radar_group::underground ? 22 : contact.group == radar_group::a ? 249 : 242};
   return radar_pixel{
-    .position{.x{54 + pixel_x}, .y{215 + pixel_y}},
+    .position{pixel_position{54, 215} + offset},
     .colour{static_cast<std::uint8_t>(base_colour - (radius_squared >> 5))},
   };
 }
 
 void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
-  world_position const player, std::uint16_t const heading, std::span<radar_contact const> const contacts) {
+  world_position const &player, std::uint16_t const heading, std::span<radar_contact const> const contacts) {
   /// Preserve supplied list order; coverage and allegiance decisions belong to game logic
   for(auto const &contact : contacts) {
     if(auto const pixel{project_radar_contact(player, heading, contact)}) {
@@ -100,7 +101,7 @@ void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
 
 namespace {
 
-void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target, pixel_position const anchor, std::uint8_t const colour) {
+void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &anchor, std::uint8_t const colour) {
   /// 5BE2 emits a twelve-pixel rounded diamond at anchor offsets one through four
   for(int y{1}; y <= 4; ++y) {
     bool const narrow{y == 1 || y == 4};
@@ -115,14 +116,14 @@ void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target,
 } // namespace
 
 void draw_navigation_contact(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, pixel_position const destination,
+  framework::render::indexed_cockpit_framebuffer &target, pixel_position const &destination,
   std::uint8_t const height, std::uint8_t const reference_height) {
   /// 5B92 restores an alignment-specific mask, then colours the glyph by signed byte height difference
   auto const difference{std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(height - reference_height))};
   int const half{difference >> 1};
   int const magnitude{std::min(10, half < 0 ? ~half : half)};
   auto const colour{static_cast<std::uint8_t>((half < 0 ? 183 : 151) - magnitude)};
-  copy_mask(cache.pixels, target.pixels, {.x{navigation_source_x[destination.x & 3]}, .y{8}}, destination, navigation_mask);
+  copy_mask(cache.pixels, target.pixels, {navigation_source_x[destination.x & 3], 8}, destination, navigation_mask);
   draw_contact_symbol(target, destination, colour);
 }
 
@@ -147,13 +148,10 @@ void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer
       std::fill_n(target.pixels.begin() + destination * 320 + 76 - width, width * 2, 8);
     }
   }
-  draw_contact_symbol(target, {.x{74}, .y{105}}, 139);
+  draw_contact_symbol(target, {74, 105}, 139);
   unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
-  pixel_position const end{
-    .x{76 + (maths::original_sine[angle] >> 10)},
-    .y{108 - (maths::original_sine[(angle + 256) % 1024] >> 10)},
-  };
-  draw_screen_line(target, {.x{76}, .y{108}}, end, 139);
+  pixel_position const end{76 + (maths::original_sine[angle] >> 10), 108 - (maths::original_sine[(angle + 256) % 1024] >> 10)};
+  draw_screen_line(target, {76, 108}, end, 139);
 }
 
 void draw_enlarged_radar(framework::render::indexed_cockpit_framebuffer const &cache,
@@ -165,9 +163,9 @@ void draw_enlarged_radar(framework::render::indexed_cockpit_framebuffer const &c
       draw_contact_symbol(target, pixel->position, pixel->colour);
     }
   }
-  draw_grid_coordinate(cache, target, {.x{56}, .y{41}}, view.row, coordinate_font::large);
-  copy_rectangle(cache.pixels, target.pixels, {.x{312}, .y{85}}, {.x{72}, .y{41}}, 8, 7);
-  draw_grid_coordinate(cache, target, {.x{80}, .y{41}}, view.column, coordinate_font::large);
+  draw_grid_coordinate(cache, target, {56, 41}, view.row, coordinate_font::large);
+  copy_rectangle(cache.pixels, target.pixels, {312, 85}, {72, 41}, 8, 7);
+  draw_grid_coordinate(cache, target, {80, 41}, view.column, coordinate_font::large);
 }
 
 } // namespace darker::graphics

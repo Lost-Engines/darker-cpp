@@ -16,8 +16,10 @@ void put_pixel(framework::render::indexed_cockpit_framebuffer &target, int const
 }
 
 std::size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
-  std::span<std::uint8_t const> const stream, pixel_position left, pixel_position right,
+  std::span<std::uint8_t const> const stream, pixel_position const &left_origin, pixel_position const &right_origin,
   int const left_step, int const right_step, std::uint8_t colour) {
+  auto left{left_origin};
+  auto right{right_origin};
   /// Decode the two independently advancing pixel paths shared by markers and fixed HUD outlines
   for(std::size_t cursor{0}; cursor < stream.size(); ++cursor) {
     put_pixel(target, left.x, left.y, colour);
@@ -46,7 +48,7 @@ void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &targe
     int const x{232 - static_cast<int>(i) * 8};
     if(errors[i] < 64) {
       auto const level{static_cast<std::uint8_t>(14 - ((errors[i] * 56) >> 8))};
-      draw_glyph(target,font,resources::font_face::compact,0x81,{.x{x},.y{180}},
+      draw_glyph(target,font,resources::font_face::compact,0x81,{x, 180},
         {.ink{static_cast<std::uint8_t>(level + 229)}, .edge{static_cast<std::uint8_t>(level == 1 ? 0 : level + 223)}});
     }
   }
@@ -75,14 +77,14 @@ attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t 
   int const dx{(roll_cosine * pitch_cosine) >> 16};
   int const shade{(pitch_high * (pitch_high < 0 ? -45 : 44)) >> 8};
   return {
-    .first{.x{x - dx}, .y{y + dy}},
-    .last{.x{x + dx}, .y{y - dy}},
+    .first{x - dx, y + dy},
+    .last{x + dx, y - dy},
     .colour{static_cast<std::uint8_t>((alternate_colour ? 238 : 14) + shade)},
   };
 }
 
 void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
-  target_marker const marker, pixel_position const centre, std::uint8_t const upper_colour, std::uint8_t const lower_colour) {
+  target_marker const marker, pixel_position const &centre, std::uint8_t const upper_colour, std::uint8_t const lower_colour) {
   /// 5F39 emits paired outlines; E302/E305 consume horizontal/vertical step bits
   std::span<std::uint8_t const> stream;
   switch(marker) {
@@ -97,7 +99,7 @@ void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
   for(int half{0}; half < 2; ++half) {
     int const y{centre.y + (half ? extent - 1 : -extent)};
     int const step{half ? -1 : 1};
-    cursor += draw_outline(target, stream.subspan(cursor), {.x{centre.x - 1}, .y{y}}, {.x{centre.x}, .y{y}},
+    cursor += draw_outline(target, stream.subspan(cursor), {centre.x - 1, y}, {centre.x, y},
       step, step, half ? lower_colour : upper_colour);
   }
 }
@@ -105,12 +107,12 @@ void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
 void draw_attitude_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t const colour_parameter, int const centre_y) {
   /// 5ED6 draws two fixed outlines, then a pair converging vertically around the attitude centre
   std::span<std::uint8_t const> stream{attitude_outline};
-  auto consumed{draw_outline(target, stream, {.x{159}, .y{centre_y + 57}}, {.x{160}, .y{centre_y + 57}}, -1, -1, 19)};
+  auto consumed{draw_outline(target, stream, {159, centre_y + 57}, {160, centre_y + 57}, -1, -1, 19)};
   stream = stream.subspan(consumed);
-  consumed = draw_outline(target, stream, {.x{136}, .y{centre_y - 53}}, {.x{184}, .y{centre_y - 53}}, 1, 1, 19);
+  consumed = draw_outline(target, stream, {136, centre_y - 53}, {184, centre_y - 53}, 1, 1, 19);
   stream = stream.subspan(consumed);
   auto const colour{static_cast<std::uint8_t>(234 + ((colour_parameter & 255) & (colour_parameter >> 8)))};
-  draw_outline(target, stream, {.x{160}, .y{centre_y + 11}}, {.x{160}, .y{centre_y - 11}}, -1, 1, colour);
+  draw_outline(target, stream, {160, centre_y + 11}, {160, centre_y - 11}, -1, 1, colour);
 }
 
 } // namespace darker::graphics

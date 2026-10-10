@@ -7,7 +7,7 @@
 
 namespace darker::graphics {
 
-void draw_sky_ground(framework::render::indexed_cockpit_framebuffer &target, camera_angles const angles, screen_vertex const origin, int const bottom) {
+void draw_sky_ground(framework::render::indexed_cockpit_framebuffer &target, camera_angles const angles, screen_vertex const &origin, int const bottom) {
   /// Reconstruct B409's indexed sky/ground bands using its rounded angles, integer projection and B71A colour sequence
   if(bottom < 0 || bottom > 240) throw std::invalid_argument{"Sky/ground viewport exceeds the framebuffer"};
   std::array<std::uint8_t, 17> constexpr colours{28, 29, 30, 31, 60, 61, 62, 63, 252, 92, 93, 94, 95, 124, 125, 126, 127};

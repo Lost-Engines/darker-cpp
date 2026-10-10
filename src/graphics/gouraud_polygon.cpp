@@ -129,7 +129,7 @@ void draw_gouraud_polygon(framework::render::indexed_cockpit_framebuffer &target
   if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
   auto const index{static_cast<std::size_t>(top - vertices.begin())};
   auto const next{vertices[(index + 1) % vertices.size()]}, previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
-  if(back_facing({.x{top->x}, .y{top->y}}, {.x{next.x}, .y{next.y}}, {.x{previous.x}, .y{previous.y}})) return;
+  if(back_facing({top->x, top->y}, {next.x, next.y}, {previous.x, previous.y})) return;
   polygon_buffer first{}, second{};
   std::copy(vertices.begin(), vertices.end(), first.begin());
   std::size_t count{vertices.size()};

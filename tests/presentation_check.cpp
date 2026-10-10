@@ -32,7 +32,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     caption_frame.pixels.fill(7);
     std::string const text{"Return to base."};
     darker::graphics::draw_message(caption_frame,font,static_cast<darker::resources::font_face>(sample.face),
-      std::as_bytes(std::span{text}),{.x{static_cast<int>(sample.x)},.y{static_cast<int>(sample.y)}},
+      std::as_bytes(std::span{text}),{static_cast<int>(sample.x), static_cast<int>(sample.y)},
       static_cast<uint16_t>(sample.width),{.ink{24},.edge{18}});
     uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : caption_frame.pixels) fingerprint = (fingerprint ^ pixel)*0x100000001b3;
@@ -186,7 +186,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
   auto const page{darker::graphics::lay_out_text(mission.language(0,darker::resources::scenario_language::english).subspan(269),
     font,darker::resources::font_face::wide,{.x{24},.y{154},.colour{0xfffe},.margin{8},.line_step{11}})};
   for(auto const &glyph : page.glyphs) darker::graphics::draw_glyph(expected,font,darker::resources::font_face::wide,glyph.code,glyph.position,{.ink{255},.edge{254}});
-  for(auto const x : {287,305}) darker::graphics::draw_glyph(expected,font,darker::resources::font_face::wide,x == 287 ? 60 : 62,{.x{x},.y{226}},{.ink{255},.edge{254}});
+  for(auto const x : {287,305}) darker::graphics::draw_glyph(expected,font,darker::resources::font_face::wide,x == 287 ? 60 : 62,{x, 226},{.ink{255},.edge{254}});
   framework::render::cockpit_framebuffer expected_rgb{};
   framework::render::expand_palette(expected,palette.palette.colours,expected_rgb);
   if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels}))) throw std::runtime_error{"Quotation lost inherited spacing or original advance glyphs"};
@@ -194,7 +194,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     auto hovered{expected};
     auto const glyph{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 60 : 62) : 0};
     if(glyph) darker::graphics::draw_glyph(hovered,font,darker::resources::font_face::wide,static_cast<uint8_t>(glyph),
-      {.x{glyph == 60 ? 287 : 305},.y{226}},{.ink{253},.edge{252}});
+      {glyph == 60 ? 287 : 305, 226},{.ink{253},.edge{252}});
     framework::render::expand_palette(hovered,palette.palette.colours,expected_rgb);
     quotation.draw(frame,pointer);
     if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels})))
@@ -218,7 +218,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     if(pixel.x >= 120 || y >= 226) continue;
     auto const actual{frame.pixels[y*320+pixel.x]};
     auto const colour{portrait_palette.colours[pixel.colour]};
-    if(actual.red != colour.red || actual.green != colour.green || actual.blue != colour.blue) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
+    if(actual.r != colour.r || actual.g != colour.g || actual.b != colour.b) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
   // Level 98 repeats background type 1 at D3A without another portrait blit.
   // BFE4/C007 retains the underlying portrait while replacing the text page.
@@ -233,7 +233,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
   for(size_t y{24}; y < 216; ++y) for(size_t x{16}; x < 112; ++x) {
     auto const &before{before_page.pixels[y*320+x]};
     auto const &after{frame.pixels[y*320+x]};
-    if(before.red != after.red || before.green != after.green || before.blue != after.blue)
+    if(before.r != after.r || before.g != after.g || before.b != after.b)
       throw std::runtime_error{"Repeated presentation background erased the retained portrait"};
   }
   for(uint8_t stage{2}; stage <= 16; ++stage) {
@@ -254,8 +254,8 @@ void check_presentations(darker::resources::archive_set const &archives) {
   if(!launch_clip.continue_page()) throw std::runtime_error{"Second mission has no launch clip continuation"};
   launch_clip.draw(frame);
   auto const blank{frame.pixels.front()};
-  for(auto const pixel : frame.pixels) {
-    if(pixel.red != blank.red || pixel.green != blank.green || pixel.blue != blank.blue) {
+  for(auto const &pixel : frame.pixels) {
+    if(pixel.r != blank.r || pixel.g != blank.g || pixel.b != blank.b) {
       throw std::runtime_error{"Second-mission clear-screen transition retained briefing text"};
     }
   }

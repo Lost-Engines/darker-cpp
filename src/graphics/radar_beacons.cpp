@@ -7,7 +7,7 @@
 namespace darker::graphics {
 
 void draw_radar_beacons(framework::render::indexed_cockpit_framebuffer &target, game::city_map const &cells,
-  world_position const player, uint16_t const heading, game::radar_coverage const &coverage) {
+  world_position const &player, uint16_t const heading, game::radar_coverage const &coverage) {
   /// 5898 rotates one lattice origin, then incrementally scans five rows of five tower positions
   auto const signed_word{[](int const value){ return std::bit_cast<int16_t>(static_cast<uint16_t>(value)); }};
   auto const origin{game::beacon_grid_cell({static_cast<uint16_t>(player.x - 18*256),static_cast<uint16_t>(player.y - 18*256)})};
@@ -39,7 +39,7 @@ void draw_radar_beacons(framework::render::indexed_cockpit_framebuffer &target, 
 }
 
 void draw_radar_interference(framework::render::indexed_cockpit_framebuffer &target,
-  world_position const player, uint16_t const heading, game::radar_coverage const &coverage, uint16_t &random_state) {
+  world_position const &player, uint16_t const heading, game::radar_coverage const &coverage, uint16_t &random_state) {
   /// 5941 emits seventeen candidate dots outside radio coverage, consuming the shared 92D2 sequence
   if(coverage.mask == 0x777) return;
   auto const signed_word{[](int const value){ return std::bit_cast<int16_t>(static_cast<uint16_t>(value)); }};

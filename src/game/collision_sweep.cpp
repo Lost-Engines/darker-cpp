@@ -29,11 +29,11 @@ bool sweep_collision_box(collision_box const &box, maths::world_position const &
   fraction entry{0, 1};
   fraction exit{1, 1};
   std::uint32_t impact_fraction{0};
-  for(std::size_t axis{0}; axis < 3; ++axis) {
+  for(unsigned int axis{0}; axis < 3; ++axis) {
     int const from{0};
     int const to{signed_word(static_cast<std::uint16_t>(end[axis] - start[axis]))};
-    int const lower{signed_word(static_cast<std::uint16_t>(box.minimum[axis] - start[axis]))};
-    int const upper{signed_word(static_cast<std::uint16_t>(box.maximum[axis] - start[axis]))};
+    int const lower{signed_word(static_cast<std::uint16_t>(box.bounds.min[axis] - start[axis]))};
+    int const upper{signed_word(static_cast<std::uint16_t>(box.bounds.max[axis] - start[axis]))};
     auto const minimum{std::min(from, to)};
     auto const maximum{std::max(from, to)};
     if(minimum >= upper || maximum < lower) return false;
@@ -51,7 +51,7 @@ bool sweep_collision_box(collision_box const &box, maths::world_position const &
   }
   if(less(exit, entry)) return false;
   auto const remainder{static_cast<std::uint16_t>(-impact_fraction)};
-  for(std::size_t axis{0}; axis < 3; ++axis) {
+  for(unsigned int axis{0}; axis < 3; ++axis) {
     int const from{0};
     int const to{signed_word(static_cast<std::uint16_t>(end[axis] - start[axis]))};
     auto const minimum{std::min(from, to)};

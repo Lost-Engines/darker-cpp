@@ -10,7 +10,7 @@ TEST_CASE("Gate interpolation reproduces both original projection paths", "[grap
     darker::graphics::projection_parameters const projection{
       .axes{{{.horizontal{16384}, .vertical{4096}}, {.depth{16384}}, {.vertical{16384}}}},
       .horizontal{.fraction{11}}, .vertical{.fraction{static_cast<std::uint8_t>(sample.fraction)}},
-      .depth{.whole{static_cast<std::uint16_t>(sample.depth)}, .fraction{83}}, .origin{.x{160}, .y{84}},
+      .depth{.whole{static_cast<std::uint16_t>(sample.depth)}, .fraction{83}}, .origin{160, 84},
     };
     darker::graphics::model_colours colours{};
     for(std::size_t i{0}; i < colours.shades.size(); ++i) colours.shades[i] = static_cast<std::uint8_t>(i);

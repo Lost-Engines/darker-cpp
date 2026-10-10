@@ -45,7 +45,7 @@ struct scene_object {
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool underground = false);
-std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex origin, int bottom, uint8_t residue = 0);
+std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex const &origin, int bottom, uint8_t residue = 0);
 
 struct city_view {
   std::uint16_t column{0};                                                     // original 1/256-cell position words
@@ -54,7 +54,7 @@ struct city_view {
   std::uint8_t row_fraction{0};
   std::int16_t altitude{0};
   camera_angles angles{};
-  screen_vertex origin{.x{160}, .y{84}};
+  screen_vertex origin{160, 84};
   unsigned int radius{15};                                                    // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
   int bottom{168};
   bool beacon_lighting{true};

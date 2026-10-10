@@ -31,14 +31,14 @@ TEST_CASE("City collision boxes retain signed endpoints, categories and local he
   darker::resources::geometry_bank const bank{collision_bank()};
   auto const boxes{darker::game::city_collision_boxes(bank, 1, 0, 0x20, 20, 30, 7)};
   REQUIRE(boxes.size() == 3);
-  CHECK(boxes[0].minimum == darker::maths::world_position{5225, 7729, 57});
-  CHECK(boxes[0].maximum == darker::maths::world_position{5272, 7760, 199});
+  CHECK(boxes[0].bounds.min == vector3<std::uint16_t>{5225, 7729, 57});
+  CHECK(boxes[0].bounds.max == vector3<std::uint16_t>{5272, 7760, 199});
   CHECK(boxes[0].category == 2);
-  CHECK(boxes[1].minimum[2] == 345);
-  CHECK(boxes[1].maximum[2] == 887);
+  CHECK(boxes[1].bounds.min[2] == 345);
+  CHECK(boxes[1].bounds.max[2] == 887);
   CHECK(boxes[1].category == 3);
-  CHECK(boxes[2].minimum[2] == 57);
-  CHECK(boxes[2].maximum[2] == 103);
+  CHECK(boxes[2].bounds.min[2] == 57);
+  CHECK(boxes[2].bounds.max[2] == 103);
 }
 
 TEST_CASE("City collision decoding rejects missing stream data and respects non-colliding types", "[game][collision]") {

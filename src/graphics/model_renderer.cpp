@@ -59,7 +59,7 @@ private:
     return static_cast<std::size_t>(destination);
   }
 
-  screen_vertex vertex(std::uint8_t const index) const {
+  screen_vertex const &vertex(std::uint8_t const index) const {
     /// Reject references to vertices not emitted by this model invocation
     if(!defined[index]) throw std::invalid_argument{"Model face references an undefined vertex"};
     return vertices[index];
@@ -162,7 +162,7 @@ public:
           if(path == model_path::near_clipped && depth < 32) break;
           if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
           auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : vertices[cursor]};
-          draw_disc(target, {.x{point.x}, .y{point.y}}, radius / static_cast<std::uint16_t>(depth), index, bottom);
+          draw_disc(target, {point.x, point.y}, radius / static_cast<std::uint16_t>(depth), index, bottom);
         }
         break;
       case 0x1e:
@@ -181,7 +181,7 @@ public:
           } else {
             first = vertices[a]; last = vertices[b];
           }
-          draw_world_line(target, {.x{first.x}, .y{first.y}}, {.x{last.x}, .y{last.y}}, index, bottom);
+          draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, bottom);
         }
         break;
       case 0x3e:

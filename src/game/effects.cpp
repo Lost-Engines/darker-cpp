@@ -74,7 +74,7 @@ void effect_system::spawn(uint16_t const recipe, maths::world_position const pos
       .sampling{source.sampling}, .radius_rate{source.radius_rate}, .height_rate{source.height_rate},
       .angle_rate{source.angle_rate}, .flags{source.flags},
     };
-    for(size_t axis{0}; axis < 3; ++axis) emitter.position[axis] = static_cast<uint16_t>(emitter.position[axis] + source.offset[axis]);
+    for(unsigned int axis{0}; axis < 3; ++axis) emitter.position[axis] = static_cast<uint16_t>(emitter.position[axis] + source.offset[axis]);
     if(emitters.size() == 25) emitters.erase(emitters.begin());
     emitters.push_back(emitter);
   }

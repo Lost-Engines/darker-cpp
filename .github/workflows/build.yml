@@ -9,7 +9,7 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
-      - 'third_party/**'
+      - 'vectorstorm/**'
       - 'scripts/**'
       - 'tools/**'
       - '.github/workflows/**'
@@ -48,7 +48,7 @@ jobs:
               base=$(git hash-object -t tree /dev/null)
             fi
             git cat-file -e "${base}^{tree}"
-            if ! git diff --quiet "$base" "$GITHUB_SHA" -- src CMakeLists.txt cmake ':!cmake/package.cmake'; then
+            if ! git diff --quiet "$base" "$GITHUB_SHA" -- src vectorstorm CMakeLists.txt cmake ':!cmake/package.cmake'; then
               release=true
             fi
           fi

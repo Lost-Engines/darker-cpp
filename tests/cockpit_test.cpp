@@ -23,15 +23,15 @@ TEST_CASE("Opaque blits clip source and destination together, including zero ind
   target.fill(99);
   source[0] = 10;
   source[1] = 20;
-  darker::graphics::copy_rectangle(source, target, {.x{-1}, .y{0}}, {.x{318}, .y{0}}, 4, 1);
+  darker::graphics::copy_rectangle(source, target, {-1, 0}, {318, 0}, 4, 1);
   REQUIRE(target[318] == 99);
   REQUIRE(target[319] == 10);
   REQUIRE(target[320] == 99);
-  darker::graphics::copy_rectangle(source, target, {.x{1}, .y{0}}, {.x{-1}, .y{1}}, 3, 1);
+  darker::graphics::copy_rectangle(source, target, {1, 0}, {-1, 1}, 3, 1);
   REQUIRE(target[320] == 0);
   REQUIRE(target[321] == 0);
   REQUIRE(target[322] == 99);
-  REQUIRE_THROWS(darker::graphics::copy_rectangle(source, target, {.x{0}, .y{0}}, {.x{0}, .y{0}}, -1, 1));
+  REQUIRE_THROWS(darker::graphics::copy_rectangle(source, target, {0, 0}, {0, 0}, -1, 1));
 }
 
 TEST_CASE("Mask row skips are independent and uncovered pixels are preserved") {
@@ -40,7 +40,7 @@ TEST_CASE("Mask row skips are independent and uncovered pixels are preserved") {
   std::array<std::uint8_t, 640> target;
   target.fill(99);
   std::array<darker::graphics::mask_row, 2> const mask{{{.skip{2}, .width{2}}, {.skip{0}, .width{1}}}};
-  darker::graphics::copy_mask(source, target, {.x{0}, .y{0}}, {.x{10}, .y{0}}, mask);
+  darker::graphics::copy_mask(source, target, {0, 0}, {10, 0}, mask);
   REQUIRE(target[11] == 99);
   REQUIRE(target[12] == 7);
   REQUIRE(target[13] == 7);

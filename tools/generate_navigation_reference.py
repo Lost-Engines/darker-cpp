@@ -23,7 +23,7 @@ def main():
     assert len(compass) == 136
     for phase, frame in enumerate(compass):
         assert phase == frame['phase']
-        lines.append('  {{' + ', '.join(f'{{.x{{{p["x"]}}}, .y{{{p["y"]}}}}}' for p in frame['draw']) + '}},')
+        lines.append('  {{' + ', '.join(f'{{{p["x"]}, {p["y"]}}}' for p in frame['draw']) + '}},')
     lines += ['}};', '', 'struct radar_sample {', '  std::uint16_t heading;', '  int x;', '  int y;',
               '  graphics::radar_group group;', '  std::optional<graphics::radar_pixel> pixel;', '};', '',
               f'inline std::array<radar_sample, {len(radar)}> const radar{{{{']
@@ -33,7 +33,7 @@ def main():
         if sample['points']:
             assert len(sample['points']) == 1
             x, y, colour = sample['points'][0]
-            pixel = f'{{graphics::radar_pixel{{.position{{.x{{{x}}}, .y{{{y}}}}}, .colour{{{colour}}}}}}}'
+            pixel = f'{{graphics::radar_pixel{{.position{{{x}, {y}}}, .colour{{{colour}}}}}}}'
         lines.append(f'  {{.heading{{{sample["heading"]}}}, .x{{{sample["x"]}}}, .y{{{sample["y"]}}}, .group{{graphics::radar_group::{group}}}, .pixel{pixel}}},')
     lines += ['}};', '', 'struct skimma_sample {', '  bool bearing;', '  unsigned int index;',
               '  std::uint8_t state;', '  std::uint64_t checksum;', '};', '']
@@ -97,7 +97,7 @@ def main():
         pixel = '{}'
         if points:
             px, py, colour = points[0]
-            pixel = f'{{graphics::radar_pixel{{.position{{.x{{{px}}}, .y{{{py+8}}}}}, .colour{{{colour}}}}}}}'
+            pixel = f'{{graphics::radar_pixel{{.position{{{px}, {py+8}}}, .colour{{{colour}}}}}}}'
         group = 'a' if kind == 0 else 'b'
         lines.append(f'  {{.heading{{{heading}}}, .x{{{x}}}, .y{{{y}}}, .group{{graphics::radar_group::{group}}}, .pixel{pixel}}},')
     lines += ['}};', '', 'struct height_sample {', '  std::uint8_t height;', '  std::uint8_t reference;',

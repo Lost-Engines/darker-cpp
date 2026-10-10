@@ -1,6 +1,7 @@
 #include "graphics/camera.h"
 #include <bit>
 #include "maths/sine_table.h"
+#include "vectorstorm/matrix/matrix3.h"
 
 namespace darker::graphics {
 namespace {
@@ -42,16 +43,16 @@ camera_basis orient_model(camera_basis const &camera, camera_angles const angles
   auto const rs{maths::original_sine[roll]}, rc{maths::original_sine[(roll + 256) % 1024]};
   auto const hsrs{multiply(hs, rs)}, hcrs{multiply(hc, rs)};
   auto const hsrc{multiply(hs, rc)}, hcrc{multiply(hc, rc)};
-  std::array<std::array<std::int16_t, 3>, 3> const axes{{
-    {multiply(hc, pc), multiply(hs, pc), ps},
-    {word(multiply(ps, hcrs) - hsrc), word(hcrc + multiply(ps, hsrs)), word(-multiply(rs, pc))},
-    {word(-word(multiply(ps, hcrc) + hsrs)), word(hcrs - multiply(ps, hsrc)), multiply(rc, pc)},
-  }};
+  matrix3<std::int16_t> const axes{
+    multiply(hc, pc), multiply(hs, pc), ps,
+    word(multiply(ps, hcrs) - hsrc), word(hcrc + multiply(ps, hsrs)), word(-multiply(rs, pc)),
+    word(-word(multiply(ps, hcrc) + hsrs)), word(hcrs - multiply(ps, hsrc)), multiply(rc, pc),
+  };
   camera_basis result;
-  for(std::size_t i{0}; i < axes.size(); ++i) {
+  for(unsigned int i{0}; i < 3; ++i) {
     auto const project{[&](std::int16_t projection_axis::*const member){
       std::uint32_t sum{0};
-      for(std::size_t j{0}; j < axes[i].size(); ++j) sum += static_cast<std::uint32_t>(axes[i][j] * (camera[j].*member));
+      for(unsigned int j{0}; j < 3; ++j) sum += static_cast<std::uint32_t>(axes[i, j] * (camera[j].*member));
       return word(static_cast<int>(sum >> 15));
     }};
     result[i] = {.horizontal{project(&projection_axis::horizontal)}, .vertical{project(&projection_axis::vertical)}, .depth{project(&projection_axis::depth)}};

@@ -52,7 +52,7 @@ TEST_CASE("Target bytecode reproduces native geometry and per-step colour change
   std::array<target_marker, 3> const markers{target_marker::small, target_marker::large, target_marker::skimma_aim};
   for(std::size_t i{0}; i < markers.size(); ++i) {
     framework::render::indexed_cockpit_framebuffer frame{};
-    darker::graphics::draw_target_marker(frame, markers[i], {.x{160}, .y{84}}, i == 2 ? 14 : 243, i == 2 ? 14 : 233);
+    darker::graphics::draw_target_marker(frame, markers[i], {160, 84}, i == 2 ? 14 : 243, i == 2 ? 14 : 233);
     REQUIRE(checksum(frame) == darker::test_reference::markers[i]);
   }
 }

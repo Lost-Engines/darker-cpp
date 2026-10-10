@@ -52,7 +52,7 @@ def main():
         pixels = bytearray(320 * 240)
         for x, y, length in native_line([first, last]):
             pixels[y*320+x:y*320+x+length] = bytes([14]) * length
-        lines.append(f'  {{.first{{.x{{{first[0]}}}, .y{{{first[1]}}}}}, .last{{.x{{{last[0]}}}, .y{{{last[1]}}}}}, .checksum{{0x{checksum(pixels):016x}ULL}}}},')
+        lines.append(f'  {{.first{{{first[0]}, {first[1]}}}, .last{{{last[0]}, {last[1]}}}, .checksum{{0x{checksum(pixels):016x}ULL}}}},')
     lines += ['}};', '', 'struct endpoint_sample {', '  std::uint16_t pitch;', '  std::uint16_t roll;',
               '  std::int8_t pitch_high;', '  bool alternate;', '  graphics::attitude_line line;', '};', '',
               'inline std::array<endpoint_sample, 12> constexpr endpoints{{']
@@ -62,7 +62,7 @@ def main():
         value = Attitude().draw(pitch, roll, high, mode)
         first, last = value['points']
         lines.append(f'  {{.pitch{{{pitch}}}, .roll{{{roll}}}, .pitch_high{{{high}}}, .alternate{{{str(bool(mode)).lower()}}}, '
-                     f'.line{{.first{{.x{{{first[0]}}}, .y{{{first[1]+8}}}}}, .last{{.x{{{last[0]}}}, .y{{{last[1]+8}}}}}, .colour{{{value["colour"]}}}}}}},')
+                     f'.line{{.first{{{first[0]}, {first[1]+8}}}, .last{{{last[0]}, {last[1]+8}}}, .colour{{{value["colour"]}}}}}}},')
     lines += ['}};', '']
     pixels = bytearray(320 * 240)
     for x, y, colour in data['attitude']['overlay']:

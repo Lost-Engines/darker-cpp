@@ -21,9 +21,9 @@ framework::render::colour_palette fade_palette(framework::render::colour_palette
   auto result{colours};
   auto const gain{palette_fade_gain(phase)};
   for(auto &colour : result) {
-    colour.red = static_cast<uint8_t>(palette_dac_component(colour.red,gain)*4);
-    colour.green = static_cast<uint8_t>(palette_dac_component(colour.green,gain)*4);
-    colour.blue = static_cast<uint8_t>(palette_dac_component(colour.blue,gain)*4);
+    colour.r = static_cast<uint8_t>(palette_dac_component(colour.r,gain)*4);
+    colour.g = static_cast<uint8_t>(palette_dac_component(colour.g,gain)*4);
+    colour.b = static_cast<uint8_t>(palette_dac_component(colour.b,gain)*4);
   }
   return result;
 }
@@ -41,9 +41,9 @@ palette_update decode_palette(std::span<std::byte const> const data, palette_sta
     } else {
       if(data.size() - position < 2) throw std::runtime_error{"truncated palette colour"};
       previous.colours[index] = {
-        .red{value},
-        .green{std::to_integer<std::uint8_t>(data[position])},
-        .blue{std::to_integer<std::uint8_t>(data[position + 1])},
+        value,
+        std::to_integer<std::uint8_t>(data[position]),
+        std::to_integer<std::uint8_t>(data[position + 1]),
       };
       previous.defined.set(index++);
       position += 2;

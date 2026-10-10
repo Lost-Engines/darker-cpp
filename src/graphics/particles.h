@@ -15,7 +15,7 @@ struct particle_point {
 };
 
 std::vector<particle_point> project_emitter(game::particle_emitter const &emitter, model_placement centre,
-  camera_basis const &basis, screen_vertex origin);
+  camera_basis const &basis, screen_vertex const &origin);
 void draw_particle(framework::render::indexed_cockpit_framebuffer &target,
   framework::render::indexed_cockpit_framebuffer const &sheet, particle_point point, uint8_t phase, int bottom);
 

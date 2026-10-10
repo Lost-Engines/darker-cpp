@@ -33,14 +33,14 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   for(size_t i{0}; i < 128; ++i) {
     auto const source{menu_palette.colours[i]};
     menu_palette.colours[i+128] = {
-      .red{static_cast<uint8_t>((8+graphics::palette_dac_component(source.red,24))*4)},
-      .green{static_cast<uint8_t>((9+graphics::palette_dac_component(source.green,25))*4)},
-      .blue{static_cast<uint8_t>((9+graphics::palette_dac_component(source.blue,26))*4)},
+      static_cast<uint8_t>((8+graphics::palette_dac_component(source.r,24))*4),
+      static_cast<uint8_t>((9+graphics::palette_dac_component(source.g,25))*4),
+      static_cast<uint8_t>((9+graphics::palette_dac_component(source.b,26))*4),
     };
   }
   load_image(archives,{0,14},title_background,title_palette,280,100,16,65);
   std::array<std::byte,2> constexpr trademark{std::byte{'T'},std::byte{'M'}};
-  graphics::draw_text(title_background,font,resources::font_face::compact,trademark,{.x{256},.y{84}},{.ink{129},.edge{130}});
+  graphics::draw_text(title_background,font,resources::font_face::compact,trademark,{256, 84},{.ink{129},.edge{130}});
   credits_background = menu_background;
   auto const logo{archives.load({0,28})};
   if(logo.size() != 80*17) throw std::invalid_argument{"Unexpected credits logo size"};
@@ -397,7 +397,7 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   auto frame{menu_background};
   auto const text{[&](std::string_view const value, int const x, int const y, uint8_t const colour = 125){
     graphics::draw_text(frame,font,resources::font_face::interface,std::as_bytes(std::span{value}),
-      {.x{static_cast<int16_t>(x)},.y{static_cast<int16_t>(y)}},{.ink{colour},.edge{0}});
+      {static_cast<int16_t>(x), static_cast<int16_t>(y)},{.ink{colour},.edge{0}});
   }};
   auto const centred{[&](std::string_view const value, int const y, uint8_t const colour){
     unsigned int width{0};

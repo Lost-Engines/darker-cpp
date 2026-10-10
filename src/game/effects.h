@@ -7,12 +7,13 @@
 #include <vector>
 #include "game/effect_sound.h"
 #include "maths/world_coordinates.h"
+#include "vectorstorm/vector/vector3.h"
 
 namespace darker::game {
 
 struct emitter_definition {
   uint16_t delay{0};
-  std::array<int16_t, 3> offset{};
+  vector3<int16_t> offset{};
   uint16_t radius{0};
   uint16_t angle{0};
   uint16_t sampling{0};

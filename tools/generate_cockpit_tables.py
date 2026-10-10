@@ -15,7 +15,7 @@ def main():
     if hashlib.sha256(image).hexdigest() != IMAGE_SHA256:
         raise ValueError('Unsupported unpacked executable')
     word = lambda p: int.from_bytes(image[p:p + 2], 'little')
-    point = lambda p: f'{{.x{{{image[p + 1] * 2}}}, .y{{{image[p]}}}}}'
+    point = lambda p: f'{{{image[p + 1] * 2}, {image[p]}}}'
     directories = {a: [word(a + 23 + 2 * i) for i in range(image[a])] for a in (0x4615, 0x4d70)}
     boundaries = sorted([p for entries in directories.values() for p in entries] + [0x4d70, 0x5191])
     labels = {
@@ -83,7 +83,7 @@ def main():
               'inline std::array<pixel_position, 38> constexpr compass_offsets{{']
     for p in range(0x53dd, 0x5429, 2):
         x, y = (int.from_bytes(image[q:q+1], 'little', signed=True) for q in (p, p+1))
-        lines.append(f'  {{.x{{{x}}}, .y{{{y}}}}},')
+        lines.append(f'  {{{x}, {y}}},')
     lines += ['}};', '', 'inline std::array<std::uint8_t, 3> constexpr ring_steps{' + ', '.join(map(str, image[0x5e16:0x5e19])) + '};',
               'inline std::array<std::uint8_t, 3> constexpr ring_capacities{' + ', '.join(map(str, image[0x5e19:0x5e1c])) + '};',
               'inline std::array<mask_row, 4> constexpr ring_mask{{']
