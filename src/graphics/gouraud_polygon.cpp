@@ -64,14 +64,14 @@ void start_edge(edge_walker &edge, std::span<shaded_vertex const> const points, 
     if(b.y > y) break;
     a = b;
   } while(true);
-  int const dx{b.x - a.x}, dy{b.y - a.y};
-  int const quotient{(dx < 0 ? -dx - 1 : dx) * 128 / dy};
-  edge.step = dx < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
+  auto const delta{vector2<int>{b.x, b.y} - vector2<int>{a.x, a.y}};
+  int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
+  edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
   edge.x = a.x + (right ? 1 : 0);
   edge.fraction = 128;
   edge.end_y = b.y;
   edge.shade = a.shade;
-  edge.shade_step = word(b.shade - a.shade + 1) / dy;
+  edge.shade_step = word(b.shade - a.shade + 1) / delta.y;
 }
 
 void step_edge(edge_walker &edge) noexcept {

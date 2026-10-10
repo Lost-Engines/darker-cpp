@@ -21,9 +21,10 @@ void draw_screen_line(framework::render::indexed_cockpit_framebuffer &target,
   auto const inside{[](pixel_position const &point){ return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y <= 240; }};
   if(!inside(first) || !inside(last)) throw std::invalid_argument{"Line endpoints exceed the display boundary"};
   if(first.x >= last.x) std::swap(first, last);
-  int const width{last.x - first.x + 1};
-  int const direction{last.y < first.y ? -1 : 1};
-  int const height{(last.y - first.y) * direction};
+  auto const delta{last - first};
+  int const width{delta.x + 1};
+  int const direction{delta.y < 0 ? -1 : 1};
+  int const height{delta.y * direction};
   int y{first.y - (direction < 0 ? 1 : 0)};
   int x{first.x};
   if(height < width) {

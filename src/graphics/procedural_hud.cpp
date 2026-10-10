@@ -71,14 +71,12 @@ attitude_line calculate_attitude(std::uint16_t const pitch_index, std::uint16_t 
   int const pitch_cosine{(maths::original_sine[(pitch_index + 256) % 1024] * 224) >> 16};
   int const roll_sine{maths::original_sine[roll_index]};
   int const roll_cosine{maths::original_sine[(roll_index + 256) % 1024]};
-  int const x{160 + ((roll_sine * pitch_sine) >> 16)};
-  int const y{centre_y + ((roll_cosine * pitch_sine) >> 16)};
-  int const dy{(roll_sine * pitch_cosine) >> 16};
-  int const dx{(roll_cosine * pitch_cosine) >> 16};
+  pixel_position const centre{160 + ((roll_sine * pitch_sine) >> 16), centre_y + ((roll_cosine * pitch_sine) >> 16)};
+  pixel_position const offset{(roll_cosine * pitch_cosine) >> 16, -((roll_sine * pitch_cosine) >> 16)};
   int const shade{(pitch_high * (pitch_high < 0 ? -45 : 44)) >> 8};
   return {
-    .first{x - dx, y + dy},
-    .last{x + dx, y - dy},
+    .first{centre - offset},
+    .last{centre + offset},
     .colour{static_cast<std::uint8_t>((alternate_colour ? 238 : 14) + shade)},
   };
 }
