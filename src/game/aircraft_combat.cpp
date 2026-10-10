@@ -48,7 +48,7 @@ actor_impact_result hit_actor(scenario_actor &actor, uint8_t const strength, uin
   /// CE26 dispatches static removal and zero-resistance effects before CE38's ordinary aircraft damage
   if(actor.parameters.update_entry == 0) return {.effect{0x7296}, .at_actor{true}, .remove{true}};
   if(actor.parameters.definition->impact_strength == 0) {
-    if(actor.parameters.definition->role_data[7] & 2) return {.effect{0x721c}};
+    if(actor.parameters.definition->role_data.craft().flags & 2) return {.effect{0x721c}};
     actor.expiry = static_cast<uint16_t>(clock + 256);
     actor.flags |= 0x20;
     return {.effect{0x7247}, .at_actor{true}};
@@ -95,12 +95,12 @@ std::optional<uint8_t> aircraft_projectile_definition(scenario_actor const &acto
   if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;
   auto const heading_error{static_cast<uint8_t>((static_cast<uint16_t>(course.heading - actor.pose.angles.heading) >> 8) + distance)};
   if(heading_error >= static_cast<uint8_t>(distance * 2)) return std::nullopt;
-  if(!building && actor.definition_slot == 19 && distance < 8 && actor.behaviour[0] == 0) return std::nullopt;
-  auto const slot{static_cast<uint8_t>(actor.parameters.definition->role_data[6] + (building ? 1 : 0))};
+  if(!building && actor.definition_slot == 19 && distance < 8 && actor.behaviour.attack_control == 0) return std::nullopt;
+  auto const slot{static_cast<uint8_t>(actor.parameters.definition->role_data.craft().weapon_slot + (building ? 1 : 0))};
   auto const &weapon{original_object_definitions.at(slot)};
-  unsigned int const sum{((difficulty >> 1) | 0x80u) + actor.behaviour[0]};
+  unsigned int const sum{((difficulty >> 1) | 0x80u) + actor.behaviour.attack_control};
   uint16_t const bias{static_cast<uint16_t>(((sum > 255 ? 0xfd : 0xfc) << 8) | (sum & 255))};
-  uint16_t const delay{static_cast<uint16_t>((weapon.role_data[0] * 4 - bias) * 4)};
+  uint16_t const delay{static_cast<uint16_t>((weapon.role_data.projectile().launch_cost * 4 - bias) * 4)};
   if(static_cast<uint16_t>(clock - actor.last_shot) < delay) return std::nullopt;
   return slot;
 }
@@ -113,7 +113,7 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
   launch_emitter const emitter{.position{actor.pose.position},.fractions{actor.pose.fractions},.angles{actor.pose.angles},
     .speed{actor.pose.speed},.side_flags{actor.flags},.definition_strength{actor.parameters.definition->impact_strength}};
   auto *shot{pool.launch({.definition{definition},.emitter{emitter},.model_token{model_token},.clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data[1]*256)},.target_token{actor.selected_target}})};
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{actor.selected_target}})};
   if(shot) shot->placement.angles.pitch = 0xc800;
   return shot;
 }

@@ -27,6 +27,6 @@ TEST_CASE("Pinner Mimic steering and displacement match complete native updates"
       CHECK(shot.placement.fractions[axis] == sample[17 + axis]);
     }
     CHECK(shot.placement.speed == sample[23]);
-    CHECK(shot.parameters.motion[2] == sample[24]);
+    CHECK(shot.parameters.motion.turn_response == sample[24]);
   }
 }

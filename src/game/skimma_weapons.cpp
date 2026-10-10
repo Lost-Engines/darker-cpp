@@ -64,7 +64,7 @@ projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, 
   if(!valid_target) return nullptr;
   auto const &definition{original_object_definitions[10+request.weapon]};
   auto *shot{pool.launch({.definition{definition},.emitter{request.emitter},.model_token{request.model},.clock{request.clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data[1]*256)},.target_token{request.target}})};
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{request.target}})};
   if(shot) --slot.ammunition.working;
   return shot;
 }

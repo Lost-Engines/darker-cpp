@@ -12,232 +12,232 @@ inline std::array<object_definition, 33> constexpr original_object_definitions{{
   // Slot 0, native definition 1926
   {
     .model_token{0x0000}, .update_entry{0xcc64},
-    .angular_seed{60}, .motion_seeds{200, 10, 30},
-    .impact_strength{52}, .base_speed{218}, .role_data{24, 4, 177, 205, 192, 202, 0, 1},
+    .angular_seed{60}, .motion_seeds{.bank_response{200}, .bank_limit{10}, .turn_response{30}},
+    .impact_strength{52}, .base_speed{218}, .role_data{projectile_definition_data{.launch_cost{24}, .lifetime{4}, .reserved{177, 205, 192, 202}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{196}, .sound_pitch{972},
   },
   // Slot 1, native definition 193E
   {
     .model_token{0x0000}, .update_entry{0xcbce},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{56}, .base_speed{112}, .role_data{28, 6, 177, 205, 192, 202, 0, 1},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{56}, .base_speed{112}, .role_data{projectile_definition_data{.launch_cost{28}, .lifetime{6}, .reserved{177, 205, 192, 202}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{196}, .sound_pitch{972},
   },
   // Slot 2, native definition 1956
   {
     .model_token{0x0000}, .update_entry{0xcc64},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{50}, .base_speed{112}, .role_data{41, 10, 177, 205, 74, 202, 0, 4},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{50}, .base_speed{112}, .role_data{projectile_definition_data{.launch_cost{41}, .lifetime{10}, .reserved{177, 205, 74, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{196}, .sound_pitch{546},
   },
   // Slot 3, native definition 196E
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{40}, .motion_seeds{208, 80, 30},
-    .impact_strength{20}, .base_speed{115}, .role_data{24, 10, 132, 206, 105, 202, 4, 2},
+    .angular_seed{40}, .motion_seeds{.bank_response{208}, .bank_limit{80}, .turn_response{30}},
+    .impact_strength{20}, .base_speed{115}, .role_data{projectile_definition_data{.launch_cost{24}, .lifetime{10}, .reserved{132, 206, 105, 202}, .steering_shift{4}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{1280},
   },
   // Slot 4, native definition 1986
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{40}, .motion_seeds{232, 80, 30},
-    .impact_strength{30}, .base_speed{115}, .role_data{103, 4, 132, 206, 105, 202, 4, 2},
+    .angular_seed{40}, .motion_seeds{.bank_response{232}, .bank_limit{80}, .turn_response{30}},
+    .impact_strength{30}, .base_speed{115}, .role_data{projectile_definition_data{.launch_cost{103}, .lifetime{4}, .reserved{132, 206, 105, 202}, .steering_shift{4}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{1280},
   },
   // Slot 5, native definition 199E
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{50}, .motion_seeds{160, 70, 50},
-    .impact_strength{56}, .base_speed{115}, .role_data{66, 5, 177, 205, 90, 202, 1, 2},
+    .angular_seed{50}, .motion_seeds{.bank_response{160}, .bank_limit{70}, .turn_response{50}},
+    .impact_strength{56}, .base_speed{115}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{5}, .reserved{177, 205, 90, 202}, .steering_shift{1}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{1280},
   },
   // Slot 6, native definition 19B6
   {
     .model_token{0x0000}, .update_entry{0xcbe7},
-    .angular_seed{32}, .motion_seeds{188, 30, 18},
-    .impact_strength{52}, .base_speed{150}, .role_data{202, 10, 177, 205, 153, 202, 0, 4},
+    .angular_seed{32}, .motion_seeds{.bank_response{188}, .bank_limit{30}, .turn_response{18}},
+    .impact_strength{52}, .base_speed{150}, .role_data{projectile_definition_data{.launch_cost{202}, .lifetime{10}, .reserved{177, 205, 153, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{614},
   },
   // Slot 7, native definition 19CE
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{54}, .motion_seeds{200, 70, 30},
-    .impact_strength{60}, .base_speed{162}, .role_data{165, 10, 22, 207, 85, 202, 0, 4},
+    .angular_seed{54}, .motion_seeds{.bank_response{200}, .bank_limit{70}, .turn_response{30}},
+    .impact_strength{60}, .base_speed{162}, .role_data{projectile_definition_data{.launch_cost{165}, .lifetime{10}, .reserved{22, 207, 85, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{7}, .sound_level{200}, .sound_pitch{614},
   },
   // Slot 8, native definition 19E6
   {
     .model_token{0x0000}, .update_entry{0xcc68},
-    .angular_seed{48}, .motion_seeds{176, 46, 48},
-    .impact_strength{60}, .base_speed{64}, .role_data{24, 10, 14, 207, 125, 202, 0, 4},
+    .angular_seed{48}, .motion_seeds{.bank_response{176}, .bank_limit{46}, .turn_response{48}},
+    .impact_strength{60}, .base_speed{64}, .role_data{projectile_definition_data{.launch_cost{24}, .lifetime{10}, .reserved{14, 207, 125, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3957}, .fm_patch{3}, .sound_level{200}, .sound_pitch{686},
   },
   // Slot 9, native definition 19FE
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{66}, .motion_seeds{168, 80, 62},
-    .impact_strength{59}, .base_speed{178}, .role_data{66, 8, 177, 205, 85, 202, 0, 4},
+    .angular_seed{66}, .motion_seeds{.bank_response{168}, .bank_limit{80}, .turn_response{62}},
+    .impact_strength{59}, .base_speed{178}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{8}, .reserved{177, 205, 85, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{1280},
   },
   // Slot 10, native definition 1A16
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{60}, .motion_seeds{184, 50, 18},
-    .impact_strength{90}, .base_speed{137}, .role_data{66, 10, 177, 205, 85, 202, 0, 1},
+    .angular_seed{60}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{18}},
+    .impact_strength{90}, .base_speed{137}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{10}, .reserved{177, 205, 85, 202}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 11, native definition 1A2E
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{10}, .motion_seeds{184, 50, 18},
-    .impact_strength{80}, .base_speed{112}, .role_data{66, 10, 177, 205, 90, 202, 4, 2},
+    .angular_seed{10}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{18}},
+    .impact_strength{80}, .base_speed{112}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{10}, .reserved{177, 205, 90, 202}, .steering_shift{4}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{515},
   },
   // Slot 12, native definition 1A46
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{60}, .motion_seeds{184, 50, 18},
-    .impact_strength{140}, .base_speed{156}, .role_data{66, 10, 177, 205, 85, 202, 0, 4},
+    .angular_seed{60}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{18}},
+    .impact_strength{140}, .base_speed{156}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{10}, .reserved{177, 205, 85, 202}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 13, native definition 1A5E
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{60}, .motion_seeds{184, 50, 18},
-    .impact_strength{80}, .base_speed{112}, .role_data{33, 10, 177, 205, 0, 0, 0, 1},
+    .angular_seed{60}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{18}},
+    .impact_strength{80}, .base_speed{112}, .role_data{projectile_definition_data{.launch_cost{33}, .lifetime{10}, .reserved{177, 205, 0, 0}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 14, native definition 1A76
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{64}, .motion_seeds{184, 64, 48},
-    .impact_strength{80}, .base_speed{50}, .role_data{66, 28, 177, 205, 0, 0, 1, 2},
+    .angular_seed{64}, .motion_seeds{.bank_response{184}, .bank_limit{64}, .turn_response{48}},
+    .impact_strength{80}, .base_speed{50}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{28}, .reserved{177, 205, 0, 0}, .steering_shift{1}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 15, native definition 1A8E
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{64}, .motion_seeds{184, 50, 28},
-    .impact_strength{130}, .base_speed{153}, .role_data{66, 10, 177, 205, 0, 0, 0, 1},
+    .angular_seed{64}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{28}},
+    .impact_strength{130}, .base_speed{153}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{10}, .reserved{177, 205, 0, 0}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{515},
   },
   // Slot 16, native definition 1AA6
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{64}, .motion_seeds{184, 64, 48},
-    .impact_strength{80}, .base_speed{75}, .role_data{66, 15, 177, 205, 0, 0, 1, 2},
+    .angular_seed{64}, .motion_seeds{.bank_response{184}, .bank_limit{64}, .turn_response{48}},
+    .impact_strength{80}, .base_speed{75}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{15}, .reserved{177, 205, 0, 0}, .steering_shift{1}, .flags{2}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 17, native definition 1ABE
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{60}, .motion_seeds{184, 50, 18},
-    .impact_strength{80}, .base_speed{156}, .role_data{66, 10, 177, 205, 0, 0, 0, 4},
+    .angular_seed{60}, .motion_seeds{.bank_response{184}, .bank_limit{50}, .turn_response{18}},
+    .impact_strength{80}, .base_speed{156}, .role_data{projectile_definition_data{.launch_cost{66}, .lifetime{10}, .reserved{177, 205, 0, 0}, .steering_shift{0}, .flags{4}}},
     .sound_entry{0x3969}, .fm_patch{33}, .sound_level{214}, .sound_pitch{686},
   },
   // Slot 18, native definition 1AD6
   {
     .model_token{0x0000}, .update_entry{0xcc61},
-    .angular_seed{46}, .motion_seeds{168, 80, 62},
-    .impact_strength{150}, .base_speed{106}, .role_data{0, 10, 177, 205, 0, 0, 0, 1},
+    .angular_seed{46}, .motion_seeds{.bank_response{168}, .bank_limit{80}, .turn_response{62}},
+    .impact_strength{150}, .base_speed{106}, .role_data{projectile_definition_data{.launch_cost{0}, .lifetime{10}, .reserved{177, 205, 0, 0}, .steering_shift{0}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{29}, .sound_level{200}, .sound_pitch{1280},
   },
   // Slot 19, native definition 1AEE
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{48}, .motion_seeds{224, 80, 60},
-    .impact_strength{40}, .base_speed{31}, .role_data{100, 100, 11, 0, 12, 20, 10, 3},
+    .angular_seed{48}, .motion_seeds{.bank_response{224}, .bank_limit{80}, .turn_response{60}},
+    .impact_strength{40}, .base_speed{31}, .role_data{craft_definition_data{.acceleration{100}, .deceleration{100}, .cruise_height{11}, .cooldown_shift{0}, .cruise_speed{12}, .attack_speed{20}, .weapon_slot{10}, .flags{3}}},
     .sound_entry{0x391d}, .fm_patch{8}, .sound_level{228}, .sound_pitch{866},
   },
   // Slot 20, native definition 1B06
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{40}, .motion_seeds{224, 80, 38},
-    .impact_strength{45}, .base_speed{31}, .role_data{54, 54, 12, 1, 16, 36, 15, 3},
+    .angular_seed{40}, .motion_seeds{.bank_response{224}, .bank_limit{80}, .turn_response{38}},
+    .impact_strength{45}, .base_speed{31}, .role_data{craft_definition_data{.acceleration{54}, .deceleration{54}, .cruise_height{12}, .cooldown_shift{1}, .cruise_speed{16}, .attack_speed{36}, .weapon_slot{15}, .flags{3}}},
     .sound_entry{0x391d}, .fm_patch{8}, .sound_level{200}, .sound_pitch{1158},
   },
   // Slot 21, native definition 1B1E
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{48}, .motion_seeds{224, 64, 38},
-    .impact_strength{75}, .base_speed{37}, .role_data{66, 66, 14, 2, 29, 41, 15, 5},
+    .angular_seed{48}, .motion_seeds{.bank_response{224}, .bank_limit{64}, .turn_response{38}},
+    .impact_strength{75}, .base_speed{37}, .role_data{craft_definition_data{.acceleration{66}, .deceleration{66}, .cruise_height{14}, .cooldown_shift{2}, .cruise_speed{29}, .attack_speed{41}, .weapon_slot{15}, .flags{5}}},
     .sound_entry{0x391d}, .fm_patch{6}, .sound_level{200}, .sound_pitch{650},
   },
   // Slot 22, native definition 1B36
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{40}, .motion_seeds{224, 80, 60},
-    .impact_strength{60}, .base_speed{41}, .role_data{80, 95, 16, 1, 12, 2, 15, 4},
+    .angular_seed{40}, .motion_seeds{.bank_response{224}, .bank_limit{80}, .turn_response{60}},
+    .impact_strength{60}, .base_speed{41}, .role_data{craft_definition_data{.acceleration{80}, .deceleration{95}, .cruise_height{16}, .cooldown_shift{1}, .cruise_speed{12}, .attack_speed{2}, .weapon_slot{15}, .flags{4}}},
     .sound_entry{0x393d}, .fm_patch{34}, .sound_level{240}, .sound_pitch{3264},
   },
   // Slot 23, native definition 1B4E
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{30}, .motion_seeds{224, 80, 30},
-    .impact_strength{78}, .base_speed{16}, .role_data{33, 55, 10, 1, 14, 14, 13, 3},
+    .angular_seed{30}, .motion_seeds{.bank_response{224}, .bank_limit{80}, .turn_response{30}},
+    .impact_strength{78}, .base_speed{16}, .role_data{craft_definition_data{.acceleration{33}, .deceleration{55}, .cruise_height{10}, .cooldown_shift{1}, .cruise_speed{14}, .attack_speed{14}, .weapon_slot{13}, .flags{3}}},
     .sound_entry{0x391d}, .fm_patch{9}, .sound_level{230}, .sound_pitch{650},
   },
   // Slot 24, native definition 1B66
   {
     .model_token{0x0000}, .update_entry{0x8108},
-    .angular_seed{52}, .motion_seeds{160, 80, 105},
-    .impact_strength{1}, .base_speed{0}, .role_data{0, 0, 27, 0, 32, 146, 10, 7},
+    .angular_seed{52}, .motion_seeds{.bank_response{160}, .bank_limit{80}, .turn_response{105}},
+    .impact_strength{1}, .base_speed{0}, .role_data{player_definition_data{.reserved{0, 0}, .initial_height{27}, .cooldown_shift{0}, .drive_multiplier{32}, .drive_bias{146}, .weapon_slot{10}, .flags{7}}},
     .sound_entry{0x3914}, .fm_patch{8}, .sound_level{228}, .sound_pitch{816},
   },
   // Slot 25, native definition 1B7E
   {
     .model_token{0x0000}, .update_entry{0x7e7f},
-    .angular_seed{52}, .motion_seeds{160, 20, 40},
-    .impact_strength{1}, .base_speed{0}, .role_data{0, 0, 25, 0, 207, 166, 0, 7},
+    .angular_seed{52}, .motion_seeds{.bank_response{160}, .bank_limit{20}, .turn_response{40}},
+    .impact_strength{1}, .base_speed{0}, .role_data{player_definition_data{.reserved{0, 0}, .initial_height{25}, .cooldown_shift{0}, .drive_multiplier{207}, .drive_bias{166}, .weapon_slot{0}, .flags{7}}},
     .sound_entry{0x3980}, .fm_patch{7}, .sound_level{196}, .sound_pitch{408},
   },
   // Slot 26, native definition 1B96
   {
     .model_token{0x0000}, .update_entry{0x8108},
-    .angular_seed{44}, .motion_seeds{160, 70, 105},
-    .impact_strength{1}, .base_speed{0}, .role_data{0, 0, 26, 1, 32, 150, 10, 3},
+    .angular_seed{44}, .motion_seeds{.bank_response{160}, .bank_limit{70}, .turn_response{105}},
+    .impact_strength{1}, .base_speed{0}, .role_data{player_definition_data{.reserved{0, 0}, .initial_height{26}, .cooldown_shift{1}, .drive_multiplier{32}, .drive_bias{150}, .weapon_slot{10}, .flags{3}}},
     .sound_entry{0x3914}, .fm_patch{8}, .sound_level{228}, .sound_pitch{866},
   },
   // Slot 27, native definition 1BAE
   {
     .model_token{0x0000}, .update_entry{0x7e49},
-    .angular_seed{48}, .motion_seeds{160, 80, 105},
-    .impact_strength{1}, .base_speed{0}, .role_data{0, 0, 27, 1, 32, 146, 10, 7},
+    .angular_seed{48}, .motion_seeds{.bank_response{160}, .bank_limit{80}, .turn_response{105}},
+    .impact_strength{1}, .base_speed{0}, .role_data{player_definition_data{.reserved{0, 0}, .initial_height{27}, .cooldown_shift{1}, .drive_multiplier{32}, .drive_bias{146}, .weapon_slot{10}, .flags{7}}},
     .sound_entry{0x3914}, .fm_patch{8}, .sound_level{228}, .sound_pitch{816},
   },
   // Slot 28, native definition 1BC6
   {
     .model_token{0x0000}, .update_entry{0xd510},
-    .angular_seed{22}, .motion_seeds{0, 0, 0},
-    .impact_strength{1}, .base_speed{0}, .role_data{0, 0, 25, 2, 12, 166, 0, 1},
+    .angular_seed{22}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{1}, .base_speed{0}, .role_data{player_definition_data{.reserved{0, 0}, .initial_height{25}, .cooldown_shift{2}, .drive_multiplier{12}, .drive_bias{166}, .weapon_slot{0}, .flags{1}}},
     .sound_entry{0x3980}, .fm_patch{7}, .sound_level{196}, .sound_pitch{408},
   },
   // Slot 29, native definition 1BDE
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{0}, .base_speed{0}, .role_data{0, 0, 0, 0, 0, 0, 18, 2},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{0}, .base_speed{0}, .role_data{craft_definition_data{.acceleration{0}, .deceleration{0}, .cruise_height{0}, .cooldown_shift{0}, .cruise_speed{0}, .attack_speed{0}, .weapon_slot{18}, .flags{2}}},
     .sound_entry{0x3942}, .fm_patch{9}, .sound_level{204}, .sound_pitch{816},
   },
   // Slot 30, native definition 1BF6
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{0}, .base_speed{0}, .role_data{0, 0, 0, 0, 0, 0, 0, 0},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{0}, .base_speed{0}, .role_data{craft_definition_data{.acceleration{0}, .deceleration{0}, .cruise_height{0}, .cooldown_shift{0}, .cruise_speed{0}, .attack_speed{0}, .weapon_slot{0}, .flags{0}}},
     .sound_entry{0x3969}, .fm_patch{35}, .sound_level{195}, .sound_pitch{770},
   },
   // Slot 31, native definition 1C0E
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{0}, .base_speed{0}, .role_data{0, 0, 0, 0, 0, 0, 0, 0},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{0}, .base_speed{0}, .role_data{craft_definition_data{.acceleration{0}, .deceleration{0}, .cruise_height{0}, .cooldown_shift{0}, .cruise_speed{0}, .attack_speed{0}, .weapon_slot{0}, .flags{0}}},
     .sound_entry{0x3969}, .fm_patch{35}, .sound_level{195}, .sound_pitch{770},
   },
   // Slot 32, native definition 1C26
   {
     .model_token{0x0000}, .update_entry{0x0000},
-    .angular_seed{0}, .motion_seeds{0, 0, 0},
-    .impact_strength{0}, .base_speed{0}, .role_data{0, 0, 0, 0, 0, 0, 18, 1},
+    .angular_seed{0}, .motion_seeds{.bank_response{0}, .bank_limit{0}, .turn_response{0}},
+    .impact_strength{0}, .base_speed{0}, .role_data{craft_definition_data{.acceleration{0}, .deceleration{0}, .cruise_height{0}, .cooldown_shift{0}, .cruise_speed{0}, .attack_speed{0}, .weapon_slot{18}, .flags{1}}},
     .sound_entry{0x3969}, .fm_patch{35}, .sound_level{195}, .sound_pitch{770},
   },
 }};

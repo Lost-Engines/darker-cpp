@@ -109,9 +109,9 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   actor_attitude attitude{craft.damage.rotation.pitch, craft.damage.rotation.turn};
   actor_steering_parameters parameters{
     .response{static_cast<uint16_t>(definition.angular_seed * 8)},
-    .bank_response{static_cast<uint16_t>(definition.motion_seeds[0] * 256)},
-    .bank_limit{static_cast<uint16_t>(definition.motion_seeds[1] * 64)},
-    .turn_response{static_cast<uint16_t>(definition.motion_seeds[2] * 256)},
+    .bank_response{static_cast<uint16_t>(definition.motion_seeds.bank_response * 256)},
+    .bank_limit{static_cast<uint16_t>(definition.motion_seeds.bank_limit * 64)},
+    .turn_response{static_cast<uint16_t>(definition.motion_seeds.turn_response * 256)},
   };
   auto const steer{[&](uint16_t const pitch, uint16_t const drive){
     frame_step = steer_actor(pose, attitude, parameters, pitch, drive, frame_step);

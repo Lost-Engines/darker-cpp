@@ -70,7 +70,7 @@ void project_target(weapon_target &lock, std::array<uint16_t, 3> const &player,
   auto const radial{horizontal*horizontal + vertical*vertical};
   if(radial >= (skimma ? 0x0e89 : 0x0b64)) { lock.clear(); return; }
   if(!skimma) lock.distance = static_cast<uint8_t>(radial >> 8);
-  bool const ground{(original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data[7] & 2) != 0};
+  bool const ground{(original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data.projectile().flags & 2) != 0};
   if(ground ? (lock.token & 0x8000) || (!skimma && (cell_type == 1 || !(cell_state & 0x40))) : !(lock.token & 0x8000)) { lock.clear(); return; }
   if(skimma) {
     uint16_t root{0};

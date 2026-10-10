@@ -17,7 +17,7 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
   player.tunnel->off_route_time = 0x0200;
   player.tunnel->connection.cell = static_cast<uint16_t>((site & 0xff00) | ((site & 255) >> 1));
   player.lifecycle.flags = 0x10;
-  player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data[4]*8);
+  player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data.player().drive_multiplier*8);
   auto &craft{std::get<caero_flight_state>(player.craft)};
   craft.flying = true;
   craft.energy = {.buffer{0x6000},.reserve{0x1fff},.boost{0x1fff}};

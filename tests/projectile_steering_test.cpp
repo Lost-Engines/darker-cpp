@@ -42,7 +42,9 @@ TEST_CASE("Map homing preserves native banked steering and near-target rejection
     CAPTURE(sample.heading, sample.x, sample.y, sample.shift, sample.tick, sample.step);
     if(sample.tick == 0) {
       record = {};
-      definition.role_data[6] = static_cast<std::uint8_t>(sample.shift);
+      auto role{definition.role_data.projectile()};
+      role.steering_shift = static_cast<std::uint8_t>(sample.shift);
+      definition.role_data = role;
       darker::game::apply_object_definition(record.parameters, definition, 0);
       record.placement = {.position{0, 0, 8192}, .fractions{255, 127, 1},
         .angles{static_cast<std::uint16_t>(sample.heading), 4096, 1234}, .speed{1000}};

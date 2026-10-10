@@ -82,9 +82,9 @@ void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_
     auto const &definition{original_object_definitions[player.upgraded ? 27 : 26]};
     actor_attitude attitude{craft.damage.rotation.pitch,craft.damage.rotation.turn};
     steer_actor(pose,attitude,{.response{static_cast<uint16_t>(definition.angular_seed*8)},
-      .bank_response{static_cast<uint16_t>(definition.motion_seeds[0]*256)},
-      .bank_limit{static_cast<uint16_t>(definition.motion_seeds[1]*64)},
-      .turn_response{static_cast<uint16_t>(definition.motion_seeds[2]*256)}},0,0,frame_step);
+      .bank_response{static_cast<uint16_t>(definition.motion_seeds.bank_response*256)},
+      .bank_limit{static_cast<uint16_t>(definition.motion_seeds.bank_limit*64)},
+      .turn_response{static_cast<uint16_t>(definition.motion_seeds.turn_response*256)}},0,0,frame_step);
     craft.damage.rotation = {attitude.pitch_rate,attitude.bank_rate};
     std::array<uint16_t,2> const target{static_cast<uint16_t>(((pad.site & 255) >> 1)*256+(pad.offset & 255)),
       static_cast<uint16_t>((pad.site & 0xff00)+(pad.offset >> 8))};

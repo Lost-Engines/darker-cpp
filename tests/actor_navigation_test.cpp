@@ -25,7 +25,7 @@ TEST_CASE("Actor manoeuvres match native speed, turn and firing decisions", "[ga
     auto const &v{sample.input};
     darker::game::object_definition definition{
       .base_speed{static_cast<std::uint8_t>(v[9])},
-      .role_data{0, 0, static_cast<std::uint8_t>(v[10]), 0, static_cast<std::uint8_t>(v[11]), static_cast<std::uint8_t>(v[12])},
+      .role_data{darker::game::craft_definition_data{0, 0, static_cast<std::uint8_t>(v[10]), 0, static_cast<std::uint8_t>(v[11]), static_cast<std::uint8_t>(v[12])}},
     };
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}},
@@ -72,7 +72,7 @@ TEST_CASE("Actor cell courses match city offsets and nominal-height fallback", "
   /// Exercise geometry-based aim heights, out-of-map columns and the slot-22 speed-dependent height adjustment
   for(auto const &sample : darker::test_reference::actor_cell_course_samples) {
     auto const &v{sample.input};
-    darker::game::object_definition definition{.role_data{0, 0, static_cast<std::uint8_t>(v[6])}};
+    darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0, 0, static_cast<std::uint8_t>(v[6])}}};
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}},
       .pose{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}, .speed{static_cast<std::uint16_t>(v[5])}},
@@ -107,7 +107,7 @@ TEST_CASE("Actor neighbour avoidance matches original scan boundaries and height
   /// Equal heights use stable object order; high-speed neighbours can also change the climb byte
   for(auto const &sample : darker::test_reference::actor_neighbour_samples) {
     auto const &v{sample.input};
-    darker::game::object_definition definition{.role_data{0, 0, 0, 0, static_cast<std::uint8_t>(v[11])}};
+    darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0, 0, 0, 0, static_cast<std::uint8_t>(v[11])}}};
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}, .flags_4c{static_cast<std::uint16_t>(v[9])}},
       .pose{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}},

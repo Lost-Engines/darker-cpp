@@ -80,7 +80,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
   auto const &definition{original_object_definitions[noclip && caero ? 25 : definition_slot()]};
   auto const gain{static_cast<std::uint16_t>(definition.angular_seed * 8)};
-  auto const bias{static_cast<std::int8_t>(definition.role_data[5])};
+  auto const bias{static_cast<std::int8_t>(definition.role_data.player().drive_bias)};
   if(tunnel && !noclip) {
     if(!caero || !network) throw std::logic_error{"Tunnel player flight requires a Caero and its route network"};
     auto const cell{tunnel->connection.cell};
@@ -93,7 +93,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
         .engine{(engine_flags & 1) != 0},.brake{brake}},frame_step,cells,*network);
   } else if(caero) {
     advance_caero_flight(std::get<caero_flight_state>(craft),
-      {.angular_response{gain}, .drive_multiplier{static_cast<std::uint16_t>(definition.role_data[4] * 8)},
+      {.angular_response{gain}, .drive_multiplier{static_cast<std::uint16_t>(definition.role_data.player().drive_multiplier * 8)},
         .vertical_bias{bias}, .desired_height{desired_height}, .height_reference{controls.pitch.reference}},
       {.bank_drive{steering.bank}, .pitch_drive{steering.pitch}, .engine_flags{engine_flags}, .altitude_hold{altitude_hold || scripted_altitude_hold}, .brake{brake}, .boost_cheat{boost_cheat}, .unlimited_power{noclip}},
       frame_step, cells);

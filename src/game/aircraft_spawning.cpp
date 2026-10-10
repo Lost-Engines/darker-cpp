@@ -92,9 +92,9 @@ void advance_aircraft_departure(scenario_actor &actor, uint16_t const clock, uin
   /// 8DDD moves before steering and releases its protected take-off state after four timer pages
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
-  advance_actor_speed(actor.pose,definition.base_speed,definition.role_data[0],definition.role_data[1],frame_step);
-  steer_actor(actor.pose,actor.attitude,{.response{actor.parameters.angular_response},.bank_response{actor.parameters.motion[0]},
-    .bank_limit{actor.parameters.motion[1]},.turn_response{actor.parameters.motion[2]}},0x0c00,0,frame_step);
+  advance_actor_speed(actor.pose,definition.base_speed,definition.role_data.craft().acceleration,definition.role_data.craft().deceleration,frame_step);
+  steer_actor(actor.pose,actor.attitude,{.response{actor.parameters.angular_response},.bank_response{actor.parameters.motion.bank_response},
+    .bank_limit{actor.parameters.motion.bank_limit},.turn_response{actor.parameters.motion.turn_response}},0x0c00,0,frame_step);
   if(std::bit_cast<int16_t>(static_cast<uint16_t>(clock - actor.script.deadline)) >= 0) {
     actor.parameters.update_entry = 0x8823;
     actor.flags &= 0xef;

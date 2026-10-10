@@ -12,7 +12,10 @@ TEST_CASE("Object definition expansion matches all native records and unsigned b
     else {
       definition.update_entry = 0xbeef;
       if(sample.field == 0) definition.angular_seed = static_cast<std::uint8_t>(sample.value);
-      else definition.motion_seeds[static_cast<std::size_t>(sample.field - 1)] = static_cast<std::uint8_t>(sample.value);
+      else {
+        auto const fields{std::array{&definition.motion_seeds.bank_response, &definition.motion_seeds.bank_limit, &definition.motion_seeds.turn_response}};
+        *fields.at(static_cast<std::size_t>(sample.field - 1)) = static_cast<std::uint8_t>(sample.value);
+      }
     }
     darker::game::object_parameters parameters{
       .definition{nullptr}, .model_token{0xa5a5}, .update_entry{0xa5a5}, .flags_4c{0xa5a5},
@@ -24,9 +27,9 @@ TEST_CASE("Object definition expansion matches all native records and unsigned b
     CHECK(parameters.update_entry == sample.update);
     CHECK(parameters.flags_4c == sample.flags);
     CHECK(parameters.angular_response == sample.angular);
-    CHECK(parameters.motion[0] == sample.motion0);
-    CHECK(parameters.motion[1] == sample.motion1);
-    CHECK(parameters.motion[2] == sample.motion2);
+    CHECK(parameters.motion.bank_response == sample.motion0);
+    CHECK(parameters.motion.bank_limit == sample.motion1);
+    CHECK(parameters.motion.turn_response == sample.motion2);
     CHECK(definition.model_token == 0);
   }
 }

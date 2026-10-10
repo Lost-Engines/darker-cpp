@@ -31,12 +31,12 @@ void advance_mimic_projectile(projectile &record, object_pose const &player, uin
   /// CBCE copies player pitch and roll, then 8375 turns using midpoint bank and remaining-life response
   if(!record.parameters.definition) throw std::invalid_argument{"Mimic projectile requires an object definition"};
   auto &angles{record.placement.angles};
-  record.parameters.motion[2] = static_cast<uint16_t>(remaining << 4);
+  record.parameters.motion.turn_response = static_cast<uint16_t>(remaining << 4);
   angles.pitch = player.angles.pitch;
   auto const difference{signed_word(player.angles.roll - angles.roll)};
   angles.roll = player.angles.roll;
   auto const midpoint{static_cast<uint16_t>(angles.roll - (difference >> 1))};
-  auto const turn{signed_word((signed_word(record.parameters.motion[2]) * signed_word(fold_bank_angle(midpoint))) >> 15)};
+  auto const turn{signed_word((signed_word(record.parameters.motion.turn_response) * signed_word(fold_bank_angle(midpoint))) >> 15)};
   auto const delta{signed_word((signed_word((frame_step & 255)*257) * turn) >> 15)};
   angles.heading = static_cast<uint16_t>(angles.heading + delta);
   advance_direct_projectile(record.placement,*record.parameters.definition,frame_step);
@@ -103,7 +103,7 @@ void advance_map_homing_projectile(projectile &record, map_guidance_target const
   /// CC9C's map branch computes an aim height, then 831E banks towards its resolved position
   if(!record.parameters.definition) throw std::invalid_argument{"map homing requires an object definition"};
   auto const &definition{*record.parameters.definition};
-  unsigned int const shift{static_cast<unsigned int>(definition.role_data[6] & 31)};
+  unsigned int const shift{static_cast<unsigned int>(definition.role_data.projectile().steering_shift & 31)};
   auto const height_offset{shift < 16 ? target.height_extent >> shift : 0};
   auto const height{static_cast<std::uint16_t>(target.height - height_offset)};
   auto const &position{record.placement.position};
@@ -120,10 +120,10 @@ void advance_map_homing_projectile(projectile &record, map_guidance_target const
         record.angular_motion[1], record.parameters.angular_response, step)};
       angles.pitch = static_cast<std::uint16_t>(angles.pitch + pitch.angle_delta);
       record.angular_motion[1] = pitch.rate;
-      auto const bank{signed_word((static_cast<std::int32_t>(heading_error) * signed_word(record.parameters.motion[0])) >> 15)};
+      auto const bank{signed_word((static_cast<std::int32_t>(heading_error) * signed_word(record.parameters.motion.bank_response)) >> 15)};
       int const sign{bank < 0 ? -1 : 0};
       auto const magnitude{static_cast<std::uint16_t>((bank ^ sign) - sign)};
-      auto const bounded{std::min(magnitude, record.parameters.motion[1])};
+      auto const bounded{std::min(magnitude, record.parameters.motion.bank_limit)};
       auto const roll_target{signed_word(((bounded ^ sign) - sign) * 2)};
       auto const roll{calculate_angular_response(static_cast<std::uint16_t>(roll_target - angles.roll),
         record.angular_motion[2], record.parameters.angular_response, pitch.frame_step)};
@@ -131,7 +131,7 @@ void advance_map_homing_projectile(projectile &record, map_guidance_target const
       angles.roll = static_cast<std::uint16_t>(angles.roll + roll.angle_delta);
       auto const midpoint{static_cast<std::uint16_t>(angles.roll - (signed_word(roll.angle_delta) >> 1))};
       auto const shaped{signed_word(fold_bank_angle(midpoint))};
-      auto const turn{signed_word((static_cast<std::int32_t>(signed_word(record.parameters.motion[2])) * shaped) >> 15)};
+      auto const turn{signed_word((static_cast<std::int32_t>(signed_word(record.parameters.motion.turn_response)) * shaped) >> 15)};
       auto const time{signed_word((roll.frame_step & 255) * 257)};
       auto const heading_delta{signed_word((static_cast<std::int32_t>(time) * turn) >> 15)};
       angles.heading = static_cast<std::uint16_t>(angles.heading + heading_delta);

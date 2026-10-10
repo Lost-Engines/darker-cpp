@@ -33,7 +33,7 @@ void select_actor_target(scenario_actor &actor) noexcept {
   /// 8826 retains pursuit of the player while awareness is nonzero, otherwise resumes the scripted target
   if(actor.awareness.level != 0) {
     if(actor.selected_target == 0xd986) return;
-    if(actor.behaviour[1] < (actor.awareness.level >> 8)) {
+    if(actor.behaviour.awareness_threshold < (actor.awareness.level >> 8)) {
       actor.selected_target = 0xd986;
       return;
     }
@@ -58,7 +58,7 @@ actor_course actor_cell_course(scenario_actor const &actor, std::uint16_t const 
   auto const row{static_cast<std::uint8_t>(cell >> 8)};
   bool const fallback{column >= 128 || (type.collision_marker & 128) != 0};
   auto const &definition{*actor.parameters.definition};
-  auto height{static_cast<std::uint16_t>(fallback ? definition.role_data[2] * 256 + (column >= 128 ? column : 0)
+  auto height{static_cast<std::uint16_t>(fallback ? definition.role_data.craft().cruise_height * 256 + (column >= 128 ? column : 0)
     : type.collision_marker * 256 - model.height + model.extent * 4)};
   if(actor.definition_slot == 22) height = static_cast<std::uint16_t>(height + 0x2400 - actor.pose.speed * 8);
   return target_course(actor.pose, {static_cast<std::uint16_t>(column * 256 + (fallback ? 128 : type.column_fraction)),
@@ -120,7 +120,7 @@ void consider_actor_clearance(scenario_actor &actor, scenario_actor const &neigh
   if(std::bit_cast<std::int16_t>(height) < std::bit_cast<std::int16_t>(actor.clearance_floor)) return;
   actor.clearance_floor = height;
   actor.parameters.flags_4c = static_cast<std::uint16_t>((neighbour.pose.position[0] >> 8) | (neighbour.pose.position[1] & 0xff00));
-  if(neighbour.pose.speed >= actor.parameters.definition->role_data[4] * 12) {
+  if(neighbour.pose.speed >= actor.parameters.definition->role_data.craft().cruise_speed * 12) {
     auto const value{static_cast<std::uint16_t>(height - pitch)};
     course.climb = static_cast<std::uint8_t>(~(value >> 2));
   }
@@ -152,26 +152,26 @@ actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course
   /// 89A3–8A51 selects speed, pitch, turning and a possible firing check after target/obstacle resolution
   auto const &definition{*actor.parameters.definition};
   auto const awareness{static_cast<std::uint8_t>(actor.awareness.level >> 8)};
-  actor_manoeuvre result{.pitch{course.pitch}, .speed{definition.role_data[4]}};
+  actor_manoeuvre result{.pitch{course.pitch}, .speed{definition.role_data.craft().cruise_speed}};
   if(course.climb != 0) {
-    auto const scaled{(course.climb * definition.role_data[4]) >> 8};
-    result.speed = static_cast<std::uint8_t>((definition.role_data[4] + scaled) >> 1);
+    auto const scaled{(course.climb * definition.role_data.craft().cruise_speed) >> 8};
+    result.speed = static_cast<std::uint8_t>((definition.role_data.craft().cruise_speed + scaled) >> 1);
   } else if(course.distance < 0x8000) {
     auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(actor.pose.angles.heading - course.heading))};
     auto const error{static_cast<std::uint8_t>((difference >> 8) ^ (difference < 0 ? -1 : 0))};
     auto const distance{static_cast<std::uint8_t>((course.distance * 2) >> 8)};
-    if(error < (actor.behaviour[0] >> 2) + 32) {
+    if(error < (actor.behaviour.attack_control >> 2) + 32) {
       if(error < 15 - (awareness >> 5)) {
         result.speed = definition.base_speed;
-        if(distance <= (actor.behaviour[0] & 7) + 6) {
+        if(distance <= (actor.behaviour.attack_control & 7) + 6) {
           result.firing_distance = distance;
-          result.speed = definition.role_data[5];
+          result.speed = definition.role_data.craft().attack_speed;
         }
       }
     } else {
-      auto const threshold{static_cast<std::uint8_t>(3 - std::min(255, actor.behaviour[5] + (awareness >> 5)))};
+      auto const threshold{static_cast<std::uint8_t>(3 - std::min(255, actor.behaviour.evasion + (awareness >> 5)))};
       if(distance < threshold) {
-        auto const height{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(definition.role_data[2] * 256 - actor.pose.position[2]))};
+        auto const height{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(definition.role_data.craft().cruise_height * 256 - actor.pose.position[2]))};
         result.pitch = static_cast<std::uint16_t>(height >> 1);
         course.heading = actor.pose.angles.heading;
         result.speed = definition.base_speed;

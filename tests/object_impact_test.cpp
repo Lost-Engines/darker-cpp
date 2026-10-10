@@ -44,7 +44,7 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
   /// Zero resistance follows effect-only or delayed-removal paths without consuming random damage kicks
   for(auto const &sample : darker::test_reference::actor_impact_samples) {
     CAPTURE(sample);
-    darker::game::object_definition definition{.role_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}};
+    darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}}};
     darker::game::scenario_actor actor;
     actor.parameters.definition = &definition;
     actor.parameters.update_entry = static_cast<uint16_t>(sample[0]);

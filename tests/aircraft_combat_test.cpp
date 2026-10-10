@@ -41,7 +41,7 @@ TEST_CASE("Enemy gun checks match original world profiles, aim, timing and hits"
     CAPTURE(v);
     darker::game::scenario_actor actor;
     actor.definition_slot = 19;
-    actor.behaviour[0] = static_cast<uint8_t>(v[16]);
+    actor.behaviour.attack_control = static_cast<uint8_t>(v[16]);
     actor.selected_target = 0xd986;
     actor.parameters.definition = &darker::game::original_object_definitions[19];
     actor.pose.position = {10000, 10000, 3000};
@@ -63,7 +63,7 @@ TEST_CASE("Aircraft missile eligibility matches native firing settings and timer
     darker::game::scenario_actor actor;
     actor.definition_slot = static_cast<uint8_t>(v[0]);
     actor.parameters.definition = &darker::game::original_object_definitions[actor.definition_slot];
-    actor.behaviour[0] = static_cast<uint8_t>(v[1]);
+    actor.behaviour.attack_control = static_cast<uint8_t>(v[1]);
     actor.pose.angles = {static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5]),0};
     actor.selected_target = static_cast<uint16_t>(v[8]);
     actor.flags = static_cast<uint8_t>(v[9]);

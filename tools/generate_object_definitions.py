@@ -21,10 +21,23 @@ def main():
         data = image[address:address+24]
         word = lambda offset: int.from_bytes(data[offset:offset+2], 'little')
         values = lambda start, end: ', '.join(str(x) for x in data[start:end])
+        if slot < 19:
+            names = ('launch_cost', 'lifetime', 'reserved', 'steering_shift', 'flags')
+            payload = (data[10], data[11], values(12, 16), data[16], data[17])
+            kind = 'projectile_definition_data'
+        elif 24 <= slot <= 28:
+            names = ('reserved', 'initial_height', 'cooldown_shift', 'drive_multiplier', 'drive_bias', 'weapon_slot', 'flags')
+            payload = (values(10, 12), *data[12:18])
+            kind = 'player_definition_data'
+        else:
+            names = ('acceleration', 'deceleration', 'cruise_height', 'cooldown_shift', 'cruise_speed', 'attack_speed', 'weapon_slot', 'flags')
+            payload = data[10:18]
+            kind = 'craft_definition_data'
+        role = kind + '{' + ', '.join(f'.{name}{{{value}}}' for name, value in zip(names, payload)) + '}'
         lines += [f'  // Slot {slot}, native definition {address:04X}', '  {',
                   f'    .model_token{{0x{word(0):04x}}}, .update_entry{{0x{word(2):04x}}},',
-                  f'    .angular_seed{{{data[4]}}}, .motion_seeds{{{values(5, 8)}}},',
-                  f'    .impact_strength{{{data[8]}}}, .base_speed{{{data[9]}}}, .role_data{{{values(10, 18)}}},',
+                  f'    .angular_seed{{{data[4]}}}, ' + '.motion_seeds{' + f'.bank_response{{{data[5]}}}, .bank_limit{{{data[6]}}}, .turn_response{{{data[7]}}}' + '},',
+                  f'    .impact_strength{{{data[8]}}}, .base_speed{{{data[9]}}}, .role_data{{{role}}},',
                   f'    .sound_entry{{0x{word(18):04x}}}, .fm_patch{{{data[20]}}}, .sound_level{{{data[21]}}}, .sound_pitch{{{word(22)}}},', '  },']
     lines += ['}};', '', '} // namespace darker::game', '']
     (Path(__file__).resolve().parents[1] / 'src/game/object_definitions.h').write_text('\n'.join(lines))

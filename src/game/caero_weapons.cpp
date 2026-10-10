@@ -43,9 +43,9 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
   auto const selection{request.selection};
   if(selection < 1 || selection > 10) throw std::invalid_argument{"Caero weapon selection is outside 1–10"};
   auto const &definition{original_object_definitions[selection - 1]};
-  auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data[0]) * 256 + 255)};
+  auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data.projectile().launch_cost) * 256 + 255)};
   if((request.player_flags & 0x30) || !pool.objects().free) return {};
-  auto lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)};
+  auto lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)};
   auto target{request.target};
   uint8_t next_selection{0};
   if(selection == 9) {

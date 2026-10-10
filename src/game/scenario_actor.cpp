@@ -20,7 +20,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     .attributes{static_cast<std::uint8_t>((moving ? placement.attributes * 2 : 0) | static_cast<unsigned int>(placement.counted))},
   };
   apply_object_definition(actor.parameters, definition, model_token);
-  int const height{moving ? definition.role_data[2] * 256 : world_mode == 2 && placement.form == resources::placement_form::absolute_static ? 128 : 0};
+  int const height{moving ? definition.role_data.craft().cruise_height * 256 : world_mode == 2 && placement.form == resources::placement_form::absolute_static ? 128 : 0};
   actor.pose.position = {placement.position[0], placement.position[1], static_cast<std::uint16_t>(height - model_height)};
   actor.pose.angles.heading = placement.heading;
   if(moving && world_mode == 2) {
@@ -39,7 +39,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     actor.parameters.update_entry = world_mode == 2 ? 0x8609 : 0x8823;
     actor.pose.speed = static_cast<std::uint16_t>(definition.base_speed * 16);
     actor.flags = 2;
-    actor.behaviour = placement.motion;
+    actor.behaviour = {placement.motion[0], placement.motion[1], placement.motion[2], placement.motion[3], placement.motion[4], placement.motion[5]};
   } else if(placement.form == resources::placement_form::compact_special) {
     actor.parameters.update_entry = 0x8f3b;
     actor.route.emplace();

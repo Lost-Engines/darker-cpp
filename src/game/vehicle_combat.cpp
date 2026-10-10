@@ -11,10 +11,10 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   city_map const &cells, std::span<resources::city_type const> const types, uint8_t const direction,
   uint16_t const clock, uint8_t const difficulty, uint16_t const model) {
   /// 9185 checks paired-shot cadence, rearward aim and two clear cells before CAF0 attempts a homing launch
-  if(!(vehicle.parameters.definition->role_data[7] & 1)) return nullptr;
+  if(!(vehicle.parameters.definition->role_data.craft().flags & 1)) return nullptr;
   auto const elapsed{static_cast<uint16_t>(clock - vehicle.last_shot)};
   auto const delay{static_cast<uint16_t>(((0x2ff ^ difficulty) << 3) - 0x400)};
-  if(vehicle.behaviour[0] & 128 ? elapsed < 0x300 : elapsed < delay) return nullptr;
+  if(vehicle.behaviour.attack_control & 128 ? elapsed < 0x300 : elapsed < delay) return nullptr;
   auto const x{static_cast<uint16_t>(vehicle.pose.position[0] - player.position[0])};
   auto const y{static_cast<uint16_t>(vehicle.pose.position[1] - player.position[1])};
   auto const distance{static_cast<uint16_t>((x ^ ((x & 0x8000) ? 0xffff : 0)) + ((y & 0x8000) ? -y : y))};
@@ -36,13 +36,13 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     auto const type{cells[row*128+column].type};
     if(type && types[type-1].collision_marker != 255) return nullptr;
   }
-  vehicle.behaviour[0] = static_cast<uint8_t>(~vehicle.behaviour[0]);
+  vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);
   vehicle.last_shot = clock;
   auto const &definition{original_object_definitions[18]};
   launch_emitter const emitter{.position{vehicle.pose.position},.fractions{vehicle.pose.fractions},.angles{vehicle.pose.angles},
     .speed{vehicle.pose.speed},.side_flags{vehicle.flags},.definition_strength{vehicle.parameters.definition->impact_strength}};
   return pool.launch({.definition{definition},.emitter{emitter},.model_token{model},.clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data[1]*256)},.target_token{0xd986}});
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},.target_token{0xd986}});
 }
 
 } // namespace darker::game

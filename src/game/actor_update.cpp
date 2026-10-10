@@ -10,7 +10,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
   advance_actor_awareness(actor.awareness, actor.pose, player,
-    {.decay{actor.behaviour[2]}, .rise{actor.behaviour[3]}, .strength{actor.behaviour[4]}, .cooldown_shift{definition.role_data[3]}}, frame_step);
+    {.decay{actor.behaviour.awareness_decay}, .rise{actor.behaviour.awareness_rise}, .strength{actor.behaviour.awareness_strength}, .cooldown_shift{definition.role_data.craft().cooldown_shift}}, frame_step);
   select_actor_target(actor);
   actor_course course;
   if(actor.selected_target & 0x8000) {
@@ -38,10 +38,10 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   auto const manoeuvre{choose_actor_manoeuvre(actor, course)};
   if(manoeuvre.firing_distance && fire) fire(actor, firing_course, *manoeuvre.firing_distance);
   frame_step = steer_actor(actor.pose, actor.attitude,
-    {.response{actor.parameters.angular_response}, .bank_response{actor.parameters.motion[0]},
-      .bank_limit{actor.parameters.motion[1]}, .turn_response{actor.parameters.motion[2]}},
+    {.response{actor.parameters.angular_response}, .bank_response{actor.parameters.motion.bank_response},
+      .bank_limit{actor.parameters.motion.bank_limit}, .turn_response{actor.parameters.motion.turn_response}},
     manoeuvre.pitch, manoeuvre.turn_drive, frame_step);
-  advance_actor_speed(actor.pose, manoeuvre.speed, definition.role_data[0], definition.role_data[1], frame_step);
+  advance_actor_speed(actor.pose, manoeuvre.speed, definition.role_data.craft().acceleration, definition.role_data.craft().deceleration, frame_step);
   if(threat_errors) consider_aircraft_threat(*threat_errors, actor, firing_course);
   return manoeuvre.firing_distance;
 }

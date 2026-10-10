@@ -12,7 +12,7 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     vehicle.parameters.definition = &darker::game::original_object_definitions[s[0]];
     vehicle.pose.position = {static_cast<uint16_t>(s[1]),static_cast<uint16_t>(s[2]),static_cast<uint16_t>(s[3])};
     vehicle.pose.angles.heading = static_cast<uint16_t>(s[4]*8192);
-    vehicle.behaviour[0] = static_cast<uint8_t>(s[8]);
+    vehicle.behaviour.attack_control = static_cast<uint8_t>(s[8]);
     vehicle.last_shot = static_cast<uint16_t>(s[9]);
     darker::game::object_pose const player{.position{static_cast<uint16_t>(s[5]),static_cast<uint16_t>(s[6]),static_cast<uint16_t>(s[7])}};
     darker::game::city_map cells{};
@@ -32,7 +32,7 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     }
     auto const *shot{darker::game::fire_vehicle_missile(pool,vehicle,player,cells,types,
       static_cast<uint8_t>(s[4]),static_cast<uint16_t>(s[10]),static_cast<uint8_t>(s[11]),0x400)};
-    CHECK(vehicle.behaviour[0] == s[15]);
+    CHECK(vehicle.behaviour.attack_control == s[15]);
     CHECK(vehicle.last_shot == s[16]);
     CHECK((shot != nullptr) == (s[17] != 0));
     if(shot) {

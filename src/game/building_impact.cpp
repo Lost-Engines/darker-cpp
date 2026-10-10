@@ -7,7 +7,7 @@ bool projectile_damages_building(size_t const definition_slot, uint8_t const cat
   /// CDB9 requires a destruction link; ordinary player ground weapons additionally require a marked category-zero surface
   if(category == 1 || !linked) return false;
   if(category == 2) return true;
-  if(definition_slot >= 19 || !(original_object_definitions.at(definition_slot).role_data[7] & 2)) return false;
+  if(definition_slot >= 19 || !(original_object_definitions.at(definition_slot).role_data.projectile().flags & 2)) return false;
   return definition_slot >= 10 || (category == 0 && (state & 0x40));
 }
 

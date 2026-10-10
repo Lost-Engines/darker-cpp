@@ -342,7 +342,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
                 .angles{source.pose.angles},.speed{source.pose.speed},.side_flags{source.flags},
                 .definition_strength{source.parameters.definition->impact_strength}};
               hostile_projectiles.launch({.definition{definition},.emitter{launcher},.model_token{bank.special_models()[*slot]},
-                .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data[1] * 256)},.target_token{source.selected_target}});
+                .clock{clock},.lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},.target_token{source.selected_target}});
             }
           }
         },[&](scenario_actor &source){ drop_aircraft_bomb(hostile_projectiles,source,building_attacks,clock,bank.special_models()[14]); },&threat_errors);
