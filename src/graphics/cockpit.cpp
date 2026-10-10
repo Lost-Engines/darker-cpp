@@ -48,12 +48,12 @@ framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::ren
 void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, std::uint8_t const state) {
   /// 5192 draws the startup range into the same mask as the ordinary shield-strength gauge
-  std::size_t constexpr skimma_shield_component{1};
+  unsigned int constexpr skimma_shield_component{1};
   if(state > skimma_instruments::shield_startup_limit) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
   auto const range{skimma_shield_strips(state)};
   auto const &descriptor{components_4d70[skimma_shield_component]};
   // 51AD converts native BL into a pulse width, with BH selecting its final strip.
-  for(std::size_t i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
+  for(unsigned int i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
     auto const &strip{descriptor.strips[i]};
     copy_mask(cache.pixels, target.pixels, {descriptor.on_source.x, descriptor.on_source.y + strip.y_offset},
       {descriptor.destination.x, descriptor.destination.y + strip.y_offset}, strip.rows);
@@ -108,21 +108,21 @@ void update_instrument(framework::render::indexed_cockpit_framebuffer const &cac
   unsigned int constexpr caero_engine_light_field{0x4552};
   auto const limit{instrument_limit(type, component)};
   auto const &descriptor{cockpit_components(type)[component]};
-  std::size_t const old_count{static_cast<std::size_t>(old_state & strip_count_mask)};
-  std::size_t const new_count{static_cast<std::size_t>(new_state & strip_count_mask)};
+  unsigned int const old_count{static_cast<unsigned int>(old_state & strip_count_mask)};
+  unsigned int const new_count{static_cast<unsigned int>(new_state & strip_count_mask)};
   if(old_count > limit || new_count > limit) throw std::out_of_range{"instrument state exceeds craft limit"};
   if(((old_state | new_state) & alternate_source_flag) && !(type == craft::caero && descriptor.field == caero_engine_light_field)) {
     throw std::invalid_argument{"alternate source is verified only for the Caero engine light"};
   }
   bool const restoring{new_count < old_count};
   auto source{restoring ? descriptor.destination : (new_state & alternate_source_flag) ? descriptor.alternate_source : descriptor.on_source};
-  std::size_t const first{old_count == new_count ? (new_count ? new_count - 1 : 0) : std::min(old_count, new_count)};
-  std::size_t const end{std::max(old_count, new_count)};
-  for(std::size_t i{first}; i < end; ++i) {
+  unsigned int const first{old_count == new_count ? (new_count ? new_count - 1 : 0) : std::min(old_count, new_count)};
+  unsigned int const end{std::max(old_count, new_count)};
+  for(unsigned int i{first}; i < end; ++i) {
     auto const &strip{descriptor.strips[i]};
     auto const sy{source.y + strip.y_offset};
     auto const dy{descriptor.destination.y + strip.y_offset};
-    for(std::size_t row{0}; row < strip.rows.size(); ++row) {
+    for(unsigned int row{0}; row < strip.rows.size(); ++row) {
       int const source_y{sy + static_cast<int>(row)};
       int const destination_y{dy + static_cast<int>(row)};
       // AF57 shifts logical rows 0–167 by eight in the normal Caero cockpit.

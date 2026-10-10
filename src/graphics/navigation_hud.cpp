@@ -36,7 +36,7 @@ std::array<pixel_position, 5> compass_points(std::uint8_t const phase) {
     x_sign = -x_sign;
   }
   std::array<pixel_position, 5> result;
-  for(std::size_t i{0}; i < result.size(); ++i) {
+  for(unsigned int i{0}; i < result.size(); ++i) {
     auto const offset{compass_offsets[index + i]};
     result[i] = {54 + x_sign * offset.x, 215 + y_sign * offset.y};
   }
@@ -49,7 +49,7 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, std:
   auto const new_points{compass_points(current)};
   std::array<std::uint8_t, 5> constexpr colours{0x9e, 0x9c, 0x9c, 0x9c, 0x9e};
   for(auto const &point : old_points) target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = 0;
-  for(std::size_t i{0}; i < new_points.size(); ++i) {
+  for(unsigned int i{0}; i < new_points.size(); ++i) {
     auto const point{new_points[i]};
     target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = colours[i];
   }

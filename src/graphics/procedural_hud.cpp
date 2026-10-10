@@ -44,7 +44,7 @@ std::size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
 void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &target,
   resources::font_resource const &font, std::array<std::uint8_t,4> const &errors) {
   /// 574F maps aim errors to brightness; 45DD draws compact-font glyph 81h, strongest on the left
-  for(std::size_t i{0}; i < errors.size(); ++i) {
+  for(unsigned int i{0}; i < errors.size(); ++i) {
     int const x{232 - static_cast<int>(i) * 8};
     if(errors[i] < 64) {
       auto const level{static_cast<std::uint8_t>(14 - ((errors[i] * 56) >> 8))};
