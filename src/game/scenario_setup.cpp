@@ -1,5 +1,6 @@
 #include "game/scenario_setup.h"
 #include <algorithm>
+#include <ranges>
 #include <stdexcept>
 
 namespace darker::game {
@@ -93,17 +94,17 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
   }
 }
 
-std::array<std::vector<scenario_actor>,3> make_scenario_actors(resources::scenario_record const &record,
+scenario_actor_groups make_scenario_actors(resources::scenario_record const &record,
   resources::scenario_resource const &resource, resources::geometry_bank const &bank, player_flight &player,
   weapon_ammunition &second_weapon, uint16_t const clock, std::optional<tunnel_setup> const tunnel) {
   /// Preserve allocation order and translate the inline player, placement and actor mutations between groups
   auto const configuration{record.configuration & 15};
   uint8_t const world{static_cast<uint8_t>(configuration == 4 ? 2 : configuration <= 1 ? 0 : 1)};
   auto const player_model{bank.special_models()[configuration == 4 ? 28 : 24+configuration]};
-  std::array<std::vector<scenario_actor>,3> result;
+  scenario_actor_groups result;
   uint8_t first{1};
-  for(size_t i{0}; i < result.size(); ++i) {
-    auto group{record.groups[i]};
+  for(auto const &[source, actors] : std::views::zip(record.groups, std::array{&result.active, &result.reserves, &result.free})) {
+    auto group{source};
     for(auto const &block : group.native_setup) {
       if(block.current_object != 0) continue;
       auto const kind{identify_scenario_setup(resource.bytes(block.source))};
@@ -115,12 +116,12 @@ std::array<std::vector<scenario_actor>,3> make_scenario_actors(resources::scenar
       }
     }
     group.native_setup.clear();
-    result[i] = make_scenario_group(group,bank,first,world,record.shared.offset,tunnel);
+    *actors = make_scenario_group(group,bank,first,world,record.shared.offset,tunnel);
     first = static_cast<uint8_t>(first+group.objects.size());
-    for(auto const &block : record.groups[i].native_setup) {
+    for(auto const &block : source.native_setup) {
       if(block.current_object == 0) continue;
-      auto const found{std::ranges::find(result[i],block.current_object,&scenario_actor::index)};
-      if(found == result[i].end()) throw std::invalid_argument{"Embedded setup has no current actor"};
+      auto const found{std::ranges::find(*actors,block.current_object,&scenario_actor::index)};
+      if(found == actors->end()) throw std::invalid_argument{"Embedded setup has no current actor"};
       apply_actor_scenario_setup(identify_scenario_setup(resource.bytes(block.source)),*found,player_model,clock);
     }
   }

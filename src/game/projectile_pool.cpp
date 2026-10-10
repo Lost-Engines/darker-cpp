@@ -25,8 +25,8 @@ projectile *projectile_pool::launch(projectile_launch const request) {
   record->placement = place_projectile(request.emitter);
   record->flags = 0x20;
   record->lifecycle = 0xfe;
-  record->angular_motion[1] = 0;
-  record->angular_motion[2] = 0;
+  record->angular_motion.pitch = 0;
+  record->angular_motion.turn = 0;
   return record;
 }
 

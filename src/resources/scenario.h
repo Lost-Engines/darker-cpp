@@ -28,6 +28,15 @@ struct scenario_cell_list {
   std::uint8_t terminator{255};
 };
 
+struct actor_behaviour {
+  std::uint8_t attack_control{}; // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
+  std::uint8_t awareness_threshold{};
+  std::uint8_t awareness_decay{};
+  std::uint8_t awareness_rise{};
+  std::uint8_t awareness_strength{};
+  std::uint8_t evasion{};
+};
+
 struct scenario_placement {
   resource_range source{};
   placement_form form{placement_form::moving};
@@ -36,7 +45,7 @@ struct scenario_placement {
   std::uint8_t attributes{0};
   std::uint16_t heading{0};
   maths::map_position position{};
-  std::array<std::uint8_t, 6> motion{};
+  actor_behaviour behaviour{};
   std::optional<std::uint16_t> script_or_target;
   std::optional<std::size_t> program_offset;
 };

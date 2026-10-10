@@ -10,6 +10,12 @@
 
 namespace darker::game {
 
+struct projectile_angular_rates {
+  std::uint16_t reserved{}; // native word retained when a pool record is reused
+  std::uint16_t pitch{};
+  std::uint16_t turn{}; // heading response for direct homing, bank response for map homing
+};
+
 struct projectile {
   std::uint16_t native_id{0};
   projectile *next{nullptr};
@@ -17,7 +23,7 @@ struct projectile {
   object_parameters parameters;
   object_pose placement;
   maths::world_position previous_position{};
-  std::array<std::uint16_t, 3> angular_motion{};
+  projectile_angular_rates angular_motion{};
   std::uint8_t flags{0};
   std::uint8_t lifecycle{0};
   std::uint8_t fade{0};

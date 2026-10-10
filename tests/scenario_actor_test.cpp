@@ -18,7 +18,8 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
       .heading{static_cast<std::uint16_t>(v[4])},
       .position{static_cast<std::uint16_t>(v[6]), static_cast<std::uint16_t>(v[7])},
     };
-    for(std::size_t i{0}; i < placement.motion.size(); ++i) placement.motion[i] = static_cast<std::uint8_t>(v[8 + i]);
+    placement.behaviour = {static_cast<uint8_t>(v[8]), static_cast<uint8_t>(v[9]), static_cast<uint8_t>(v[10]),
+      static_cast<uint8_t>(v[11]), static_cast<uint8_t>(v[12]), static_cast<uint8_t>(v[13])};
     if(v[0] != 2) {
       placement.script_or_target = static_cast<std::uint16_t>(v[14]);
       if(v[14] < 0x8000) placement.program_offset = static_cast<std::size_t>(v[17] + v[14]);

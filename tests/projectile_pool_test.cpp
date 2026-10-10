@@ -21,7 +21,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
     darker::game::projectile_pool pool;
     auto *previous{pool.launch(request)};
     REQUIRE(previous != nullptr);
-    previous->angular_motion.fill(0xa5a5);
+    previous->angular_motion = {.reserved{0xa5a5}, .pitch{0xa5a5}, .turn{0xa5a5}};
     pool.recycle(*previous);
     auto const *record{pool.launch(request)};
     REQUIRE(record == previous);
@@ -30,7 +30,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
       p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     auto const &parameters{record->parameters};
     std::array<int, 15> const metadata{parameters.model_token, std::to_underlying(parameters.update_entry), parameters.flags_4c, parameters.angular_response,
-      parameters.motion.bank_response, parameters.motion.bank_limit, parameters.motion.turn_response, record->angular_motion[0], record->angular_motion[1], record->angular_motion[2],
+      parameters.motion.bank_response, parameters.motion.bank_limit, parameters.motion.turn_response, record->angular_motion.reserved, record->angular_motion.pitch, record->angular_motion.turn,
       record->flags, record->lifecycle, record->inherited_roll, record->deadline, record->target_token};
     CHECK(placement == sample.result);
     CHECK(metadata == sample.metadata);

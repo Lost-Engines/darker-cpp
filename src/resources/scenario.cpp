@@ -91,7 +91,7 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
       } else {
         object.position = {static_cast<std::uint16_t>(input.byte() * 256 + 128), static_cast<std::uint16_t>(input.byte() * 256 + 128)};
         if(object.form == placement_form::moving) {
-          for(auto &value : object.motion) value = input.byte();
+          object.behaviour = {input.byte(), input.byte(), input.byte(), input.byte(), input.byte(), input.byte()};
         }
         object.script_or_target = input.word();
         if(*object.script_or_target < 0x8000) {

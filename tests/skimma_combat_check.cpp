@@ -228,13 +228,13 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     auto groups{darker::game::make_scenario_actors(record,final_scenario,final_bank,pilot,second_weapon,0)};
     if(second_weapon.working || second_weapon.reserve || pilot.definition_slot() != 24 || pilot.world_damage_mask() != 0x20)
       throw std::runtime_error{"Final approach lost its native Skimma profile or empty ground-weapon bay"};
-    darker::game::mission_combat combat{std::move(groups[0])};
-    combat.reserves = std::move(groups[1]);
+    darker::game::mission_combat combat{std::move(groups.active)};
+    combat.reserves = std::move(groups.reserves);
     combat.skimma.selection = 2;
     combat.skimma.slots[2].flags = 1;
     darker::game::refill_skimma_weapon(combat.skimma.slots[2].ammunition,2);
     darker::game::refill_skimma_weapon(combat.skimma.slots[0].ammunition,0);
-    combat.free_actors = std::move(groups[2]);
+    combat.free_actors = std::move(groups.free);
     auto &craft{std::get<darker::game::skimma_flight_state>(pilot.craft)};
     craft.damage.shield_enabled = true;
     pilot.engine_flags = 1;
@@ -318,9 +318,9 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     auto &craft{std::get<darker::game::skimma_flight_state>(pilot.craft)};
     craft.damage.shield_enabled = true;
     pilot.engine_flags = 1;
-    darker::game::mission_combat combat{std::move(groups[0])};
-    combat.reserves = std::move(groups[1]);
-    combat.free_actors = std::move(groups[2]);
+    darker::game::mission_combat combat{std::move(groups.active)};
+    combat.reserves = std::move(groups.reserves);
+    combat.free_actors = std::move(groups.free);
     combat.spawning.sites.clear();
     combat.spawning.halon = true;
     for(uint8_t i{0}; i < 3; ++i) darker::game::refill_skimma_weapon(combat.skimma.slots[i].ammunition,i);

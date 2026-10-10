@@ -39,7 +39,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     actor.parameters.update_entry = world_mode == 2 ? object_update::tunnel_actor : object_update::surface_actor;
     actor.pose.speed = static_cast<std::uint16_t>(definition.base_speed * 16);
     actor.flags = 2;
-    actor.behaviour = {placement.motion[0], placement.motion[1], placement.motion[2], placement.motion[3], placement.motion[4], placement.motion[5]};
+    actor.behaviour = placement.behaviour;
   } else if(placement.form == resources::placement_form::compact_special) {
     actor.parameters.update_entry = object_update::ground_vehicle;
     actor.route.emplace();

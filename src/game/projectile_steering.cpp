@@ -50,15 +50,15 @@ uint16_t steer_homing_projectile(projectile &record, std::uint16_t const target_
   if(!record.parameters.definition) throw std::invalid_argument{"homing projectile requires an object definition"};
   auto &angles{record.placement.angles};
   auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(target_pitch - angles.pitch),
-    record.angular_motion[1], record.parameters.angular_response, frame_step)};
-  record.angular_motion[1] = pitch.rate;
+    record.angular_motion.pitch, record.parameters.angular_response, frame_step)};
+  record.angular_motion.pitch = pitch.rate;
   angles.pitch = static_cast<std::uint16_t>(angles.pitch + pitch.angle_delta);
   auto const difference{static_cast<std::uint16_t>(target_heading - angles.heading)};
   int const sign{signed_word(difference) < 0 ? -1 : 0};
   auto const adjusted{static_cast<std::uint16_t>(((difference >> 8) ^ (sign & 255)) >= 0x40
     ? -signed_word(difference) : signed_word(difference) + signed_word(sign ^ 0x00c0))};
-  auto const heading{calculate_angular_response(adjusted, record.angular_motion[2], record.parameters.angular_response, pitch.frame_step)};
-  record.angular_motion[2] = heading.rate;
+  auto const heading{calculate_angular_response(adjusted, record.angular_motion.turn, record.parameters.angular_response, pitch.frame_step)};
+  record.angular_motion.turn = heading.rate;
   angles.heading = static_cast<std::uint16_t>(angles.heading + heading.angle_delta);
   return heading.frame_step;
 }
@@ -117,17 +117,17 @@ void advance_map_homing_projectile(projectile &record, map_guidance_target const
     // JO after doubling rejects +4000h, but accepts -4000h.
     if(heading_error >= -16384 && heading_error < 16384) {
       auto const pitch{calculate_angular_response(static_cast<std::uint16_t>(direction.pitch - angles.pitch),
-        record.angular_motion[1], record.parameters.angular_response, step)};
+        record.angular_motion.pitch, record.parameters.angular_response, step)};
       angles.pitch = static_cast<std::uint16_t>(angles.pitch + pitch.angle_delta);
-      record.angular_motion[1] = pitch.rate;
+      record.angular_motion.pitch = pitch.rate;
       auto const bank{signed_word((static_cast<std::int32_t>(heading_error) * signed_word(record.parameters.motion.bank_response)) >> 15)};
       int const sign{bank < 0 ? -1 : 0};
       auto const magnitude{static_cast<std::uint16_t>((bank ^ sign) - sign)};
       auto const bounded{std::min(magnitude, record.parameters.motion.bank_limit)};
       auto const roll_target{signed_word(((bounded ^ sign) - sign) * 2)};
       auto const roll{calculate_angular_response(static_cast<std::uint16_t>(roll_target - angles.roll),
-        record.angular_motion[2], record.parameters.angular_response, pitch.frame_step)};
-      record.angular_motion[2] = roll.rate;
+        record.angular_motion.turn, record.parameters.angular_response, pitch.frame_step)};
+      record.angular_motion.turn = roll.rate;
       angles.roll = static_cast<std::uint16_t>(angles.roll + roll.angle_delta);
       auto const midpoint{static_cast<std::uint16_t>(angles.roll - (signed_word(roll.angle_delta) >> 1))};
       auto const shaped{signed_word(fold_bank_angle(midpoint))};

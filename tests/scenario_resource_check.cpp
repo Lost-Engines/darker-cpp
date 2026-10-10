@@ -1,6 +1,7 @@
 #include "scenario_resource_check.h"
 #include <cstdint>
 #include <algorithm>
+#include <ranges>
 #include <format>
 #include <iostream>
 #include <stdexcept>
@@ -51,19 +52,19 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
         darker::game::weapon_ammunition ammunition;
         auto const actors{darker::game::make_scenario_actors(record,resource,bank,player,ammunition,0xff00,
           configuration == 4 ? std::optional{darker::game::tunnel_setup{network,cells}} : std::nullopt)};
-        for(size_t group{0}; group < actors.size(); ++group) {
-          if(actors[group].size() != record.groups[group].objects.size()) throw std::runtime_error{"Scenario setup lost actor placements"};
-          constructed += actors[group].size();
+        for(auto const &[source, group] : std::views::zip(record.groups, std::array{&actors.active, &actors.reserves, &actors.free})) {
+          if(group->size() != source.objects.size()) throw std::runtime_error{"Scenario setup lost actor placements"};
+          constructed += group->size();
         }
         if(slot == 12 && index == 4) {
-          for(auto const &actor : actors[0]) {
+          for(auto const &actor : actors.active) {
             if((actor.pose.position.column >> 8) != 0x42 || (actor.pose.position.row >> 8) != 0x51)
               throw std::runtime_error{"Embedded escort setup did not anchor subsequent actors to the player"};
           }
         }
         if(slot == 15 && index == 0) {
-          auto const actor{std::ranges::find(actors[1],2,&darker::game::scenario_actor::index)};
-          if(actor == actors[1].end() || actor->parameters.model_token != bank.special_models()[25])
+          auto const actor{std::ranges::find(actors.reserves,2,&darker::game::scenario_actor::index)};
+          if(actor == actors.reserves.end() || actor->parameters.model_token != bank.special_models()[25])
             throw std::runtime_error{"Linked nightmare setup did not copy the player model"};
         }
         range(record.beacon_sequence);
@@ -92,7 +93,8 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
             add(object.heading);
             add(object.position.column);
             add(object.position.row);
-            for(auto const value : object.motion) add(value);
+            for(auto const value : {object.behaviour.attack_control, object.behaviour.awareness_threshold, object.behaviour.awareness_decay,
+              object.behaviour.awareness_rise, object.behaviour.awareness_strength, object.behaviour.evasion}) add(value);
             add(object.script_or_target ? *object.script_or_target : 0xffffffff);
             add(static_cast<std::uint32_t>(object.program_offset.value_or(0xffffffff)));
           }

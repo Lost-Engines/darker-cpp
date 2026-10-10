@@ -32,7 +32,7 @@ TEST_CASE("Full object-homing trajectories follow native moving, coincident and 
       static_cast<std::uint16_t>(sample.step));
     auto const &p{record.placement};
     std::array<int, 12> const actual{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
-      record.angular_motion[1], record.angular_motion[2], p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
+      record.angular_motion.pitch, record.angular_motion.turn, p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     CHECK(actual == sample.result);
   }
 }

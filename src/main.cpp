@@ -991,7 +991,7 @@ auto main(int const argc, char const *const argv[])->int {
           darker::game::weapon_ammunition second_weapon;
           darker::game::refill_skimma_weapon(second_weapon,1);
           auto groups{darker::game::make_scenario_actors(mission,*scenario,bank,host.player,second_weapon,0,tunnels)};
-          initial_actors = std::move(groups[0]);
+          initial_actors = std::move(groups.active);
           initial_player = host.player;
           initial_cells = cells;
           auto const spawning{combat->spawning};
@@ -1004,8 +1004,8 @@ auto main(int const argc, char const *const argv[])->int {
             combat->spawning.sites.clear();
           }
           for(uint8_t i{0}; i < combat->skimma.slots.size(); ++i) darker::game::refill_skimma_weapon(combat->skimma.slots[i].ammunition,i);
-          combat->reserves = std::move(groups[1]);
-          combat->free_actors = std::move(groups[2]);
+          combat->reserves = std::move(groups.reserves);
+          combat->free_actors = std::move(groups.free);
           combat->skimma.slots[1].ammunition = second_weapon;
           combat->difficulty = front->initial_difficulty().value_or(static_cast<uint8_t>(pilot.stage*2));
           host.score_base = front->initial_score();

@@ -31,15 +31,6 @@ struct tunnel_setup {
   city_map const &cells;
 };
 
-struct actor_behaviour {
-  std::uint8_t attack_control{}; // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
-  std::uint8_t awareness_threshold{};
-  std::uint8_t awareness_decay{};
-  std::uint8_t awareness_rise{};
-  std::uint8_t awareness_strength{};
-  std::uint8_t evasion{};
-};
-
 struct scenario_actor {
   actor_category category{actor_category::air};
   object_parameters parameters{};
@@ -50,7 +41,7 @@ struct scenario_actor {
   std::optional<vehicle_route> route{};
   std::optional<tunnel_actor_state> tunnel{};
   maths::world_position previous_position{};
-  actor_behaviour behaviour{}; // native bytes 50–55
+  resources::actor_behaviour behaviour{}; // native bytes 50–55
   std::uint16_t selected_target{0};
   std::uint16_t target_token{0};
   std::uint16_t current_cell{0};

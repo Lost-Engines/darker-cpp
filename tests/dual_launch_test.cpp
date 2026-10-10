@@ -71,8 +71,8 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
     }
     shot.placement.speed = static_cast<uint16_t>(sample[9]);
     shot.inherited_roll = static_cast<uint16_t>(sample[10]);
-    shot.angular_motion[1] = static_cast<uint16_t>(sample[11]);
-    shot.angular_motion[2] = static_cast<uint16_t>(sample[12]);
+    shot.angular_motion.pitch = static_cast<uint16_t>(sample[11]);
+    shot.angular_motion.turn = static_cast<uint16_t>(sample[12]);
     uint16_t pitch{614};
     if(sample[18]) darker::game::advance_direct_projectile(shot.placement,*shot.parameters.definition,static_cast<uint16_t>(sample[17]));
     else {
@@ -88,8 +88,8 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
       CHECK(shot.placement.position[axis] == sample[19 + axis]);
       CHECK(shot.placement.fractions[axis] == sample[22 + axis]);
     }
-    CHECK(shot.angular_motion[1] == sample[25]);
-    CHECK(shot.angular_motion[2] == sample[26]);
+    CHECK(shot.angular_motion.pitch == sample[25]);
+    CHECK(shot.angular_motion.turn == sample[26]);
     CHECK(shot.placement.speed == sample[30]);
     CHECK(pitch == sample[31]);
   }
