@@ -12,10 +12,16 @@ To make things easier, there's automatic fetch script to get all necessary data 
 ```sh
 ./scripts/fetch-assets.sh
 ```
+or on windows:
+```sh
+scripts\fetch-assets.bat
+```
+
 After which you can just run the game:
 ```sh
 ./darker
 ```
+or on windows, double-click `darker.exe`.
 
 It is highly recommended to read the manual, and you will need to refer to the map during gameplay to progress.  We also made a nice 3D map to explore: in your browser: https://lost-engines.github.io/darker-discovered/cities/?map=68
 
