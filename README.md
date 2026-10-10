@@ -4,11 +4,22 @@ A faithful C++23 reconstruction of the engine of the 1995 DOS game Darker by Psy
 
 Read about the reverse engineering effort at https://lostengines.com/darker and browse a 3D map viewer, model viewer, and more.
 
-## Data files
+## Getting Started & Data files
 
-The original game's data files are required to run this.  Darker is considered abandonware at this point, and images of the original media are widely available: https://archive.org/details/darker-cdrom/ or https://www.myabandonware.com/game/darker-2dn#download.
+The original game's data files are required to run this.  Darker is considered abandonware at this point, and images of the original media are widely available: https://archive.org/details/darker-cdrom/ or https://www.myabandonware.com/game/darker-2dn#download.  If you wish to provide your own data files, just pass the `--data-dir` commandline argument.
 
-## Build and run
+To make things easier, there's automatic fetch script to get all necessary data (including the manual and map and sound emulation ROMs) into a default directory in your profile:
+```sh
+./scripts/fetch-assets.sh
+```
+After which you can just run the game:
+```sh
+./darker
+```
+
+It is highly recommended to read the manual, and you will need to refer to the map during gameplay to progress.  We also made a nice 3D map to explore: in your browser: https://lost-engines.github.io/darker-discovered/cities/?map=68
+
+## Building the source code
 
 Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
