@@ -7,6 +7,7 @@
 namespace darker::game {
 
 struct effect_sound_definition {
+  static uint8_t constexpr spatial_stereo_flag{1};                             // apply left/right attenuation from the source bearing
   uint16_t duration;
   uint16_t pitch;
   uint16_t level;

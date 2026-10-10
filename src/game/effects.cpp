@@ -85,7 +85,7 @@ void effect_system::spawn(uint16_t const recipe, maths::world_position const pos
       .flags{source.flags},
     };
     for(unsigned int axis{0}; axis < 3; ++axis) emitter.position[axis] = static_cast<uint16_t>(emitter.position[axis] + source.offset[axis]);
-    if(emitters.size() == 25) emitters.erase(emitters.begin());
+    if(emitters.size() == emitter_capacity) emitters.erase(emitters.begin());
     emitters.push_back(emitter);
   }
   for(auto const &sound : found->sounds) {
@@ -98,8 +98,11 @@ void effect_system::spawn(uint16_t const recipe, maths::world_position const pos
 }
 
 void effect_system::spark(maths::world_position const position, uint8_t const phase, uint16_t const sound_level, uint16_t const clock) {
-  /// 6742 emits a stationary sprite plus a short patch-22 sound, also used by the Wrecker's cutting effects
-  if(trails.size() == 20) trails.erase(trails.begin());
+  /// 6742 emits a stationary sprite plus a short impact sound, also used by the Wrecker's cutting effects
+  uint8_t constexpr impact_sound_patch{22};                                    // index into the game's FM timbre bank, not a MIDI program
+  uint16_t constexpr impact_sound_duration{256};                               // native timer ticks; sprite lifetime is independent
+  uint16_t constexpr impact_sound_pitch{0x203};                                // native driver pitch code before spatial/Doppler adjustment
+  if(trails.size() == trail_capacity) trails.erase(trails.begin());
   trails.push_back({
     .position{position},
     .start{clock},
@@ -108,25 +111,30 @@ void effect_system::spark(maths::world_position const position, uint8_t const ph
   append_sound(gun_sounds, gun_slots, 17, {
     .position{position},
     .definition{
-      .duration{256},
-      .pitch{0x203},
+      .duration{impact_sound_duration},
+      .pitch{impact_sound_pitch},
       .level{sound_level},
-      .patch{22},
-      .flags{1}
+      .patch{impact_sound_patch},
+      .flags{effect_sound_definition::spatial_stereo_flag}
     },
-    .deadline{static_cast<uint16_t>(clock + 256)}
+    .deadline{static_cast<uint16_t>(clock + impact_sound_duration)}
   });
 }
 
 void effect_system::gun_impact(maths::world_position position, bool const hit, uint16_t const clock) {
-  /// 6730/6742 create a short endpoint sprite and an independently timed patch-22 sound
-  position.height &= 0xfff8;
-  spark(position, static_cast<uint8_t>(hit ? 3 : 6), static_cast<uint16_t>(hit ? 0xde30 : 0xce30), clock);
+  /// 6730/6742 create a short endpoint sprite and an independently timed impact sound
+  uint16_t constexpr height_alignment_mask{0xfff8};                            // clear the lowest three height bits: snap down to an eight-unit boundary
+  uint8_t constexpr hit_lifetime_phases{3};                                    // 192 native ticks, counting backwards through sprite phases 3 to 0
+  uint8_t constexpr miss_lifetime_phases{6};                                   // 384 native ticks, counting backwards through sprite phases 6 to 0
+  uint16_t constexpr hit_sound_level{0xde30};                                  // source level before distance and stereo attenuation
+  uint16_t constexpr miss_sound_level{0xce30};                                 // quieter than a confirmed hit
+  position.height &= height_alignment_mask;
+  spark(position, hit ? hit_lifetime_phases : miss_lifetime_phases, hit ? hit_sound_level : miss_sound_level, clock);
 }
 
 void effect_system::trail(maths::world_position const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {
   /// Advance the shared random sequence only when a trail is emitted
-  if(trails.size() == 20) trails.erase(trails.begin());
+  if(trails.size() == trail_capacity) trails.erase(trails.begin());
   trails.push_back(make_damage_trail(position, severity, next_random(random), clock));
 }
 

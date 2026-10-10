@@ -48,6 +48,10 @@ std::optional<uint8_t> damage_trail_severity(uint16_t damage, uint8_t flags, uin
 particle_emitter make_damage_trail(maths::world_position position, uint8_t severity, uint16_t random, uint16_t clock) noexcept;
 
 class effect_system {
+public:
+  static unsigned int constexpr trail_capacity{20};                            // shared pool for damage trails and stationary impact sparks
+  static unsigned int constexpr emitter_capacity{25};                          // separate pool for moving recipe emitters
+
 private:
   struct sound_slots {
     std::array<uint8_t, 16> free{15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};

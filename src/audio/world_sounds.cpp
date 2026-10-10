@@ -139,7 +139,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       .patch{definition.patch},
       .active{true}
     }});
-    if(definition.flags & 1) candidates.back().note.attenuation = stereo_attenuation({
+    if(definition.flags & game::effect_sound_definition::spatial_stereo_flag) candidates.back().note.attenuation = stereo_attenuation({
       static_cast<uint16_t>(sound.position.column - listener.position.column), static_cast<uint16_t>(sound.position.row - listener.position.row),
       static_cast<uint16_t>(sound.position.height - listener.position.height)}, basis, *level);
   }};
