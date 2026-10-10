@@ -92,6 +92,13 @@ remain fork features, not hidden switches in these refactors.
 See [software polygons](software_polygons.md),
 [model rendering](model_rendering.md) and [fonts and text](fonts_and_text.md).
 
+The city renderer owns a reusable `model_workspace`. Only emitted vertices and
+populated face prefixes may be read; vertex-validity flags reset for every model.
+Polygons wholly inside the viewport bypass clipping, while clipped polygons
+alternate between two buffers without copying entire arrays. These optimisations
+retain the native edge stepping, clipping order and indexed pixel output, checked
+against the original renderer's reference frames.
+
 ## Adding craft, weapons or actors
 
 `object_catalogue` records the shared layout used by both definitions and

@@ -121,35 +121,8 @@ void draw_span(framework::render::indexed_surface target, int const y, int const
   }
 }
 
-} // anonymous namespace
-
-void draw_gouraud_polygon(framework::render::indexed_surface target,
-  std::span<shaded_vertex const> const vertices, raster_viewport const viewport) {
-  auto const [right, bottom]{viewport};
-  /// Translate the original convex palette-index Gouraud path into a contiguous indexed framebuffer
-  if(vertices.size() < 3) return;
-  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
-    throw std::invalid_argument{"Shaded polygon exceeds supported vertex or viewport bounds"};
-  }
-  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
-    return a.position.x < b.position.x;
-  })};
-  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
-    return a.position.y < b.position.y;
-  })};
-  if(rightmost->position.x < 0 || lowest->position.y < 0 || leftmost->position.x > right || top->position.y >= bottom) return;
-  auto const index{static_cast<size_t>(top - vertices.begin())};
-  auto const &next{vertices[(index + 1) % vertices.size()]}, &previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
-  if(back_facing(top->position, next.position, previous.position)) return;
-  polygon_buffer first{}, second{};
-  std::copy(vertices.begin(), vertices.end(), first.begin());
-  size_t count{vertices.size()};
-  for(auto const plane : viewport_clip_planes(viewport)) {
-    count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
-    first.swap(second);
-    if(count < 3) return;
-  }
-  auto const points{std::span{first}.first(count)};
+void rasterise(framework::render::indexed_surface target, std::span<shaded_vertex const> const points, int const right) {
+  /// Walk the original edges and shade spans after visibility and clipping are resolved
   auto const first_point{std::min_element(points.begin(), points.end(), [](auto const &a, auto const &b){
     return a.position.y < b.position.y;
   })};
@@ -175,6 +148,46 @@ void draw_gouraud_polygon(framework::render::indexed_surface target,
     int const end{std::clamp(right_edge.x, left, right + 1)};
     draw_span(target, y, left, end, left_edge.shade >> 8, right_edge.shade >> 8);
   }
+}
+
+} // anonymous namespace
+
+void draw_gouraud_polygon(framework::render::indexed_surface target,
+  std::span<shaded_vertex const> const vertices, raster_viewport const viewport) {
+  auto const [right, bottom]{viewport};
+  /// Translate the original convex palette-index Gouraud path into a contiguous indexed framebuffer
+  if(vertices.size() < 3) return;
+  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
+    throw std::invalid_argument{"Shaded polygon exceeds supported vertex or viewport bounds"};
+  }
+  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.position.x < b.position.x;
+  })};
+  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.position.y < b.position.y;
+  })};
+  if(rightmost->position.x < 0 || lowest->position.y < 0 || leftmost->position.x > right || top->position.y >= bottom) return;
+  if(top->position.y == lowest->position.y) return; // no scanlines, including subpixel distant faces
+  auto const index{static_cast<size_t>(top - vertices.begin())};
+  auto const &next{vertices[(index + 1) % vertices.size()]}, &previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
+  if(back_facing(top->position, next.position, previous.position)) return;
+  // Interior polygons need neither clipping nor temporary copies. Distant faces
+  // often occupy only a few pixels, so buffer housekeeping otherwise dominates.
+  if(leftmost->position.x >= 0 && rightmost->position.x <= right
+    && top->position.y >= 0 && lowest->position.y <= bottom) {
+    rasterise(target, vertices, right);
+    return;
+  }
+  polygon_buffer first{}, second{};
+  auto points{vertices};
+  auto *output{&first};
+  for(auto const plane : viewport_clip_planes(viewport)) {
+    auto const count{clip(points, *output, plane.horizontal, plane.boundary, plane.maximum)};
+    if(count < 3) return;
+    points = std::span{*output}.first(count);
+    output = output == &first ? &second : &first;
+  }
+  rasterise(target, points, right);
 }
 
 } // namespace darker::graphics

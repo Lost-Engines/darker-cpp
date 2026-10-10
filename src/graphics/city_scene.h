@@ -80,6 +80,7 @@ private:
   std::vector<city_draw_item> items;
   std::array<uint8_t, game::city_map_cell_count> tunnel_visibility{};
   model_colours retained_colours{};
+  model_workspace workspace{};
 
 public:
   size_t draw(framework::render::indexed_surface target, resources::geometry_bank const &bank,

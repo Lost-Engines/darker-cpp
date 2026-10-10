@@ -79,8 +79,7 @@ private:
   model_path path;
   model_shading shading;
   screen_vertex screen_origin;
-  std::array<camera_vertex, 256> camera_vertices{};
-  std::array<screen_vertex, 256> vertices{};
+  model_workspace &workspace;
   std::array<bool, 256> defined{};
   size_t cursor{0};
   unsigned int instructions{0};
@@ -107,15 +106,15 @@ private:
   screen_vertex const &vertex(uint8_t const index) const {
     /// Reject references to vertices not emitted by this model invocation
     if(!defined[index]) throw std::invalid_argument{"Model face references an undefined vertex"};
-    return vertices[index];
+    return workspace.vertices[index];
   }
 
   void emit() {
     /// Store a projected vertex at the current original output index
-    if(cursor >= vertices.size()) throw std::invalid_argument{"Model exceeds its projected vertex buffer"};
-    camera_vertices[cursor] = projection.transform();
-    last_depth = signed_word(camera_vertices[cursor].depth >> render_geometry::fraction_bits);
-    if(path == model_path::direct) vertices[cursor] = project_vertex(camera_vertices[cursor], screen_origin);
+    if(cursor >= workspace.vertices.size()) throw std::invalid_argument{"Model exceeds its projected vertex buffer"};
+    workspace.camera_vertices[cursor] = projection.transform();
+    last_depth = signed_word(workspace.camera_vertices[cursor].depth >> render_geometry::fraction_bits);
+    if(path == model_path::direct) workspace.vertices[cursor] = project_vertex(workspace.camera_vertices[cursor], screen_origin);
     defined[cursor++] = true;
   }
 
@@ -128,7 +127,7 @@ private:
     /// The direct path saves live accumulators; the near path retains the last emitted camera vertex
     if(path == model_path::near_clipped) {
       if(cursor == 0) throw std::invalid_argument{"Model anchor has no preceding vertex"};
-      anchor = camera_vertices[cursor - 1];
+      anchor = workspace.camera_vertices[cursor - 1];
     } else {
       anchor = projection.transform();
       anchor.vertical = signed_coordinate(anchor.vertical + 0xba);             // 31D9 includes the adjacent MOV opcode byte at FCD4
@@ -138,8 +137,8 @@ private:
 
   void emit_interpolated() {
     /// 3215/32AE use different quantised interpolation paths before and after camera-space vertex storage
-    if(cursor == 0 || cursor >= vertices.size()) throw std::invalid_argument{"Interpolated model vertex has no valid output slot"};
-    auto current{path == model_path::near_clipped ? camera_vertices[cursor - 1] : projection.transform()};
+    if(cursor == 0 || cursor >= workspace.vertices.size()) throw std::invalid_argument{"Interpolated model vertex has no valid output slot"};
+    auto current{path == model_path::near_clipped ? workspace.camera_vertices[cursor - 1] : projection.transform()};
     if(path == model_path::direct) current.vertical = signed_coordinate(current.vertical + 0xba);
     camera_vertex result{};
     if(path == model_path::near_clipped) {
@@ -154,9 +153,9 @@ private:
       result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(signed_coordinate(current.horizontal - anchor.horizontal) >> 7) * factor) >> 8));
       result.vertical = signed_coordinate(anchor.vertical + ((signed_word(signed_coordinate(current.vertical - anchor.vertical) >> 7) * factor) >> 8));
       result.depth = signed_word((anchor.depth >> render_geometry::fraction_bits) + ((signed_word((last_depth - (anchor.depth >> render_geometry::fraction_bits)) * 2) * factor) >> 16)) * render_geometry::fraction_scale;
-      vertices[cursor] = project_vertex(result, screen_origin);
+      workspace.vertices[cursor] = project_vertex(result, screen_origin);
     }
-    camera_vertices[cursor] = result;
+    workspace.camera_vertices[cursor] = result;
     defined[cursor++] = true;
   }
 
@@ -178,9 +177,9 @@ private:
   }
 
 public:
-  interpreter(framework::render::indexed_surface frame, std::span<std::byte const> const bytes,
+  interpreter(model_workspace &storage, framework::render::indexed_surface frame, std::span<std::byte const> const bytes,
     projection_parameters const parameters, model_colours const &palette, raster_viewport const bounds, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, viewport{bounds}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
+    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, viewport{bounds}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin}, workspace{storage} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
@@ -215,11 +214,11 @@ public:
           auto const radius{word(position)};
           if(cursor == 0) throw std::invalid_argument{"Model disc has no preceding vertex"};
           --cursor;
-          auto const centre{camera_vertices[cursor]};
+          auto const centre{workspace.camera_vertices[cursor]};
           auto const depth{path == model_path::near_clipped ? signed_word(centre.depth >> render_geometry::fraction_bits) : last_depth};
           if(path == model_path::near_clipped && depth < render_geometry::near_depth) break;
           if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
-          auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : vertices[cursor]};
+          auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : workspace.vertices[cursor]};
           draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, viewport);
         }
         break;
@@ -231,14 +230,14 @@ public:
           if(!defined[a] || !defined[b]) throw std::invalid_argument{"Model line references an undefined vertex"};
           screen_vertex first{}, last{};
           if(path == model_path::near_clipped) {
-            auto const left{camera_vertices[a]}, right{camera_vertices[b]};
+            auto const left{workspace.camera_vertices[a]}, right{workspace.camera_vertices[b]};
             bool const left_inside{left.depth >= render_geometry::near_depth_fixed}, right_inside{right.depth >= render_geometry::near_depth_fixed};
             if(!left_inside && !right_inside) break;
             first = left_inside ? project_vertex(left, screen_origin) : near_intersection(right, left, screen_origin);
             last = right_inside ? project_vertex(right, screen_origin) : near_intersection(left, right, screen_origin);
           } else {
-            first = vertices[a];
-            last = vertices[b];
+            first = workspace.vertices[a];
+            last = workspace.vertices[b];
           }
           draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, viewport);
         }
@@ -354,38 +353,34 @@ public:
           unsigned int const count{static_cast<unsigned int>(opcode == model_opcode::flat_polygon || opcode == model_opcode::shaded_polygon ? byte(position) : shaded ? std::to_underlying(opcode) - 12 : std::to_underlying(opcode)) + 1};
           auto const source_colour{byte(position)};
           auto const index{colour(source_colour)};
-          std::array<screen_vertex, clipped_polygon_vertex_limit> face{};
-          std::array<shaded_vertex, clipped_polygon_vertex_limit> shaded_face{};
-          std::array<uint16_t, 256> vertex_shades{};
-          std::array<camera_vertex, 256> camera_face{};
           for(unsigned int i{0}; i < count; ++i) {
             auto const source{byte(position)};
             if(!defined[source]) throw std::invalid_argument{"Model face references an undefined vertex"};
-            if(path == model_path::near_clipped) camera_face[i] = camera_vertices[source];
-            else face[i] = vertices[source];
+            if(path == model_path::near_clipped) workspace.camera_face[i] = workspace.camera_vertices[source];
+            else workspace.face[i] = workspace.vertices[source];
             if(shaded) {
               auto const operand{byte(position)};
               if(shading == model_shading::gouraud) {
                 if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
                 auto const shade{colours.shades[operand]};
                 // high byte is the palette index; low byte starts at half a shade plus shade for native interpolation bias
-                vertex_shades[i] = static_cast<uint16_t>(((source_colour & model_colours::ramp_mask) + shade) * 256 + shade + 128);
-                shaded_face[i] = {
-                  .position{face[i].x, face[i].y},
-                  .shade{vertex_shades[i]}
+                workspace.vertex_shades[i] = static_cast<uint16_t>(((source_colour & model_colours::ramp_mask) + shade) * 256 + shade + 128);
+                workspace.shaded_face[i] = {
+                  .position{path == model_path::direct ? screen_vertex{workspace.face[i]} : screen_vertex{}},
+                  .shade{workspace.vertex_shades[i]}
                 };
               }
             }
           }
           if(shaded && shading == model_shading::gouraud) {
             auto const projected_count{path == model_path::near_clipped
-              ? clip_near_shaded_polygon(std::span{camera_face}.first(count), std::span{vertex_shades}.first(count), screen_origin, shaded_face) : count};
-            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), viewport);
+              ? clip_near_shaded_polygon(std::span{workspace.camera_face}.first(count), std::span{workspace.vertex_shades}.first(count), screen_origin, workspace.shaded_face) : count};
+            draw_gouraud_polygon(target, std::span{workspace.shaded_face}.first(projected_count), viewport);
             break;
           }
           auto const projected_count{path == model_path::near_clipped
-            ? clip_near_polygon(std::span{camera_face}.first(count), screen_origin, face) : count};
-          draw_flat_polygon(target, std::span{face}.first(projected_count), index, viewport);
+            ? clip_near_polygon(std::span{workspace.camera_face}.first(count), screen_origin, workspace.face) : count};
+          draw_flat_polygon(target, std::span{workspace.face}.first(projected_count), index, viewport);
         }
         break;
       case model_opcode::skip_back_facing:
@@ -397,7 +392,7 @@ public:
           auto const skip{byte(position)};
           bool hidden{false};
           if(path == model_path::near_clipped) {
-            std::array const triangle{camera_vertices[indices[0]], camera_vertices[indices[1]], camera_vertices[indices[2]]};
+            std::array const triangle{workspace.camera_vertices[indices[0]], workspace.camera_vertices[indices[1]], workspace.camera_vertices[indices[2]]};
             std::array<screen_vertex, 6> clipped{};
             auto const count{clip_near_polygon(triangle, screen_origin, clipped)};
             hidden = count == 0 || back_facing(clipped[0], clipped[1], clipped[2]);
@@ -436,10 +431,17 @@ void update_fountain_parameters(model_animation &animation, uint16_t const clock
 
 void draw_model(framework::render::indexed_surface target, std::span<std::byte const> const pool,
   size_t const model_offset, projection_parameters const projection, model_colours const &colours, raster_viewport const viewport, model_path const path, model_animation const &animation, model_shading const shading) {
+  /// Standalone callers can draw without retaining a workspace between invocations
+  model_workspace workspace;
+  draw_model(workspace, target, pool, model_offset, projection, colours, viewport, path, animation, shading);
+}
+
+void draw_model(model_workspace &workspace, framework::render::indexed_surface target, std::span<std::byte const> const pool,
+  size_t const model_offset, projection_parameters const projection, model_colours const &colours, raster_viewport const viewport, model_path const path, model_animation const &animation, model_shading const shading) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
   if(!viewport.fits(target.width, target.height)) throw std::invalid_argument{"Model viewport exceeds the framebuffer"};
-  interpreter{target, pool, projection, colours, viewport, path, animation, shading}.run(model_offset + 11);
+  interpreter{workspace, target, pool, projection, colours, viewport, path, animation, shading}.run(model_offset + 11);
 }
 
 } // namespace darker::graphics

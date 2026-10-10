@@ -28,6 +28,20 @@ struct model_colours {
   uint8_t dynamic{0};
 };
 
+// Owned by a renderer and reused across models. Only emitted prefixes are read;
+// the interpreter separately resets its vertex-validity flags for each model.
+struct model_workspace {
+  std::array<camera_vertex, polygon_vertex_limit> camera_vertices{};
+  std::array<screen_vertex, polygon_vertex_limit> vertices{};
+  std::array<screen_vertex, clipped_polygon_vertex_limit> face{};
+  std::array<shaded_vertex, clipped_polygon_vertex_limit> shaded_face{};
+  std::array<uint16_t, polygon_vertex_limit> vertex_shades{};
+  std::array<camera_vertex, polygon_vertex_limit> camera_face{};
+};
+
+void draw_model(model_workspace &workspace, framework::render::indexed_surface target, std::span<std::byte const> pool,
+  size_t model_offset, projection_parameters projection, model_colours const &colours, raster_viewport viewport = {}, model_path path = model_path::direct, model_animation const &animation = {}, model_shading shading = model_shading::flat);
+
 void draw_model(framework::render::indexed_surface target, std::span<std::byte const> pool,
   size_t model_offset, projection_parameters projection, model_colours const &colours, raster_viewport viewport = {}, model_path path = model_path::direct, model_animation const &animation = {}, model_shading shading = model_shading::flat);
 

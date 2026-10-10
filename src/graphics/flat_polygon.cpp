@@ -83,45 +83,8 @@ void step_edge(edge_walker &edge) noexcept {
   edge.fraction = fraction & raster_arithmetic::edge_fraction_mask;
 }
 
-} // anonymous namespace
-
-bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_vertex const &previous) noexcept {
-  /// Preserve the signed high word of the native cross product, including word differences and subtraction wrap
-  auto const cross{static_cast<uint32_t>(word(next.x - origin.x) * word(previous.y - origin.y))
-    - static_cast<uint32_t>(word(next.y - origin.y) * word(previous.x - origin.x))};
-  return (cross & 0x80000000u) != 0;
-}
-
-void draw_flat_polygon(framework::render::indexed_surface target, std::span<screen_vertex const> const vertices,
-  uint8_t const colour, raster_viewport const viewport) {
-  auto const [right, bottom]{viewport};
-  /// Translate A1B6's convex flat-fill path to indexed pixels; VGA plane masks become contiguous spans
-  if(vertices.size() < 3) return;
-  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
-    throw std::invalid_argument{"Flat polygon exceeds the supported vertex or viewport bounds"};
-  }
-  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
-    return a.x < b.x;
-  })};
-  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
-    return a.y < b.y;
-  })};
-  if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
-  auto const index{static_cast<size_t>(top - vertices.begin())};
-  auto const next{vertices[(index + 1) % vertices.size()]};
-  auto const previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
-  if(back_facing(*top, next, previous)) return;
-
-  polygon_buffer first{};
-  polygon_buffer second{};
-  std::copy(vertices.begin(), vertices.end(), first.begin());
-  size_t count{vertices.size()};
-  for(auto const plane : viewport_clip_planes(viewport)) {
-    count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
-    first.swap(second);
-    if(count < 3) return;
-  }
-  auto const points{std::span{first}.first(count)};
+void rasterise(framework::render::indexed_surface target, std::span<screen_vertex const> const points, uint8_t const colour, int const right) {
+  /// Walk the original edges and shade spans after visibility and clipping are resolved
   auto const first_point{std::min_element(points.begin(), points.end(), [](auto const &a, auto const &b){
     return a.y < b.y;
   })};
@@ -147,6 +110,55 @@ void draw_flat_polygon(framework::render::indexed_surface target, std::span<scre
     auto const end{std::clamp(right_edge.x, left, right + 1)};
     std::fill(target.pixels.begin() + y * target.stride + left, target.pixels.begin() + y * target.stride + end, colour);
   }
+}
+
+} // anonymous namespace
+
+bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_vertex const &previous) noexcept {
+  /// Preserve the signed high word of the native cross product, including word differences and subtraction wrap
+  auto const cross{static_cast<uint32_t>(word(next.x - origin.x) * word(previous.y - origin.y))
+    - static_cast<uint32_t>(word(next.y - origin.y) * word(previous.x - origin.x))};
+  return (cross & 0x80000000u) != 0;
+}
+
+void draw_flat_polygon(framework::render::indexed_surface target, std::span<screen_vertex const> const vertices,
+  uint8_t const colour, raster_viewport const viewport) {
+  auto const [right, bottom]{viewport};
+  /// Translate A1B6's convex flat-fill path to indexed pixels; VGA plane masks become contiguous spans
+  if(vertices.size() < 3) return;
+  if(vertices.size() > polygon_vertex_limit || !viewport.fits(target.width, target.height)) {
+    throw std::invalid_argument{"Flat polygon exceeds the supported vertex or viewport bounds"};
+  }
+  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.x < b.x;
+  })};
+  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.y < b.y;
+  })};
+  if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
+  if(top->y == lowest->y) return; // no scanlines, including subpixel distant faces
+  auto const index{static_cast<size_t>(top - vertices.begin())};
+  auto const next{vertices[(index + 1) % vertices.size()]};
+  auto const previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
+  if(back_facing(*top, next, previous)) return;
+
+  // Interior polygons need neither clipping nor temporary copies. Distant faces
+  // often occupy only a few pixels, so buffer housekeeping otherwise dominates.
+  if(leftmost->x >= 0 && rightmost->x <= right
+    && top->y >= 0 && lowest->y <= bottom) {
+    rasterise(target, vertices, colour, right);
+    return;
+  }
+  polygon_buffer first{}, second{};
+  auto points{vertices};
+  auto *output{&first};
+  for(auto const plane : viewport_clip_planes(viewport)) {
+    auto const count{clip(points, *output, plane.horizontal, plane.boundary, plane.maximum)};
+    if(count < 3) return;
+    points = std::span{*output}.first(count);
+    output = output == &first ? &second : &first;
+  }
+  rasterise(target, points, colour, right);
 }
 
 } // namespace darker::graphics

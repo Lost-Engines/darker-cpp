@@ -254,7 +254,7 @@ size_t city_renderer::draw(framework::render::indexed_surface target, resources:
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     retained_colours = colours;
     animation.cell_state = item.orientation ? 0 : cells[item.cell].state;
-    draw_model(target, bank.model_pool(), item.model_offset, projection, colours, view.viewport, item.path, animation,
+    draw_model(workspace, target, bank.model_pool(), item.model_offset, projection, colours, view.viewport, item.path, animation,
       view.gouraud && !item.force_flat ? model_shading::gouraud : model_shading::flat);
   }
   return items.size();
