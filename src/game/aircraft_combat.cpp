@@ -6,8 +6,8 @@
 #include "game/object_impact.h"
 #include "game/skimma_weapons.h"
 #include "maths/world_coordinates.h"
-
 #include "game/native_object_layout.h"
+#include "game/target_reference.h"
 
 namespace darker::game {
 
@@ -105,7 +105,7 @@ std::optional<object_definition_index> aircraft_projectile_definition(scenario_a
   actor_course const course, uint8_t const distance, clock_tick const clock, uint8_t const difficulty, bool const building_attacks) {
   /// 8AFD selects object missiles or the adjacent building-attack definition before the common aim and cooldown checks
   if(actor.selected_target != native_object_layout::player && (actor.flags & 2)) return std::nullopt;
-  bool const building{!(actor.selected_target & 0x8000)};
+  bool const building{target_reference{actor.selected_target}.is_ground_encoded()};
   if(building ? (!building_attacks || distance >= 10) : (target_flags & 0x30)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
   auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles.pitch) >> 8) + speed)};
@@ -124,7 +124,7 @@ std::optional<object_definition_index> aircraft_projectile_definition(scenario_a
 
 projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, bool const enabled, clock_tick const clock, uint16_t const model_token) {
   /// 8BE6 admits a building-target drop every six timer pages, recording even an unsuccessful allocation attempt
-  if((actor.flags & 2) || !enabled || static_cast<uint16_t>(clock - actor.last_shot) < 0x600 || (actor.selected_target & 0x8000)) return nullptr;
+  if((actor.flags & 2) || !enabled || static_cast<uint16_t>(clock - actor.last_shot) < 0x600 || target_reference{actor.selected_target}.is_object_encoded()) return nullptr;
   actor.last_shot = clock;
   auto const &definition{original_object_definitions[14]};
   launch_emitter const emitter{

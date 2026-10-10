@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "game/angular_motion.h"
 #include "maths/direction.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::game {
 namespace {
@@ -119,9 +119,9 @@ object_pose flight_camera::view(object_pose const &player, game_duration const f
     height = 82;
   }
   result.position.height = static_cast<uint16_t>(height);
-  int const horizontal{((distance >> 2) * maths::original_sine[(pitch + 256) % 1024]) >> 16};
+  int const horizontal{((distance >> 2) * maths::phase_cosine(pitch)) >> 16};
   displace_object(result, 0, (horizontal * maths::original_sine[heading]) >> 8);
-  displace_object(result, 1, (horizontal * maths::original_sine[(heading + 256) % 1024]) >> 8);
+  displace_object(result, 1, (horizontal * maths::phase_cosine(heading)) >> 8);
   return result;
 }
 

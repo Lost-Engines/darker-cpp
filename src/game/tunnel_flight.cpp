@@ -6,7 +6,7 @@
 #include "game/city_map.h"
 #include "game/flight_motion.h"
 #include "maths/direction.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::game {
 namespace {
@@ -78,7 +78,7 @@ void advance_tunnel_flight(caero_flight_state &craft, tunnel_flight_state &state
     if(leaving && !(state.connection.route & 0x40)) {
       frame_step = static_cast<uint16_t>((frame_step & 0xff00) | input.cell_collision_marker);
       auto const cell{state.connection.cell};
-      auto const type{cells.at((cell >> 8) * city_map_size.column + (cell & 127)).type};
+      auto const type{cells.at(packed_cell_reference{cell}.index()).type};
       auto const edge{network.segment(type, state.connection.route)};
       auto phase{static_cast<uint8_t>((edge.heading >> 1) + (angles.heading >> 8))};
       if(edge.first < 0x60 || static_cast<uint8_t>(0xa0 - edge.first) > edge.second) phase = static_cast<uint8_t>(~phase);
@@ -121,7 +121,7 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   auto &pose{craft.pose};
   auto &angles{pose.angles};
   auto const type_at{[&](uint16_t const cell){
-    return cells.at((cell >> 8) * city_map_size.column + (cell & 127)).type;
+    return cells.at(packed_cell_reference{cell}.index()).type;
   }};
   state.filtered_pitch = smooth(state.filtered_pitch, input.pitch_reference, frame_step);
   auto const sign{word(state.filtered_pitch) < 0 ? 0xffff : 0};
@@ -209,7 +209,7 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   } else craft.energy.boost -= cost;
   target_speed = target_speed < (state.resistance >> 8) ? 0 : static_cast<uint16_t>(target_speed - (state.resistance >> 8));
   auto const time{static_cast<uint16_t>((frame_step & 255) * 257)};
-  auto vertical{word((word(target_speed * 2) * maths::original_sine[middle_pitch >> 6]) >> 16)};
+  auto vertical{word((word(target_speed * 2) * maths::angle_sine(middle_pitch)) >> 16)};
   advance_horizontal_flight(pose, craft.horizontal_velocity, target_speed, static_cast<uint16_t>(time >> 1), middle_heading, middle_pitch);
   measure_flight_speed(pose, craft.horizontal_velocity, craft.vertical_velocity);
   if(state.connection.route & 0x40) vertical = word(vertical - 25 + (craft.horizontal_velocity >> 5));

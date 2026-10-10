@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <ranges>
 #include <stdexcept>
-
 #include "game/object_catalogue.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 
@@ -39,7 +39,7 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     std::visit([](auto &craft){
       craft.horizontal_velocity = 400;
     }, player.craft);
-    player.lifecycle.flags &= 0xef;
+    set_player_flag(player.lifecycle.flags, player_flag::ground_protection, false);
     pose.angles.pitch = 0xff00;
     pose.angles.heading = 0xec00;
     height = 2560;
@@ -56,14 +56,14 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     std::visit([](auto &craft){
       craft.horizontal_velocity = 600;
     }, player.craft);
-    player.lifecycle.flags &= 0xef;
+    set_player_flag(player.lifecycle.flags, player_flag::ground_protection, false);
     pose.angles.pitch = 0xfe00;
     // 5E59 clears 5E11/5E14: the zero-based slot one, displayed as weapon 2
     second_weapon = {};
     height = 4096;
     break;
   case scenario_setup_kind::nightmare_player:
-    player.lifecycle.flags &= 0xef;
+    set_player_flag(player.lifecycle.flags, player_flag::ground_protection, false);
     pose.angles.pitch = 0xf500;
     height = 2432;
     energy = 0x9fff;
@@ -110,7 +110,8 @@ scenario_actor_groups make_scenario_actors(resources::scenario_record const &rec
   weapon_ammunition &second_weapon, clock_tick const clock, std::optional<tunnel_setup> const tunnel) {
   /// Preserve allocation order and translate the inline player, placement and actor mutations between groups
   auto const configuration{record.configuration & 15};
-  uint8_t const world{static_cast<uint8_t>(configuration == 4 ? 2 : configuration <= 1 ? 0 : 1)};
+  auto const world{configuration == 4 ? resources::world_kind::underground
+    : configuration <= 1 ? resources::world_kind::delphi : resources::world_kind::halon};
   auto const player_model{bank.special_models()[object_catalogue::player(static_cast<resources::scenario_configuration>(configuration))]};
   scenario_actor_groups result;
   uint8_t first{1};

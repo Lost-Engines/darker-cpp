@@ -7,7 +7,7 @@
 #include "graphics/bitmap_hud.h"
 #include "graphics/cockpit_tables.h"
 #include "graphics/procedural_hud.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 namespace {
@@ -75,7 +75,7 @@ std::optional<radar_pixel> project_radar_contact(world_position const &player, u
   auto const y{signed_word((relative_y - contact_window_radius_cells * 256) * 2)};
   unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
   int const sine{maths::original_sine[angle]};
-  int const cosine{maths::original_sine[(angle + 256) % 1024]};
+  int const cosine{maths::phase_cosine(angle)};
   int const multiplier{scale == radar_scale::enlarged ? enlarged_scale : 1};
   int const pixel_y{signed_word(signed_word(((x * sine) >> 16) + ((y * cosine) >> 16)) * multiplier) >> 8};
   int const pixel_x{signed_word(signed_word(((x * cosine) >> 16) - ((y * sine) >> 16)) * multiplier) >> 8};
@@ -158,7 +158,7 @@ void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer
   }
   draw_contact_symbol(target, {74, 105}, 139);
   unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
-  pixel_position const end{76 + (maths::original_sine[angle] >> 10), 108 - (maths::original_sine[(angle + 256) % 1024] >> 10)};
+  pixel_position const end{76 + (maths::original_sine[angle] >> 10), 108 - (maths::phase_cosine(angle) >> 10)};
   draw_screen_line(target, {76, 108}, end, 139);
 }
 

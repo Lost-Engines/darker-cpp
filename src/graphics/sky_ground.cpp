@@ -4,7 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 
@@ -13,8 +13,8 @@ void draw_sky_ground(framework::render::indexed_cockpit_framebuffer &target, cam
   if(bottom < 0 || bottom > display_layout::height) throw std::invalid_argument{"Sky/ground viewport exceeds the framebuffer"};
   std::array<uint8_t, 17> constexpr colours{28, 29, 30, 31, 60, 61, 62, 63, 252, 92, 93, 94, 95, 124, 125, 126, 127};
   std::array<int, 16> constexpr offsets{74, 56, 42, 30, 20, 12, 6, 2, -2, -6, -12, -20, -30, -42, -56, -74};
-  auto pitch{static_cast<uint16_t>(angles.pitch + 15) >> 6};
-  auto roll{static_cast<uint16_t>(angles.roll + 15) >> 6};
+  auto pitch{maths::view_angle_phase(angles.pitch)};
+  auto roll{maths::view_angle_phase(angles.roll)};
   if(((pitch >> 7) & 3) == 1 || ((pitch >> 7) & 3) == 2) {
     std::fill_n(target.pixels.begin(), bottom * display_layout::width, pitch < 512 ? colours.front() : colours.back());
     return;
@@ -28,8 +28,8 @@ void draw_sky_ground(framework::render::indexed_cockpit_framebuffer &target, cam
   bool const mirror{roll >= 256};
   if(mirror) roll = 512 - roll;
   auto const sine{maths::original_sine[roll]};
-  auto const cosine{maths::original_sine[(roll + 256) % 1024]};
-  auto const tangent{maths::original_sine[pitch] * 512 / maths::original_sine[(pitch + 256) % 1024]};
+  auto const cosine{maths::phase_cosine(roll)};
+  auto const tangent{maths::original_sine[pitch] * 512 / maths::phase_cosine(pitch)};
   int const centre_x{origin.x + ((tangent * sine) >> 16)};
   int const centre_y{origin.y + ((tangent * cosine) >> 16)};
   std::array<int, 16> boundaries{};

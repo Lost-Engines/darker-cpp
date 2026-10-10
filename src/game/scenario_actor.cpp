@@ -2,18 +2,17 @@
 #include <algorithm>
 #include <stdexcept>
 #include "game/object_definitions.h"
-
 #include "game/native_object_layout.h"
 
 namespace darker::game {
 
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,
   object_definition const &definition, uint16_t const model_token, int16_t const model_height,
-  uint8_t const index, uint8_t const world_mode, size_t const shared_offset, std::optional<tunnel_setup> const tunnel) {
+  uint8_t const index, resources::world_kind const world_mode, size_t const shared_offset, std::optional<tunnel_setup> const tunnel) {
   /// BE07/BF1A constructs a cleared scenario record; category lists and embedded setup are owned by the world
-  if(world_mode > 2) throw std::invalid_argument{"Unknown scenario actor world mode"};
+  if(world_mode > resources::world_kind::underground) throw std::invalid_argument{"Unknown scenario actor world mode"};
   bool const moving{placement.form == resources::placement_form::moving};
-  if(moving && world_mode == 2 && !tunnel) throw std::invalid_argument{"Underground actor creation requires route initialisation"};
+  if(moving && world_mode == resources::world_kind::underground && !tunnel) throw std::invalid_argument{"Underground actor creation requires route initialisation"};
   scenario_actor actor{
     .category{placement.form == resources::placement_form::absolute_static ? actor_category::stationary
       : placement.definition_slot > 28                             ? actor_category::ground : actor_category::air},
@@ -22,17 +21,17 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
     .attributes{static_cast<uint8_t>((moving ? placement.attributes * 2 : 0) | static_cast<unsigned int>(placement.counted))},
   };
   apply_object_definition(actor.parameters, definition, model_token);
-  int const height{moving ? definition.role_data.craft().cruise_height * 256 : world_mode == 2 && placement.form == resources::placement_form::absolute_static ? 128 : 0};
+  int const height{moving ? definition.role_data.craft().cruise_height * 256 : world_mode == resources::world_kind::underground && placement.form == resources::placement_form::absolute_static ? 128 : 0};
   actor.pose.position = {
     .column{placement.position.column},
     .row{placement.position.row},
     .height{static_cast<uint16_t>(height - model_height)}
   };
   actor.pose.angles.heading = placement.heading;
-  if(moving && world_mode == 2) {
+  if(moving && world_mode == resources::world_kind::underground) {
     auto const column{placement.position.column >> 8}, row{placement.position.row >> 8};
-    if(column >= 128 || row >= 128) throw std::out_of_range{"Underground actor placement exceeds its map"};
-    auto const start{tunnel->network.start(tunnel->cells[row * 128 + column].type, static_cast<uint16_t>((row << 8) | column), placement.heading)};
+    if(column >= city_map_size.column || row >= city_map_size.row) throw std::out_of_range{"Underground actor placement exceeds its map"};
+    auto const start{tunnel->network.start(tunnel->cells[city_cell_index(column, row)].type, packed_cell_reference::from_coordinates(column, row).value, placement.heading)};
     actor.pose.position = start.position;
     actor.pose.position.height = static_cast<uint16_t>(actor.pose.position.height - model_height);
     actor.pose.angles.heading = start.heading;
@@ -44,7 +43,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   actor.current_cell = static_cast<uint16_t>((actor.pose.position.column >> 8) | (actor.pose.position.row & 0xff00));
   actor.target_token = actor.current_cell;
   if(moving) {
-    actor.parameters.update_entry = world_mode == 2 ? object_update::tunnel_actor : object_update::surface_actor;
+    actor.parameters.update_entry = world_mode == resources::world_kind::underground ? object_update::tunnel_actor : object_update::surface_actor;
     actor.pose.speed = static_cast<uint16_t>(definition.base_speed * 16);
     actor.flags = 2;
     actor.behaviour = placement.behaviour;
@@ -73,7 +72,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
 }
 
 std::vector<scenario_actor> make_scenario_group(resources::scenario_group const &group, resources::geometry_bank const &bank,
-  uint8_t first_index, uint8_t const world_mode, size_t const shared_offset, std::optional<tunnel_setup> const tunnel) {
+  uint8_t first_index, resources::world_kind const world_mode, size_t const shared_offset, std::optional<tunnel_setup> const tunnel) {
   /// Construct source records with stable native indices, then preserve head insertion order within a category
   if(!group.native_setup.empty()) throw std::invalid_argument{"Scenario group requires embedded setup operations"};
   if(group.objects.size() > 255u - first_index) throw std::invalid_argument{"Scenario group exceeds the object index range"};

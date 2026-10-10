@@ -6,7 +6,7 @@
 #include <vector>
 #include "game/object_definitions.h"
 #include "maths/direction.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 #include "maths/world_coordinates.h"
 
 namespace darker::audio {
@@ -38,7 +38,7 @@ uint16_t doppler_factor(game::object_pose const *const motion, uint16_t const he
   int constexpr stationary_doppler_factor{0x39d0};
   if(!motion) return stationary_doppler_factor;
   auto const cosine{[](uint16_t const angle){
-    return maths::original_sine[((angle >> 6) + 256) % 1024];
+    return maths::angle_cosine(angle);
   }};
   auto const product{(cosine(static_cast<uint16_t>(motion->angles.pitch - pitch)) * cosine(static_cast<uint16_t>(motion->angles.heading - heading))) >> 16};
   auto const speed{std::bit_cast<int16_t>(static_cast<uint16_t>(motion->speed * 4))};

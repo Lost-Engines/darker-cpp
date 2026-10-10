@@ -14,7 +14,7 @@ city_map make_city_map(std::span<std::byte const> const types, bool const energi
   if(energise_beacons) {
     for(unsigned int row{0}; row < city_map_size.row; row += beacon_spacing_cells) {
       for(unsigned int column{0}; column < city_map_size.column; column += beacon_spacing_cells) {
-        auto &cell{result[row * city_map_size.column + column]};
+        auto &cell{result[city_cell_index(column, row)]};
         if(cell.type == beacon_model_type) cell.state = fully_lit_beacon;
       }
     }

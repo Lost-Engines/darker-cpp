@@ -25,7 +25,7 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
       if(v[14] < 0x8000) placement.program_offset = static_cast<size_t>(v[17] + v[14]);
     }
     auto const actor{darker::game::make_scenario_actor(placement, darker::game::original_object_definitions[v[2]],
-      0x400, static_cast<int16_t>(v[15]), static_cast<uint8_t>(v[16]), static_cast<uint8_t>(v[1]), 0)};
+      0x400, static_cast<int16_t>(v[15]), static_cast<uint8_t>(v[16]), static_cast<darker::resources::world_kind>(static_cast<uint8_t>(v[1])), 0)};
     auto const &p{actor.parameters};
     CAPTURE(v);
     CHECK(std::array<int, 31>{actor.pose.position.column, actor.pose.position.row, actor.pose.position.height,
@@ -45,5 +45,5 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
 TEST_CASE("Underground moving actors require route setup", "[game][actors]") {
   /// Reject an incomplete setup path rather than spawning route vehicles as ordinary aircraft
   darker::resources::scenario_placement placement{};
-  CHECK_THROWS_AS(darker::game::make_scenario_actor(placement, darker::game::original_object_definitions[19], 0, 0, 1, 2, 0), std::invalid_argument);
+  CHECK_THROWS_AS(darker::game::make_scenario_actor(placement, darker::game::original_object_definitions[19], 0, 0, 1, darker::resources::world_kind::underground, 0), std::invalid_argument);
 }

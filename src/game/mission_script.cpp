@@ -4,7 +4,6 @@
 #include <format>
 #include <stdexcept>
 #include "game/city_map.h"
-
 #include "game/native_object_layout.h"
 
 namespace darker::game {
@@ -219,7 +218,7 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
         auto const column_byte{byte()};
         auto const row{byte()};
         auto const mask{byte()};
-        auto const index{static_cast<size_t>(row) * city_map_size.column + (column_byte >> 1)};
+        auto const index{city_cell_index(column_byte >> 1, row)};
         if(index >= context.cells.size()) throw std::out_of_range{"Mission wait refers to an unknown world cell"};
         auto const &cell{context.cells[index]};
         wait(flag_condition(column_byte & 1 ? cell.state : cell.type, mask));

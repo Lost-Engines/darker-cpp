@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include "resources/world_profile.h"
 #include <vector>
 #include "game/city_map.h"
 #include "game/effects.h"
@@ -34,7 +35,7 @@ private:
 
 public:
   std::vector<game::effect_sound> advance(ambient_context const &context, game::city_map const &cells,
-    uint16_t playing_mask, uint8_t world_mode);
+    uint16_t playing_mask, resources::world_kind world_mode);
 };
 
 } // namespace darker::audio

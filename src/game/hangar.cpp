@@ -7,6 +7,7 @@
 #include "game/object_definitions.h"
 #include "maths/direction.h"
 #include "maths/world_coordinates.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 namespace {
@@ -21,12 +22,12 @@ size_t site_index(uint16_t const site) {
   auto const column{(site & 255) >> 1};
   auto const row{site >> 8};
   if((site & 1) || row == 0 || row >= city_map_size.row - 1) throw std::invalid_argument{"Invalid Caero hangar site"};
-  return row * city_map_size.column + column;
+  return city_cell_index(column, row);
 }
 
 void toggle_hangar(player_flight &player, city_map &cells, size_t const centre) {
   /// C6D2 toggles the landed flag and the gate, approach-light and interior alternate states together
-  player.lifecycle.flags ^= 0x10;
+  set_player_flag(player.lifecycle.flags, player_flag::ground_protection, !has_player_flag(player.lifecycle.flags, player_flag::ground_protection));
   for(auto const index : {centre - city_map_size.column, centre, centre + city_map_size.column}) cells[index].state ^= 0x80;
 }
 
@@ -61,13 +62,13 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
 
 void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, game_duration const frame_step) {
   /// C5F9 opens the gate inside its cell, retracts it over the approach lights and closes the site after departure
-  if(!(player.lifecycle.flags & 0x10) || player.lifecycle.crashing) return;
+  if(!has_player_flag(player.lifecycle.flags, player_flag::ground_protection) || player.lifecycle.crashing) return;
   if(hangar.returning == hangar_return_phase::settling || hangar.returning == hangar_return_phase::complete) return;
   auto const centre{site_index(hangar.return_site)};
   auto const &position{player.pose().position};
   auto const column{static_cast<unsigned int>(position.column >> 8)};
   auto const row{static_cast<unsigned int>(position.row >> 8)};
-  auto const type{column < city_map_size.column && row < city_map_size.row ? cells[row * city_map_size.column + column].type : 255};
+  auto const type{column < city_map_size.column && row < city_map_size.row ? cells[city_cell_index(column, row)].type : 255};
   if(type < entrance_model_type || type > last_hangar_model_type) {
     if(hangar.returning == hangar_return_phase::approaching) return;
     hangar.extension = 0;
@@ -102,7 +103,7 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   int constexpr alignment_window_width{14};
   int constexpr minimum_capture_distance{0x260};
   int constexpr capture_distance_range{256};
-  if(!objectives_complete || player.lifecycle.flags & 0x30 || hangar.returning != hangar_return_phase::none) return false;
+  if(!objectives_complete || player_actions_blocked(player.lifecycle.flags) || hangar.returning != hangar_return_phase::none) return false;
   auto const centre{site_index(hangar.return_site)};
   if(cells[centre].type != entrance_model_type) throw std::invalid_argument{"Return capture currently requires a type-17 hangar"};
   auto const &pose{player.pose()};

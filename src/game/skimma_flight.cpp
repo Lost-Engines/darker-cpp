@@ -4,7 +4,7 @@
 #include "game/angular_motion.h"
 #include "game/flight_attitude.h"
 #include "game/flight_motion.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::game {
 namespace {
@@ -12,11 +12,6 @@ namespace {
 int16_t word(int const value) noexcept {
   /// Retain the original word boundaries before signed coupling arithmetic
   return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
-}
-
-int16_t sine(uint16_t const angle) noexcept {
-  /// Flight uses the unrounded angle index
-  return maths::original_sine[angle >> 6];
 }
 
 int16_t high_product(int16_t const left, int16_t const right) noexcept {
@@ -84,7 +79,7 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   auto const forward_target{static_cast<uint16_t>((input.brake ? 130 : input.forward_setting) + (state.pose.speed >> 3))};
   advance_horizontal_flight(state.pose, state.horizontal_velocity, forward_target, static_cast<uint16_t>(movement_step >> 1), middle_heading, middle_pitch);
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
-  auto const vertical_drive{word((word(forward_target) * sine(middle_pitch)) >> 15)};
+  auto const vertical_drive{word((word(forward_target) * maths::angle_sine(middle_pitch)) >> 15)};
   auto const lift{high_product(turn.lift_projection, word((word(state.horizontal_velocity) >> 1) + 512))};
   auto const altitude{state.pose.position.height};
   auto const height_term{word(altitude < 256 ? 256 - altitude : altitude - 256)};

@@ -1,6 +1,6 @@
 #include "maths/view_basis.h"
 #include <bit>
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::maths {
 namespace {
@@ -22,10 +22,10 @@ struct angle_components {
 
 angle_components components(uint16_t const angle) noexcept {
   /// The camera caller rounds by fifteen before selecting a 1024-entry phase
-  auto const phase{static_cast<uint16_t>(angle + 15) >> 6};
+  auto const phase{view_angle_phase(angle)};
   return {
     .sine{maths::original_sine[phase]},
-    .cosine{maths::original_sine[(phase + 256) % 1024]}
+    .cosine{maths::phase_cosine(phase)}
   };
 }
 

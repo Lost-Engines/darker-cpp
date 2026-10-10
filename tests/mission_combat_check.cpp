@@ -506,10 +506,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto cells{darker::game::make_city_map(archives.load({0, 68}), true)};
     darker::game::assign_city_variants(cells, limits);
     darker::game::apply_scenario_cells(cells, record);
-    darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
-    combat.reserves = darker::game::make_scenario_group(record.groups[1], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size()), 0, record.shared.offset);
+    darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
+    combat.reserves = darker::game::make_scenario_group(record.groups[1], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size()), darker::resources::world_kind::delphi, record.shared.offset);
     combat.free_actors = darker::game::make_scenario_group(record.groups[2], bank,
-      static_cast<uint8_t>(1 + record.groups[0].objects.size() + record.groups[1].objects.size()), 0, record.shared.offset);
+      static_cast<uint8_t>(1 + record.groups[0].objects.size() + record.groups[1].objects.size()), darker::resources::world_kind::delphi, record.shared.offset);
     darker::game::prepare_delphi_aircraft_sites(combat.spawning, cells);
     darker::game::player_flight player;
     auto &caero{std::get<darker::game::caero_flight_state>(player.craft)};
@@ -717,7 +717,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     do {
       briefing.advance(4000);
     } while(briefing.continue_page());
-    darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+    darker::game::mission_combat traffic{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
     if(briefing.departure_destination != destination || traffic.actors.size() != test.actors || traffic.remaining_objectives() != 0 || !record.groups[1].objects.empty()) {
       throw std::runtime_error{"Transfer mission did not select the original destination"};
     }
@@ -789,7 +789,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::assign_city_variants(city, limits);
     darker::game::apply_scenario_cells(city, record);
     darker::game::mission_combat combat{{}};
-    combat.free_actors = darker::game::make_scenario_group(record.groups[2], bank, 16, 0, record.shared.offset);
+    combat.free_actors = darker::game::make_scenario_group(record.groups[2], bank, 16, darker::resources::world_kind::delphi, record.shared.offset);
     darker::game::prepare_delphi_aircraft_sites(combat.spawning, city);
     darker::game::player_flight player;
     player.pose().position = {
@@ -831,7 +831,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   // mission two's aircraft are distant from HQ: word projection alone used to show phantom nearby ships
   {
-    auto const actors{darker::game::make_scenario_group(scenario.records()[1].groups[0], bank, 1, 0, scenario.records()[1].shared.offset)};
+    auto const actors{darker::game::make_scenario_group(scenario.records()[1].groups[0], bank, 1, darker::resources::world_kind::delphi, scenario.records()[1].shared.offset)};
     std::vector<darker::graphics::scene_object> objects;
     for(auto const &actor : actors) objects.push_back({
       .model_offset{actor.parameters.model_token},
@@ -873,7 +873,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   {
     // retiring a reusable aircraft must break missile references before that identity can launch again
-    auto actor{darker::game::make_scenario_group(scenario.records()[0].groups[0], bank, 1, 0, scenario.records()[0].shared.offset).front()};
+    auto actor{darker::game::make_scenario_group(scenario.records()[0].groups[0], bank, 1, darker::resources::world_kind::delphi, scenario.records()[0].shared.offset).front()};
     actor.flags = 0x28;
     actor.expiry = 0;
     actor.attributes = 0xfe;
@@ -916,7 +916,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
   }
   // exercise mission two's missile branch through the real pool, homing callback, collision and damage response
-  auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0], bank, 1, 0, scenario.records()[1].shared.offset).front()};
+  auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0], bank, 1, darker::resources::world_kind::delphi, scenario.records()[1].shared.offset).front()};
   missile_actor.pose = {
     .position{
       .column{10000},
@@ -1007,7 +1007,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const placement{std::ranges::find(record.groups[0].objects, 29, &darker::resources::scenario_placement::definition_slot)};
     if(placement == record.groups[0].objects.end()) throw std::runtime_error{"First tunnel has no Wrecker"};
     auto const model{tunnel_bank.special_models()[29]};
-    auto const wrecker{darker::game::make_scenario_actor(*placement, darker::game::original_object_definitions[29], model, tunnel_bank.header_at(model).height, 4, 2, record.shared.offset)};
+    auto const wrecker{darker::game::make_scenario_actor(*placement, darker::game::original_object_definitions[29], model, tunnel_bank.header_at(model).height, 4, darker::resources::world_kind::underground, record.shared.offset)};
     darker::game::mission_combat tunnel{{wrecker}};
     darker::game::player_flight observer;
     auto tunnel_cells{darker::game::make_city_map(archives.load({0, 70}), false)};
@@ -1060,7 +1060,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const model{underground_bank.special_models()[sample[3]]};
       auto const height{underground_bank.header_at(model).height};
       auto const actor{darker::game::make_scenario_actor(*placement, darker::game::original_object_definitions[sample[3]],
-        model, height, static_cast<uint8_t>(sample[2]), 2, record.shared.offset, darker::game::tunnel_setup{network, map})};
+        model, height, static_cast<uint8_t>(sample[2]), darker::resources::world_kind::underground, record.shared.offset, darker::game::tunnel_setup{network, map})};
       if(actor.pose.position != darker::maths::world_position{
         .column{sample[4]},
         .row{sample[5]},
@@ -1330,7 +1330,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     auto const &underground_record{campaign.scenario(17).records()[0]};
     {
-      auto scripted{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, 2,
+      auto scripted{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, darker::resources::world_kind::underground,
         underground_record.shared.offset, darker::game::tunnel_setup{network, *maps[0]})};
       std::erase_if(scripted, [](auto const &actor){
         return actor.category != darker::game::actor_category::air;
@@ -1387,9 +1387,9 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const record_index{darker::resources::select_campaign_stage(test.stage).record};
       auto const &underground_record{scenario.records()[record_index]};
       auto city{darker::game::make_city_map(archives.load({0, 70u + (underground_record.configuration >> 4)}), false)};
-      darker::game::mission_combat combat{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, 2,
+      darker::game::mission_combat combat{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, darker::resources::world_kind::underground,
         underground_record.shared.offset, darker::game::tunnel_setup{network, city})};
-      combat.reserves = darker::game::make_scenario_group(underground_record.groups[1], underground_bank, static_cast<uint8_t>(1 + underground_record.groups[0].objects.size()), 2,
+      combat.reserves = darker::game::make_scenario_group(underground_record.groups[1], underground_bank, static_cast<uint8_t>(1 + underground_record.groups[0].objects.size()), darker::resources::world_kind::underground,
         underground_record.shared.offset, darker::game::tunnel_setup{network, city});
       darker::resources::font_resource const fonts{archives.load({0, 29})};
       darker::presentation::player briefing{archives, fonts, scenario, record_index};
@@ -1522,7 +1522,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         << combat.completed_objectives << " objective removals and portal return verified ("
         << shots << " controlled shots)." << std::endl;
     }
-    auto actors{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, 2,
+    auto actors{darker::game::make_scenario_group(underground_record.groups[0], underground_bank, 1, darker::resources::world_kind::underground,
       underground_record.shared.offset, darker::game::tunnel_setup{network, *maps[0]})};
     std::erase_if(actors, [](auto const &actor){
       return actor.category != darker::game::actor_category::air;
@@ -1569,7 +1569,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   // follow the actual fourth-mission flatbed, with the player and aircraft excluded from this route check
   auto const &record{scenario.records()[3]};
-  auto group{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+  auto group{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
   std::erase_if(group, [](auto const &actor){
     return actor.definition_slot != 31;
   });
@@ -1700,7 +1700,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     for(auto &cell : city) {
       if(cell.type != 1) cell.state |= 0x20;
     }
-    auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+    auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
     uint16_t owner{0};
     uint32_t clock{0};
     for(clock = 16; clock < 250000 && !owner; clock += 16) {

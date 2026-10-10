@@ -16,8 +16,9 @@ uint8_t choose_tunnel_heading(scenario_actor &actor, city_map const &cells, tunn
   if(!actor.tunnel) throw std::invalid_argument{"Underground navigation requires tunnel actor state"};
   auto &state{*actor.tunnel};
   auto const type_at{[&](uint16_t const cell){
-    auto const x{cell & 127}, y{cell >> 8};
-    return y < 128 ? cells[y * 128 + x].type : uint8_t{0};
+    packed_cell_reference const reference{cell};
+    auto const x{reference.column()}, y{reference.row()};
+    return y < city_map_size.row ? cells[city_cell_index(x, y)].type : uint8_t{0};
   }};
   auto const boundary{network.crossing(type_at(actor.current_cell), {actor.current_cell, state.route})};
   auto const junction{network.junction(type_at(boundary.cell))};

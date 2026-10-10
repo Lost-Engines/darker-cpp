@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <bit>
 #include "graphics/particle_tables.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 
@@ -30,7 +30,7 @@ std::vector<particle_point> project_emitter(game::particle_emitter const &emitte
   for(unsigned int sample{0}; sample < (emitter.sampling & 255); ++sample) {
     index &= 2046;
     auto const sine{maths::original_sine[index >> 1]};
-    auto const cosine{maths::original_sine[((index >> 1) + 256) % 1024]};
+    auto const cosine{maths::phase_cosine(index >> 1)};
     vec3<int> v{};
     for(unsigned int i{0}; i < 3; ++i) v[i] = wrap24(offsets[i] + ((coefficients[i][0] * sine) >> 8) + ((coefficients[i][1] * cosine) >> 8));
     auto const depth{v[2] >> 8};

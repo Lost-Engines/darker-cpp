@@ -45,9 +45,9 @@ void check_building_combat(darker::resources::archive_set const &archives) {
     darker::game::apply_scenario_cells(cells, record);
     auto targets{record.cell_lists.at(1).cells};
     if(test.stage != 65 && test.stage != 77 && targets.size() != test.count) throw std::runtime_error{"Ground mission has an unexpected marked target count"};
-    darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
-    combat.reserves = darker::game::make_scenario_group(record.groups[1], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size()), 0, record.shared.offset);
-    combat.free_actors = darker::game::make_scenario_group(record.groups[2], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size() + record.groups[1].objects.size()), 0, record.shared.offset);
+    darker::game::mission_combat combat{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
+    combat.reserves = darker::game::make_scenario_group(record.groups[1], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size()), darker::resources::world_kind::delphi, record.shared.offset);
+    combat.free_actors = darker::game::make_scenario_group(record.groups[2], bank, static_cast<uint8_t>(1 + record.groups[0].objects.size() + record.groups[1].objects.size()), darker::resources::world_kind::delphi, record.shared.offset);
     combat.secondary_weapon = 6;
     combat.difficulty = test.stage * 2;
     darker::game::player_flight player;

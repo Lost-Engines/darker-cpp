@@ -35,7 +35,7 @@ city_collision_result sweep_city(resources::geometry_bank const &bank, std::span
   previous[2] = static_cast<uint16_t>(old_height >> 2);
   clipped.height = static_cast<uint16_t>(height >> 2);
   for(auto const cell : swept_collision_cells(start.column, start.row, clipped.column, clipped.row)) {
-    auto const object{cells[cell.row * city_map_size.column + cell.column]};
+    auto const object{cells[city_cell_index(cell.column, cell.row)]};
     if(object.type == 0) continue;
     auto const model{bank.city_model_offset(object.type, object.state, damage_mask)};
     auto const &descriptor{bank.city_types()[object.type - 1]};

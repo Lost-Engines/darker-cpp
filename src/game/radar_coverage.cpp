@@ -31,7 +31,7 @@ radar_coverage make_radar_coverage(city_map const &cells, maths::map_position co
     for(unsigned int x{0}; x < 3; ++x) {
       auto const column{static_cast<uint8_t>(result.centre[0] + offsets[x])};
       auto const row{static_cast<uint8_t>(result.centre[1] + offsets[y])};
-      if(column < city_map_size.column && row < city_map_size.row && cells[row * city_map_size.column + column].state < disabled_tower_state) result.mask |= static_cast<uint16_t>(1u << (x + y * coverage::mask_row_bits));
+      if(column < city_map_size.column && row < city_map_size.row && cells[city_cell_index(column, row)].state < disabled_tower_state) result.mask |= static_cast<uint16_t>(1u << (x + y * coverage::mask_row_bits));
     }
   }
   return result;

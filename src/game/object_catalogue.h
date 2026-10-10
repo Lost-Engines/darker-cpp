@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 #include "game/object_definition.h"
+#include "game/weapon_selection.h"
 #include "resources/scenario_configuration.h"
 
 namespace darker::game {
@@ -11,9 +12,9 @@ namespace darker::game {
 struct object_catalogue {
   static unsigned int constexpr definition_count{33};
   static object_definition_index constexpr first_caero_weapon{0};
-  static unsigned int constexpr caero_weapon_count{10};
+  static unsigned int constexpr caero_weapon_count{std::to_underlying(caero_weapon::brent_hunter)};
   static object_definition_index constexpr first_skimma_weapon{10};
-  static unsigned int constexpr skimma_weapon_count{3};
+  static unsigned int constexpr skimma_weapon_count{std::to_underlying(skimma_weapon::dual_launch) + 1u};
   static object_definition_index constexpr first_player{24};
   static unsigned int constexpr player_count{5};
 
@@ -22,7 +23,7 @@ struct object_catalogue {
     return static_cast<object_definition_index>(first_player + std::to_underlying(configuration));
   }
 
-  static constexpr object_definition_index skimma_weapon(unsigned int slot) noexcept {
+  static constexpr object_definition_index skimma_definition(unsigned int slot) noexcept {
     /// Convert a validated zero-based cockpit slot to the shared model/definition index
     return static_cast<object_definition_index>(first_skimma_weapon + slot);
   }
@@ -36,17 +37,17 @@ struct skimma_weapon_specification {
 
 inline std::array<skimma_weapon_specification, object_catalogue::skimma_weapon_count> constexpr skimma_weapon_specifications{{
   {
-    .definition{object_catalogue::skimma_weapon(0)},
+    .definition{object_catalogue::skimma_definition(0)},
     .working_capacity{14},
     .reserve_capacity{5}
   },
   {
-    .definition{object_catalogue::skimma_weapon(1)},
+    .definition{object_catalogue::skimma_definition(1)},
     .working_capacity{8},
     .reserve_capacity{3}
   },
   {
-    .definition{object_catalogue::skimma_weapon(2)},
+    .definition{object_catalogue::skimma_definition(2)},
     .working_capacity{10},
     .reserve_capacity{4}
   }

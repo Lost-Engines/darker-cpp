@@ -7,8 +7,9 @@
 #include "game/object_definitions.h"
 #include "game/player_flight.h"
 #include "maths/direction.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 #include "vectorstorm/vector/vector2.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 namespace {
@@ -68,7 +69,7 @@ void initialise_skimma_pad(player_flight &player, uint16_t const site, uint8_t c
   };
   player.engine_flags = 0;
   player.forward_setting = 256;
-  player.lifecycle.flags = 0x10;
+  player.lifecycle.flags = std::to_underlying(player_flag::ground_protection);
   player.upgraded = upgraded;
   player.supply = {
     .phase{upgraded ? supply_phase::docked : supply_phase::flight},
@@ -84,20 +85,20 @@ bool begin_supply_approach(player_flight &player, city_map const &cells, supply_
   int constexpr edge_exclusion_diameter{2 * edge_exclusion_width};
   int constexpr supply_pad_model_type{3};
   auto const *craft{std::get_if<skimma_flight_state>(&player.craft)};
-  if(!craft || (player.lifecycle.flags & 0x10) || (player.engine_flags & 1)) return false;
+  if(!craft || has_player_flag(player.lifecycle.flags, player_flag::ground_protection) || (player.engine_flags & 1)) return false;
   if((craft->vertical_velocity >> 8) != 255 || craft->horizontal_velocity >= maximum_landing_speed) return false;
   auto const &pose{craft->pose};
   if(static_cast<uint16_t>(pose.position.height - pad_surface_height) >= capture_height_range) return false;
   auto const heading{pose.angles.heading >> 6};
   auto const x{static_cast<uint16_t>(pose.position.column - (maths::original_sine[heading] >> 8))};
-  auto const y{static_cast<uint16_t>(pose.position.row - (maths::original_sine[(heading + 256) % 1024] >> 8))};
+  auto const y{static_cast<uint16_t>(pose.position.row - (maths::phase_cosine(heading) >> 8))};
   if((x | y) & 0x8000) return false;
   if(static_cast<uint8_t>(x + edge_exclusion_width) < edge_exclusion_diameter || static_cast<uint8_t>(y + edge_exclusion_width) < edge_exclusion_diameter) return false;
-  if(cells[(y >> 8) * city_map_size.column + (x >> 8)].type != supply_pad_model_type) return false;
+  if(cells[city_cell_index(x >> maths::world_format::cell_fraction_bits, y >> maths::world_format::cell_fraction_bits)].type != supply_pad_model_type) return false;
   pad.phase = supply_phase::approach;
   pad.site = static_cast<uint16_t>((y & 0xff00) | ((x >> 8) * 2));
   pad.offset = static_cast<uint16_t>((y << 8) | (x & 255));
-  player.lifecycle.flags |= 0x10;
+  set_player_flag(player.lifecycle.flags, player_flag::ground_protection, true);
   return true;
 }
 
@@ -149,7 +150,7 @@ void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_
   if(!(pose.speed >> 8) || supplementary_active || std::bit_cast<int8_t>(static_cast<uint8_t>(pitch_control >> 8)) < minimum_departure_pitch_input) return;
   craft.horizontal_velocity >>= 1;
   craft.vertical_velocity = departure_vertical_velocity;
-  player.lifecycle.flags &= 0xef;
+  set_player_flag(player.lifecycle.flags, player_flag::ground_protection, false);
   pad.phase = supply_phase::flight;
 }
 

@@ -144,10 +144,10 @@ bool advance_ambient_source(ambient_source &source, ambient_context const &conte
 }
 
 std::vector<game::effect_sound> ambient_sounds::advance(ambient_context const &context, game::city_map const &cells,
-  uint16_t const playing_mask, uint8_t const world_mode) {
+  uint16_t const playing_mask, resources::world_kind const world_mode) {
   /// BDEC excludes these Delphi records from both Halon and underground fixed-record ranges
   std::vector<game::effect_sound> result;
-  if(world_mode != 0) return result;
+  if(world_mode != resources::world_kind::delphi) return result;
   for(size_t i{0}; i < sources.size(); ++i) {
     auto &source{sources[i]};
     if(!advance_ambient_source(source, context, cells, (playing_mask & (1u << i)) != 0)) continue;

@@ -25,7 +25,7 @@ void check_actor_flight(darker::resources::archive_set const &archives) {
     .slot{0}
   })};
   auto const &record{resource.records().front()};
-  auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
+  auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::delphi, record.shared.offset)};
   darker::game::object_pose player{
     .position{
       .column{10000},

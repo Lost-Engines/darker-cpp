@@ -1,7 +1,7 @@
 #include "graphics/camera.h"
 #include <bit>
 #include "vectorstorm/matrix/matrix3.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 namespace {
@@ -38,12 +38,12 @@ camera_basis make_camera_basis(camera_angles const angles) noexcept {
 
 camera_basis orient_model(camera_basis const &camera, camera_angles const angles) noexcept {
   /// 1E9E composes unrounded object attitude with the current camera, preserving each intermediate fixed-point product
-  auto const heading{static_cast<uint16_t>(32768 - angles.heading) >> 6};
-  auto const pitch{angles.pitch >> 6};
-  auto const roll{angles.roll >> 6};
-  auto const hs{maths::original_sine[heading]}, hc{maths::original_sine[(heading + 256) % 1024]};
-  auto const ps{maths::original_sine[pitch]}, pc{maths::original_sine[(pitch + 256) % 1024]};
-  auto const rs{maths::original_sine[roll]}, rc{maths::original_sine[(roll + 256) % 1024]};
+  auto const heading{maths::angle_phase(static_cast<uint16_t>(maths::angle_format::half_turn - angles.heading))};
+  auto const pitch{maths::angle_phase(angles.pitch)};
+  auto const roll{maths::angle_phase(angles.roll)};
+  auto const hs{maths::original_sine[heading]}, hc{maths::phase_cosine(heading)};
+  auto const ps{maths::original_sine[pitch]}, pc{maths::phase_cosine(pitch)};
+  auto const rs{maths::original_sine[roll]}, rc{maths::phase_cosine(roll)};
   auto const hsrs{multiply(hs, rs)}, hcrs{multiply(hc, rs)};
   auto const hsrc{multiply(hs, rc)}, hcrc{multiply(hc, rc)};
   mat3<int16_t> const axes{

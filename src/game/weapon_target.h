@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <span>
 #include "game/object_pose.h"
+#include "game/target_reference.h"
 #include "game/scenario_actor.h"
 #include "maths/view_basis.h"
 #include "maths/world_coordinates.h"
@@ -11,8 +12,8 @@
 namespace darker::game {
 
 struct weapon_target {
-  static uint16_t constexpr no_target{0xffff};
-  static uint16_t constexpr aircraft_token_bit{0x8000};
+  static uint16_t constexpr no_target{target_reference::none};
+  static uint16_t constexpr aircraft_token_bit{target_reference::object_bit};
   static uint16_t constexpr untracked_spread{508};
 
   uint16_t token{no_target};

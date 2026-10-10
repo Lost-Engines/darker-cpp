@@ -19,6 +19,7 @@
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
 #include "game/native_object_layout.h"
+#include "game/player_flags.h"
 #include "resources/world_profile.h"
 #include "audio/ambient_sounds.h"
 #include "audio/flight_sounds.h"
@@ -352,10 +353,10 @@ auto main(int const argc, char const *const argv[])->int {
   };
   std::array<std::optional<darker::game::mission_message>, 3> messages;
   host.briefing = front != nullptr;
-  auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, 0, mission.shared.offset)
+  auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, darker::resources::world_kind::delphi, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
   auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
-  if(caero) combat->reserves = darker::game::make_scenario_group(mission.groups[1], bank, static_cast<uint8_t>(1 + mission.groups[0].objects.size()), 0, mission.shared.offset);
+  if(caero) combat->reserves = darker::game::make_scenario_group(mission.groups[1], bank, static_cast<uint8_t>(1 + mission.groups[0].objects.size()), darker::resources::world_kind::delphi, mission.shared.offset);
   auto const activate_reserves{[&](uint8_t const opcode, uint8_t const count){
     combat->activate_reserves(static_cast<darker::game::actor_category>(opcode - 9),
       count, host.player.pose(), static_cast<uint16_t>(context.clock));
@@ -365,7 +366,7 @@ auto main(int const argc, char const *const argv[])->int {
     beacon_changes.command(opcode, origin, count, static_cast<uint16_t>(context.clock), scenario->bytes(mission.beacon_sequence));
   }};
   auto const select_weapon{[&](uint8_t const selection){
-    if(host.player.lifecycle.flags & 0x20) return;
+    if(darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::dead)) return;
     auto mask{std::rotl(uint16_t{0x8000}, selection)};
     if(selection >= 4) mask = static_cast<uint16_t>((mask & 0xff00) | static_cast<uint8_t>(mask + 1));
     host.available_weapons = mask;
@@ -420,7 +421,7 @@ auto main(int const argc, char const *const argv[])->int {
       || (*host.combat->camera_actor != 0 && actor == combat->actors.end()))) {
       host.combat->camera_actor.reset();
     }
-    if(std::exchange(host.pick_camera, false) && !(host.player.lifecycle.flags & 16) && !host.player.tunnel) {
+    if(std::exchange(host.pick_camera, false) && !(darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::ground_protection)) && !host.player.tunnel) {
       if(auto const picked{darker::game::pick_camera_target(host.audio_listener, host.player.pose(),
         bank.header_at(bank.special_models()[host.player.definition_slot()]).extent, host.combat->camera_actor,
         combat->actors, cells, bank, host.player.world_damage_mask())}) {
@@ -454,7 +455,7 @@ auto main(int const argc, char const *const argv[])->int {
     auto const camera_subject{watching_actor
       ? (actor != combat->actors.end() && (actor->flags & 8) ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)
       : host.camera.mode == darker::game::camera_mode::object ? darker::game::camera_subject::absent_object : subject};
-    auto const camera{host.camera.view(camera_pose, frame_step, !watching_actor && (host.player.lifecycle.flags & 16) != 0, camera_subject, host.player.tunnel.has_value())};
+    auto const camera{host.camera.view(camera_pose, frame_step, !watching_actor && darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::ground_protection), camera_subject, host.player.tunnel.has_value())};
     host.audio_listener = camera;
     host.audio_motion = camera_pose;
     darker::graphics::city_view view{
@@ -780,7 +781,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(action == GLFW_PRESS && key >= GLFW_KEY_F1 && key <= GLFW_KEY_F6) {
       auto const selected{static_cast<darker::game::camera_mode>(key - GLFW_KEY_F1)};
       if(key >= GLFW_KEY_F5) {
-        if(!(host.player.lifecycle.flags & 16)) {
+        if(!(darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::ground_protection))) {
           host.combat->camera_actor.reset();
           host.camera.drop(selected, host.player.pose());
         }
@@ -807,7 +808,7 @@ auto main(int const argc, char const *const argv[])->int {
       return;
     }
     if(key == GLFW_KEY_X && action == GLFW_PRESS && host.front && host.front->level_skip_enabled()
-      && !(host.player.lifecycle.flags & 0x20)) {
+      && !(darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::dead))) {
       // B926 restores C610 into C81E and requests the ordinary successful mission exit
       if(modifiers & GLFW_MOD_SHIFT) {
         if(!host.front->nightmare_selected()) host.exit_requested = session_exit::previous;
@@ -1304,7 +1305,7 @@ auto main(int const argc, char const *const argv[])->int {
         context.object_counter = static_cast<uint8_t>(combat->completed_objectives);
         context.counter = combat->world_damage_counter;
         context.object_flags = combat->status_flags(host.player.lifecycle.flags);
-        context.suppress_messages = (host.player.lifecycle.flags & 0x20) != 0;
+        context.suppress_messages = darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::dead);
         context.messages.clear();
         darker::game::advance_mission_script(script, context);
         for(auto const &event : context.messages) {
@@ -1330,7 +1331,7 @@ auto main(int const argc, char const *const argv[])->int {
     host.primary_held = primary_held;
     host.secondary_held = secondary_held;
     if(contact.contact != darker::game::city_contact::none
-      && !(contact.contact == darker::game::city_contact::terrain && (host.player.lifecycle.flags & 16))) {
+      && !(contact.contact == darker::game::city_contact::terrain && (darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::ground_protection)))) {
       std::cout << "Contact: " << (contact.contact == darker::game::city_contact::building ? "building" : "terrain")
                 << "; position " << host.player.pose().position.column << ',' << host.player.pose().position.row << ',' << host.player.pose().position.height << std::endl;
     }
@@ -1350,7 +1351,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.camera.distance_step = 5;
     }
     bool const enlarged{caero && !host.player.tunnel && (host.key_down(*window, GLFW_KEY_INSERT) || host.key_down(*window, GLFW_KEY_KP_0))};
-    host.camera.update_look(host.player.look_drive, host.key_down(*window, GLFW_KEY_TAB), step, (host.player.lifecycle.flags & 16) != 0);
+    host.camera.update_look(host.player.look_drive, host.key_down(*window, GLFW_KEY_TAB), step, darker::game::has_player_flag(host.player.lifecycle.flags, darker::game::player_flag::ground_protection));
     auto const clock{game_clock.frame_ticks};
     host.clock = clock;
     auto const count{render(clock, enlarged, step)};
@@ -1367,7 +1368,7 @@ auto main(int const argc, char const *const argv[])->int {
         .gate_site{host.hangar.return_site},
         .gate_active{host.hangar.sound_level != 0},
         .supplementary{exchange.supplementary_active}
-      }, cells, host.world_audio.audible_ambient(), std::to_underlying(world_mode))};
+      }, cells, host.world_audio.audible_ambient(), world_mode)};
       audio.publish(host.briefing ? darker::audio::fm_frame{} : host.world_audio.mix(player_sounds, *combat, pose, clock, ambient, &host.audio_motion, &host.player.pose()));
     }
     if(caero && !host.briefing && !exchange.supplementary_active && combat->script_owner) {

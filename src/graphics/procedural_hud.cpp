@@ -6,7 +6,7 @@
 #include <span>
 #include <stdexcept>
 #include "graphics/cockpit_tables.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 namespace {
@@ -72,9 +72,9 @@ attitude_line calculate_attitude(uint16_t const pitch_index, uint16_t const roll
   /// 5E6F scales signed table words with high-word products before constructing the endpoints
   if(pitch_index >= 1024 || roll_index >= 1024) throw std::invalid_argument{"attitude table index must be below 1024"};
   int const pitch_sine{(maths::original_sine[pitch_index] * 224) >> 16};
-  int const pitch_cosine{(maths::original_sine[(pitch_index + 256) % 1024] * 224) >> 16};
+  int const pitch_cosine{(maths::phase_cosine(pitch_index) * 224) >> 16};
   int const roll_sine{maths::original_sine[roll_index]};
-  int const roll_cosine{maths::original_sine[(roll_index + 256) % 1024]};
+  int const roll_cosine{maths::phase_cosine(roll_index)};
   pixel_position const centre{display_layout::centre_x + ((roll_sine * pitch_sine) >> 16), centre_y + ((roll_cosine * pitch_sine) >> 16)};
   pixel_position const offset{(roll_cosine * pitch_cosine) >> 16, -((roll_sine * pitch_cosine) >> 16)};
   int const shade{(pitch_high * (pitch_high < 0 ? -45 : 44)) >> 8};

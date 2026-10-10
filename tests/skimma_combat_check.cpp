@@ -114,7 +114,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
   darker::game::assign_city_variants(cells, limits);
   darker::game::apply_scenario_cells(cells, record);
   for(int const weapon : {-1, 0, 2}) {
-    auto initial{darker::game::make_scenario_group(record.groups[0], bank, 1, 1, record.shared.offset)};
+    auto initial{darker::game::make_scenario_group(record.groups[0], bank, 1, darker::resources::world_kind::halon, record.shared.offset)};
     if(initial.size() != 4) throw std::runtime_error{"Skimma gun fixture lost its four original Halon craft"};
     darker::game::mission_combat combat{std::move(initial)};
     darker::game::player_flight player;

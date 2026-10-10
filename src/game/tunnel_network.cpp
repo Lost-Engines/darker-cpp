@@ -177,7 +177,7 @@ tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connecti
   auto const type_at{[&](uint16_t const cell){
     auto const x{cell & 255}, y{cell >> 8};
     if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel connection leaves its map"};
-    return cells[y * city_map_size.column + x].type;
+    return cells[city_cell_index(x, y)].type;
   }};
   struct selection {
     tunnel_connection connection;
@@ -235,7 +235,7 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
   auto const type_at{[&](uint16_t const cell){
     auto const x{cell & 255}, y{cell >> 8};
     if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel projection leaves its map"};
-    return cells[y * city_map_size.column + x].type;
+    return cells[city_cell_index(x, y)].type;
   }};
   unsigned int visits{0};
   int progress{0};
@@ -279,7 +279,7 @@ std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells
   auto const search{[&](int const x_offset, int const y_offset){
     auto const column{static_cast<uint8_t>(cell + x_offset)}, row{static_cast<uint8_t>((cell >> 8) + y_offset)};
     if(row >= city_map_size.row) return;
-    auto const type{cells[row * city_map_size.column + (column & 127)].type};
+    auto const type{cells[city_cell_index(column & packed_cell_reference::column_mask, row)].type};
     if(type == 0) return;
     for(uint8_t i{0}; i < 3; ++i) {
       auto const edge{segment(type, i)};

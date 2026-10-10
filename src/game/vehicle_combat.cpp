@@ -5,7 +5,6 @@
 #include "game/city_map.h"
 #include "game/object_definitions.h"
 #include "maths/direction.h"
-
 #include "game/native_object_layout.h"
 
 namespace darker::game {
@@ -36,7 +35,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     row = static_cast<uint8_t>(row - rows.at(direction / 2));
     // native TEST clears carry, so 9210 treats an off-map probe as unobstructed
     if((column | row) & 128) continue;
-    auto const type{cells[row * city_map_size.column + column].type};
+    auto const type{cells[city_cell_index(column, row)].type};
     if(type && types[type - 1].collision_marker != resources::city_type::background_marker) return nullptr;
   }
   vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);

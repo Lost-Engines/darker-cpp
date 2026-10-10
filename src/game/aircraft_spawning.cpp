@@ -14,7 +14,7 @@ void prepare_delphi_aircraft_sites(aircraft_spawning &state, city_map &cells) {
   state.sites.assign(delphi_aircraft_sites.begin(), delphi_aircraft_sites.end());
   for(size_t i{0}; i < delphi_aircraft_sites.size(); ++i) {
     auto const site{delphi_aircraft_sites[i]};
-    auto &cell{cells[(site >> 8) * 128 + (site & 127)]};
+    auto &cell{cells[packed_cell_reference{site}.index()]};
     ++cell.state;
     if(cell.state & 0x40) state.platforms[i] = -1;
   }
@@ -27,14 +27,14 @@ size_t prepare_halon_aircraft_sites(aircraft_spawning &state, city_map &cells, s
   size_t cursor{0};
   while(cursor < program.size()) {
     auto const column{std::to_integer<uint8_t>(program[cursor++])};
-    if(column >= 128) {
+    if(column >= city_map_size.column) {
       if(state.timers.size() < state.sites.size()) state.timers.resize(state.sites.size());
       return cursor;
     }
     if(cursor == program.size()) break;
     auto const row{std::to_integer<uint8_t>(program[cursor++])};
-    if(row >= 128) throw std::invalid_argument{"Aircraft site exceeds its city map"};
-    cells[row * 128 + column].state |= 0x80;
+    if(row >= city_map_size.row) throw std::invalid_argument{"Aircraft site exceeds its city map"};
+    cells[city_cell_index(column, row)].state |= 0x80;
     state.sites.push_back(static_cast<uint16_t>(row * 256 + column));
   }
   throw std::invalid_argument{"Aircraft site list has no terminator"};
@@ -55,7 +55,7 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
   }};
   for(auto const site : state.sites) {
     auto const column{site & 255}, row{site >> 8};
-    auto const flags{cells[row * 128 + column].state};
+    auto const flags{cells[city_cell_index(column, row)].state};
     if(!(flags & 0xc0) || (flags & 0x20)) continue;
     auto &timer{state.timers[timer_index++]};
     auto const distance{std::max(static_cast<uint8_t>(magnitude(column - (player.position.column >> 8)) + magnitude(row - (player.position.row >> 8))), uint8_t{4})};

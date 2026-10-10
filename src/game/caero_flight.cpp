@@ -7,7 +7,7 @@
 #include "game/beacon_light.h"
 #include "game/flight_attitude.h"
 #include "game/flight_motion.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::game {
 namespace {
@@ -17,11 +17,6 @@ uint16_t constexpr fraction_mask{0xff};
 int16_t word(int const value) noexcept {
   /// Retain each original word boundary before signed arithmetic
   return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
-}
-
-int16_t sine(uint16_t const angle) noexcept {
-  /// Flight indexes the extended sine table without the renderer's rounding bias
-  return maths::original_sine[angle >> 6];
 }
 
 int16_t high_product(int16_t const left, int16_t const right) noexcept {
@@ -126,7 +121,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
     state.energy.reserve_display = 12;
   }
 
-  auto const vertical_drive{word((word(forward_target) * sine(middle_pitch)) >> 15)};
+  auto const vertical_drive{word((word(forward_target) * maths::angle_sine(middle_pitch)) >> 15)};
   auto const absolute_projection{word(turn.lift_projection < 0 ? -turn.lift_projection : turn.lift_projection)};
   auto lift{high_product(absolute_projection, word(incoming))};
   if(lift >= 0) {

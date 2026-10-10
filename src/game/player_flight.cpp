@@ -4,8 +4,8 @@
 #include <utility>
 #include "game/city_map.h"
 #include "game/object_definitions.h"
-
 #include "game/object_catalogue.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 
@@ -41,13 +41,13 @@ object_pose const &player_flight::pose() const noexcept {
 
 void player_flight::command(flight_command const command) noexcept {
   /// Apply the craft-dependent flight key actions; sound and presentation remain event consumers
-  if(lifecycle.flags & 0x20) return;
+  if(has_player_flag(lifecycle.flags, player_flag::dead)) return;
   auto *caero{std::get_if<caero_flight_state>(&craft)};
   switch(command) {
     case flight_command::engine:
       engine_flags ^= 1;
       if(auto *skimma{std::get_if<skimma_flight_state>(&craft)}) {
-        if(lifecycle.flags & 0x10) engine_flags &= 0xfe;
+        if(has_player_flag(lifecycle.flags, player_flag::ground_protection)) engine_flags &= 0xfe;
         skimma->damage.shield_enabled = (engine_flags & 1) != 0;
       }
       break;
@@ -97,7 +97,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   if(tunnel && !noclip) {
     if(!caero || !network) throw std::logic_error{"Tunnel player flight requires a Caero and its route network"};
     auto const cell{tunnel->connection.cell};
-    auto const type{cells.at((cell >> 8) * city_map_size.column + (cell & 127)).type};
+    auto const type{cells.at(packed_cell_reference{cell}.index()).type};
     auto const marker{type ? bank.city_types()[type - 1].collision_marker : uint8_t{0}};
     advance_tunnel_flight(std::get<caero_flight_state>(craft), *tunnel,
       {
@@ -151,10 +151,10 @@ void player_flight::apply_city_contact(city_collision_result const contact, cloc
   /// Apply 6EEC/6F84 only after object contacts have had their native chance to supersede the city hit
   if(noclip) return;
   auto const mask{world_damage_mask()};
-  bool const protected_terrain{contact.contact == city_contact::terrain && (lifecycle.flags & 0x10)};
-  if(contact.contact != city_contact::none && !protected_terrain && !(lifecycle.flags & 0x20)) {
+  bool const protected_terrain{contact.contact == city_contact::terrain && has_player_flag(lifecycle.flags, player_flag::ground_protection)};
+  if(contact.contact != city_contact::none && !protected_terrain && !has_player_flag(lifecycle.flags, player_flag::dead)) {
     if(contact.contact == city_contact::building && contact.category == collision_category::fragile) {
-      auto &cell{cells[contact.row * city_map_size.column + contact.column]};
+      auto &cell{cells[city_cell_index(contact.column, contact.row)]};
       auto const model{bank.city_model_offset(cell.type, cell.state, mask)};
       auto const pool{bank.model_pool()};
       if(pool[model] != std::byte{0} || pool[model + 1] != std::byte{0}) cell.state = static_cast<uint8_t>(cell.state + 32);

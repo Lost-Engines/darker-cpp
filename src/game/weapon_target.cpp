@@ -3,14 +3,12 @@
 #include "game/aircraft_combat.h"
 #include "game/city_sweep.h"
 #include "game/object_definitions.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 #include "maths/world_coordinates.h"
-
 #include "vectorstorm/vector/vector2.h"
-
 #include "game/native_object_layout.h"
-
 #include "game/object_catalogue.h"
+#include "game/target_reference.h"
 
 namespace darker::game {
 
@@ -22,9 +20,9 @@ void weapon_target::clear() noexcept {
 
 maths::world_position target_ray_end(object_pose const &player) noexcept {
   /// 1E77/6D08 construct the unrolled forward targeting ray with the original truncation points
-  auto const heading{player.angles.heading >> 6}, pitch{player.angles.pitch >> 6};
-  auto const sine{maths::original_sine[heading]}, cosine{maths::original_sine[(heading + 256) % 1024]};
-  auto const pitch_cosine{maths::original_sine[(pitch + 256) % 1024]};
+  auto const heading{maths::angle_phase(player.angles.heading)}, pitch{maths::angle_phase(player.angles.pitch)};
+  auto const sine{maths::original_sine[heading]}, cosine{maths::phase_cosine(heading)};
+  auto const pitch_cosine{maths::phase_cosine(pitch)};
   auto const x{(-(sine * pitch_cosine >> 16)) >> 2};
   auto const y{-((cosine * pitch_cosine >> 16) >> 2)};
   return {static_cast<uint16_t>(player.position.column + x), static_cast<uint16_t>(player.position.row + y),
@@ -35,16 +33,14 @@ uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_acto
   city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
   /// 6D08 clips against the city, then selects the last intersecting aircraft without shortening the ray at its hull
   int constexpr target_ray_terrain_height{10};
-  int constexpr actor_records_base{native_object_layout::actors};
-  int constexpr actor_record_bytes{native_object_layout::record_bytes};
   auto end{target_ray_end(player)};
   auto const hit{sweep_city(bank, cells, damage_mask, player.position, end, 0, target_ray_terrain_height)};
-  uint16_t selected{hit.contact == city_contact::building ? static_cast<uint16_t>(hit.row * 256 + hit.column) : weapon_target::no_target};
+  uint16_t selected{hit.contact == city_contact::building ? packed_cell_reference::from_coordinates(hit.column, hit.row).value : weapon_target::no_target};
   for(auto const &actor : actors) {
     if(actor.category != actor_category::air) continue;
     auto candidate{end};
     if(sweep_aircraft(actor.pose, bank.header_at(actor.parameters.model_token).extent, 0, player.position, candidate)) {
-      selected = static_cast<uint16_t>(actor_records_base + actor.index * actor_record_bytes);
+      selected = native_object_layout::actor(actor.index);
     }
   }
   return selected;
@@ -68,7 +64,7 @@ void weapon_target::project(maths::world_position const &player,
     clear();
     return;
   }
-  if(token == weapon_target::no_target) return;
+  if(target_reference{token}.is_none()) return;
   auto const dx{static_cast<uint16_t>(target.column - player.column)};
   auto const dy{static_cast<uint16_t>(target.row - player.row)};
   if(static_cast<uint8_t>((dx >> 8) + target_window_half_width_cells) >= target_window_width_cells || static_cast<uint8_t>((dy >> 8) + target_window_half_width_cells) >= target_window_width_cells) {
@@ -107,8 +103,8 @@ void weapon_target::project(maths::world_position const &player,
     return;
   }
   if(!skimma) distance = static_cast<uint8_t>(radial >> 8);
-  bool const ground{original_object_definitions[skimma ? object_catalogue::skimma_weapon(secondary_weapon) : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
-  if(ground ? (token & weapon_target::aircraft_token_bit) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : !(token & weapon_target::aircraft_token_bit)) {
+  bool const ground{original_object_definitions[skimma ? object_catalogue::skimma_definition(secondary_weapon) : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
+  if(ground ? (target_reference{token}.is_object_encoded()) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : target_reference{token}.is_ground_encoded()) {
     clear();
     return;
   }
@@ -139,7 +135,7 @@ void weapon_target::project_skimma(maths::world_position const &player,
     return;
   }
   project(player, target, extent, basis, weapon, 0, 0, true);
-  if(!(token & weapon_target::aircraft_token_bit) && !destructible) clear();
+  if(target_reference{token}.is_ground_encoded() && !destructible) clear();
 }
 
 } // namespace darker::game

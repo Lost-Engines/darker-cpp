@@ -4,7 +4,6 @@
 #include <functional>
 #include "maths/direction.h"
 #include "maths/world_coordinates.h"
-
 #include "game/native_object_layout.h"
 
 namespace darker::game {
@@ -139,12 +138,12 @@ uint16_t actor_city_clearance(object_pose const &actor, city_map const &cells,
   int16_t maximum{0x076c};
   for(int row_delta{-1}; row_delta <= 1; ++row_delta) {
     auto const row{static_cast<uint8_t>((actor.position.row >> 8) + row_delta)};
-    if(row >= 128) continue;
+    if(row >= city_map_size.row) continue;
     for(int column_delta{-1}; column_delta <= 1; ++column_delta) {
       if(row_delta == 0 && column_delta == 0) continue;
       auto const column{static_cast<uint8_t>((actor.position.column >> 8) + column_delta)};
-      if(column >= 128) continue;
-      auto const cell{cells[row * 128 + column]};
+      if(column >= city_map_size.column) continue;
+      auto const cell{cells[city_cell_index(column, row)]};
       if(cell.type == 0) continue;
       auto const model{bank.header_at(bank.city_model_offset(cell.type, cell.state, damage_mask))};
       auto const marker{bank.city_types()[cell.type - 1].collision_marker};

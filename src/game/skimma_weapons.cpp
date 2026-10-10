@@ -1,12 +1,15 @@
 #include "game/skimma_weapons.h"
+#include "game/weapon_selection.h"
 #include <algorithm>
 #include <array>
 #include <bit>
 #include <stdexcept>
 #include "game/object_definitions.h"
 #include "game/random.h"
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 #include "maths/world_coordinates.h"
+#include "game/target_reference.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 namespace {
@@ -39,12 +42,12 @@ int8_t kick_skimma_recoil(int8_t const current, uint8_t const random_byte) {
 
 maths::world_position skimma_gun_endpoint(object_pose const &player, int16_t const pitch_offset, uint16_t &random_state) noexcept {
   /// CD84 quarters the sight vector and adds three signed random components before 6D08 constructs the ray
-  auto const heading{player.angles.heading >> 6};
-  auto const pitch{static_cast<uint16_t>(player.angles.pitch + pitch_offset) >> 6};
-  auto const cosine{maths::original_sine[(pitch + 256) % 1024]};
+  auto const heading{maths::angle_phase(player.angles.heading)};
+  auto const pitch{maths::angle_phase(static_cast<uint16_t>(player.angles.pitch + pitch_offset))};
+  auto const cosine{maths::phase_cosine(pitch)};
   auto const random{next_random(random_state)};
   auto const horizontal{-(maths::original_sine[heading] * cosine >> 16)};
-  auto const forward{maths::original_sine[(heading + 256) % 1024] * cosine >> 16};
+  auto const forward{maths::phase_cosine(heading) * cosine >> 16};
   auto const vertical{-(maths::original_sine[pitch] >> 1)};
   auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>((horizontal >> 2) + std::bit_cast<int8_t>(static_cast<uint8_t>(random))))};
   auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>((forward >> 2) + std::bit_cast<int8_t>(static_cast<uint8_t>(random >> 8))))};
@@ -57,8 +60,8 @@ maths::world_position skimma_gun_endpoint(object_pose const &player, int16_t con
 projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, skimma_fire_request const request) {
   /// C991 admits exact status 3, reuses the target-class firing handlers and deducts one working round on launch
   validate_weapon(request.weapon);
-  if(!request.pressed || (request.player_flags & 0x20) || slot.flags != 3) return nullptr;
-  bool const valid_target{request.weapon == 1 ? !(request.target & 0x8000) : (static_cast<uint16_t>(request.target + 1) & 0x8000) != 0};
+  if(!request.pressed || has_player_flag(request.player_flags, player_flag::dead) || slot.flags != 3) return nullptr;
+  bool const valid_target{static_cast<skimma_weapon>(request.weapon) == skimma_weapon::ground ? target_reference{request.target}.is_ground_encoded() : target_reference{request.target}.permits_air_weapon()};
   if(!valid_target) return nullptr;
   auto const &definition{original_object_definitions[skimma_weapon_specifications[request.weapon].definition]};
   auto *shot{pool.launch({

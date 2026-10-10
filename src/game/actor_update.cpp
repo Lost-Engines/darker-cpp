@@ -1,8 +1,8 @@
 #include "game/actor_update.h"
 #include <algorithm>
 #include "game/city_map.h"
-
 #include "game/native_object_layout.h"
+#include "game/target_reference.h"
 
 namespace darker::game {
 
@@ -21,7 +21,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
     }, frame_step);
   select_actor_target(actor);
   actor_course course;
-  if(actor.selected_target & 0x8000) {
+  if(target_reference{actor.selected_target}.is_object_encoded()) {
     auto const target{std::ranges::find_if(active, [&](auto const &candidate){
       return native_object_layout::actor(candidate.index) == actor.selected_target;
     })};
@@ -29,7 +29,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   } else {
     auto const column{static_cast<uint8_t>(actor.selected_target)};
     auto const row{static_cast<uint8_t>(actor.selected_target >> 8)};
-    auto const type{column < city_map_size.column && row < city_map_size.row ? cells[row * city_map_size.column + column].type : 0};
+    auto const type{column < city_map_size.column && row < city_map_size.row ? cells[city_cell_index(column, row)].type : 0};
     resources::city_type descriptor{
       .collision_marker{resources::city_type::background_marker}
     };

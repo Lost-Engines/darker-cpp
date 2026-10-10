@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include "resources/world_profile.h"
 #include <optional>
 #include <vector>
 #include "game/actor_awareness.h"
@@ -59,9 +60,9 @@ struct scenario_actor {
 
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,
   object_definition const &definition, uint16_t model_token, int16_t model_height,
-  actor_index index, uint8_t world_mode, size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
+  actor_index index, resources::world_kind world_mode, size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
 
 std::vector<scenario_actor> make_scenario_group(resources::scenario_group const &group, resources::geometry_bank const &bank,
-  uint8_t first_index, uint8_t world_mode, size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
+  uint8_t first_index, resources::world_kind world_mode, size_t shared_offset, std::optional<tunnel_setup> tunnel = std::nullopt);
 
 } // namespace darker::game

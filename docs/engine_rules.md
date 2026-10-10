@@ -15,13 +15,17 @@ arithmetic boundary can share a number without being the same rule.
 | Framebuffer dimensions | [`display_layout`, `source_sheet_layout`](../src/render/frame_layout.h) | Display bounds/strides and original resource-sheet dimensions are separate. Framebuffer templates carry both dimensions. |
 | Cockpit viewports | [`cockpit_view_layout`](../src/graphics/screen_layout.h) | Caero and Skimma viewport heights, centres and Caero's top strip. Original artwork coordinates remain artwork coordinates. |
 | Cities and tunnels | [`world_kind`, `world_profiles`](../src/resources/world_profile.h) | Geometry resource, map resource selection, damage-stage mask and beacon lighting. Configuration identifies world independently of craft. |
-| Map dimensions and cell state | [`city_map_size`, `city_cell`](../src/game/city_map.h) | The native 128×128 allocation and target permission bit. Model variants/damage and beacon intensity share the state byte deliberately. |
+| Map dimensions and cell state | [`city_map_size`, `city_cell_index`, `packed_cell_reference`, `city_cell`](../src/game/city_map.h) | The native 128×128 allocation and target permission bit. Model variants/damage and beacon intensity share the state byte deliberately. |
 | Craft and weapon definitions | [`object_catalogue`](../src/game/object_catalogue.h), [`object_definition`](../src/game/object_definition.h) | Shared definition/model slot layout; typed craft, player and projectile data; per-slot Skimma ammunition records. |
 | Authored object parameters | [`original_object_definitions`](../src/game/object_definitions.h) | Generated native values, including speeds, steering, collision dimensions, resistance, weapon cost and callback selection. Update the generator as well as generated output when changing the representation. |
 | Actor behaviours | [`object_update`](../src/game/object_update.h), [`scenario_actor`](../src/game/scenario_actor.h) | Named native callbacks and mutable actor state. Mission bytecode still supplies native slot numbers. |
 | Flight tuning | [`flight_rules`](../src/game/flight_rules.h), [`caero_energy_state`](../src/game/caero_energy.h) | Skimma drive settings/assist limit/default bias, Caero startup/boost rules and energy capacities. Further coupling and rounding stay beside their flight equations. |
 | Projectile storage and identities | [`projectile_limits`, `native_object_layout`](../src/game/native_object_layout.h) | Separate player/hostile capacities and DOS-style reference tokens. Compile-time checks retain the adjacent native token ranges. |
 | Collision | [`collision_rules`](../src/game/collision_rules.h), [`collision_box`, `collision_category`](../src/game/collision_box.h), [`city_collision_boxes`](../src/game/city_collision.h) | Authored volumes and categories, model-state selection, expansion and native wrapping intersection arithmetic. |
+| Angles and lookup phases | [`angle_format`, angle helpers](../src/maths/angle.h) | Native angle words and sine-table phases; unbiased flight/orientation lookup versus biased camera lookup. |
+| Weapon selections | [`caero_weapon`, `skimma_weapon`](../src/game/weapon_selection.h) | One-based Caero selections (including paired stages), zero-based Skimma slots, definition conversion and trigger families. |
+| Target references | [`target_reference`](../src/game/target_reference.h) | Native object/ground encoding, no-target sentinel and the distinct air-weapon firing predicate. |
+| Player flags | [`player_flag`](../src/game/player_flags.h) | Known protection/death bits, action gates and bit-preserving mutation; other native flags remain intact. |
 | Simulation time | [`clock_tick`, `game_duration`, `campaign_clock`](../src/game/time.h) | Wrapping tick/deadline arithmetic is distinct from campaign elapsed time and host wall time. |
 | Effects | [`effects`](../src/game/effects.h) | Shared trail/emitter capacities, typed packed animation and effect recipes. |
 
@@ -115,3 +119,32 @@ number consumption intact. Name an unexplained field only when evidence supports
 its meaning; a precise native representation is preferable to a misleading
 abstraction. Use the existing native reference fixtures for behaviour changes,
 not new expected values derived from a rewritten implementation.
+
+## Packed references and boundary decoding
+
+`city_cell_index(column, row)` handles row-major storage only. It deliberately
+neither clips nor wraps its arguments. The original callers decide whether a
+coordinate is valid, whether it wraps, and whether failure should throw.
+`packed_cell_reference` describes the separate native target/tunnel encoding:
+the row is the high byte and decoding the column masks to seven bits. Paths
+that instead inspect the entire column byte still do so. Hangar return-site
+addresses use yet another convention (twice the column) and are not implicitly
+converted to ordinary packed cells.
+
+`target_reference` is a small view of the native word. The no-target sentinel
+FFFF has the object bit set. Air-weapon admission uses INC followed by a sign
+check: it rejects FFFF but accepts 7FFF. This is intentionally different from
+classifying a word as an object reference. The named predicates preserve both
+operations; callers must not substitute one for the other.
+
+Raw selection bytes and target words remain at native storage/reference-fixture
+boundaries. Firing decisions decode selections to the weapon enum and convert
+back explicitly when returning a next selection. World identifiers are typed
+through actor creation and ambient sound selection; test fixtures decode their
+recorded numeric world at the call boundary without changing reference values.
+
+Angles similarly have more than one representation. A native angle word spans
+65536 units per turn; the sine table has 1024 phases. `angle_phase` truncates,
+whereas `view_angle_phase` adds 15 and wraps the word before truncating. Neither
+is a general floating-point angle conversion. The independently encoded
+2048-step direction table retains its own arithmetic.

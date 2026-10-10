@@ -1,9 +1,12 @@
 #include "game/caero_weapons.h"
+#include "game/weapon_selection.h"
 #include <algorithm>
 #include <stdexcept>
 #include "game/beacon_light.h"
 #include "game/object_definitions.h"
 #include "maths/world_coordinates.h"
+#include "game/target_reference.h"
+#include "game/player_flags.h"
 
 namespace darker::game {
 
@@ -49,15 +52,15 @@ std::optional<impact_strength> chargeable_impact_strength(clock_tick const deadl
 
 caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &energy, uint16_t &charge, caero_fire_request const request) {
   /// C9C2 gates shots; CA7D accumulates Chargeable energy while held and releases it as projectile lifetime
-  auto const selection{request.selection};
-  if(selection < 1 || selection > 10) throw std::invalid_argument{"Caero weapon selection is outside 1–10"};
-  auto const &definition{original_object_definitions[selection - 1]};
+  auto const selection{static_cast<caero_weapon>(request.selection)};
+  if(selection < caero_weapon::pinner_direct || selection > caero_weapon::brent_hunter) throw std::invalid_argument{"Caero weapon selection is outside 1–10"};
+  auto const &definition{original_object_definitions[caero_definition_slot(selection)]};
   auto const cost{static_cast<uint16_t>((request.underground ? 0x80 : definition.role_data.projectile().launch_cost) * 256 + 255)};
-  if((request.player_flags & 0x30) || !pool.objects().free_head()) return {};
+  if(player_actions_blocked(request.player_flags) || !pool.objects().free_head()) return {};
   auto lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)};
   auto target{request.target};
-  uint8_t next_selection{0};
-  if(selection == 9) {
+  caero_weapon next_selection{caero_weapon::none};
+  if(selection == caero_weapon::chargeable) {
     if(request.pressed) {
       if(energy.reserve < cost) return {};
       energy.reserve -= cost;
@@ -79,39 +82,39 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
     }
     lifetime = charge >> 4;
     charge = 0;
-    if(!lifetime || !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {
+    if(!lifetime || !target_reference{request.target}.permits_air_weapon()) return {
       .ready{true}
     };
-  } else if(selection == 4 || selection == 5) {
-    if(energy.reserve < cost || (request.target & 0x8000)) return {
-      .next_selection{request.pressed ? uint8_t{5} : uint8_t{0}}
+  } else if(selection == caero_weapon::diffuser_gas || selection == caero_weapon::diffuser_trigger) {
+    if(energy.reserve < cost || target_reference{request.target}.is_object_encoded()) return {
+      .next_selection{std::to_underlying(request.pressed ? caero_weapon::diffuser_trigger : caero_weapon::none)}
     };
     if(!request.pressed) return {
       .ready{true}
     };
     energy.reserve -= cost;
-    next_selection = selection ^ 1;
+    next_selection = selection == caero_weapon::diffuser_gas ? caero_weapon::diffuser_trigger : caero_weapon::diffuser_gas;
   } else {
     if(energy.reserve < cost) return {};
-    if(selection == 7) {
+    if(selection == caero_weapon::dual_launch_follow_up) {
       auto const *capsule{pool.objects().tail()};
-      if(!capsule || capsule->parameters.definition != &original_object_definitions[2]) return {
+      if(!capsule || capsule->parameters.definition != &original_object_definitions[caero_definition_slot(caero_weapon::dual_launch_capsule)]) return {
         .ready{true},
-        .next_selection{3}
+        .next_selection{std::to_underlying(caero_weapon::dual_launch_capsule)}
       };
       if(!request.released) return {
         .ready{true}
       };
       target = capsule->native_id;
     }
-    if((selection == 8 || selection == 10) && !(static_cast<uint16_t>(request.target + 1) & 0x8000)) return {};
-    if(selection == 6 && (request.target & 0x8000)) return {};
-    if(selection != 7 && !request.pressed) return {
+    if((selection == caero_weapon::caero_weapon || selection == caero_weapon::brent_hunter) && !target_reference{request.target}.permits_air_weapon()) return {};
+    if(selection == caero_weapon::brent_ground && target_reference{request.target}.is_object_encoded()) return {};
+    if(selection != caero_weapon::dual_launch_follow_up && !request.pressed) return {
       .ready{true}
     };
     energy.reserve -= cost;
-    if(selection == 3) next_selection = 7;
-    else if(selection == 7) next_selection = 3;
+    if(selection == caero_weapon::dual_launch_capsule) next_selection = caero_weapon::dual_launch_follow_up;
+    else if(selection == caero_weapon::dual_launch_follow_up) next_selection = caero_weapon::dual_launch_capsule;
   }
   return {
     .shot{pool.launch({
@@ -123,7 +126,7 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
       .target_token{target}
     })},
     .ready{true},
-    .next_selection{next_selection},
+    .next_selection{std::to_underlying(next_selection)},
   };
 }
 

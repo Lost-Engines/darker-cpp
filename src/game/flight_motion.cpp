@@ -1,6 +1,6 @@
 #include "game/flight_motion.h"
 #include <bit>
-#include "maths/sine_table.h"
+#include "maths/angle.h"
 
 namespace darker::game {
 namespace {
@@ -27,29 +27,26 @@ void advance_speed_motion(object_pose &pose, uint16_t const speed, game_duration
   pose.speed = speed;
   auto const time{signed_word((frame_step & 255) << 8)};
   auto const distance{signed_word((static_cast<int32_t>(midpoint) * time) >> 14)};
-  unsigned int const pitch{static_cast<unsigned int>(pose.angles.pitch >> 6)};
-  unsigned int const heading{static_cast<unsigned int>(pose.angles.heading >> 6)};
+  unsigned int const pitch{maths::angle_phase(pose.angles.pitch)};
+  unsigned int const heading{maths::angle_phase(pose.angles.heading)};
   auto const sine{[](unsigned int const angle){
     return maths::original_sine[angle];
   }};
-  auto const cosine{[&](unsigned int const angle){
-    return sine((angle + 256) % 1024);
-  }};
   displace_object(pose, 2, (sine(pitch) * distance) >> 8);
-  auto const horizontal{signed_word((cosine(pitch) * distance) >> 15)};
-  displace_object(pose, 1, -((cosine(heading) * horizontal) >> 11));
+  auto const horizontal{signed_word((maths::phase_cosine(pitch) * distance) >> 15)};
+  displace_object(pose, 1, -((maths::phase_cosine(heading) * horizontal) >> 11));
   displace_object(pose, 0, -((sine(heading) * horizontal) >> 11));
 }
 
 void advance_horizontal_flight(object_pose &pose, uint16_t &velocity, uint16_t const target,
   uint16_t const timestep, uint16_t const heading, uint16_t const pitch) noexcept {
   /// 8208 projects the target by mid-step pitch, approaches velocity, then integrates both horizontal axes
-  auto const cosine{maths::original_sine[((pitch >> 6) + 256) % 1024]};
+  auto const cosine{maths::angle_cosine(pitch)};
   auto const projected{static_cast<uint16_t>((signed_word(target) * cosine) >> 15)};
   auto const midpoint{approach_velocity(velocity, projected, timestep)};
   auto const travel{signed_word(-((midpoint * signed_word(timestep)) >> 16))};
-  auto const sine_heading{maths::original_sine[heading >> 6]};
-  auto const cosine_heading{maths::original_sine[((heading >> 6) + 256) % 1024]};
+  auto const sine_heading{maths::angle_sine(heading)};
+  auto const cosine_heading{maths::angle_cosine(heading)};
   displace_object(pose, 0, (sine_heading * travel) >> 8);
   displace_object(pose, 1, (cosine_heading * travel) >> 8);
 }

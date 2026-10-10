@@ -9,6 +9,7 @@
 #include "graphics/particles.h"
 #include "graphics/tunnel_visibility.h"
 #include "maths/world_coordinates.h"
+#include "maths/angle.h"
 
 namespace darker::graphics {
 
@@ -165,8 +166,8 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
   output.clear();
   // angles wrap at 65536 units per turn; discard six bits to use the 1024-step sine-table phase
   // +15 is the native quantisation bias, not round-to-nearest (+32); its original rationale is unknown
-  auto const heading_phase{static_cast<uint16_t>(angles.heading + 15) >> 6};
-  auto const pitch_phase{static_cast<uint16_t>(angles.pitch + 15) >> 6};
+  auto const heading_phase{maths::view_angle_phase(angles.heading)};
+  auto const pitch_phase{maths::view_angle_phase(angles.pitch)};
   // 128 phase steps make a 45-degree octant; pair heading octants into four half-map scan directions
   // 0/2/4/6 are native word-table byte offsets: decreasing columns, increasing rows, increasing columns, decreasing rows
   auto const scan_direction_offset{((heading_phase >> 7) - 1) & 6};
@@ -179,7 +180,7 @@ void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_cou
     for(int x{left}; x <= right; ++x) {
       auto const wrapped_column{static_cast<uint8_t>(x)};
       if(wrapped_column >= game::city_map_size.column) continue;
-      auto const index{static_cast<uint16_t>(wrapped_row * game::city_map_size.column + wrapped_column)};
+      auto const index{static_cast<uint16_t>(game::city_cell_index(wrapped_column, wrapped_row))};
       if(cells[index].type) output.push_back(index);
     }
   }};
@@ -315,7 +316,7 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
       // 2D85 samples the nearest lattice cell's state without the charging routine's type check
       auto const column{((item.cell % game::city_map_size.column + game::beacon_spacing_cells / 2) / game::beacon_spacing_cells) * game::beacon_spacing_cells};
       auto const row{((item.cell / game::city_map_size.column + game::beacon_spacing_cells / 2) / game::beacon_spacing_cells) * game::beacon_spacing_cells};
-      light = cells[row * game::city_map_size.column + column].state;
+      light = cells[game::city_cell_index(column, row)].state;
     }
     auto const colours{lighting.colours(item.placement.depth.whole, item.path, light)};
     retained_colours = colours;

@@ -1,15 +1,15 @@
 #include "game/player_crash.h"
 #include <bit>
+#include "game/player_flags.h"
 
 namespace darker::game {
 
 bool start_player_crash(object_pose &pose, player_crash_state &state, clock_tick const clock) noexcept {
   /// 6F4F installs the crash lifecycle once, retaining unrelated flags and the original wrapping deadline
-  uint8_t constexpr dead_flag{0x20};
   uint8_t constexpr crash_flags{0x28};
   int constexpr crash_duration_ticks{1536};
   int constexpr initial_crash_pitch{0x0205};
-  if(state.flags & dead_flag) return false;
+  if(has_player_flag(state.flags, player_flag::dead)) return false;
   state.crashing = true;
   state.flags |= crash_flags;
   state.deadline = static_cast<uint16_t>(clock + crash_duration_ticks);

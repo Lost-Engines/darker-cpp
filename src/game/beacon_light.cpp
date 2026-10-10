@@ -60,7 +60,7 @@ uint16_t beacon_light(std::span<city_cell const, city_map_cell_count> const cell
   auto const x{lookup[position.column >> 8]};
   auto const y{lookup[position.row >> 8]};
   if(x >= city_map_size.column || y >= city_map_size.row) return 0;
-  auto const cell{cells[y * city_map_size.column + x]};
+  auto const cell{cells[city_cell_index(x, y)]};
   if(cell.type != beacon_model_type) return 0;
   auto const dx{signed_word((position.column - x * 256) * horizontal_distance_scale + (fractions.column >> 4) - scaled_cell_centre)};
   auto const dy{signed_word((position.row - y * 256) * horizontal_distance_scale + (fractions.row >> 4) - scaled_cell_centre)};

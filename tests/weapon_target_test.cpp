@@ -75,3 +75,27 @@ TEST_CASE("Skimma target retention matches native rings and target restrictions"
     CHECK(lock.distance == s[21]);
   }
 }
+
+TEST_CASE("Target encoding retains the distinct native firing boundary", "[game][weapons]") {
+  using darker::game::target_reference;
+  target_reference const ground{0x067f};
+  CHECK(ground.is_ground_encoded());
+  CHECK(ground.cell().column() == 127);
+  CHECK(ground.cell().row() == 6);
+  CHECK(ground.cell().index() == 895);
+  CHECK_FALSE(ground.permits_air_weapon());
+
+  target_reference const boundary{0x7fff};
+  CHECK(boundary.is_ground_encoded());
+  CHECK(boundary.permits_air_weapon());
+  CHECK_FALSE(target_reference{0x7ffe}.permits_air_weapon());
+  CHECK(target_reference{0x8000}.is_object_encoded());
+  CHECK(target_reference{0xfffe}.permits_air_weapon());
+  CHECK(target_reference{}.is_none());
+  CHECK(target_reference{}.is_object_encoded());
+  CHECK_FALSE(target_reference{}.permits_air_weapon());
+
+  // packed tokens discard column bit seven; separate coordinate indexing must not do so
+  CHECK(target_reference{0x0681}.cell().column() == 1);
+  CHECK(darker::game::city_cell_index(129, 6) == 897);
+}

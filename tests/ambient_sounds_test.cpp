@@ -52,7 +52,7 @@ TEST_CASE("Bell sources retain notes between tolls and are absent outside Delphi
   darker::audio::ambient_context context{
     .listener{15104, 17408}
   };
-  auto sources{ambience.advance(context, cells, 0, 0)};
+  auto sources{ambience.advance(context, cells, 0, darker::resources::world_kind::delphi)};
   auto const first{mixer.mix({}, combat, listener, 0, sources)};
   auto const bell{std::ranges::find_if(first, [](auto const &note){
     return note.active && note.pitch == 1300;
@@ -61,19 +61,19 @@ TEST_CASE("Bell sources retain notes between tolls and are absent outside Delphi
   auto const channel{static_cast<size_t>(bell - first.begin())};
   CHECK((mixer.audible_ambient() & 0x3c0) == 0x3c0);
   context.clock = 8;
-  sources = ambience.advance(context, cells, mixer.audible_ambient(), 0);
+  sources = ambience.advance(context, cells, mixer.audible_ambient(), darker::resources::world_kind::delphi);
   auto const continued{mixer.mix({}, combat, listener, 8, sources)};
   CHECK(continued[channel].generation == bell->generation);
   context.clock = 1024;
-  sources = ambience.advance(context, cells, mixer.audible_ambient(), 0);
+  sources = ambience.advance(context, cells, mixer.audible_ambient(), darker::resources::world_kind::delphi);
   auto const repeated{mixer.mix({}, combat, listener, 1024, sources)};
   auto const toll{std::ranges::find_if(repeated, [](auto const &note){
     return note.active && note.pitch == 1300;
   })};
   REQUIRE(toll != repeated.end());
   CHECK(toll->generation != bell->generation);
-  CHECK(ambience.advance(context, cells, 0, 1).empty());
-  CHECK(ambience.advance(context, cells, 0, 2).empty());
+  CHECK(ambience.advance(context, cells, 0, darker::resources::world_kind::halon).empty());
+  CHECK(ambience.advance(context, cells, 0, darker::resources::world_kind::underground).empty());
 }
 
 TEST_CASE("Overlapping ambient sources render finite PCM through the live sound path", "[audio][ambient]") {
@@ -98,7 +98,7 @@ TEST_CASE("Overlapping ambient sources render finite PCM through the live sound 
   for(uint16_t clock{0}; clock < 4000; clock += 8) {
     context.changes = static_cast<uint16_t>(clock ^ context.clock);
     context.clock = clock;
-    auto const sources{ambience.advance(context, cells, mixer.audible_ambient(), clock < 3500 ? 0 : 1)};
+    auto const sources{ambience.advance(context, cells, mixer.audible_ambient(), clock < 3500 ? darker::resources::world_kind::delphi : darker::resources::world_kind::halon)};
     auto const voices{mixer.mix({}, combat, listener, clock, sources)};
     REQUIRE(stream.publish(voices));
     stream.render(pcm);
