@@ -345,3 +345,13 @@ supplementary blackouts are not guessed. Regression coverage checks mission 80's
 inherited Kalvin tank markings without destruction, mission 69's earlier beacon
 failures, no premature application of the current level's queue, previous-level
 reconstruction, late radio shutdown and a clean restart at level one.
+
+## Undefined German briefing glyph
+
+German level 76 contains code 153 in a wide-font page. Retail reads beyond the
+font resource and produces flickering, overlapping pixels. The reconstruction
+uses that font's question mark when an undefined code's bitmap would leave the
+resource, checking all four alignments so layout and drawing agree. In-resource
+reads retain their original behaviour; invalid data for declared glyphs still
+fails validation. This deliberate handling of undefined memory avoids a crash
+without inventing the original machine's changing memory contents.

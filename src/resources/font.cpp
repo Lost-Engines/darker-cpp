@@ -42,6 +42,17 @@ font_glyph font_resource::glyph(font_face const face, std::uint8_t const code, u
   auto const width{byte(font.offset + font.count + doubled_index)};
   auto const height{byte(font.offset + font.count + doubled_index + 1)};
   auto const top{byte(font.offset + index)};
+  if(index >= font.count) {
+    // Retail can read unrelated, changing memory for malformed text (German level 76).
+    // Substitute a real glyph if any planar path leaves the resource, so layout and drawing agree.
+    for(unsigned int phase{0}; phase < 4; ++phase) {
+      auto const phase_table{font.offset + font.count * (3 + phase * 2)};
+      auto const phase_source{phase_table + byte(phase_table + doubled_index) + (byte(phase_table + doubled_index + 1) << 8)};
+      auto const adjusted{static_cast<std::uint8_t>(width + phase - 4)};
+      unsigned int const stride{std::bit_cast<std::int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8 ? 3u : 4u};
+      if(phase_source > data.size() || stride * height > data.size() - phase_source) return glyph(face, '?', alignment);
+    }
+  }
   auto const table{font.offset + font.count * (3 + alignment * 2)};
   auto const source{table + byte(table + doubled_index) + (byte(table + doubled_index + 1) << 8)};
   // E243 selects one of four fixed planar loops, even for out-of-directory widths.

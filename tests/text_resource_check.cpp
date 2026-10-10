@@ -42,6 +42,21 @@ void check_text_resources(darker::resources::archive_set const &archives) {
     if(fingerprint != sample.fingerprint) throw std::runtime_error{std::format("Font {} alignment {} differs from native drawing", sample.face, sample.phase)};
   }
   std::cout << "All 300 glyphs, two German out-of-directory glyphs and space advances match native coverage and two-colour patterns at all four alignments." << std::endl;
+  // The wide-font lookup for German level 76 leaves the resource. It must remain drawable at every alignment.
+  for(unsigned int phase{0}; phase < 4; ++phase) {
+    framework::render::indexed_cockpit_framebuffer actual{}, expected{};
+    auto const position{darker::graphics::pixel_position{.x{static_cast<int16_t>(8+phase)}, .y{9}}};
+    auto const advance{darker::graphics::draw_glyph(actual,fonts,darker::resources::font_face::wide,153,position,{.ink{2},.edge{1}})};
+    auto const replacement{darker::graphics::draw_glyph(expected,fonts,darker::resources::font_face::wide,'?',position,{.ink{2},.edge{1}})};
+    if(advance != replacement || actual.pixels != expected.pixels) throw std::runtime_error{"Undefined German glyph does not use a stable replacement"};
+  }
+  // This exception must not hide a damaged bitmap belonging to a declared glyph.
+  auto truncated{archives.load({0,29})};
+  truncated.resize(truncated.size()/2);
+  bool rejected{false};
+  try { darker::resources::font_resource const invalid{std::move(truncated)}; }
+  catch(std::invalid_argument const &) { rejected = true; }
+  if(!rejected) throw std::runtime_error{"Truncated font was accepted"};
   std::array<std::vector<std::byte>, 16> resources;
   for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({.archive{4}, .slot{slot}});
   std::array<std::span<std::uint8_t const>, 6> const extra{
