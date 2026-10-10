@@ -11,7 +11,9 @@ F1–F6 now select the original attached and dropped player-camera modes:
 - Tab: redirect the steering device into look offsets, without steering the
   craft. Starting from the cockpit temporarily selects the following view.
   Releasing Tab recentres with the maximum-axis vector reduction at 7CA4,
-  returning to the cockpit when the offsets reach zero.
+  returning to the cockpit when the offsets reach zero. F4 keeps its inside-craft
+  viewpoint while looking: native 78FE–7900 increments camera mode only when
+  the selected mode is zero and the look flag is one.
 
 `game::flight_camera` translates ordinary paths in 2409–2680, including angle
 rounding, following-distance smoothing, byte-fraction position carries, the
@@ -122,3 +124,12 @@ watched object or player. Empty terrain alone does not select a camera.
 Original-pack integration checks exercise category ordering, exclusion, the
 player as a target, a beacon camera and reference retirement. These do not yet
 establish every combination of F7, missile viewing and Tab against live retail.
+
+## Enlarged radar across camera modes
+
+Insert/keypad 0 displays the enlarged Caero radar in F4 and external views as
+well as the cockpit. Native 54F0–55BE checks the craft type and held key, but
+does not require cockpit camera mode; nonzero camera modes branch directly to
+the enlarged-radar check at 55A5. Underground flight remains excluded. The
+overlay is composed after the scene and cockpit, independently of cockpit
+visibility.

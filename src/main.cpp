@@ -584,7 +584,6 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_radar_contacts(display, navigation.player, navigation.heading, contacts);
       if(!host.player.tunnel) darker::graphics::draw_radar_interference(display, navigation.player, navigation.heading, coverage, combat->random_state);
       darker::graphics::draw_caero_frame_edges(cache, display);
-      if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     } else if(cockpit_visible) {
       darker::graphics::draw_skimma_frame_edges(cache, display);
       darker::graphics::skimma_bitmap_state indicators{
@@ -602,6 +601,8 @@ auto main(int const argc, char const *const argv[])->int {
       darker::graphics::draw_target_marker(display, darker::graphics::target_marker::skimma_aim,
         {164, static_cast<int16_t>(sight_y + combat->skimma.aim_offset)}, 14, 14);
     }
+    // Native 54F0–55BE draws the enlarged Caero radar in every camera mode.
+    if(enlarged) darker::graphics::draw_enlarged_radar(cache, display, navigation, contacts);
     darker::graphics::draw_missile_camera_indicator(display, clock, combat->missile_camera_enabled, watched != nullptr);
     for(size_t const channel : {1u, 0u, 2u}) {
       if(auto const &message{messages[channel]}) {
