@@ -22,13 +22,13 @@ TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]"
   }
   for(auto const &v : darker::test_reference::sound_velocity) {
     CAPTURE(v);
-    darker::game::object_pose const pose{.angles{static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),0}, .speed{static_cast<uint16_t>(v[2])}};
+    darker::game::object_pose const pose{.angles{.heading{static_cast<uint16_t>(v[0])},.pitch{static_cast<uint16_t>(v[1])},.roll{0}}, .speed{static_cast<uint16_t>(v[2])}};
     CHECK(darker::audio::doppler_factor(&pose, static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])) == v[5]);
   }
   for(auto const &v : darker::test_reference::sound_pitch) {
     CAPTURE(v);
-    darker::game::object_pose const source{.angles{static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5]),0}, .speed{static_cast<uint16_t>(v[6])}};
-    darker::game::object_pose const listener{.angles{static_cast<uint16_t>(v[7]),static_cast<uint16_t>(v[8]),0}, .speed{static_cast<uint16_t>(v[9])}};
+    darker::game::object_pose const source{.angles{.heading{static_cast<uint16_t>(v[4])},.pitch{static_cast<uint16_t>(v[5])},.roll{0}}, .speed{static_cast<uint16_t>(v[6])}};
+    darker::game::object_pose const listener{.angles{.heading{static_cast<uint16_t>(v[7])},.pitch{static_cast<uint16_t>(v[8])},.roll{0}}, .speed{static_cast<uint16_t>(v[9])}};
     CHECK(darker::audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
   }
 }
@@ -41,7 +41,7 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
     REQUIRE(effects.trails.size() == 1);
     REQUIRE(effects.gun_sounds.size() == 1);
     CHECK(effects.trails[0].flags == v[1]);
-    CHECK(effects.trails[0].position == darker::maths::world_position{static_cast<uint16_t>(v[2]),static_cast<uint16_t>(v[3]),static_cast<uint16_t>(v[4])});
+    CHECK(effects.trails[0].position == darker::maths::world_position{.column{static_cast<uint16_t>(v[2])},.row{static_cast<uint16_t>(v[3])},.height{static_cast<uint16_t>(v[4])}});
     auto const &sound{effects.gun_sounds[0]};
     CHECK(sound.definition.pitch == v[5]);
     CHECK(sound.definition.level == v[6]);
@@ -107,7 +107,7 @@ TEST_CASE("Object sound callbacks match native engines, lifetime pitch and fadin
   /// Cover every non-player definition with wrapped speed, damage, flags, pitch and expiry
   for(auto const &v : darker::test_reference::object_sound_samples) {
     CAPTURE(v);
-    darker::game::object_pose const pose{.angles{0,static_cast<uint16_t>(v[3]),0},.speed{static_cast<uint16_t>(v[2])}};
+    darker::game::object_pose const pose{.angles{.heading{0},.pitch{static_cast<uint16_t>(v[3])},.roll{0}},.speed{static_cast<uint16_t>(v[2])}};
     auto const note{darker::audio::object_sound(darker::game::original_object_definitions[v[0]],pose,
       {.identity{static_cast<uint16_t>(v[1])},.flags{static_cast<uint8_t>(v[5])},.damage{static_cast<uint16_t>(v[6])},
         .fade{static_cast<uint8_t>(v[7])},.deadline{static_cast<uint16_t>(v[8])}},static_cast<uint16_t>(v[4]))};

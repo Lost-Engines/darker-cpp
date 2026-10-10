@@ -29,7 +29,7 @@ TEST_CASE("Moving-object visibility matches the native wrapping byte window", "[
   /// Exercise both axes and both native radii before narrower projection arithmetic can alias distant coordinates
   for(auto const &sample : darker::test_reference::object_window_samples) {
     darker::graphics::city_view const view{.column{static_cast<uint16_t>(sample[0])}, .row{static_cast<uint16_t>(sample[1])}, .radius{sample[2]}};
-    darker::maths::world_position const position{static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[4]), 0};
+    darker::maths::world_position const position{.column{static_cast<uint16_t>(sample[3])}, .row{static_cast<uint16_t>(sample[4])}, .height{0}};
     CAPTURE(sample);
     REQUIRE(darker::graphics::within_object_window(view, position) == static_cast<bool>(sample[5]));
   }

@@ -139,11 +139,11 @@ TEST_CASE("Skimma primary gun rays match native recoil and random spread", "[gam
   /// Compare endpoints and consumed random state before city or aircraft clipping
   for(auto const &sample : darker::test_reference::skimma_gun_samples) {
     CAPTURE(sample);
-    darker::game::object_pose player{.position{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]),static_cast<uint16_t>(sample[2])},
-      .angles{static_cast<uint16_t>(sample[3]),static_cast<uint16_t>(sample[4]),0}};
+    darker::game::object_pose player{.position{.column{static_cast<uint16_t>(sample[0])},.row{static_cast<uint16_t>(sample[1])},.height{static_cast<uint16_t>(sample[2])}},
+      .angles{.heading{static_cast<uint16_t>(sample[3])},.pitch{static_cast<uint16_t>(sample[4])},.roll{0}}};
     auto random{static_cast<uint16_t>(sample[6])};
     auto const end{darker::game::skimma_gun_endpoint(player,std::bit_cast<int16_t>(static_cast<uint16_t>(sample[5])),random)};
-    CHECK(end == darker::maths::world_position{static_cast<uint16_t>(sample[7]),static_cast<uint16_t>(sample[8]),static_cast<uint16_t>(sample[9])});
+    CHECK(end == darker::maths::world_position{.column{static_cast<uint16_t>(sample[7])},.row{static_cast<uint16_t>(sample[8])},.height{static_cast<uint16_t>(sample[9])}});
     CHECK(random == sample[10]);
   }
 }

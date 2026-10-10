@@ -445,7 +445,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       } else {
         auto const aim{resolve_map_guidance(target.token,cells,bank,damage_mask)};
         auto const cell{cells[(target.token >> 8)*128+(target.token & 127)]};
-        maths::world_position const position{aim.position.column,aim.position.row,aim.height};
+        maths::world_position const position{.column{aim.position.column},.row{aim.position.row},.height{aim.height}};
         if(caero) project_caero_target(target,pose.position,position,aim.height_extent,targeting_basis,secondary_weapon,cell.type,cell.state);
         else {
           auto const model{bank.city_model_offset(cell.type,cell.state,damage_mask)};

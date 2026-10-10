@@ -30,7 +30,7 @@ TEST_CASE("Caero gate extension and departure match native updates", "[game][han
     cells[centre].type = 17;
     cells[(sample.y >> 8) * 128 + (sample.x >> 8)].type = static_cast<std::uint8_t>(sample.type);
     darker::game::player_flight player;
-    player.pose().position = {static_cast<std::uint16_t>(sample.x), static_cast<std::uint16_t>(sample.y), 0};
+    player.pose().position = {.column{static_cast<std::uint16_t>(sample.x)}, .row{static_cast<std::uint16_t>(sample.y)}, .height{0}};
     player.lifecycle.flags = 16;
     darker::game::hangar_state hangar{.return_site{static_cast<std::uint16_t>(sample.site)},
       .next_return_site{static_cast<uint16_t>(sample.destination)}, .extension{static_cast<std::uint16_t>(sample.gate)}, .sound_level{0x35}};

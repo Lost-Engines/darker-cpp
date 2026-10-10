@@ -10,11 +10,11 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     CAPTURE(s);
     darker::game::scenario_actor vehicle;
     vehicle.parameters.definition = &darker::game::original_object_definitions[s[0]];
-    vehicle.pose.position = {static_cast<uint16_t>(s[1]),static_cast<uint16_t>(s[2]),static_cast<uint16_t>(s[3])};
+    vehicle.pose.position = {.column{static_cast<uint16_t>(s[1])},.row{static_cast<uint16_t>(s[2])},.height{static_cast<uint16_t>(s[3])}};
     vehicle.pose.angles.heading = static_cast<uint16_t>(s[4]*8192);
     vehicle.behaviour.attack_control = static_cast<uint8_t>(s[8]);
     vehicle.last_shot = static_cast<uint16_t>(s[9]);
-    darker::game::object_pose const player{.position{static_cast<uint16_t>(s[5]),static_cast<uint16_t>(s[6]),static_cast<uint16_t>(s[7])}};
+    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(s[5])},.row{static_cast<uint16_t>(s[6])},.height{static_cast<uint16_t>(s[7])}}};
     darker::game::city_map cells{};
     std::array<darker::resources::city_type,2> types{};
     constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
@@ -50,7 +50,7 @@ TEST_CASE("Vehicle routes call the native firing check only on supported actions
   for(auto const &s : darker::test_reference::vehicle_firing_route_samples) {
     CAPTURE(s);
     darker::game::vehicle_route route{.origin{0},.command{static_cast<uint8_t>(s[0])}};
-    darker::game::object_pose pose{.position{14720,20608,128},.angles{static_cast<uint16_t>(s[1]),0,0}};
+    darker::game::object_pose pose{.position{.column{14720},.row{20608},.height{128}},.angles{.heading{static_cast<uint16_t>(s[1])},.pitch{0},.roll{0}}};
     uint8_t flags{0};
     uint16_t random{0};
     auto const result{darker::game::advance_vehicle_route(route,pose,flags,{},static_cast<uint16_t>(s[2]),0,random)};

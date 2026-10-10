@@ -12,8 +12,8 @@ TEST_CASE("Dual Launch separation matches the native paired projectile metric", 
   /// Preserve wrapping and the original asymmetric absolute-value arithmetic
   for(auto const &s : darker::test_reference::dual_separation_samples) {
     CAPTURE(s);
-    darker::game::object_pose const source{.position{static_cast<uint16_t>(s[0]),static_cast<uint16_t>(s[1]),static_cast<uint16_t>(s[2])}};
-    darker::game::object_pose const target{.position{static_cast<uint16_t>(s[3]),static_cast<uint16_t>(s[4]),static_cast<uint16_t>(s[5])}};
+    darker::game::object_pose const source{.position{.column{static_cast<uint16_t>(s[0])},.row{static_cast<uint16_t>(s[1])},.height{static_cast<uint16_t>(s[2])}}};
+    darker::game::object_pose const target{.position{.column{static_cast<uint16_t>(s[3])},.row{static_cast<uint16_t>(s[4])},.height{static_cast<uint16_t>(s[5])}}};
     CHECK(darker::game::dual_launch_separation(source,target) == s[6]);
   }
 }
@@ -22,8 +22,8 @@ TEST_CASE("Dual Launch blast matches native category bounds and impact strength"
   /// Compare the complete 6DB5 admission and CD13 strength path for aircraft and smaller ground/static passes
   for(auto const &s : darker::test_reference::dual_impact_samples) {
     CAPTURE(s);
-    darker::game::object_pose const source{.position{static_cast<uint16_t>(s[0]),static_cast<uint16_t>(s[1]),static_cast<uint16_t>(s[2])}};
-    darker::game::object_pose const target{.position{static_cast<uint16_t>(s[3]),static_cast<uint16_t>(s[4]),static_cast<uint16_t>(s[5])}};
+    darker::game::object_pose const source{.position{.column{static_cast<uint16_t>(s[0])},.row{static_cast<uint16_t>(s[1])},.height{static_cast<uint16_t>(s[2])}}};
+    darker::game::object_pose const target{.position{.column{static_cast<uint16_t>(s[3])},.row{static_cast<uint16_t>(s[4])},.height{static_cast<uint16_t>(s[5])}}};
     auto const strength{darker::game::dual_launch_impact(source,target,s[6] != 0)};
     CHECK(strength.has_value() == (s[7] != 0));
     if(strength) CHECK(*strength == s[8]);
@@ -35,7 +35,7 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
   for(auto const &s : darker::test_reference::dual_firing_samples) {
     CAPTURE(s);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{1000,2000,3000},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
     darker::game::projectile *tail{nullptr};
     if(s[5] >= 0) tail = pool.launch({.definition{darker::game::original_object_definitions[s[5]]},.emitter{emitter}});
     if(!s[3]) {

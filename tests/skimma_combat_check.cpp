@@ -41,7 +41,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     state.timers[0] = static_cast<uint16_t>(v[6]);
     darker::game::city_map city{};
     city[(v[0] >> 8)*128+(v[0] & 127)] = {76,static_cast<uint8_t>(v[1])};
-    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(v[2]*256)},.row{static_cast<uint16_t>(v[3]*256)},.height{0}}};
     std::vector<darker::game::scenario_actor> active, free;
     if(v[4]) {
       free.emplace_back();
@@ -68,8 +68,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
   unsigned int pads{0};
   for(size_t cell{0}; cell < cells.size(); ++cell) {
     darker::game::player_flight candidate;
-    candidate.craft = darker::game::skimma_flight_state{.pose{.position{static_cast<uint16_t>((cell%128)*256+128),
-      static_cast<uint16_t>((cell/128)*256+255),512}},.horizontal_velocity{100},.vertical_velocity{0xffff}};
+    candidate.craft = darker::game::skimma_flight_state{.pose{.position{.column{static_cast<uint16_t>((cell%128)*256+128)},
+      .row{static_cast<uint16_t>((cell/128)*256+255)},.height{512}}},.horizontal_velocity{100},.vertical_velocity{0xffff}};
     candidate.engine_flags = 0;
     bool const accepted{darker::game::begin_supply_approach(candidate,cells,candidate.supply)};
     if(accepted != (cells[cell].type == 3)) throw std::runtime_error{"Supply entry differs from the native all-cell Halon map check"};
@@ -107,9 +107,9 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        player.pose().position = {static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15)),
-          static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15)),target->pose.position.height};
-        player.pose().angles = {heading,0,0};
+        player.pose().position = {.column{static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15))},
+          .row{static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15))},.height{target->pose.position.height}};
+        player.pose().angles = {.heading{heading},.pitch{0},.roll{0}};
         player.pose().speed = 496;
       }
       combat.targeting_basis = darker::maths::make_view_basis({player.pose().angles.heading,player.pose().angles.pitch,player.pose().angles.roll});
@@ -131,7 +131,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
   for(bool const shield : {false,true}) {
     darker::game::mission_combat incoming{{}};
     darker::game::player_flight victim;
-    victim.craft = darker::game::skimma_flight_state{.pose{.position{14000,14000,4000}},
+    victim.craft = darker::game::skimma_flight_state{.pose{.position{.column{14000},.row{14000},.height{4000}}},
       .damage{.shield_charge{0xbfff},.shield_enabled{shield}}};
     darker::game::launch_emitter const emitter{.position{victim.pose().position},.definition_strength{40}};
     auto *shot{incoming.hostile_projectiles.launch({.definition{darker::game::original_object_definitions[18]},.emitter{emitter},
@@ -151,7 +151,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     auto const &source{campaign.supplementary()};
     auto const &record{source.records()[record_index]};
     darker::game::player_flight pilot;
-    pilot.craft = darker::game::skimma_flight_state{.pose{.position{0x1000,0x2000,400}},.damage{.shield_charge{0x4000}}};
+    pilot.craft = darker::game::skimma_flight_state{.pose{.position{.column{0x1000},.row{0x2000},.height{400}}},.damage{.shield_charge{0x4000}}};
     pilot.upgraded = record_index == 6;
     std::array<darker::game::skimma_weapon_slot,3> weapons{};
     darker::game::weapon_ring_state ring;
@@ -172,7 +172,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     context.toggle_weapons = [&](uint16_t const mask){ available ^= mask; };
     context.exchange_context = [&](auto &active){ exchange.exchange(active,context,active.continuation); };
     for(unsigned int visit{0}; visit < 2; ++visit) {
-      pilot.pose() = {.position{0x1000,0x2000,400}};
+      pilot.pose() = {.position{.column{0x1000},.row{0x2000},.height{400}}};
       pilot.lifecycle.flags = 0x10;
       pilot.supply = {.phase{darker::game::supply_phase::approach},.site{0x2020},.offset{0x1080}};
       std::get<darker::game::skimma_flight_state>(pilot.craft).horizontal_velocity = 0;
@@ -254,9 +254,9 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        pilot.pose().position = {static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15)),
-          static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15)),target->pose.position.height};
-        pilot.pose().angles = {heading,0,0};
+        pilot.pose().position = {.column{static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15))},
+          .row{static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15))},.height{target->pose.position.height}};
+        pilot.pose().angles = {.heading{heading},.pitch{0},.roll{0}};
         pilot.pose().speed = 496;
       }
       combat.targeting_basis = darker::maths::make_view_basis({pilot.pose().angles.heading,pilot.pose().angles.pitch,0});
@@ -362,10 +362,10 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       uint16_t token{0xffff};
       if(building != combat.spawning.sites.end()) {
         auto const aim{darker::game::resolve_map_guidance(*building,city,bank,0x60)};
-        darker::maths::world_position const target{aim.position.column,aim.position.row,aim.height};
-        pilot.pose().position = {target[0],static_cast<uint16_t>(target[1]+32),static_cast<uint16_t>(target[2]+2048)};
+        darker::maths::world_position const target{.column{aim.position.column},.row{aim.position.row},.height{aim.height}};
+        pilot.pose().position = {.column{target[0]},.row{static_cast<uint16_t>(target[1]+32)},.height{static_cast<uint16_t>(target[2]+2048)}};
         auto const direction{darker::maths::object_target_direction(pilot.pose().position,target)};
-        pilot.pose().angles = {direction.heading,direction.pitch,0};
+        pilot.pose().angles = {.heading{direction.heading},.pitch{direction.pitch},.roll{0}};
         secondary = true;
         weapon = 1;
         token = *building;
@@ -373,9 +373,9 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{actor->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        pilot.pose().position = {static_cast<uint16_t>(actor->pose.position.column+((sine*200) >> 15)),
-          static_cast<uint16_t>(actor->pose.position.row+((cosine*200) >> 15)),actor->pose.position.height};
-        pilot.pose().angles = {heading,0,0};
+        pilot.pose().position = {.column{static_cast<uint16_t>(actor->pose.position.column+((sine*200) >> 15))},
+          .row{static_cast<uint16_t>(actor->pose.position.row+((cosine*200) >> 15))},.height{actor->pose.position.height}};
+        pilot.pose().angles = {.heading{heading},.pitch{0},.roll{0}};
         primary = actor->parameters.definition->impact_strength < 50;
         secondary = !primary;
         weapon = pilot.upgraded && (available & 4) ? 2 : 0;
@@ -383,7 +383,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       } else if(!returned && clock > 1024 && !combat.spawning.sites.empty()) {
         auto const pad{std::ranges::find(city,uint8_t{3},&darker::game::city_cell::type)};
         auto const pad_index{static_cast<size_t>(pad-city.begin())};
-        pilot.pose().position = {static_cast<uint16_t>((pad_index%128)*256+128),static_cast<uint16_t>((pad_index/128)*256+255),512};
+        pilot.pose().position = {.column{static_cast<uint16_t>((pad_index%128)*256+128)},.row{static_cast<uint16_t>((pad_index/128)*256+255)},.height{512}};
         pilot.pose().angles = {};
         pilot.engine_flags = 0;
         craft.damage.shield_enabled = false;

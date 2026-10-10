@@ -33,8 +33,8 @@ std::optional<camera_target> pick_camera_target(object_pose const &camera, objec
   std::optional<camera_target> result;
   if(hit.contact == city_contact::building) {
     auto const building{resolve_map_guidance(static_cast<uint16_t>(hit.row*256+hit.column),cells,bank,damage_mask)};
-    result = camera_target{.anchor{.position{building.position.column,building.position.row,
-      static_cast<uint16_t>(building.height + building.height_extent*4)}}};
+    result = camera_target{.anchor{.position{.column{building.position.column},.row{building.position.row},
+      .height{static_cast<uint16_t>(building.height + building.height_extent*4)}}}};
   }
   auto candidate{end};
   if(excluded != 0 && sweep_aircraft(player,player_extent,0,camera.position,candidate))

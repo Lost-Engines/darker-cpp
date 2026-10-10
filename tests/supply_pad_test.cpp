@@ -13,7 +13,7 @@ TEST_CASE("Supply movement and departure match original callbacks", "[game][supp
     CAPTURE(s);
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     darker::game::player_flight player;
-    player.craft = darker::game::skimma_flight_state{.pose{.position{word(s[1]),word(s[2]),word(s[3])},.angles{word(s[4]),0,0}},
+    player.craft = darker::game::skimma_flight_state{.pose{.position{.column{word(s[1])},.row{word(s[2])},.height{word(s[3])}},.angles{.heading{word(s[4])},.pitch{0},.roll{0}}},
       .horizontal_velocity{word(s[5])},.vertical_velocity{word(s[6])}};
     player.lifecycle.flags = 0x10;
     darker::game::supply_pad_state pad{.phase{static_cast<darker::game::supply_phase>(s[0])},.site{0x2020},.offset{word(s[11])},.fraction{static_cast<uint8_t>(s[12])}};
@@ -30,7 +30,7 @@ TEST_CASE("Supply approaches reach the original centre on the original frame", "
   for(auto const &s : darker::test_reference::supply_approaches) {
     CAPTURE(s);
     darker::game::player_flight player;
-    player.craft = darker::game::skimma_flight_state{.pose{.position{0x1000,0x2000,400}}};
+    player.craft = darker::game::skimma_flight_state{.pose{.position{.column{0x1000},.row{0x2000},.height{400}}}};
     player.lifecycle.flags = 0x10;
     darker::game::supply_pad_state pad{.phase{darker::game::supply_phase::approach},.site{0x2020},.offset{0x1080}};
     int frames{0};
@@ -40,7 +40,7 @@ TEST_CASE("Supply approaches reach the original centre on the original frame", "
     }
     CHECK(frames == s[1]);
     CHECK(pad.phase == darker::game::supply_phase::docked);
-    CHECK(player.pose().position == darker::maths::world_position{0x1080,0x2080,328});
+    CHECK(player.pose().position == darker::maths::world_position{.column{0x1080},.row{0x2080},.height{328}});
     CHECK(player.pose().angles.heading == s[2]);
   }
 }
@@ -51,7 +51,7 @@ TEST_CASE("Supply entry matches original heading projection and eligibility", "[
     CAPTURE(s);
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     darker::game::player_flight player;
-    player.craft = darker::game::skimma_flight_state{.pose{.position{word(s[0]),word(s[1]),word(s[2])},.angles{word(s[3]),0,0}},
+    player.craft = darker::game::skimma_flight_state{.pose{.position{.column{word(s[0])},.row{word(s[1])},.height{word(s[2])}},.angles{.heading{word(s[3])},.pitch{0},.roll{0}}},
       .horizontal_velocity{word(s[4])},.vertical_velocity{word(s[5])}};
     player.lifecycle.flags = static_cast<uint8_t>(s[6]);
     player.engine_flags = static_cast<uint8_t>(s[7]);

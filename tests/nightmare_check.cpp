@@ -20,7 +20,7 @@ void check_nightmare(darker::resources::archive_set const &archives) {
   auto cells{darker::game::make_city_map(archives.load({0,68}),true)};
   darker::game::apply_scenario_cells(cells,record);
   darker::game::player_flight player;
-  player.pose().position = {11392,17024,0};
+  player.pose().position = {.column{11392},.row{17024},.height{0}};
   player.pose().angles.heading = 0xc400;
   darker::game::weapon_ammunition ammunition;
   auto groups{darker::game::make_scenario_actors(record,scenario,bank,player,ammunition,0)};

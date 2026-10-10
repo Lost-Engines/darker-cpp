@@ -24,10 +24,10 @@ TEST_CASE("Full object-homing trajectories follow native moving, coincident and 
       record = {};
       record.parameters.definition = &darker::game::original_object_definitions[0];
       record.parameters.angular_response = 480;
-      record.placement = {.position{0, 65535, 8192}, .fractions{255, 127, 1}, .angles{0, 0, 1234}, .speed{1000}};
+      record.placement = {.position{.column{0}, .row{65535}, .height{8192}}, .fractions{.column{255}, .row{127}, .height{1}}, .angles{.heading{0}, .pitch{0}, .roll{1234}}, .speed{1000}};
     }
-    darker::game::object_pose const target{.position{static_cast<std::uint16_t>(sample.target[0]),
-      static_cast<std::uint16_t>(sample.target[1]), static_cast<std::uint16_t>(sample.target[2])}};
+    darker::game::object_pose const target{.position{.column{static_cast<std::uint16_t>(sample.target[0])},
+      .row{static_cast<std::uint16_t>(sample.target[1])}, .height{static_cast<std::uint16_t>(sample.target[2])}}};
     darker::game::advance_object_homing_projectile(record, sample.scenario == 5 ? record.placement : target,
       static_cast<std::uint16_t>(sample.step));
     auto const &p{record.placement};

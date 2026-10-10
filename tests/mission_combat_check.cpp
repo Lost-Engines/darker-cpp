@@ -117,20 +117,20 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     source.definition_slot = 20;
     darker::game::apply_object_definition(source.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
     source.parameters.update_entry = darker::game::object_update::surface_actor;
-    source.pose.position = {12000,12000,4000};
+    source.pose.position = {.column{12000},.row{12000},.height{4000}};
     source.previous_position = source.pose.position;
     source.script.continuation = 0;
     source.script.deadline = 1000;
     auto reserve{source};
     reserve.index = 2;
     reserve.category = sample[1] ? darker::game::actor_category::ground : darker::game::actor_category::air;
-    reserve.pose.position = {24000,24000,4000};
+    reserve.pose.position = {.column{24000},.row{24000},.height{4000}};
     reserve.previous_position = reserve.pose.position;
     reserve.script.continuation = 2;
     darker::game::mission_combat combat{sample[0] ? std::vector<darker::game::scenario_actor>{} : std::vector{source}};
     combat.reserves.push_back(reserve);
     darker::game::player_flight player;
-    player.pose().position = {32000,32000,4000};
+    player.pose().position = {.column{32000},.row{32000},.height{4000}};
     darker::game::city_map empty{};
     std::array<std::byte,3> const program{static_cast<std::byte>(sample[1] ? 10 : 9),std::byte{1},std::byte{0x23}};
     for(size_t frame{0}; frame < 2; ++frame) {
@@ -183,12 +183,12 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     darker::game::city_map city{};
     city[50*128+50] = {static_cast<uint8_t>(s[0]),static_cast<uint8_t>(s[1])};
-    darker::game::object_pose const player{.position{word(s[2]),word(s[3]),word(s[4])},.angles{word(s[5]),word(s[6]),0}};
+    darker::game::object_pose const player{.position{.column{word(s[2])},.row{word(s[3])},.height{word(s[4])}},.angles{.heading{word(s[5])},.pitch{word(s[6])},.roll{0}}};
     std::array<darker::game::scenario_actor,2> actors;
     for(size_t i{0}; i < actors.size(); ++i) {
       actors[i].index = static_cast<uint8_t>(i+1);
       actors[i].parameters.model_token = bank.special_models()[19];
-      actors[i].pose.position = {word(s[7+i*3]),word(s[8+i*3]),word(s[9+i*3])};
+      actors[i].pose.position = {.column{word(s[7+i*3])},.row{word(s[8+i*3])},.height{word(s[9+i*3])}};
     }
     auto const token{darker::game::acquire_caero_target(player,actors,city,bank,0x20)};
     if(token != s[13]) throw std::runtime_error{"Target acquisition differs from native: actual=" + std::to_string(token)
@@ -205,7 +205,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     state.timers[0] = static_cast<uint16_t>(v[6]);
     darker::game::city_map city{};
     city[(v[0] >> 8)*128 + (v[0] & 127)] = {76,static_cast<uint8_t>(v[1])};
-    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(v[2]*256)},.row{static_cast<uint16_t>(v[3]*256)},.height{0}}};
     std::vector<darker::game::scenario_actor> active, free;
     if(v[4]) {
       free.emplace_back();
@@ -235,7 +235,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[20],bank.special_models()[20]);
     actor.parameters.update_entry = darker::game::object_update::departing_aircraft;
     actor.flags = 0x50;
-    actor.pose = {.position{21632,14328,static_cast<uint16_t>(100-bank.header_at(bank.special_models()[20]).height)},.angles{0x8000,0,0},.speed{100}};
+    actor.pose = {.position{.column{21632},.row{14328},.height{static_cast<uint16_t>(100-bank.header_at(bank.special_models()[20]).height)}},.angles{.heading{0x8000},.pitch{0},.roll{0}},.speed{100}};
     actor.script.deadline = 1024;
     uint16_t clock{0};
     for(auto const &expected : darker::test_reference::aircraft_departure_samples) {
@@ -255,7 +255,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const cell{static_cast<uint16_t>(sample[3])};
       target_cells[(cell >> 8)*128 + (cell & 127)] = {static_cast<uint8_t>(sample[1]),static_cast<uint8_t>(sample[2])};
       auto const target{darker::game::resolve_map_guidance(cell,target_cells,geometry,bank_id == 30 ? 0x20 : 0x60)};
-      if(target.position != darker::maths::map_position{static_cast<uint16_t>(sample[4]),static_cast<uint16_t>(sample[5])}
+      if(target.position != darker::maths::map_position{.column{static_cast<uint16_t>(sample[4])},.row{static_cast<uint16_t>(sample[5])}}
         || target.height != sample[6] || target.height_extent != sample[7]) throw std::runtime_error{"Building missile guidance differs from native model lookup"};
     }
   }
@@ -263,7 +263,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     darker::game::mission_combat dual{{}};
     darker::game::city_map empty{};
     darker::game::player_flight player;
-    player.pose().position = {10000,10000,10000};
+    player.pose().position = {.column{10000},.row{10000},.height{10000}};
     auto &craft{std::get<darker::game::caero_flight_state>(player.craft)};
     craft.energy.reserve = 0xffff;
     dual.primary_weapon = 3;
@@ -308,16 +308,16 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       actor.attributes = 1;
       darker::game::apply_object_definition(actor.parameters,darker::game::original_object_definitions[21],bank.special_models()[21]);
       actor.parameters.update_entry = darker::game::object_update::inactive;
-      actor.pose.position = {static_cast<uint16_t>(i == 3 ? 13000 : 10100),10000,10000};
+      actor.pose.position = {.column{static_cast<uint16_t>(i == 3 ? 13000 : 10100)},.row{10000},.height{10000}};
       actor.previous_position = actor.pose.position;
     }
     darker::game::mission_combat blast{targets};
-    darker::game::launch_emitter const emitter{.position{10000,10000,10000},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{10000},.row{10000},.height{10000}},.definition_strength{40}};
     auto *capsule{blast.projectiles.launch({.definition{darker::game::original_object_definitions[2]},.emitter{emitter},.model_token{bank.special_models()[2]},.lifetime{2560}})};
     auto *detonator{blast.projectiles.launch({.definition{darker::game::original_object_definitions[6]},.emitter{emitter},.model_token{bank.special_models()[6]},.lifetime{2560},.target_token{capsule->native_id}})};
     darker::game::city_map empty{};
     darker::game::player_flight observer;
-    observer.pose().position = {15000,15000,10000};
+    observer.pose().position = {.column{15000},.row{15000},.height{10000}};
     blast.advance(observer, empty, bank,
         {.elapsed_ticks{8}, .frame_step{8}, .changes{0}},
         {},
@@ -390,8 +390,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         auto const heading{launcher.pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        target_player.pose().position = {static_cast<uint16_t>(launcher.pose.position.column + ((sine*700) >> 15)),
-          static_cast<uint16_t>(launcher.pose.position.row + ((cosine*700) >> 15)),1600};
+        target_player.pose().position = {.column{static_cast<uint16_t>(launcher.pose.position.column + ((sine*700) >> 15))},
+          .row{static_cast<uint16_t>(launcher.pose.position.row + ((cosine*700) >> 15))},.height{1600}};
         ground.advance(target_player, cells, bank,
         {.elapsed_ticks{clock}, .frame_step{8}, .changes{0}},
         {},
@@ -483,8 +483,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     }
     if(!saw_burst || (test.aircraft_trails && !saw_trail)) throw std::runtime_error{"Combat omitted hit bursts or damage trails"};
     auto const destination{briefing.departure_destination ? briefing.departure_destination : uint16_t{0x7162}};
-    player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
-    player.pose().angles = {0x8000, 0, 0};
+    player.pose().position = {.column{static_cast<uint16_t>((destination & 255)*128+128)},.row{static_cast<uint16_t>((destination & 0xff00)+152-700)},.height{500}};
+    player.pose().angles = {.heading{0x8000}, .pitch{0}, .roll{0}};
     caero.damage.rotation = {};
     darker::game::hangar_state hangar{.return_site{destination}};
     if(!darker::game::begin_hangar_return(player, cells, hangar, combat.remaining_objectives() == 0)) throw std::runtime_error{"Completed mission refused HQ return"};
@@ -537,8 +537,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       darker::game::advance_mission_script(script,context);
     }
     if(!script.stopped || context.messages.size() != test.messages) throw std::runtime_error{"Transfer mission omitted its timed messages or stop"};
-    player.pose().position = {static_cast<uint16_t>((destination & 255)*128+128),static_cast<uint16_t>((destination & 0xff00)+152-700),500};
-    player.pose().angles = {0x8000,0,0};
+    player.pose().position = {.column{static_cast<uint16_t>((destination & 255)*128+128)},.row{static_cast<uint16_t>((destination & 0xff00)+152-700)},.height{500}};
+    player.pose().angles = {.heading{0x8000},.pitch{0},.roll{0}};
     if(!darker::game::begin_hangar_return(player,transfer_cells,hangar,true)) throw std::runtime_error{"Transfer mission refused its destination hangar"};
     for(unsigned int frame{0}; frame < 2000 && hangar.returning != darker::game::hangar_return_phase::complete; ++frame) {
       darker::game::advance_hangar_return(player,hangar,8,static_cast<uint16_t>(frame*8));
@@ -559,7 +559,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     combat.free_actors = darker::game::make_scenario_group(record.groups[2],bank,16,0,record.shared.offset);
     darker::game::prepare_delphi_aircraft_sites(combat.spawning,city);
     darker::game::player_flight player;
-    player.pose().position = {21632,14584,2000};
+    player.pose().position = {.column{21632},.row{14584},.height{2000}};
     combat.spawn_aircraft(player,city,bank,8,8);
     if(combat.actors.size() != 1 || combat.free_actors.size() != 3) throw std::runtime_error{"Occupied mission-twenty warehouse did not launch an aircraft"};
     auto const identity{combat.actors.front().index};
@@ -575,7 +575,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     if(!departed || !combat.actors.empty() || combat.free_actors.size() != 4 || combat.completed_objectives != 0) {
       throw std::runtime_error{"Warehouse aircraft failed to depart, retire at distance and return to the free list"};
     }
-    player.pose().position = {21632,14584,2000};
+    player.pose().position = {.column{21632},.row{14584},.height{2000}};
     std::ranges::fill(combat.spawning.timers,0);
     combat.spawn_aircraft(player,city,bank,5000,8);
     if(combat.actors.size() != 1 || combat.actors.front().index != identity) throw std::runtime_error{"Warehouse did not reuse the retired aircraft's native identity"};
@@ -597,7 +597,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         throw std::runtime_error{"Distant mission-two aircraft aliased into the hangar view"};
       }
     }
-    objects.front().pose.position = {12672, 28672, 500};
+    objects.front().pose.position = {.column{12672}, .row{28672}, .height{500}};
     framework::render::indexed_cockpit_framebuffer frame{};
     if(renderer.draw(frame,bank,empty_city,{.column{12672}, .row{28928}, .altitude{500}},0x20,lighting,{},objects) == 0) {
       throw std::runtime_error{"Nearby mission-two aircraft disappeared with the distant-object rejection"};
@@ -611,10 +611,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     actor.attributes = 0xfe;
     darker::game::mission_combat combat{{actor}};
     darker::game::player_flight player;
-    player.pose().position = {10000,10000,10000};
+    player.pose().position = {.column{10000},.row{10000},.height{10000}};
     darker::game::city_map city{};
     auto const token{static_cast<uint16_t>(0xd986 + actor.index*112)};
-    darker::game::launch_emitter const emitter{.position{10000,12000,10000},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{10000},.row{12000},.height{10000}},.definition_strength{40}};
     auto *shot{combat.projectiles.launch({.definition{darker::game::original_object_definitions[9]},.emitter{emitter},
       .model_token{bank.special_models()[9]},.lifetime{2000},.target_token{token}})};
     combat.target.token = token;
@@ -628,14 +628,14 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   // Exercise mission two's missile branch through the real pool, homing callback, collision and damage response.
   auto missile_actor{darker::game::make_scenario_group(scenario.records()[1].groups[0],bank,1,0,scenario.records()[1].shared.offset).front()};
-  missile_actor.pose = {.position{10000,10700,10000},.angles{},.speed{500}};
+  missile_actor.pose = {.position{.column{10000},.row{10700},.height{10000}},.angles{},.speed{500}};
   missile_actor.awareness.level = 0xff00;
   missile_actor.selected_target = missile_actor.target_token = 0xd986;
   darker::game::mission_combat missiles{{missile_actor}};
   missiles.difficulty = 4;
   darker::game::city_map empty_city{};
   darker::game::player_flight target;
-  target.pose().position = {10000,10000,10000};
+  target.pose().position = {.column{10000},.row{10000},.height{10000}};
   missiles.advance(target, empty_city, bank,
         {.elapsed_ticks{8192}, .frame_step{8}, .changes{0}},
         {},
@@ -660,7 +660,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   std::cout << "Mission-two missile launched, homed, hit the player for 45 damage and emitted its original impact effect." << std::endl;
   darker::game::mission_combat guided{{}};
   darker::game::player_flight gunner;
-  gunner.pose().position = {10000,10000,10000};
+  gunner.pose().position = {.column{10000},.row{10000},.height{10000}};
   std::get<darker::game::caero_flight_state>(gunner.craft).energy.reserve = 0xcfff;
   guided.primary_weapon = 2;
   guided.missile_camera_enabled = true;
@@ -729,7 +729,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const height{underground_bank.header_at(model).height};
       auto const actor{darker::game::make_scenario_actor(*placement,darker::game::original_object_definitions[sample[3]],
         model,height,static_cast<uint8_t>(sample[2]),2,record.shared.offset,darker::game::tunnel_setup{network,map})};
-      if(actor.pose.position != darker::maths::world_position{sample[4],sample[5],static_cast<uint16_t>(sample[6] - height)}
+      if(actor.pose.position != darker::maths::world_position{.column{sample[4]},.row{sample[5]},.height{static_cast<uint16_t>(sample[6] - height)}}
         || actor.pose.angles.heading != sample[7] || !actor.tunnel || actor.tunnel->route != sample[8]
         || std::to_underlying(actor.parameters.update_entry) != 0x8609) {
         throw std::runtime_error{"Underground actor differs from native route placement: archive=" + std::to_string(sample[0])
@@ -754,7 +754,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const result{network.trace(*map,{sample[1],static_cast<uint8_t>(sample[2])},
         {sample[4],sample[5],0},sample[6],static_cast<uint8_t>(sample[3]))};
       if(!result || result->progress != sample[7] || result->connection.cell != sample[8] || result->connection.route != sample[9]
-        || result->target != darker::maths::world_position{sample[10],sample[11],sample[12]}) {
+        || result->target != darker::maths::world_position{.column{sample[10]},.row{sample[11]},.height{sample[12]}}) {
         throw std::runtime_error{"Tunnel lookahead differs from native: map=" + std::to_string(sample[0])
           + ", cell=" + std::to_string(sample[1]) + ", route=" + std::to_string(sample[2]) + ", lookahead=" + std::to_string(sample[6])
           + ", expected=" + std::to_string(sample[7]) + "/" + std::to_string(sample[8]) + "/" + std::to_string(sample[9])
@@ -814,7 +814,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       player.tunnel.emplace();
       player.tunnel->connection.route = static_cast<uint8_t>(sample[4]);
       player.tunnel->lookahead = static_cast<uint16_t>(sample[7]);
-      player.pose().position = {static_cast<uint16_t>(sample[2]*256+128),static_cast<uint16_t>(sample[3]*256+128),0};
+      player.pose().position = {.column{static_cast<uint16_t>(sample[2]*256+128)},.row{static_cast<uint16_t>(sample[3]*256+128)},.height{0}};
       player.lifecycle.flags = static_cast<uint8_t>(sample[5]);
       player.forward_setting = static_cast<uint16_t>(sample[6]);
       darker::game::hangar_state portal{.return_site{static_cast<uint16_t>(sample[1])},.next_return_site{static_cast<uint16_t>(sample[1])}};
@@ -832,7 +832,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     {
       darker::game::player_flight player;
       player.tunnel.emplace();
-      player.pose().position = {12928,12530,800};
+      player.pose().position = {.column{12928},.row{12530},.height{800}};
       darker::game::hangar_state portal{.return_site{0x3064},.returning{darker::game::hangar_return_phase::approaching}};
       for(auto const &expected : darker::test_reference::tunnel_return_samples) {
         darker::game::advance_hangar_return(player,portal,8,static_cast<uint16_t>(expected[0]));
@@ -880,8 +880,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       auto const &before{sample.before};
       darker::game::tunnel_flight_state flight;
       darker::game::caero_flight_state craft;
-      craft.pose.position = {before[0],before[1],before[2]};
-      craft.pose.angles = {before[3],before[4],before[5]};
+      craft.pose.position = {.column{before[0]},.row{before[1]},.height{before[2]}};
+      craft.pose.angles = {.heading{before[3]},.pitch{before[4]},.roll{before[5]}};
       craft.pose.speed = before[6];
       flight.heading_rate = before[7];
       craft.damage.rotation = {before[8],before[9]};
@@ -889,7 +889,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       craft.vertical_velocity = before[11];
       flight.connection = {before[12],static_cast<uint8_t>(before[14])};
       flight.progress = before[13];
-      craft.pose.fractions = {static_cast<uint8_t>(before[15]),static_cast<uint8_t>(before[16]),static_cast<uint8_t>(before[17])};
+      craft.pose.fractions = {.column{static_cast<uint8_t>(before[15])},.row{static_cast<uint8_t>(before[16])},.height{static_cast<uint8_t>(before[17])}};
       flight.filtered_pitch = before[18];
       flight.filtered_bank = before[19];
       flight.off_route_time = before[20];
@@ -949,7 +949,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       std::erase_if(scripted,[](auto const &actor){ return actor.category != darker::game::actor_category::air; });
       darker::game::mission_combat underground{scripted};
       darker::game::player_flight observer;
-      observer.pose().position = {13952,14464,512};
+      observer.pose().position = {.column{13952},.row{14464},.height{512}};
       observer.tunnel.emplace();
       auto geometry{*maps[0]};
       size_t sample_index{0};
@@ -1059,7 +1059,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
           + ", removed=" + std::to_string(combat.completed_objectives) + ", remaining=" + std::to_string(combat.remaining_objectives())
           + ", shots=" + std::to_string(shots)};
       }
-      player.pose() = {.position{static_cast<uint16_t>((test.entry & 255)*128 + 128),static_cast<uint16_t>((test.entry & 0xff00)+242),800}};
+      player.pose() = {.position{.column{static_cast<uint16_t>((test.entry & 255)*128 + 128)},.row{static_cast<uint16_t>((test.entry & 0xff00)+242)},.height{800}}};
       player.tunnel->connection.route = 128;
       player.forward_setting = 130;
       craft.damage.rotation = {};
@@ -1079,7 +1079,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::erase_if(actors,[](auto const &actor){ return actor.category != darker::game::actor_category::air; });
     if(actors.size() != 3) throw std::runtime_error{"First tunnel motion fixture requires its three initial aircraft"};
     std::array<uint16_t,3> starts{actors[2].current_cell,actors[1].current_cell,actors[0].current_cell};
-    darker::game::object_pose player{.position{13952,14464,512}};
+    darker::game::object_pose player{.position{.column{13952},.row{14464},.height{512}}};
     size_t sample_index{0};
     for(unsigned int frame{0}; frame < 512; ++frame) {
       if(frame == 128) for(auto &actor : actors) actor.target_token = starts[actor.index % 3];

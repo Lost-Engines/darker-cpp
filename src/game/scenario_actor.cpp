@@ -21,7 +21,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   };
   apply_object_definition(actor.parameters, definition, model_token);
   int const height{moving ? definition.role_data.craft().cruise_height * 256 : world_mode == 2 && placement.form == resources::placement_form::absolute_static ? 128 : 0};
-  actor.pose.position = {placement.position.column, placement.position.row, static_cast<std::uint16_t>(height - model_height)};
+  actor.pose.position = {.column{placement.position.column}, .row{placement.position.row}, .height{static_cast<std::uint16_t>(height - model_height)}};
   actor.pose.angles.heading = placement.heading;
   if(moving && world_mode == 2) {
     auto const column{placement.position.column >> 8}, row{placement.position.row >> 8};

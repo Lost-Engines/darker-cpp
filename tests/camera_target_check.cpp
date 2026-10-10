@@ -9,14 +9,14 @@ void check_camera_targets(darker::resources::archive_set const &archives) {
   using namespace darker::game;
   darker::resources::geometry_bank const bank{archives.load({0,30})};
   city_map cells{};
-  object_pose const camera{.position{10000,11000,1000}};
-  object_pose const player{.position{8000,11000,1000}};
+  object_pose const camera{.position{.column{10000},.row{11000},.height{1000}}};
+  object_pose const player{.position{.column{8000},.row{11000},.height{1000}}};
   std::array<scenario_actor,3> actors;
   constexpr std::array categories{actor_category::ground,actor_category::stationary,actor_category::air};
   for(size_t i{0}; i < actors.size(); ++i) {
     actors[i].category = categories[i];
     actors[i].index = static_cast<uint8_t>(i+1);
-    actors[i].pose.position = {10000,10000,1000};
+    actors[i].pose.position = {.column{10000},.row{10000},.height{1000}};
     actors[i].parameters.model_token = bank.special_models()[25];
   }
   auto const extent{bank.header_at(bank.special_models()[25]).extent};
@@ -28,7 +28,7 @@ void check_camera_targets(darker::resources::archive_set const &archives) {
   if(!own_craft || own_craft->actor != 0) throw std::runtime_error{"F7 failed to select the player from an external view"};
   if(pick_camera_target(camera,actors[0].pose,extent,0,{},cells,bank,0x20)) throw std::runtime_error{"F7 selected its excluded craft"};
   cells[20*128+20] = {.type{1}};
-  object_pose const approaching{.position{20*256+128,22*256,200}};
+  object_pose const approaching{.position{.column{20*256+128},.row{22*256},.height{200}}};
   auto const beacon{pick_camera_target(approaching,approaching,extent,0,{},cells,bank,0x20)};
   if(!beacon || beacon->actor || beacon->anchor.position.column != 20*256+128 || beacon->anchor.position.row != 20*256+128)
     throw std::runtime_error{"F7 failed to place a camera over a struck beacon"};

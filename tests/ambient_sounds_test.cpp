@@ -23,7 +23,7 @@ TEST_CASE("Ambient callbacks and retained-voice timing match original fixed reco
     CHECK(source.sound.deadline == v[14]);
     CHECK(source.sound.definition.flags == v[15]);
     CHECK(source.sound.definition.pitch == v[16]);
-    CHECK(source.sound.position == darker::maths::world_position{static_cast<uint16_t>(v[17]),static_cast<uint16_t>(v[18]),static_cast<uint16_t>(v[19])});
+    CHECK(source.sound.position == darker::maths::world_position{.column{static_cast<uint16_t>(v[17])},.row{static_cast<uint16_t>(v[18])},.height{static_cast<uint16_t>(v[19])}});
     CHECK(source.sound.definition.level == v[20]);
   }
 }
@@ -35,7 +35,7 @@ TEST_CASE("Bell sources retain notes between tolls and are absent outside Delphi
   game::mission_combat combat{{}};
   audio::ambient_sounds ambience;
   audio::world_sounds mixer;
-  game::object_pose const listener{.position{15104,17408,1024}};
+  game::object_pose const listener{.position{.column{15104},.row{17408},.height{1024}}};
   audio::ambient_context context{.listener{15104,17408}};
   auto sources{ambience.advance(context,cells,0,0)};
   auto const first{mixer.mix({},combat,listener,0,sources)};
@@ -65,7 +65,7 @@ TEST_CASE("Overlapping ambient sources render finite PCM through the live sound 
   audio::ambient_sounds ambience;
   audio::world_sounds mixer;
   audio::fm_stream stream{48000};
-  game::object_pose const listener{.position{15104,17408,1024}};
+  game::object_pose const listener{.position{.column{15104},.row{17408},.height{1024}}};
   audio::ambient_context context{.listener{15104,17408}};
   std::array<float,1536> pcm{};
   float peak{0};

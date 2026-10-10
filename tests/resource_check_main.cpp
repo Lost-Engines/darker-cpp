@@ -122,7 +122,7 @@ auto main(int const argc, char const *const argv[])->int try {
       if(sample.slot != slot) continue;
       cells[20 * 128 + 20] = {.type{static_cast<std::uint8_t>(sample.type)}, .state{static_cast<std::uint8_t>(sample.state)}};
       auto const words{[](std::array<int, 3> const &values){
-        return darker::maths::world_position{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
+        return darker::maths::world_position{.column{static_cast<std::uint16_t>(values[0])}, .row{static_cast<std::uint16_t>(values[1])}, .height{static_cast<std::uint16_t>(values[2])}};
       }};
       auto end{words(sample.end)};
       auto const result{darker::game::sweep_city(bank, cells, static_cast<std::uint8_t>(slot == 30 ? 0x20 : 0x60), words(sample.start), end)};
@@ -143,7 +143,7 @@ auto main(int const argc, char const *const argv[])->int try {
         cells.fill({});
         cells[20 * 128 + 20] = {.type{static_cast<std::uint8_t>(input[1])}};
         player = {};
-        darker::game::object_pose const pose{.position{5248, 5504, static_cast<std::uint16_t>(input[2])}, .speed{1500}};
+        darker::game::object_pose const pose{.position{.column{5248}, .row{5504}, .height{static_cast<std::uint16_t>(input[2])}}, .speed{1500}};
         if(input[0] == 25) player.craft = darker::game::caero_flight_state{.pose{pose}, .horizontal_velocity{1500}, .flying{true}};
         else player.craft = darker::game::skimma_flight_state{.pose{pose}, .damage{.shield_charge{0xbf00}}, .horizontal_velocity{1500}};
         player.upgraded = input[0] == 27;
@@ -226,7 +226,7 @@ auto main(int const argc, char const *const argv[])->int try {
     auto const basis{darker::graphics::make_camera_basis({})};
     for(auto const &sample : darker::test_reference::object_sorting_samples) {
       auto const item{darker::graphics::place_scene_object(bank,
-        {.model_offset{bank.special_models()[sample.model]},.pose{.position{0x4000,0x3c00,1600}}},
+        {.model_offset{bank.special_models()[sample.model]},.pose{.position{.column{0x4000},.row{0x3c00},.height{1600}}}},
         basis,{.altitude{1800}},sample.underground)};
       if(!item || item->placement.sorting_distance != sample.distance)
         throw std::runtime_error{"Moving-object ordering differs from native surface/underground patch"};

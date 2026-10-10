@@ -12,8 +12,8 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
     auto const input{std::span{sample}.subspan(3,23)}, output{std::span{sample}.subspan(26,23)};
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     auto const kind{static_cast<darker::game::scenario_setup_kind>(sample[0])};
-    darker::game::object_pose const pose{.position{word(input[0]),word(input[1]),word(input[2])},
-      .angles{word(input[3]),word(input[4]),word(input[5])},.speed{word(input[6])}};
+    darker::game::object_pose const pose{.position{.column{word(input[0])},.row{word(input[1])},.height{word(input[2])}},
+      .angles{.heading{word(input[3])},.pitch{word(input[4])},.roll{word(input[5])}},.speed{word(input[6])}};
     auto actual{std::array<int,23>{}};
     std::ranges::copy(input,actual.begin());
     darker::game::object_pose result;

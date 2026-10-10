@@ -10,9 +10,9 @@ TEST_CASE("Complete Skimma flight updates match native persistent-state traces",
     auto const &before{sample.before};
     auto const word{[&](std::size_t const i){ return static_cast<std::uint16_t>(before[i]); }};
     darker::game::skimma_flight_state state{
-      .pose{.position{word(0), word(1), word(2)},
-        .fractions{static_cast<std::uint8_t>(before[3]), static_cast<std::uint8_t>(before[4]), static_cast<std::uint8_t>(before[5])},
-        .angles{word(6), word(7), word(8)}, .speed{word(9)}},
+      .pose{.position{.column{word(0)}, .row{word(1)}, .height{word(2)}},
+        .fractions{.column{static_cast<std::uint8_t>(before[3])}, .row{static_cast<std::uint8_t>(before[4])}, .height{static_cast<std::uint8_t>(before[5])}},
+        .angles{.heading{word(6)}, .pitch{word(7)}, .roll{word(8)}}, .speed{word(9)}},
       .damage{.rotation{.pitch{word(10)}, .turn{word(11)}}, .shield_charge{word(15)}},
       .horizontal_velocity{word(12)}, .vertical_velocity{word(13)}, .pitch_assist_rate{word(14)},
     };

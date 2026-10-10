@@ -12,7 +12,7 @@ TEST_CASE("Caero Pinner and Brent firing matches original guards, targets and re
   for(auto const &sample : darker::test_reference::caero_weapon_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{1000, 2000, 3000}, .definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{1000}, .row{2000}, .height{3000}}, .definition_strength{40}};
     if(!sample[3]) {
       for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]}, .emitter{emitter}}));
     }
@@ -38,7 +38,7 @@ TEST_CASE("Chargeable charging and release match the native firing handler", "[g
   for(auto const &sample : darker::test_reference::chargeable_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{1000,2000,3000},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
     if(!sample[3]) {
       for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
     }
@@ -90,7 +90,7 @@ TEST_CASE("Diffuser firing matches native alternating selections and failure res
   for(auto const &sample : darker::test_reference::diffuser_firing_samples) {
     CAPTURE(sample);
     darker::game::projectile_pool pool;
-    darker::game::launch_emitter const emitter{.position{1000,2000,3000},.definition_strength{40}};
+    darker::game::launch_emitter const emitter{.position{.column{1000},.row{2000},.height{3000}},.definition_strength{40}};
     if(!sample[4]) {
       for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({.definition{darker::game::original_object_definitions[0]},.emitter{emitter}}));
     }

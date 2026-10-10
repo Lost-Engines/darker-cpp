@@ -17,7 +17,7 @@ void check_actor_flight(darker::resources::archive_set const &archives) {
   darker::resources::scenario_resource const resource{archives.load({.archive{4}, .slot{0}})};
   auto const &record{resource.records().front()};
   auto actors{darker::game::make_scenario_group(record.groups[0], bank, 1, 0, record.shared.offset)};
-  darker::game::object_pose player{.position{10000, 23700, 3000}};
+  darker::game::object_pose player{.position{.column{10000}, .row{23700}, .height{3000}}};
   size_t sample{0};
   for(int frame{0}; frame < 1024; ++frame) {
     if(frame >= 256) {

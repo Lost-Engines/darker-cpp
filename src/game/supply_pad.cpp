@@ -43,8 +43,8 @@ void initialise_skimma_pad(player_flight &player, uint16_t const site, uint8_t c
   auto const shield{static_cast<uint16_t>(0xbf00 | (previous ? previous->damage.shield_charge & 255 : 0))};
   player = {};
   player.craft = skimma_flight_state{.pose{
-    .position{static_cast<uint16_t>(((site & 255) >> 1)*256+128),static_cast<uint16_t>((site & 0xff00)+128),static_cast<uint16_t>(264-model_height)},
-    .angles{static_cast<uint16_t>(heading*256),0,0}},.damage{.shield_charge{shield}}};
+    .position{.column{static_cast<uint16_t>(((site & 255) >> 1)*256+128)},.row{static_cast<uint16_t>((site & 0xff00)+128)},.height{static_cast<uint16_t>(264-model_height)}},
+    .angles{.heading{static_cast<uint16_t>(heading*256)},.pitch{0},.roll{0}}},.damage{.shield_charge{shield}}};
   player.engine_flags = 0;
   player.forward_setting = 256;
   player.lifecycle.flags = 0x10;
@@ -86,8 +86,8 @@ void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_
       .bank_limit{static_cast<uint16_t>(definition.motion_seeds.bank_limit*64)},
       .turn_response{static_cast<uint16_t>(definition.motion_seeds.turn_response*256)}},0,0,frame_step);
     craft.damage.rotation = {attitude.pitch_rate,attitude.bank_rate};
-    maths::map_position const target{static_cast<uint16_t>(((pad.site & 255) >> 1)*256+(pad.offset & 255)),
-      static_cast<uint16_t>((pad.site & 0xff00)+(pad.offset >> 8))};
+    maths::map_position const target{.column{static_cast<uint16_t>(((pad.site & 255) >> 1)*256+(pad.offset & 255))},
+      .row{static_cast<uint16_t>((pad.site & 0xff00)+(pad.offset >> 8))}};
     auto const fractional{static_cast<unsigned int>(pad.fraction)+static_cast<uint8_t>(frame_step << 5)};
     auto const step{static_cast<uint16_t>((frame_step >> 3)+(fractional >> 8))};
     pad.fraction = static_cast<uint8_t>(fractional);

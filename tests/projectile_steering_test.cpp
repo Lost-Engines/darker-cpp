@@ -24,8 +24,8 @@ TEST_CASE("Homing steering and motion match native updates with supplied target 
     darker::game::projectile record;
     record.parameters.definition = &darker::game::original_object_definitions[0];
     record.parameters.angular_response = 480;
-    record.placement = {.position{0, 65535, 0}, .fractions{255, 127, 1}, .angles{0, 0, 0}, .speed{1000}};
-    record.angular_motion = {0, static_cast<std::uint16_t>(sample.rate), static_cast<std::uint16_t>(sample.rate)};
+    record.placement = {.position{.column{0}, .row{65535}, .height{0}}, .fractions{.column{255}, .row{127}, .height{1}}, .angles{.heading{0}, .pitch{0}, .roll{0}}, .speed{1000}};
+    record.angular_motion = {.reserved{0}, .pitch{static_cast<std::uint16_t>(sample.rate)}, .turn{static_cast<std::uint16_t>(sample.rate)}};
     darker::game::advance_homing_projectile(record, static_cast<std::uint16_t>(sample.heading),
       static_cast<std::uint16_t>(sample.pitch), static_cast<std::uint16_t>(sample.step));
     auto const &p{record.placement};
@@ -46,9 +46,9 @@ TEST_CASE("Map homing preserves native banked steering and near-target rejection
       role.steering_shift = static_cast<std::uint8_t>(sample.shift);
       definition.role_data = role;
       darker::game::apply_object_definition(record.parameters, definition, 0);
-      record.placement = {.position{0, 0, 8192}, .fractions{255, 127, 1},
-        .angles{static_cast<std::uint16_t>(sample.heading), 4096, 1234}, .speed{1000}};
-      record.angular_motion = {0, 100, 65535};
+      record.placement = {.position{.column{0}, .row{0}, .height{8192}}, .fractions{.column{255}, .row{127}, .height{1}},
+        .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{4096}, .roll{1234}}, .speed{1000}};
+      record.angular_motion = {.reserved{0}, .pitch{100}, .turn{65535}};
     }
     auto const status{darker::game::update_projectile(record, 0, static_cast<std::uint16_t>(sample.step),
       darker::game::map_guidance_target{.position{static_cast<std::uint16_t>(sample.x), static_cast<std::uint16_t>(sample.y)},

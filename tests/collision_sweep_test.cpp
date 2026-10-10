@@ -10,7 +10,7 @@ TEST_CASE("Swept collision boxes match native intersection and impact rounding",
   for(auto const &sample : darker::test_reference::collision_sweep_samples) {
     CAPTURE(sample.minimum, sample.maximum, sample.start, sample.end);
     auto const words{[](std::array<int, 3> const &values){
-      return darker::maths::world_position{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
+      return darker::maths::world_position{.column{static_cast<std::uint16_t>(values[0])}, .row{static_cast<std::uint16_t>(values[1])}, .height{static_cast<std::uint16_t>(values[2])}};
     }};
     auto const point{[](std::array<int, 3> const &values){
       return vector3<std::uint16_t>{vector3<int>{values[0], values[1], values[2]}};

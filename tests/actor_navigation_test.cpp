@@ -12,7 +12,7 @@ TEST_CASE("Aircraft threat ranking matches native target, range and aim checks",
     auto errors{sample.before};
     auto const &v{sample.input};
     darker::game::scenario_actor actor;
-    actor.pose.angles = {v[0],v[1],0};
+    actor.pose.angles = {.heading{v[0]},.pitch{v[1]},.roll{0}};
     actor.selected_target = v[5];
     darker::game::consider_aircraft_threat(errors,actor,{.heading{v[2]},.pitch{v[3]},.distance{v[4]}});
     REQUIRE(errors == sample.after);
@@ -29,7 +29,7 @@ TEST_CASE("Actor manoeuvres match native speed, turn and firing decisions", "[ga
     };
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}},
-      .pose{.position{0, 0, static_cast<std::uint16_t>(v[1])}, .angles{static_cast<std::uint16_t>(v[0]), 0, 0}},
+      .pose{.position{.column{0}, .row{0}, .height{static_cast<std::uint16_t>(v[1])}}, .angles{.heading{static_cast<std::uint16_t>(v[0])}, .pitch{0}, .roll{0}}},
       .awareness{.level{static_cast<std::uint16_t>(v[2])}},
       .behaviour{static_cast<std::uint8_t>(v[7]), 0, 0, 0, 0, static_cast<std::uint8_t>(v[8])},
     };
@@ -60,8 +60,8 @@ TEST_CASE("Actor object courses preserve close-target height separation", "[game
   /// Include wrapping coordinates and approaches from either side of the target height
   for(auto const &sample : darker::test_reference::actor_object_course_samples) {
     auto const &v{sample.input};
-    darker::game::object_pose actor{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}};
-    darker::game::object_pose target{.position{static_cast<std::uint16_t>(v[3]), static_cast<std::uint16_t>(v[4]), static_cast<std::uint16_t>(v[5])}};
+    darker::game::object_pose actor{.position{.column{static_cast<std::uint16_t>(v[0])}, .row{static_cast<std::uint16_t>(v[1])}, .height{static_cast<std::uint16_t>(v[2])}}};
+    darker::game::object_pose target{.position{.column{static_cast<std::uint16_t>(v[3])}, .row{static_cast<std::uint16_t>(v[4])}, .height{static_cast<std::uint16_t>(v[5])}}};
     auto const course{darker::game::actor_object_course(actor, target)};
     CAPTURE(v);
     CHECK(std::array<int, 3>{course.heading, course.pitch, course.distance} == sample.output);
@@ -75,7 +75,7 @@ TEST_CASE("Actor cell courses match city offsets and nominal-height fallback", "
     darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0, 0, static_cast<std::uint8_t>(v[6])}}};
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}},
-      .pose{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}, .speed{static_cast<std::uint16_t>(v[5])}},
+      .pose{.position{.column{static_cast<std::uint16_t>(v[0])}, .row{static_cast<std::uint16_t>(v[1])}, .height{static_cast<std::uint16_t>(v[2])}}, .speed{static_cast<std::uint16_t>(v[5])}},
       .definition_slot{static_cast<std::uint8_t>(v[4])},
     };
     auto const course{darker::game::actor_cell_course(actor, static_cast<std::uint16_t>(v[3]),
@@ -92,7 +92,7 @@ TEST_CASE("Actor clearance preserves reference-cell resets and wrapped height co
     auto const &v{sample.input};
     darker::game::scenario_actor actor{
       .parameters{.flags_4c{static_cast<std::uint16_t>(v[3])}},
-      .pose{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}},
+      .pose{.position{.column{static_cast<std::uint16_t>(v[0])}, .row{static_cast<std::uint16_t>(v[1])}, .height{static_cast<std::uint16_t>(v[2])}}},
       .clearance_floor{static_cast<std::uint16_t>(v[4])},
     };
     darker::game::actor_course course{.pitch{static_cast<std::uint16_t>(v[6])}, .climb{static_cast<std::uint8_t>(v[7])}};
@@ -110,13 +110,13 @@ TEST_CASE("Actor neighbour avoidance matches original scan boundaries and height
     darker::game::object_definition definition{.role_data{darker::game::craft_definition_data{0, 0, 0, 0, static_cast<std::uint8_t>(v[11])}}};
     darker::game::scenario_actor actor{
       .parameters{.definition{&definition}, .flags_4c{static_cast<std::uint16_t>(v[9])}},
-      .pose{.position{static_cast<std::uint16_t>(v[0]), static_cast<std::uint16_t>(v[1]), static_cast<std::uint16_t>(v[2])}},
+      .pose{.position{.column{static_cast<std::uint16_t>(v[0])}, .row{static_cast<std::uint16_t>(v[1])}, .height{static_cast<std::uint16_t>(v[2])}}},
       .clearance_floor{static_cast<std::uint16_t>(v[8])},
       .index{static_cast<std::uint8_t>(v[12] ? 2 : 1)},
     };
     darker::game::scenario_actor neighbour{
-      .pose{.position{static_cast<std::uint16_t>(v[3]), static_cast<std::uint16_t>(v[4]), static_cast<std::uint16_t>(v[5])},
-        .angles{0, static_cast<std::uint16_t>(v[7]), 0}, .speed{static_cast<std::uint16_t>(v[6])}},
+      .pose{.position{.column{static_cast<std::uint16_t>(v[3])}, .row{static_cast<std::uint16_t>(v[4])}, .height{static_cast<std::uint16_t>(v[5])}},
+        .angles{.heading{0}, .pitch{static_cast<std::uint16_t>(v[7])}, .roll{0}}, .speed{static_cast<std::uint16_t>(v[6])}},
       .index{static_cast<std::uint8_t>(v[12] ? 1 : 2)},
     };
     darker::game::actor_course course{.climb{static_cast<std::uint8_t>(v[10])}};
@@ -156,7 +156,7 @@ TEST_CASE("Actor city clearance matches eight-cell scanning and linked model sta
         .type{static_cast<std::uint8_t>(v[16 + n * 2])}, .state{static_cast<std::uint8_t>(v[17 + n * 2])},
       };
     }
-    darker::game::object_pose pose{.position{static_cast<std::uint16_t>(v[0] * 256 + 128), static_cast<std::uint16_t>(v[1] * 256 + 128), 0}};
+    darker::game::object_pose pose{.position{.column{static_cast<std::uint16_t>(v[0] * 256 + 128)}, .row{static_cast<std::uint16_t>(v[1] * 256 + 128)}, .height{0}}};
     CAPTURE(v);
     CHECK(darker::game::actor_city_clearance(pose, cells, bank, static_cast<std::uint8_t>(v[2])) == sample.output[0]);
   }

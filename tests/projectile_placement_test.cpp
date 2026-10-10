@@ -9,9 +9,9 @@ TEST_CASE("Projectile placement matches both native launch paths including fract
   for(auto const &sample : darker::test_reference::placement_samples) {
     CAPTURE(sample.strength, sample.heading, sample.pitch, sample.roll, sample.edge);
     darker::game::launch_emitter const emitter{
-      .position{sample.edge ? darker::maths::world_position{0, 65535, 0} : darker::maths::world_position{1000, 2000, 3000}},
-      .fractions{sample.edge ? darker::maths::position_fractions{255, 1, 128} : darker::maths::position_fractions{0, 127, 255}},
-      .angles{static_cast<std::uint16_t>(sample.heading), static_cast<std::uint16_t>(sample.pitch), static_cast<std::uint16_t>(sample.roll)},
+      .position{sample.edge ? darker::maths::world_position{.column{0}, .row{65535}, .height{0}} : darker::maths::world_position{.column{1000}, .row{2000}, .height{3000}}},
+      .fractions{sample.edge ? darker::maths::position_fractions{.column{255}, .row{1}, .height{128}} : darker::maths::position_fractions{.column{0}, .row{127}, .height{255}}},
+      .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}, .roll{static_cast<std::uint16_t>(sample.roll)}},
       .speed{0x9876}, .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)},
       .definition_strength{static_cast<std::uint8_t>(sample.strength)},
     };

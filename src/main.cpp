@@ -268,7 +268,7 @@ auto main(int const argc, char const *const argv[])->int {
     darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);
   } else {
     host.player.craft = darker::game::skimma_flight_state{
-      .pose{.position{12672, 14976, 1536}, .speed{500}}, .damage{.shield_charge{0xbfff}}, .horizontal_velocity{500},
+      .pose{.position{.column{12672}, .row{14976}, .height{1536}}, .speed{500}}, .damage{.shield_charge{0xbfff}}, .horizontal_velocity{500},
     };
     host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
     host.player.engine_flags = 0;
@@ -379,7 +379,7 @@ auto main(int const argc, char const *const argv[])->int {
           auto const &previous{actor != combat->actors.end() ? actor->pose : host.player.pose()};
           host.camera.drop(darker::game::camera_mode::fixed,picked->anchor);
           auto const direction{darker::maths::object_target_direction(picked->anchor.position,previous.position)};
-          host.camera.anchor.angles = {direction.heading,direction.pitch,0};
+          host.camera.anchor.angles = {.heading{direction.heading},.pitch{direction.pitch},.roll{0}};
           host.combat->camera_actor.reset();
         }
       }
@@ -970,8 +970,8 @@ auto main(int const argc, char const *const argv[])->int {
             if(!entry) throw std::logic_error{"Nightmare briefing did not supply its entry site"};
             host.hangar.return_site = entry->site;
             host.player = {};
-            host.player.pose().position = {static_cast<uint16_t>((entry->site & 255)*128+128),
-              static_cast<uint16_t>((entry->site & 0xff00)+128),0};
+            host.player.pose().position = {.column{static_cast<uint16_t>((entry->site & 255)*128+128)},
+              .row{static_cast<uint16_t>((entry->site & 0xff00)+128)},.height{0}};
             host.player.pose().angles.heading = static_cast<uint16_t>(entry->heading*256);
             std::get<darker::game::caero_flight_state>(host.player.craft).energy.buffer = 0x6000;
           } else if(caero) darker::game::initialise_caero_hangar(host.player,cells,host.hangar,bank.header_at(bank.special_models()[25]).height);

@@ -27,8 +27,8 @@ TEST_CASE("Target acquisition rays match native fixed-point endpoints", "[game][
   for(auto const &s : darker::test_reference::target_ray_samples) {
     CAPTURE(s);
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
-    darker::game::object_pose const player{.position{word(s[0]),word(s[1]),word(s[2])},.angles{word(s[3]),word(s[4]),0}};
-    CHECK(darker::game::target_ray_end(player) == darker::maths::world_position{word(s[5]),word(s[6]),word(s[7])});
+    darker::game::object_pose const player{.position{.column{word(s[0])},.row{word(s[1])},.height{word(s[2])}},.angles{.heading{word(s[3])},.pitch{word(s[4])},.roll{0}}};
+    CHECK(darker::game::target_ray_end(player) == darker::maths::world_position{.column{word(s[5])},.row{word(s[6])},.height{word(s[7])}});
   }
 }
 

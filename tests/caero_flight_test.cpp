@@ -8,9 +8,9 @@ darker::game::caero_flight_state read_state(std::array<int, 26> const &values) {
   /// Map native object/global fields into the named callback state
   auto const word{[&](std::size_t const i){ return static_cast<std::uint16_t>(values[i]); }};
   return {
-    .pose{.position{word(0), word(1), word(2)},
-      .fractions{static_cast<std::uint8_t>(values[3]), static_cast<std::uint8_t>(values[4]), static_cast<std::uint8_t>(values[5])},
-      .angles{word(6), word(7), word(8)}, .speed{word(9)}},
+    .pose{.position{.column{word(0)}, .row{word(1)}, .height{word(2)}},
+      .fractions{.column{static_cast<std::uint8_t>(values[3])}, .row{static_cast<std::uint8_t>(values[4])}, .height{static_cast<std::uint8_t>(values[5])}},
+      .angles{.heading{word(6)}, .pitch{word(7)}, .roll{word(8)}}, .speed{word(9)}},
     .damage{.rotation{.pitch{word(10)}, .turn{word(11)}}, .damage{word(21)}},
     .energy{.buffer{word(17)}, .reserve{word(18)}, .boost{word(19)},
       .incoming_display{static_cast<std::uint8_t>(values[24])}, .reserve_display{static_cast<std::uint8_t>(values[25])}},

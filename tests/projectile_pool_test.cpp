@@ -11,9 +11,9 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
   for(auto const &sample : darker::test_reference::placement_samples) {
     CAPTURE(sample.strength, sample.heading, sample.pitch, sample.roll, sample.edge);
     darker::game::launch_emitter const emitter{
-      .position{sample.edge ? darker::maths::world_position{0, 65535, 0} : darker::maths::world_position{1000, 2000, 3000}},
-      .fractions{sample.edge ? darker::maths::position_fractions{255, 1, 128} : darker::maths::position_fractions{0, 127, 255}},
-      .angles{static_cast<std::uint16_t>(sample.heading), static_cast<std::uint16_t>(sample.pitch), static_cast<std::uint16_t>(sample.roll)},
+      .position{sample.edge ? darker::maths::world_position{.column{0}, .row{65535}, .height{0}} : darker::maths::world_position{.column{1000}, .row{2000}, .height{3000}}},
+      .fractions{sample.edge ? darker::maths::position_fractions{.column{255}, .row{1}, .height{128}} : darker::maths::position_fractions{.column{0}, .row{127}, .height{255}}},
+      .angles{.heading{static_cast<std::uint16_t>(sample.heading)}, .pitch{static_cast<std::uint16_t>(sample.pitch)}, .roll{static_cast<std::uint16_t>(sample.roll)}},
       .speed{0x9876}, .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)}, .definition_strength{static_cast<std::uint8_t>(sample.strength)},
     };
     auto const &definition{darker::game::original_object_definitions[10]};
@@ -40,7 +40,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
 
 TEST_CASE("Projectile pool preserves native allocation order and does not evict on exhaustion") {
   darker::game::projectile_pool pool;
-  darker::game::launch_emitter const emitter{.angles{0, 0, 0x2345}, .definition_strength{1}};
+  darker::game::launch_emitter const emitter{.angles{.heading{0}, .pitch{0}, .roll{0x2345}}, .definition_strength{1}};
   darker::game::projectile_launch const request{
     .definition{darker::game::original_object_definitions[10]}, .emitter{emitter}, .model_token{0x4321},
     .clock{65530}, .lifetime{256}, .target_token{0x1234},

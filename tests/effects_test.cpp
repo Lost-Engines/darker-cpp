@@ -28,7 +28,7 @@ TEST_CASE("Effect movement matches signed native byte arithmetic", "[effects]") 
   /// Check fractional height carries and wrapping words, including signed frame-step bytes
   for(auto const &v : darker::test_reference::effect_motion) {
     CAPTURE(v);
-    darker::game::particle_emitter emitter{.position{0,0,static_cast<uint16_t>(v[0])}, .height_fraction{static_cast<uint8_t>(v[1])},
+    darker::game::particle_emitter emitter{.position{.column{0},.row{0},.height{static_cast<uint16_t>(v[0])}}, .height_fraction{static_cast<uint8_t>(v[1])},
       .start{static_cast<uint16_t>(v[7])}, .radius{static_cast<uint16_t>(v[2])}, .angle{static_cast<uint16_t>(v[3])},
       .radius_rate{static_cast<int8_t>(v[4])}, .height_rate{static_cast<int8_t>(v[5])}, .angle_rate{static_cast<int8_t>(v[6])}};
     darker::game::advance_emitter(emitter, static_cast<uint16_t>(v[7]), static_cast<uint16_t>(v[8]));
@@ -62,7 +62,7 @@ TEST_CASE("Effect phases and stationary trails match original records", "[effect
   }
   for(auto const &v : darker::test_reference::effect_trails) {
     auto const emitter{darker::game::make_damage_trail({16000,17000,2000}, static_cast<uint8_t>(v[0]), static_cast<uint16_t>(v[1]), 1000)};
-    CHECK(emitter.position == darker::maths::world_position{static_cast<uint16_t>(v[2]), static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])});
+    CHECK(emitter.position == darker::maths::world_position{.column{static_cast<uint16_t>(v[2])}, .row{static_cast<uint16_t>(v[3])}, .height{static_cast<uint16_t>(v[4])}});
     CHECK(emitter.flags == v[5]);
   }
 }

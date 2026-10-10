@@ -19,7 +19,7 @@ TEST_CASE("Radio coverage and energy tower pixels match native radar frames", "[
     for(size_t y{0}; y < 4; ++y) {
       for(size_t x{0}; x < 4; ++x) cells[(13 + y*36)*128 + 13 + x*36] = {.type{12},.state{static_cast<uint8_t>(sample[3] & (1u << (y*4+x)) ? 32 : 0)}};
     }
-    darker::maths::map_position const position{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1])};
+    darker::maths::map_position const position{.column{static_cast<uint16_t>(sample[0])},.row{static_cast<uint16_t>(sample[1])}};
     auto const coverage{darker::game::make_radar_coverage(cells,position,sample[5] != 0)};
     CHECK(coverage.mask == sample[6]);
     for(size_t i{0}; i < 8; ++i) CHECK(coverage.contains(static_cast<uint8_t>(sample[7+i*2]),static_cast<uint8_t>(sample[8+i*2])) == (sample[23+i] != 0));

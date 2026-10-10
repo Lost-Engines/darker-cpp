@@ -113,11 +113,11 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
   for(auto const &v : darker::test_reference::actor_retirement_samples) {
     CAPTURE(v);
     darker::game::scenario_actor actor;
-    actor.pose.position = {static_cast<uint16_t>(v[0]*256),static_cast<uint16_t>(v[1]*256),0};
+    actor.pose.position = {.column{static_cast<uint16_t>(v[0]*256)},.row{static_cast<uint16_t>(v[1]*256)},.height{0}};
     actor.flags = static_cast<uint8_t>(v[4]);
     actor.parameters.update_entry = darker::game::object_update::surface_actor;
     actor.expiry = 0x1234;
-    darker::game::object_pose const player{.position{static_cast<uint16_t>(v[2]*256),static_cast<uint16_t>(v[3]*256),0}};
+    darker::game::object_pose const player{.position{.column{static_cast<uint16_t>(v[2]*256)},.row{static_cast<uint16_t>(v[3]*256)},.height{0}}};
     constexpr std::array program{std::byte{8},std::byte{0x23}};
     darker::game::mission_script script{.deadline{static_cast<uint16_t>(v[5])}};
     darker::game::mission_context context{.program{program},.clock{v[5]},.time_multiplier{static_cast<uint8_t>(v[6])},
