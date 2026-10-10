@@ -7,6 +7,7 @@
 #include "maths/direction.h"
 #include "maths/sine_table.h"
 #include "maths/world_coordinates.h"
+#include "vectorstorm/vector/vector2.h"
 
 namespace darker::game {
 namespace {
@@ -17,7 +18,7 @@ int segment_offset(uint8_t const type, uint8_t const route) {
   return type * 16 - 5 - (route & 31) * 5;
 }
 
-std::array<int, 2> boundary(uint8_t const encoded) {
+vec2<int> boundary(uint8_t const encoded) {
   /// D120 decodes a clockwise position around a cell's 32-unit square perimeter
   if(encoded >= 128) throw std::invalid_argument{"Tunnel boundary coordinate exceeds its encoded perimeter"};
   auto const along{encoded & 31};
@@ -35,7 +36,7 @@ std::array<int, 2> boundary(uint8_t const encoded) {
 
 uint8_t segment_length(int const x, int const y) {
   /// D0BE/92E6 take the integer square root of sixteen times the squared perimeter distance
-  unsigned int const square{static_cast<unsigned int>((x * x + y * y) * 16)};
+  unsigned int const square{static_cast<unsigned int>(vec2<int>{x, y}.length_sq() * 16)};
   unsigned int low{0}, high{256};
   while(low + 1 < high) {
     auto const middle{(low + high) / 2};

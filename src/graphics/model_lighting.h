@@ -9,7 +9,7 @@ namespace darker::graphics {
 
 class distance_shading {
 private:
-  std::vector<std::array<uint8_t, 28>> tables;
+  std::vector<std::array<uint8_t, model_colours::shade_count>> tables;
 
 public:
   explicit distance_shading(unsigned int count = 60);

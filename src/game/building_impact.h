@@ -2,9 +2,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "game/collision_box.h"
 
 namespace darker::game {
 
-bool projectile_damages_building(size_t definition_slot, uint8_t category, uint8_t state, bool linked);
+bool projectile_damages_building(size_t definition_slot, collision_category category, uint8_t state, bool linked);
 
 } // namespace darker::game

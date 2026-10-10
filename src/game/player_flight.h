@@ -9,6 +9,7 @@
 #include "game/skimma_flight.h"
 #include "game/supply_pad.h"
 #include "game/tunnel_flight.h"
+#include "resources/scenario_configuration.h"
 
 namespace darker::game {
 
@@ -31,7 +32,7 @@ struct player_flight {
   bool frozen{false};
   bool noclip{false};
   supply_pad_state supply{};
-  std::optional<uint8_t> scenario_configuration;
+  std::optional<resources::scenario_configuration> scenario_configuration;
 
   uint8_t definition_slot() const noexcept;
   uint8_t world_damage_mask() const noexcept;

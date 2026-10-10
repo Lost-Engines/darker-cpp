@@ -9,8 +9,9 @@
 namespace darker::game {
 
 struct city_cell {
+  static uint8_t constexpr permitted_target{0x40};                             // objective eligibility; independent of the model's damage/variant bits
   uint8_t type{0};
-  uint8_t state{0};
+  uint8_t state{0};                                                             // model-specific packed variants/damage flags, or beacon light level
 };
 
 inline maths::map_coordinates<int> constexpr city_map_size{

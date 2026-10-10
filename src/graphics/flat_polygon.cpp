@@ -8,7 +8,7 @@
 namespace darker::graphics {
 namespace {
 
-using polygon_buffer = std::array<screen_vertex, 260>;
+using polygon_buffer = std::array<screen_vertex, clipped_polygon_vertex_limit>;
 
 int16_t word(int const value) noexcept {
   /// Preserve signed word coordinates at clipping boundaries
@@ -93,7 +93,7 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   uint8_t const colour, int const right, int const bottom) {
   /// Translate A1B6's convex flat-fill path to indexed pixels; VGA plane masks become contiguous spans
   if(vertices.size() < 3) return;
-  if(vertices.size() > 256 || right < 0 || right >= 320 || bottom <= 0 || bottom > 240) {
+  if(vertices.size() > polygon_vertex_limit || right < 0 || right >= static_cast<int>(target.width) || bottom <= 0 || bottom > static_cast<int>(target.height)) {
     throw std::invalid_argument{"Flat polygon exceeds the supported vertex or viewport bounds"};
   }
   auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
@@ -112,8 +112,8 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
   polygon_buffer second{};
   std::copy(vertices.begin(), vertices.end(), first.begin());
   size_t count{vertices.size()};
-  for(auto const plane : std::array<std::array<int, 3>, 4>{{{0, bottom, 1}, {0, 0, 0}, {1, right, 1}, {1, 0, 0}}}) {
-    count = clip(std::span{first}.first(count), second, plane[0] != 0, plane[1], plane[2] != 0);
+  for(auto const plane : viewport_clip_planes(right, bottom)) {
+    count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
     first.swap(second);
     if(count < 3) return;
   }

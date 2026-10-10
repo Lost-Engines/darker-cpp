@@ -11,8 +11,7 @@ TEST_CASE("Gouraud polygons match original palette bands and clipping", "[graphi
     for(size_t i{0}; i < sample.count; ++i) {
       auto const &source{sample.vertices[i]};
       vertices[i] = {
-        .x{static_cast<int16_t>(source[0])},
-        .y{static_cast<int16_t>(source[1])},
+        .position{static_cast<int16_t>(source[0]), static_cast<int16_t>(source[1])},
         .shade{static_cast<uint16_t>((sample.base + source[2]) * 256 + source[2] + 128)}
       };
     }

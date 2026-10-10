@@ -21,7 +21,10 @@ struct model_animation {
 void update_fountain_parameters(model_animation &animation, uint16_t clock) noexcept;
 
 struct model_colours {
-  std::array<uint8_t, 28> shades{};
+  static unsigned int constexpr shade_count{28};                               // remaining low-five-bit codes select dynamic lighting
+  static unsigned int constexpr ramp_mask{0xe0};
+  static unsigned int constexpr shade_mask{0x1f};
+  std::array<uint8_t, shade_count> shades{};
   uint8_t dynamic{0};
 };
 

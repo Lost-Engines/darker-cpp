@@ -3,16 +3,26 @@
 #include <bit>
 #include <stdexcept>
 #include <utility>
+#include "vectorstorm/vector/vector2.h"
 
 namespace darker::game {
+namespace {
+
+int constexpr reserve_distance_cells{36};
+int constexpr reserve_distance_squared{reserve_distance_cells * reserve_distance_cells};
+int constexpr separation_half_width{255};                                      // 1/256-cell units; the native interval is [-255, 255)
+int constexpr separation_width{separation_half_width * 2};
+int constexpr height_clearance{512};                                           // two high-byte height units
+
+} // anonymous namespace
 
 bool retire_distant_actor(scenario_actor &actor, object_pose const &player, uint16_t const clock) noexcept {
   /// C30A/8432 stop and expire a scripted actor once its wrapped cell distance reaches 36 cells
   auto const difference{[&](size_t const axis){
     return std::bit_cast<int8_t>(static_cast<uint8_t>((player.position[axis] >> 8) - (actor.pose.position[axis] >> 8)));
   }};
-  int const x{difference(0)}, y{difference(1)};
-  if(x * x + y * y < 0x510) return false;
+  vec2<int> const separation{difference(0), difference(1)};
+  if(separation.length_sq() < reserve_distance_squared) return false;
   actor.parameters.update_entry = object_update::retired_actor;
   actor.flags |= 0x28;
   actor.expiry = clock;
@@ -24,23 +34,24 @@ void place_air_reserve(scenario_actor &actor, object_pose const &player, std::sp
   auto const difference{[&](size_t const axis){
     return std::bit_cast<int8_t>(static_cast<uint8_t>((player.position[axis] >> 8) - (actor.pose.position[axis] >> 8)));
   }};
-  int const x{difference(0)}, y{difference(1)};
-  if(x * x + y * y < 0x510) {
-    size_t const axis{x * x < y * y ? 1u : 0u};
-    auto const cell{static_cast<uint8_t>((player.position[axis] >> 8) + (difference(axis) < 0 ? 36 : -36))};
+  vec2<int> const separation{difference(0), difference(1)};
+  if(separation.length_sq() < reserve_distance_squared) {
+    size_t const axis{separation.x * separation.x < separation.y * separation.y ? 1u : 0u};
+    auto const cell{static_cast<uint8_t>((player.position[axis] >> 8) + (difference(axis) < 0 ? reserve_distance_cells : -reserve_distance_cells))};
     actor.pose.position[axis] = static_cast<uint16_t>((cell << 8) | (actor.pose.position[axis] & 255));
   }
   uint8_t overlaps{0}, clearance{0};
   for(auto const &other : active) {
     if(other.category != actor_category::air) continue;
-    auto const x{static_cast<uint16_t>(other.pose.position.column - (actor.pose.position.column - 255))};
-    auto const y{static_cast<uint16_t>(other.pose.position.row - (actor.pose.position.row - 255))};
-    if(x >= 510 || y >= 510) continue;
-    auto const delta{static_cast<uint16_t>(other.pose.position.height - 512 - actor.pose.position.height)};
-    if(std::bit_cast<int16_t>(static_cast<uint16_t>(other.pose.position.height - 512)) >= std::bit_cast<int16_t>(actor.pose.position.height)) continue;
+    auto const x{static_cast<uint16_t>(other.pose.position.column - (actor.pose.position.column - separation_half_width))};
+    auto const y{static_cast<uint16_t>(other.pose.position.row - (actor.pose.position.row - separation_half_width))};
+    if(x >= separation_width || y >= separation_width) continue;
+    auto const delta{static_cast<uint16_t>(other.pose.position.height - height_clearance - actor.pose.position.height)};
+    if(std::bit_cast<int16_t>(static_cast<uint16_t>(other.pose.position.height - height_clearance)) >= std::bit_cast<int16_t>(actor.pose.position.height)) continue;
     auto const high{static_cast<uint8_t>(delta >> 8)};
     if(clearance >= high) clearance = high;
-    overlaps = static_cast<uint8_t>(overlaps + (high >= 252));
+    uint8_t constexpr nearest_lower_height_byte{252};                          // wrapped -4: admit the four immediately lower height bands
+    overlaps = static_cast<uint8_t>(overlaps + (high >= nearest_lower_height_byte));
   }
   if(overlaps) {
     auto const high{static_cast<uint8_t>((actor.pose.position.height >> 8) - clearance + 2)};

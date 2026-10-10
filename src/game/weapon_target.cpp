@@ -6,6 +6,8 @@
 #include "maths/sine_table.h"
 #include "maths/world_coordinates.h"
 
+#include "vectorstorm/vector/vector2.h"
+
 namespace darker::game {
 
 void weapon_target::clear() noexcept {
@@ -58,7 +60,6 @@ void project_target(weapon_target &lock, maths::world_position const &player,
   int constexpr caero_axis_limit{55};
   int constexpr skimma_radius_squared_limit{0x0e89};
   int constexpr caero_radius_squared_limit{0x0b64};
-  int constexpr ground_target_weapon_flag{2};
   int constexpr beacon_model_type{1};
   int constexpr permitted_ground_target_flag{0x40};
   if(!skimma && !secondary_weapon) {
@@ -98,13 +99,13 @@ void project_target(weapon_target &lock, maths::world_position const &player,
     lock.clear();
     return;
   }
-  auto const radial{horizontal * horizontal + vertical * vertical};
+  auto const radial{vec2<int>{horizontal, vertical}.length_sq()};
   if(radial >= (skimma ? skimma_radius_squared_limit : caero_radius_squared_limit)) {
     lock.clear();
     return;
   }
   if(!skimma) lock.distance = static_cast<uint8_t>(radial >> 8);
-  bool const ground{(original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data.projectile().flags & ground_target_weapon_flag) != 0};
+  bool const ground{original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
   if(ground ? (lock.token & weapon_target::aircraft_token_bit) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : !(lock.token & weapon_target::aircraft_token_bit)) {
     lock.clear();
     return;

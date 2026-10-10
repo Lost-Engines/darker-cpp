@@ -33,10 +33,10 @@ TEST_CASE("City collision boxes retain signed endpoints, categories and local he
   REQUIRE(boxes.size() == 3);
   CHECK(boxes[0].bounds.min == vec3<uint16_t>{5225, 7729, 57});
   CHECK(boxes[0].bounds.max == vec3<uint16_t>{5272, 7760, 199});
-  CHECK(boxes[0].category == 2);
+  CHECK(boxes[0].category == darker::game::collision_category::fragile);
   CHECK(boxes[1].bounds.min[2] == 345);
   CHECK(boxes[1].bounds.max[2] == 887);
-  CHECK(boxes[1].category == 3);
+  CHECK(boxes[1].category == darker::game::collision_category::diffuser);
   CHECK(boxes[2].bounds.min[2] == 57);
   CHECK(boxes[2].bounds.max[2] == 103);
 }

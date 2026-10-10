@@ -12,24 +12,24 @@ int16_t word(int const value) noexcept {
   return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
-using polygon_buffer = std::array<shaded_vertex, 260>;
+using polygon_buffer = std::array<shaded_vertex, clipped_polygon_vertex_limit>;
 
 size_t clip(std::span<shaded_vertex const> const input, polygon_buffer &output, bool const horizontal, int const boundary, bool const maximum) {
   /// AA74–AD02 clip coordinates and the palette accumulator with the same endpoint anchoring
   size_t count{0};
-  auto const coordinate{[horizontal](shaded_vertex const point){
-    return horizontal ? point.x : point.y;
+  auto const coordinate{[horizontal](shaded_vertex const &point){
+    return horizontal ? point.position.x : point.position.y;
   }};
-  auto const inside{[&](shaded_vertex const point){
+  auto const inside{[&](shaded_vertex const &point){
     return maximum ? coordinate(point) <= boundary : coordinate(point) >= boundary;
   }};
   for(size_t i{0}; i < input.size(); ++i) {
-    auto const a{input[i]}, b{input[(i + 1) % input.size()]};
+    auto const &a{input[i]}, &b{input[(i + 1) % input.size()]};
     bool const a_inside{inside(a)}, b_inside{inside(b)};
     if(a_inside) output.at(count++) = a;
     if(a_inside == b_inside) continue;
     bool const anchor_a{a_inside && (horizontal || !maximum)};
-    auto const anchor{anchor_a ? a : b}, outside{anchor_a ? b : a};
+    auto const &anchor{anchor_a ? a : b}, &outside{anchor_a ? b : a};
     int const distance{word(boundary - coordinate(anchor))};
     int const divisor{word(coordinate(outside) - coordinate(anchor))};
     auto const interpolate{[&](int const start, int const end){
@@ -38,10 +38,9 @@ size_t clip(std::span<shaded_vertex const> const input, polygon_buffer &output, 
       if(quotient < -32768 || quotient > 32767) throw std::domain_error{"Shaded polygon clipping exceeds the original quotient"};
       return word(start + quotient);
     }};
-    auto const other{interpolate(horizontal ? anchor.y : anchor.x, horizontal ? outside.y : outside.x)};
+    auto const other{interpolate(horizontal ? anchor.position.y : anchor.position.x, horizontal ? outside.position.y : outside.position.x)};
     output.at(count++) = {
-      .x{horizontal ? word(boundary) : other},
-      .y{horizontal ? other : word(boundary)},
+      .position{horizontal ? word(boundary) : other, horizontal ? other : word(boundary)},
       .shade{static_cast<uint16_t>(interpolate(anchor.shade, outside.shade))},
     };
   }
@@ -66,15 +65,15 @@ void start_edge(edge_walker &edge, std::span<shaded_vertex const> const points, 
   do {
     edge.index = edge.direction > 0 ? (edge.index + 1) % points.size() : (edge.index + points.size() - 1) % points.size();
     b = points[edge.index];
-    if(b.y > y) break;
+    if(b.position.y > y) break;
     a = b;
   } while(true);
-  auto const delta{vec2<int>{b.x, b.y} - vec2<int>{a.x, a.y}};
+  auto const delta{vec2<int>{b.position} - vec2<int>{a.position}};
   int const quotient{(delta.x < 0 ? -delta.x - 1 : delta.x) * 128 / delta.y};
   edge.step = delta.x < 0 ? -2 * (quotient + 1) + (right ? 0 : 1) : 2 * quotient;
-  edge.x = a.x + (right ? 1 : 0);
+  edge.x = a.position.x + (right ? 1 : 0);
   edge.fraction = 128;
-  edge.end_y = b.y;
+  edge.end_y = b.position.y;
   edge.shade = a.shade;
   edge.shade_step = word(b.shade - a.shade + 1) / delta.y;
 }
@@ -93,7 +92,7 @@ void draw_span(framework::render::indexed_cockpit_framebuffer &target, int const
   if(width <= 0) return;
   int const direction{last < first ? -1 : 1};
   int const difference{(last - first) * direction};
-  auto output{target.pixels.begin() + y * 320 + left};
+  auto output{target.pixels.begin() + y * target.width + left};
   if(difference == 0) {
     std::fill_n(output, width, static_cast<uint8_t>(first));
   } else if(difference >= width) {
@@ -126,45 +125,45 @@ void draw_gouraud_polygon(framework::render::indexed_cockpit_framebuffer &target
   std::span<shaded_vertex const> const vertices, int const right, int const bottom) {
   /// Translate the original convex palette-index Gouraud path into a contiguous indexed framebuffer
   if(vertices.size() < 3) return;
-  if(vertices.size() > 256 || right < 0 || right >= 320 || bottom <= 0 || bottom > 240) {
+  if(vertices.size() > polygon_vertex_limit || right < 0 || right >= static_cast<int>(target.width) || bottom <= 0 || bottom > static_cast<int>(target.height)) {
     throw std::invalid_argument{"Shaded polygon exceeds supported vertex or viewport bounds"};
   }
-  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const a, auto const b){
-    return a.x < b.x;
+  auto const [leftmost, rightmost]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.position.x < b.position.x;
   })};
-  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const a, auto const b){
-    return a.y < b.y;
+  auto const [top, lowest]{std::minmax_element(vertices.begin(), vertices.end(), [](auto const &a, auto const &b){
+    return a.position.y < b.position.y;
   })};
-  if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
+  if(rightmost->position.x < 0 || lowest->position.y < 0 || leftmost->position.x > right || top->position.y >= bottom) return;
   auto const index{static_cast<size_t>(top - vertices.begin())};
-  auto const next{vertices[(index + 1) % vertices.size()]}, previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
-  if(back_facing({top->x, top->y}, {next.x, next.y}, {previous.x, previous.y})) return;
+  auto const &next{vertices[(index + 1) % vertices.size()]}, &previous{vertices[(index + vertices.size() - 1) % vertices.size()]};
+  if(back_facing(top->position, next.position, previous.position)) return;
   polygon_buffer first{}, second{};
   std::copy(vertices.begin(), vertices.end(), first.begin());
   size_t count{vertices.size()};
-  for(auto const plane : std::array<std::array<int, 3>, 4>{{{0, bottom, 1}, {0, 0, 0}, {1, right, 1}, {1, 0, 0}}}) {
-    count = clip(std::span{first}.first(count), second, plane[0] != 0, plane[1], plane[2] != 0);
+  for(auto const plane : viewport_clip_planes(right, bottom)) {
+    count = clip(std::span{first}.first(count), second, plane.horizontal, plane.boundary, plane.maximum);
     first.swap(second);
     if(count < 3) return;
   }
   auto const points{std::span{first}.first(count)};
-  auto const first_point{std::min_element(points.begin(), points.end(), [](auto const a, auto const b){
-    return a.y < b.y;
+  auto const first_point{std::min_element(points.begin(), points.end(), [](auto const &a, auto const &b){
+    return a.position.y < b.position.y;
   })};
-  auto const last_point{std::max_element(points.begin(), points.end(), [](auto const a, auto const b){
-    return a.y < b.y;
+  auto const last_point{std::max_element(points.begin(), points.end(), [](auto const &a, auto const &b){
+    return a.position.y < b.position.y;
   })};
   auto const start{static_cast<size_t>(first_point - points.begin())};
   edge_walker left_edge{
     .index{start},
     .direction{-1},
-    .end_y{first_point->y}
+    .end_y{first_point->position.y}
   };
   edge_walker right_edge{
     .index{start},
-    .end_y{first_point->y}
+    .end_y{first_point->position.y}
   };
-  for(int y{first_point->y}; y < last_point->y; ++y) {
+  for(int y{first_point->position.y}; y < last_point->position.y; ++y) {
     if(y == left_edge.end_y) start_edge(left_edge, points, y, false);
     if(y == right_edge.end_y) start_edge(right_edge, points, y, true);
     step_edge(left_edge);

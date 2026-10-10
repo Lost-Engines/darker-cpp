@@ -1137,7 +1137,7 @@ auto main(int const argc, char const *const argv[])->int {
           host.player.noclip = noclip;
           host.player.boost_cheat = boost_cheat;
           host.player.damage_cheat = damage_cheat;
-          host.player.scenario_configuration = std::to_underlying(configuration);
+          host.player.scenario_configuration = configuration;
           if(configuration == delphi_skimma) host.player.supply.phase = darker::game::supply_phase::flight;
           std::optional<darker::game::tunnel_setup> const tunnels{underground ? std::optional{darker::game::tunnel_setup{*tunnel_network, cells}} : std::nullopt};
           darker::game::weapon_ammunition second_weapon;

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <span>
 #include "game/city_map.h"
+#include "game/collision_box.h"
 #include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
@@ -15,7 +16,7 @@ struct city_collision_result {
   city_contact contact{city_contact::none};
   uint8_t column{0};
   uint8_t row{0};
-  uint8_t category{0};
+  collision_category category{collision_category::ground_target};
 };
 
 city_collision_result sweep_city(resources::geometry_bank const &bank, std::span<city_cell const, city_map_cell_count> cells,

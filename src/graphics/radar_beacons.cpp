@@ -33,7 +33,7 @@ void draw_radar_beacons(framework::render::indexed_cockpit_framebuffer &target, 
         auto const cell{cells[cell_y * game::city_map_size.column + cell_x]};
         if(cell.type == beacon_model_type && (cell.state & lit_beacon_flag)) {
           int const px{di >> 8}, py{bx >> 8};
-          int const squared{px * px + py * py};
+          int const squared{vec2<int>{px, py}.length_sq()};
           if(squared <= radar_layout::radius_squared) target.pixels[(radar_layout::centre.y + py) * target.width + radar_layout::centre.x + px] = static_cast<uint8_t>(radar_layout::grey_centre_colour - (squared >> radar_layout::brightness_distance_shift));
         }
       }
@@ -65,7 +65,7 @@ void draw_radar_interference(framework::render::indexed_cockpit_framebuffer &tar
     auto const x{signed_word(2 * (static_cast<uint8_t>(dx) * 256 + high))};
     int const px{signed_word((x * cosine >> 16) - (y * sine >> 16)) >> 8};
     int const py{signed_word((y * cosine >> 16) + (x * sine >> 16)) >> 8};
-    int const squared{px * px + py * py};
+    int const squared{vec2<int>{px, py}.length_sq()};
     if(squared <= radar_layout::radius_squared) target.pixels[(radar_layout::centre.y + py) * target.width + radar_layout::centre.x + px] = static_cast<uint8_t>(radar_layout::grey_centre_colour - (squared >> radar_layout::brightness_distance_shift));
   }
 }

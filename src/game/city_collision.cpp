@@ -27,8 +27,12 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
   if(descriptor.collision_marker == resources::city_type::background_marker) return {};
   auto const pool{bank.model_pool()};
   auto const pointer{static_cast<unsigned int>(byte(pool, model + 4) | byte(pool, model + 5) << 8)};
-  if(pointer < 0x8000) throw std::invalid_argument{"City collision pointer precedes its world data"};
-  size_t cursor{pointer - 0x8000};
+  unsigned int constexpr world_data_base{0x8000};                              // native bank-relative pointers place collision data above the model pool
+  uint8_t constexpr first_terminator{0xf8};                                    // f8–ff end the stream
+  uint8_t constexpr first_height_prefix{0xf0};                                 // f0–f7 add an 11-bit lower-height offset before the box
+  uint8_t constexpr height_high_bits{7};                                       // low three opcode bits are the height's upper bits
+  if(pointer < world_data_base) throw std::invalid_argument{"City collision pointer precedes its world data"};
+  size_t cursor{pointer - world_data_base};
   auto const data{bank.world_data()};
   int const column_origin{column * 256 + descriptor.column_fraction};
   int const row_origin{row * 256 + descriptor.row_fraction};
@@ -36,13 +40,14 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
   std::vector<collision_box> result;
   for(;;) {
     auto opcode{byte(data, cursor++)};
-    if(opcode >= 0xf8) return result;
+    if(opcode >= first_terminator) return result;
     auto lower_height{base_height};
-    if(opcode >= 0xf0) {
-      lower_height += ((opcode & 7) << 8) | byte(data, cursor++);
+    if(opcode >= first_height_prefix) {
+      lower_height += ((opcode & height_high_bits) << 8) | byte(data, cursor++);
       opcode = byte(data, cursor++);
     }
-    int const upper_height{lower_height + ((opcode & 7) << 8) + byte(data, cursor++)};
+    int const upper_height{lower_height + ((opcode & height_high_bits) << 8) + byte(data, cursor++)};
+    // remaining opcode bits encode the impact category; horizontal inclusive maxima become exclusive with +1
     result.push_back({
       .bounds{
         vec3<uint16_t>{
@@ -56,7 +61,7 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
           static_cast<uint16_t>(upper_height + expansion),
         },
       },
-      .category{static_cast<uint8_t>(opcode >> 3)},
+      .category{static_cast<collision_category>(opcode >> 3)},
     });
     cursor += 4;
   }

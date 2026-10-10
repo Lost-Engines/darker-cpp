@@ -3,11 +3,55 @@
 #include <bit>
 #include <format>
 #include <stdexcept>
+#include <utility>
 #include "graphics/screen_primitives.h"
 #include "maths/sine_table.h"
 
 namespace darker::graphics {
 namespace {
+
+enum class model_opcode : uint8_t {
+  flat_polygon = 0x01,
+  flat_triangle = 0x02,
+  flat_quad = 0x03,
+  return_from_model = 0x0d,
+  shaded_triangle = 0x0e,
+  shaded_quad = 0x0f,
+  shaded_polygon = 0x11,
+  skip_back_facing = 0x16,
+  skip_near = 0x1a,
+  line = 0x1e,
+  disc = 0x22,
+  set_vertex_cursor = 0x25,
+  reset_vertex_cursor = 0x2c,
+  set_interpolation_and_anchor = 0x32,
+  save_anchor = 0x35,
+  emit_interpolated = 0x38,
+  set_animated_c = 0x3b,
+  call = 0x3e,
+  jump = 0x4d,
+  zero_c = 0x52,
+  zero_a = 0x56,
+  zero_b = 0x5a,
+  negate_c = 0x67,
+  negate_a = 0x6b,
+  negate_b = 0x6f,
+  zero_c_and_emit = 0x5e,
+  zero_a_and_emit = 0x61,
+  zero_b_and_emit = 0x64,
+  negate_c_and_emit = 0x73,
+  negate_a_and_emit = 0x76,
+  negate_b_and_emit = 0x79,
+  set_bc_and_emit = 0x7c,
+  set_c_and_emit = 0x7f,
+  set_ca_and_emit = 0x85,
+  set_a_and_emit = 0x88,
+  set_cab_and_emit = 0x8e,
+  set_ab_and_emit = 0x91,
+  set_b_and_emit = 0x94,
+  emit = 0x97,
+};
+
 
 int32_t signed_coordinate(int32_t const value) noexcept {
   /// Keep three-byte interpolation additions and subtractions within their original signed range
@@ -122,13 +166,14 @@ private:
 
   uint8_t colour(uint8_t const source) const noexcept {
     /// 3383 resolves the supplied distance shade table and dynamic colour codes
-    unsigned int shade{static_cast<unsigned int>(source & 31)};
-    if(shade < 28) shade = colours.shades[shade];
+    unsigned int shade{static_cast<unsigned int>(source & model_colours::shade_mask)};
+    if(shade < model_colours::shade_count) shade = colours.shades[shade];
     else {
-      unsigned int const value{static_cast<uint8_t>((colours.dynamic & 31) + colours.shades[27])};
-      shade = std::min(27u, static_cast<unsigned int>(static_cast<uint8_t>(value + 11 - (value >> 2))) >> 1);
+      // special shade codes combine beacon light with the brightest distance shade, then compress into the normal ramp
+      unsigned int const value{static_cast<uint8_t>((colours.dynamic & model_colours::shade_mask) + colours.shades.back())};
+      shade = std::min(model_colours::shade_count - 1, static_cast<unsigned int>(static_cast<uint8_t>(value + 11 - (value >> 2))) >> 1);
     }
-    return static_cast<uint8_t>((source & 224) + shade);
+    return static_cast<uint8_t>((source & model_colours::ramp_mask) + shade);
   }
 
 public:
@@ -140,28 +185,30 @@ public:
 
   void run(size_t position, unsigned int const depth = 0) {
     /// Follow the original drawing commands with either direct or near-clipped vertex storage
-    if(depth > 40) throw std::invalid_argument{"Model call nesting exceeds the supported bound"};
+    unsigned int constexpr maximum_call_depth{40};
+    unsigned int constexpr maximum_instructions{10000};                        // malformed-stream guards, not original game limits
+    if(depth > maximum_call_depth) throw std::invalid_argument{"Model call nesting exceeds the supported bound"};
     while(true) {
-      if(++instructions > 10000) throw std::invalid_argument{"Model instruction limit exceeded"};
+      if(++instructions > maximum_instructions) throw std::invalid_argument{"Model instruction limit exceeded"};
       auto const at{position};
-      auto const opcode{byte(position)};
+      auto const opcode{static_cast<model_opcode>(byte(position))};
       switch(opcode) {
-      case 0x0d:
+      case model_opcode::return_from_model:
         return;
-      case 0x32:
+      case model_opcode::set_interpolation_and_anchor:
         interpolation = static_cast<uint16_t>(parameter(position));
         save_anchor();
         break;
-      case 0x35:
+      case model_opcode::save_anchor:
         save_anchor();
         break;
-      case 0x38:
+      case model_opcode::emit_interpolated:
         emit_interpolated();
         break;
-      case 0x3b:
+      case model_opcode::set_animated_c:
         projection.set_component(2, parameter(position));
         break;
-      case 0x22:
+      case model_opcode::disc:
         {
           auto const index{colour(byte(position))};
           auto const radius{word(position)};
@@ -175,7 +222,7 @@ public:
           draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, bottom);
         }
         break;
-      case 0x1e:
+      case model_opcode::line:
         {
           auto const index{colour(byte(position))};
           auto const a{byte(position)};
@@ -195,116 +242,119 @@ public:
           draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, bottom);
         }
         break;
-      case 0x3e:
-      case 0x4d:
+      case model_opcode::call:
+      case model_opcode::jump:
         {
           auto const operand{position};
           auto const destination{relative(operand, word(position))};
-          if(opcode == 0x3e) run(destination, depth + 1);
+          if(opcode == model_opcode::call) run(destination, depth + 1);
           else position = destination;
         }
         break;
-      case 0x2c:
+      case model_opcode::reset_vertex_cursor:
         cursor = 0;
         break;
-      case 0x25:
+      case model_opcode::set_vertex_cursor:
         {
           auto const address{word(position)};
-          if(address < 0xfc00 || (address & 3)) throw std::invalid_argument{"Invalid projected vertex cursor"};
-          cursor = (address - 0xfc00) / 4;
+          unsigned int constexpr native_vertex_buffer{0xfc00};
+          unsigned int constexpr projected_vertex_bytes{4};                    // two 16-bit screen coordinates
+          if(address < native_vertex_buffer || (address % projected_vertex_bytes)) throw std::invalid_argument{"Invalid projected vertex cursor"};
+          cursor = (address - native_vertex_buffer) / projected_vertex_bytes;
         }
         break;
-      case 0x52:
+      case model_opcode::zero_c:
         projection.zero_component(2);
         break;
-      case 0x56:
+      case model_opcode::zero_a:
         projection.zero_component(0);
         break;
-      case 0x5a:
+      case model_opcode::zero_b:
         projection.zero_component(1);
         break;
-      case 0x67:
+      case model_opcode::negate_c:
         projection.negate_component(2);
         break;
-      case 0x6b:
+      case model_opcode::negate_a:
         projection.negate_component(0);
         break;
-      case 0x6f:
+      case model_opcode::negate_b:
         projection.negate_component(1);
         break;
-      case 0x5e:
+      case model_opcode::zero_c_and_emit:
         projection.zero_component(2);
         emit();
         break;
-      case 0x61:
+      case model_opcode::zero_a_and_emit:
         projection.zero_component(0);
         emit();
         break;
-      case 0x64:
+      case model_opcode::zero_b_and_emit:
         projection.zero_component(1);
         emit();
         break;
-      case 0x73:
+      case model_opcode::negate_c_and_emit:
         projection.negate_component(2);
         emit();
         break;
-      case 0x76:
+      case model_opcode::negate_a_and_emit:
         projection.negate_component(0);
         emit();
         break;
-      case 0x79:
+      case model_opcode::negate_b_and_emit:
         projection.negate_component(1);
         emit();
         break;
-      case 0x7c:
+      case model_opcode::set_bc_and_emit:
         set(1, position);
         set(2, position);
         emit();
         break;
-      case 0x7f:
+      case model_opcode::set_c_and_emit:
         set(2, position);
         emit();
         break;
-      case 0x85:
+      case model_opcode::set_ca_and_emit:
         set(2, position);
         set(0, position);
         emit();
         break;
-      case 0x88:
+      case model_opcode::set_a_and_emit:
         set(0, position);
         emit();
         break;
-      case 0x8e:
+      case model_opcode::set_cab_and_emit:
         set(2, position);
         set(0, position);
         set(1, position);
         emit();
         break;
-      case 0x91:
+      case model_opcode::set_ab_and_emit:
         set(0, position);
         set(1, position);
         emit();
         break;
-      case 0x94:
+      case model_opcode::set_b_and_emit:
         set(1, position);
         emit();
         break;
-      case 0x97:
+      case model_opcode::emit:
         emit();
         break;
-      case 0x01:
-      case 0x02:
-      case 0x03:
-      case 0x0e:
-      case 0x0f:
-      case 0x11:
+      case model_opcode::flat_polygon:
+      case model_opcode::flat_triangle:
+      case model_opcode::flat_quad:
+      case model_opcode::shaded_triangle:
+      case model_opcode::shaded_quad:
+      case model_opcode::shaded_polygon:
         {
-          bool const shaded{opcode >= 0x0e};
-          unsigned int const count{static_cast<unsigned int>(opcode == 1 || opcode == 0x11 ? byte(position) : shaded ? opcode - 12 : opcode) + 1};
+          // fixed triangle/quad opcodes encode count minus one; shaded forms add 12, variable polygons store it as an operand
+          bool const shaded{opcode >= model_opcode::shaded_triangle};
+          unsigned int const count{static_cast<unsigned int>(opcode == model_opcode::flat_polygon || opcode == model_opcode::shaded_polygon ? byte(position) : shaded ? std::to_underlying(opcode) - 12 : std::to_underlying(opcode)) + 1};
           auto const source_colour{byte(position)};
           auto const index{colour(source_colour)};
-          std::array<screen_vertex, 260> face{};
-          std::array<shaded_vertex, 260> shaded_face{};
+          std::array<screen_vertex, clipped_polygon_vertex_limit> face{};
+          std::array<shaded_vertex, clipped_polygon_vertex_limit> shaded_face{};
           std::array<uint16_t, 256> vertex_shades{};
           std::array<camera_vertex, 256> camera_face{};
           for(unsigned int i{0}; i < count; ++i) {
@@ -317,10 +367,10 @@ public:
               if(shading == model_shading::gouraud) {
                 if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
                 auto const shade{colours.shades[operand]};
-                vertex_shades[i] = static_cast<uint16_t>(((source_colour & 224) + shade) * 256 + shade + 128);
+                // high byte is the palette index; low byte starts at half a shade plus shade for native interpolation bias
+                vertex_shades[i] = static_cast<uint16_t>(((source_colour & model_colours::ramp_mask) + shade) * 256 + shade + 128);
                 shaded_face[i] = {
-                  .x{face[i].x},
-                  .y{face[i].y},
+                  .position{face[i].x, face[i].y},
                   .shade{vertex_shades[i]}
                 };
               }
@@ -337,7 +387,7 @@ public:
           draw_flat_polygon(target, std::span{face}.first(projected_count), index, 319, bottom);
         }
         break;
-      case 0x16:
+      case model_opcode::skip_back_facing:
         {
           std::array<uint8_t, 3> const indices{byte(position), byte(position), byte(position)};
           for(auto const index : indices) {
@@ -356,7 +406,7 @@ public:
           if(hidden) position += skip;
         }
         break;
-      case 0x1a:
+      case model_opcode::skip_near:
         {
           auto const threshold{byte(position)};
           auto const skip{byte(position)};
@@ -364,7 +414,7 @@ public:
         }
         break;
       default:
-        throw std::invalid_argument{std::format("Unsupported flat model opcode {:02x} at pool offset {:04x}", opcode, at)};
+        throw std::invalid_argument{std::format("Unsupported flat model opcode {:02x} at pool offset {:04x}", std::to_underlying(opcode), at)};
       }
     }
   }

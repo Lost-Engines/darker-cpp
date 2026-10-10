@@ -8,6 +8,7 @@
 #include "game/player_flight.h"
 #include "maths/direction.h"
 #include "maths/sine_table.h"
+#include "vectorstorm/vector/vector2.h"
 
 namespace darker::game {
 namespace {
@@ -24,7 +25,7 @@ uint16_t approach_word(uint16_t const value, uint16_t const target, uint16_t con
 
 void approach_position(object_pose &pose, maths::map_position const target, uint16_t const step) noexcept {
   /// 7CA4 reduces the major horizontal error and scales the minor error by the remaining ratio
-  std::array<int, 2> error{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position.column - target.column)),
+  vec2<int> const error{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position.column - target.column)),
     std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position.row - target.row))};
   auto const magnitude{[](int const value){
     return value < 0 ? -value : value;
@@ -32,7 +33,7 @@ void approach_position(object_pose &pose, maths::map_position const target, uint
   auto const largest{std::max(magnitude(error[0]), magnitude(error[1]))};
   auto const remaining{std::max(largest - static_cast<int>(step), 0)};
   auto const denominator{remaining + step};
-  for(size_t i{0}; i < 2; ++i) {
+  for(unsigned int i{0}; i < 2; ++i) {
     auto const distance{denominator ? remaining * magnitude(error[i]) / denominator : 0};
     pose.position[i] = static_cast<uint16_t>(target[i] + (error[i] < 0 ? -distance : distance));
   }

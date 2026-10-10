@@ -11,6 +11,10 @@
 namespace darker::game {
 namespace {
 
+uint16_t constexpr startup_energy_limit{0x5000};                               // high byte 80 yields five complete pips when doubled and masked
+uint16_t constexpr fraction_mask{0xff};
+uint16_t constexpr active_boost_duration{0x3800};                              // native drive-accounting units, not milliseconds
+
 int16_t word(int const value) noexcept {
   /// Retain each original word boundary before signed arithmetic
   return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
@@ -30,9 +34,9 @@ int16_t high_product(int16_t const left, int16_t const right) noexcept {
 
 bool activate_caero_boost(caero_flight_state &state) noexcept {
   /// B963 spends one complete boost pip and replaces only the high byte of the active drive duration
-  if((state.energy.boost >> 8) < 32) return false;
-  state.energy.boost -= 32 * 256;
-  state.active_boost = static_cast<uint16_t>((state.active_boost & 255) | 0x3800);
+  if(state.energy.boost < caero_energy_state::boost_pip_energy) return false;
+  state.energy.boost -= caero_energy_state::boost_pip_energy;
+  state.active_boost = static_cast<uint16_t>((state.active_boost & fraction_mask) | active_boost_duration);
   return true;
 }
 
@@ -40,18 +44,21 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   caero_flight_input const input, uint16_t frame_step, std::span<city_cell const, city_map_cell_count> const cells) {
   /// 7E7F/7EB6 order startup, steering, energy spending, movement, beacon sampling and charging within one callback
   if(input.unlimited_power) {
-    state.energy.buffer = 0xffff;
-    state.energy.reserve = 0xcfff;
-    state.energy.boost = 0xbfff;
-    state.startup_energy = 0x5000;
+    state.energy.buffer = caero_energy_state::buffer_capacity;
+    state.energy.reserve = caero_energy_state::reserve_capacity;
+    state.energy.boost = caero_energy_state::boost_capacity;
+    state.startup_energy = startup_energy_limit;
   }
+  unsigned int constexpr startup_charge_rate{7};
+  unsigned int constexpr complete_pip_mask{0xe0};                              // high-byte multiples of 32 represent complete boost pips
+  uint16_t constexpr unlimited_beacon_strength{0x1800};                        // fixed light input for the debug free-flight path
   if(!state.flying) {
     if((state.active_boost >> 8) == 0) {
       if(input.engine_flags & 1) {
-        state.startup_energy = static_cast<uint16_t>(state.startup_energy + frame_step * 7);
-        if((state.startup_energy >> 8) >= 0x50) state.startup_energy = static_cast<uint16_t>((state.startup_energy & 255) | 0x5000);
+        state.startup_energy = static_cast<uint16_t>(state.startup_energy + frame_step * startup_charge_rate);
+        if((state.startup_energy >> 8) >= (startup_energy_limit >> 8)) state.startup_energy = static_cast<uint16_t>((state.startup_energy & fraction_mask) | startup_energy_limit);
       }
-      state.energy.boost = static_cast<uint16_t>((state.energy.boost & 255) | (((state.startup_energy >> 8) * 2 & 0xe0) << 8));
+      state.energy.boost = static_cast<uint16_t>((state.energy.boost & 255) | (((state.startup_energy >> 8) * 2 & complete_pip_mask) << 8));
       return;
     }
     state.flying = true;
@@ -77,9 +84,11 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto pitch_delta{project_flight_pitch(angles.pitch, middle_bank, pitch_response.angle_delta)};
   auto const tentative_pitch{word(angles.pitch + pitch_delta)};
   angular_response assist{};
-  if(tentative_pitch > -4096 && state.pose.speed <= 300) {
-    assist = calculate_angular_response(static_cast<uint16_t>(-4096 - tentative_pitch), state.pitch_assist_rate,
-      static_cast<uint16_t>((300 - state.pose.speed) >> 1), frame_step);
+  int constexpr low_speed_pitch{-4096};                                        // -22.5 degrees in the 65536-unit turn
+  int constexpr pitch_assist_speed_limit{300};
+  if(tentative_pitch > low_speed_pitch && state.pose.speed <= pitch_assist_speed_limit) {
+    assist = calculate_angular_response(static_cast<uint16_t>(low_speed_pitch - tentative_pitch), state.pitch_assist_rate,
+      static_cast<uint16_t>((pitch_assist_speed_limit - state.pose.speed) >> 1), frame_step);
   } else {
     assist = integrate_angular_rate(state.pitch_assist_rate, 0, frame_step);
   }
@@ -94,6 +103,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const final_heading{static_cast<uint16_t>(angles.heading + heading_delta)};
   auto const middle_heading{static_cast<uint16_t>(final_heading - (heading_delta >> 1))};
 
+  // the native routine duplicates the timestep low byte (x257), then halves it for energy and halves again for drive
   auto const accounting_step{static_cast<uint16_t>(((frame_step & 255) * 257) >> 1)};
   auto const drive_step{static_cast<uint16_t>(accounting_step >> 1)};
   if(drive_step == 0) throw std::domain_error{"Caero flight timestep produces an original zero drive divisor"};
@@ -106,15 +116,15 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   if(demand > 65535) throw std::domain_error{"Caero forward demand exceeds the original quotient"};
   auto const forward_target{static_cast<uint16_t>(demand + state.forward_bias)};
   advance_horizontal_flight(state.pose, state.horizontal_velocity, forward_target, accounting_step, middle_heading, middle_pitch);
-  auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? uint16_t{0x1800} : beacon_light(cells, state.pose.position, {state.pose.fractions.column, state.pose.fractions.row})) : uint16_t{0}};
+  auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? unlimited_beacon_strength : beacon_light(cells, state.pose.position, {state.pose.fractions.column, state.pose.fractions.row})) : uint16_t{0}};
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
   state.forward_bias = static_cast<uint16_t>((state.pose.speed + (input.brake ? 0 : incoming >> 1)) >> 3);
   charge_caero_energy(state.energy, incoming, input.engine_flags, accounting_step, input.boost_cheat);
 
   if(input.unlimited_power) {
-    state.energy.buffer = 0xffff;
-    state.energy.reserve = 0xcfff;
-    state.energy.boost = 0xbfff;
+    state.energy.buffer = caero_energy_state::buffer_capacity;
+    state.energy.reserve = caero_energy_state::reserve_capacity;
+    state.energy.boost = caero_energy_state::boost_capacity;
     state.energy.reserve_display = 12;
   }
 

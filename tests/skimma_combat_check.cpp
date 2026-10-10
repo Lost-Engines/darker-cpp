@@ -339,7 +339,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     darker::game::player_flight pilot;
     darker::game::initialise_skimma_pad(pilot, briefing.entry->site, briefing.entry->heading,
       final_bank.header_at(final_bank.special_models()[24]).height, true);
-    pilot.scenario_configuration = 0;
+    pilot.scenario_configuration = darker::resources::scenario_configuration::delphi_skimma;
     pilot.supply.phase = darker::game::supply_phase::flight;
     darker::game::weapon_ammunition second_weapon;
     darker::game::refill_skimma_weapon(second_weapon, 1);
@@ -460,7 +460,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     } while(briefing.continue_page());
     darker::game::player_flight pilot;
     darker::game::initialise_skimma_pad(pilot, 0x16fc, 0, bank.header_at(bank.special_models()[stage == 99 ? 26 : 27]).height, stage != 99);
-    pilot.scenario_configuration = static_cast<uint8_t>(record.configuration & 15);
+    pilot.scenario_configuration = darker::resources::decode_scenario_configuration(record.configuration);
     darker::game::weapon_ammunition second_weapon;
     darker::game::refill_skimma_weapon(second_weapon, 1);
     auto groups{darker::game::make_scenario_actors(record, source, bank, pilot, second_weapon, 0)};

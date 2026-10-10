@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
+#include <utility>
 #include "game/object_update.h"
 
 namespace darker::game {
@@ -25,12 +26,21 @@ struct craft_definition_data {
   uint8_t flags{};
 };
 
+enum class projectile_flag : uint8_t {
+  ground_target = 2,
+};
+
 struct projectile_definition_data {
   uint8_t launch_cost{};                                                       // also scales the firing delay for hostile weapons
   uint8_t lifetime{};
   std::array<uint8_t, 4> reserved{};
   uint8_t steering_shift{};
   uint8_t flags{};
+
+  constexpr bool has_flag(projectile_flag const flag) const noexcept {
+    /// Test a named property while retaining the original packed definition byte
+    return (flags & std::to_underlying(flag)) != 0;
+  }
 };
 
 struct player_definition_data {

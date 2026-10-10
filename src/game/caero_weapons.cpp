@@ -7,13 +7,11 @@
 
 namespace darker::game {
 
-diffuser_impact diffuser_state::hit(bool const gas, uint8_t const category, uint8_t const state, uint16_t const target, uint16_t const clock) noexcept {
+diffuser_impact diffuser_state::hit(bool const gas, collision_category const category, uint8_t const state, uint16_t const target, uint16_t const clock) noexcept {
   /// CE84 shares one gas target and accepts its trigger only in the final 1000h ticks before the 2800h deadline
-  uint8_t constexpr diffuser_collision_category{3};
-  uint8_t constexpr permitted_target_flag{0x40};
   int constexpr gas_lifetime_ticks{0x2800};
   uint16_t constexpr trigger_window_start{0xf000};                             // wrapped -0x1000: the final 4096 ticks
-  if(category != diffuser_collision_category || !(state & permitted_target_flag)) return diffuser_impact::rejected;
+  if(category != collision_category::diffuser || !(state & city_cell::permitted_target)) return diffuser_impact::rejected;
   if(gas) {
     cell = target;
     deadline = static_cast<uint16_t>(clock + gas_lifetime_ticks);

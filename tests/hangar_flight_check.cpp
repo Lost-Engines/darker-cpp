@@ -81,7 +81,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     };
     auto underground{surface};
     underground.tunnel.emplace();
-    underground.scenario_configuration = 4;
+    underground.scenario_configuration = darker::resources::scenario_configuration::underground_caero;
     for(unsigned int frame{0}; frame < 512; ++frame) {
       darker::game::flight_controls_input const input{
         .right{frame < 128},
@@ -178,7 +178,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     if(csv.is_open()) {
       csv << tick;
       for(auto const value : actual) csv << ',' << value;
-      csv << '\n';                                                              // trace rows are buffered rather than flushed per field
+      csv << '\n';                                                             // trace rows are buffered rather than flushed per field
     }
     for(size_t field{0}; field < actual.size(); ++field) {
       if(actual[field] != expected[field] && first_mismatch.empty()) {

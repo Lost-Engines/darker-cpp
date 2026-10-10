@@ -170,7 +170,7 @@ TEST_CASE("Diffuser building impacts match native gas target and wrapped detonat
   for(auto const &sample : darker::test_reference::diffuser_impact_samples) {
     CAPTURE(sample);
     darker::game::diffuser_state state{static_cast<uint16_t>(sample[4]), static_cast<uint16_t>(sample[6]), static_cast<uint16_t>(sample[7])};
-    auto const result{state.hit(sample[0] != 0, static_cast<uint8_t>(sample[1]), static_cast<uint8_t>(sample[2]), static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[5]))};
+    auto const result{state.hit(sample[0] != 0, static_cast<darker::game::collision_category>(sample[1]), static_cast<uint8_t>(sample[2]), static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[5]))};
     auto const expected{sample[8] == 0x67ea   ? darker::game::diffuser_impact::gas
       : sample[8] == 0x67bf ? darker::game::diffuser_impact::destroyed : darker::game::diffuser_impact::rejected};
     CHECK(result == expected);

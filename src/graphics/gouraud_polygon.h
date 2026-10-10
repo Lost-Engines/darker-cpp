@@ -7,8 +7,7 @@
 namespace darker::graphics {
 
 struct shaded_vertex {
-  int16_t x{0};
-  int16_t y{0};
+  vec2<int16_t> position{};
   uint16_t shade{0};
 };
 

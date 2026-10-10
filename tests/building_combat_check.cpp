@@ -179,7 +179,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         if(office) {
           auto const boxes{darker::game::city_collision_boxes(bank, cell.type, cell.state, 0x20, target->column, target->row)};
           auto const door{std::ranges::find_if(boxes, [](auto const &box){
-            return box.category == 0;
+            return box.category == darker::game::collision_category::ground_target;
           })};
           if(door == boxes.end()) throw std::runtime_error{"Office target has no vulnerable entrance"};
           darker::maths::world_position point{};

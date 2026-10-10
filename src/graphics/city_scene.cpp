@@ -297,8 +297,8 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
       if(auto const point{project_distant_object(item.placement, view.origin, view.bottom, item.projection_residue)}) {
         auto const colour{bank.header_at(item.model_offset).point_colour};
         // 2D71 reuses the last mesh's shade table; it does not calculate distance or fade again
-        unsigned int constexpr palette_ramp_mask{0xe0};                        // upper three bits select one of eight 32-colour ramps
-        unsigned int constexpr palette_shade_mask{0x1f};                       // lower five bits select the shade within that ramp
+        unsigned int constexpr palette_ramp_mask{model_colours::ramp_mask};    // upper three bits select one of eight 32-colour ramps
+        unsigned int constexpr palette_shade_mask{model_colours::shade_mask};  // lower five bits select the shade within that ramp
         auto const shaded_colour{(colour & palette_ramp_mask) + retained_colours.shades.at(colour & palette_shade_mask)};
         target.pixels[static_cast<size_t>(point->y) * target.width + point->x] = static_cast<uint8_t>(shaded_colour);
       }

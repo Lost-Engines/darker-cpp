@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <boost/program_options.hpp>
 #include "actor_flight_check.h"
 #include "building_combat_check.h"
@@ -142,9 +143,9 @@ auto main(int const argc, char const *const argv[])->int try {
       }};
       auto end{words(sample.end)};
       auto const result{darker::game::sweep_city(bank, cells, static_cast<uint8_t>(slot == 30 ? 0x20 : 0x60), words(sample.start), end)};
-      if(static_cast<unsigned int>(result.contact) != sample.hit || result.category != sample.category || end != words(sample.result)) {
+      if(static_cast<unsigned int>(result.contact) != sample.hit || std::to_underlying(result.category) != sample.category || end != words(sample.result)) {
         throw std::runtime_error{std::format("City sweep differs from native reference: bank {}, type {}, state {}, start ({},{},{}), got contact {} category {} end ({},{},{}), expected {} {} ({},{},{})",
-          slot, sample.type, sample.state, sample.start[0], sample.start[1], sample.start[2], static_cast<unsigned int>(result.contact), result.category, end[0], end[1], end[2],
+          slot, sample.type, sample.state, sample.start[0], sample.start[1], sample.start[2], static_cast<unsigned int>(result.contact), std::to_underlying(result.category), end[0], end[1], end[2],
           sample.hit, sample.category, sample.result[0], sample.result[1], sample.result[2])};
       }
     }

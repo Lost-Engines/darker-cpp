@@ -5,6 +5,7 @@
 #include <optional>
 #include "game/caero_energy.h"
 #include "game/city_map.h"
+#include "game/collision_box.h"
 #include "game/projectile_pool.h"
 #include "maths/world_coordinates.h"
 
@@ -37,7 +38,7 @@ struct diffuser_state {
   uint16_t deadline{0};
   uint16_t sound_deadline{0};
 
-  diffuser_impact hit(bool gas, uint8_t category, uint8_t state, uint16_t target, uint16_t clock) noexcept;
+  diffuser_impact hit(bool gas, collision_category category, uint8_t state, uint16_t target, uint16_t clock) noexcept;
 };
 
 uint8_t caero_weapon_strength(city_map const &cells, maths::world_position position, uint16_t victim);
