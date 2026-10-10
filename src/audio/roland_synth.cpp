@@ -13,7 +13,7 @@ namespace darker::audio {
 struct roland_synth::implementation {
   mt32emu_context context{mt32emu_create_context({}, nullptr)};
   std::unique_ptr<midi_synth> percussion;
-  std::array<bool,128> unmapped{};
+  std::array<bool, 128> unmapped{};
   ~implementation() {
     mt32emu_free_context(context);
   }
@@ -29,7 +29,7 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
   }
   std::ranges::sort(files);
   bool found{false};
-  // Prefer LAPC-I-compatible CM-32L ROMs, then new and old MT-32 machines; recognise contents, not filenames
+  // prefer LAPC-I-compatible CM-32L ROMs, then new and old MT-32 machines; recognise contents, not filenames
   for(char const *machine : {"cm32l_1_02", "cm32l_1_00", "mt32_2_07", "mt32_2_06", "mt32_2_04", "mt32_2_03",
     "mt32_1_07", "mt32_1_06", "mt32_1_05", "mt32_1_04"}) {
     mt32emu_free_context(state->context);
@@ -38,7 +38,10 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
     for(auto const &file : files) mt32emu_add_machine_rom_file(state->context, machine, file.string().c_str());
     mt32emu_rom_info info{};
     mt32emu_get_rom_info(state->context, &info);
-    if(info.control_rom_id && info.pcm_rom_id) { found = true; break; }
+    if(info.control_rom_id && info.pcm_rom_id) {
+      found = true;
+      break;
+    }
   }
   if(!found) throw std::runtime_error{"No compatible Roland control/PCM ROM pair found in " + rom_directory.string()};
   mt32emu_set_stereo_output_samplerate(state->context, sample_rate);
@@ -46,16 +49,16 @@ roland_synth::roland_synth(std::filesystem::path const &rom_directory, unsigned 
   if(mt32emu_open_synth(state->context) != MT32EMU_RC_OK) throw std::runtime_error{"Munt could not open the Roland ROM pair"};
   mt32emu_set_midi_event_queue_size(state->context, 4096);
   mt32emu_set_midi_delay_mode(state->context, MT32EMU_MDM_DELAY_SHORT_MESSAGES_ONLY);
-  // Hardware initialisation finishes before music starts; immediate uploads retain timbres throughout song changes
+  // hardware initialisation finishes before music starts; immediate uploads retain timbres throughout song changes
   for(auto const &message : initialisation) mt32emu_play_sysex_now(state->context, message.data(), static_cast<uint32_t>(message.size()));
   if(!percussion_font.empty() && !percussion_bank.empty()) throw std::invalid_argument{"Choose one Roland percussion fallback"};
   if(!percussion_bank.empty()) {
-    // A separate device prevents the GM bank's patch/channel/system changes from overwriting Darker's setup.
+    // A separate device prevents the GM bank's patch/channel/system changes from overwriting Darker's setup
     state->percussion = std::make_unique<roland_synth>(rom_directory, sample_rate, load_roland_setup(percussion_bank));
   } else if(!percussion_font.empty()) state->percussion = std::make_unique<soundfont>(percussion_font, sample_rate);
   if(state->percussion) {
-    // Roland address 03 01 10 uses seven-bit address digits; each rhythm entry has four bytes.
-    // Only supplement explicitly OFF keys within the General MIDI percussion range.
+    // Roland address 03 01 10 uses seven-bit address digits; each rhythm entry has four bytes
+    // only supplement explicitly OFF keys within the General MIDI percussion range
     for(unsigned int key{35}; key <= 81; ++key) {
       uint8_t timbre{0};
       mt32emu_read_memory(state->context, (3u << 14) + (1u << 7) + 0x10 + (key - 24) * 4, 1, &timbre);
@@ -83,7 +86,7 @@ void roland_synth::send(midi_message const message) noexcept {
     if(((command == 0x80 || command == 0x90) && message.first < state->unmapped.size() && state->unmapped[message.first])
       || command == 0xb0 || command == 0xe0) state->percussion->send(message);
   }
-  // Still send every event to Munt, preserving its unmapped-key diagnostics.
+  // still send every event to Munt, preserving its unmapped-key diagnostics
   uint32_t const packed{message.status | (static_cast<uint32_t>(message.first) << 8) | (static_cast<uint32_t>(message.second) << 16)};
   if(mt32emu_play_msg(state->context, packed) != MT32EMU_RC_OK) std::terminate();
 }
@@ -91,7 +94,7 @@ void roland_synth::send(midi_message const message) noexcept {
 void roland_synth::render(std::span<float> const stereo) noexcept {
   mt32emu_render_float(state->context, stereo.data(), static_cast<uint32_t>(stereo.size() / 2));
   if(state->percussion) {
-    std::array<float,1024> percussion{};
+    std::array<float, 1024> percussion{};
     for(size_t offset{0}; offset + 1 < stereo.size();) {
       auto const count{std::min((stereo.size() - offset) & ~size_t{1}, percussion.size())};
       state->percussion->render(std::span{percussion}.first(count));

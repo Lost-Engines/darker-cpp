@@ -18,7 +18,7 @@ campaign_selection select_campaign_stage(uint8_t stage);
 class campaign_resources {
 private:
   archive_set const &archives;
-  std::array<std::optional<scenario_resource>,15> scenarios;
+  std::array<std::optional<scenario_resource>, 15> scenarios;
   std::optional<scenario_resource> shared_scenarios;
 
 public:

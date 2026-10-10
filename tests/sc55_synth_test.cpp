@@ -11,7 +11,7 @@ TEST_CASE("Sound Canvas firmware produces notes independently of host buffer siz
   auto const model{GENERATE(darker::audio::sound_canvas_model::sc55, darker::audio::sound_canvas_model::scc1a)};
   auto const directory{model == darker::audio::sound_canvas_model::scc1a ? DARKER_TEST_SCC1A_ROM_DIR : DARKER_TEST_SC55_ROM_DIR};
   if(std::string_view{directory}.empty()) SKIP("Supply the matching DARKER_TEST_SC55_ROM_DIR or DARKER_TEST_SCC1A_ROM_DIR");
-  auto const render{[&](size_t const block_size) {
+  auto const render{[&](size_t const block_size){
     darker::audio::sc55_synth synth{directory, 48000, model};
     std::vector<float> output(48000 * 4);
     synth.reset();
@@ -29,11 +29,11 @@ TEST_CASE("Sound Canvas firmware produces notes independently of host buffer siz
     double energy{0};
     for(size_t i{2}; i < output.size(); ++i) {
       REQUIRE(std::isfinite(output[i]));
-      energy += std::abs(output[i] - output[i-2]);
+      energy += std::abs(output[i] - output[i - 2]);
     }
     REQUIRE(energy > 1.0);
     double late_energy{0};
-    for(size_t i{tail.size()-48000}; i < tail.size(); ++i) late_energy += std::abs(tail[i]-tail[i-2]);
+    for(size_t i{tail.size() - 48000}; i < tail.size(); ++i) late_energy += std::abs(tail[i] - tail[i - 2]);
     REQUIRE(late_energy < energy * 0.1);
     return output;
   }};

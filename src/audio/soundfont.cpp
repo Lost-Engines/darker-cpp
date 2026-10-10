@@ -37,12 +37,23 @@ void soundfont::send(midi_message const message) noexcept {
   auto *synth{state->synth.get()};
   int const channel{message.status & 15};
   switch(message.status & 0xf0) {
-  case 0x80: tsf_channel_note_off(synth, channel, message.first); break;
-  case 0x90: tsf_channel_note_on(synth, channel, message.first, message.second / 127.0f); break;
-  case 0xb0: tsf_channel_midi_control(synth, channel, message.first, message.second); break;
-  case 0xc0: tsf_channel_set_presetnumber(synth, channel, message.first, channel == 9); break;
-  case 0xe0: tsf_channel_set_pitchwheel(synth, channel, message.first | (message.second << 7)); break;
-  default: break;
+  case 0x80:
+      tsf_channel_note_off(synth, channel, message.first);
+    break;
+  case 0x90:
+    tsf_channel_note_on(synth, channel, message.first, message.second / 127.0f);
+    break;
+  case 0xb0:
+    tsf_channel_midi_control(synth, channel, message.first, message.second);
+    break;
+  case 0xc0:
+    tsf_channel_set_presetnumber(synth, channel, message.first, channel == 9);
+    break;
+  case 0xe0:
+    tsf_channel_set_pitchwheel(synth, channel, message.first | (message.second << 7));
+    break;
+  default:
+    break;
   }
 }
 

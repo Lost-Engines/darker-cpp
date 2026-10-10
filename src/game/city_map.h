@@ -9,8 +9,8 @@
 namespace darker::game {
 
 struct city_cell {
-  std::uint8_t type{0};
-  std::uint8_t state{0};
+  uint8_t type{0};
+  uint8_t state{0};
 };
 
 inline maths::map_coordinates<int> constexpr city_map_size{
@@ -22,6 +22,6 @@ inline int constexpr city_map_cell_count{city_map_size.column * city_map_size.ro
 using city_map = std::array<city_cell, city_map_cell_count>;
 
 city_map make_city_map(std::span<std::byte const> types, bool energise_beacons);
-void assign_city_variants(city_map &cells, std::span<std::uint8_t const, 256> limits);
+void assign_city_variants(city_map &cells, std::span<uint8_t const, 256> limits);
 
 } // namespace darker::game

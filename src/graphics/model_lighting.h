@@ -9,11 +9,11 @@ namespace darker::graphics {
 
 class distance_shading {
 private:
-  std::vector<std::array<std::uint8_t, 28>> tables;
+  std::vector<std::array<uint8_t, 28>> tables;
 
 public:
   explicit distance_shading(unsigned int count = 60);
-  model_colours colours(std::uint16_t depth, model_path path, std::uint8_t light) const;
+  model_colours colours(uint16_t depth, model_path path, uint8_t light) const;
 };
 
 } // namespace darker::graphics

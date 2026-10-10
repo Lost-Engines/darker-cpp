@@ -16,7 +16,7 @@ int constexpr last_hangar_model_type{24};
 int constexpr berth_row_offset{152};
 uint16_t constexpr maximum_door_extension{0xe800};
 
-std::size_t site_index(std::uint16_t const site) {
+size_t site_index(uint16_t const site) {
   /// Return sites use the world's packed byte address, with twice the column in its low byte
   auto const column{(site & 255) >> 1};
   auto const row{site >> 8};
@@ -24,15 +24,15 @@ std::size_t site_index(std::uint16_t const site) {
   return row * city_map_size.column + column;
 }
 
-void toggle_hangar(player_flight &player, city_map &cells, std::size_t const centre) {
+void toggle_hangar(player_flight &player, city_map &cells, size_t const centre) {
   /// C6D2 toggles the landed flag and the gate, approach-light and interior alternate states together
   player.lifecycle.flags ^= 0x10;
   for(auto const index : {centre - city_map_size.column, centre, centre + city_map_size.column}) cells[index].state ^= 0x80;
 }
 
-} // namespace
+} // anonymous namespace
 
-void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_state &hangar, std::int16_t const model_height) {
+void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_state &hangar, int16_t const model_height) {
   /// BD34–BD98 places the Caero at the type-17 return sites used by the Delphi campaign
   auto const centre{site_index(hangar.return_site)};
   if(cells[centre].type != entrance_model_type) throw std::invalid_argument{"Caero launch requires a campaign type-17 hangar"};
@@ -40,13 +40,13 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
   int constexpr initial_height_offset{-104};
   int constexpr launch_pitch{0x0a20};
   player = {};
-  // Outer startup 3D50–3D52 supplies thrust energy independently of the visible boost-cell reserve.
+  // outer startup 3D50–3D52 supplies thrust energy independently of the visible boost-cell reserve
   std::get<caero_flight_state>(player.craft).energy.buffer = initial_thrust_energy;
   player.pose() = {
     .position{
-      .column{static_cast<std::uint16_t>((centre % city_map_size.column) * 256 + 128)},
-      .row{static_cast<std::uint16_t>((centre / city_map_size.column) * 256 + berth_row_offset)},
-      .height{static_cast<std::uint16_t>(initial_height_offset - model_height)}
+      .column{static_cast<uint16_t>((centre % city_map_size.column) * 256 + 128)},
+      .row{static_cast<uint16_t>((centre / city_map_size.column) * 256 + berth_row_offset)},
+      .height{static_cast<uint16_t>(initial_height_offset - model_height)}
     },
     .angles{
       .heading{0},
@@ -59,7 +59,7 @@ void initialise_caero_hangar(player_flight &player, city_map &cells, hangar_stat
   toggle_hangar(player, cells, centre);
 }
 
-void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, std::uint16_t const frame_step) {
+void advance_hangar_departure(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t const frame_step) {
   /// C5F9 opens the gate inside its cell, retracts it over the approach lights and closes the site after departure
   if(!(player.lifecycle.flags & 0x10) || player.lifecycle.crashing) return;
   if(hangar.returning == hangar_return_phase::settling || hangar.returning == hangar_return_phase::complete) return;
@@ -77,22 +77,22 @@ void advance_hangar_departure(player_flight &player, city_map &cells, hangar_sta
     return;
   }
   if(type & 1) {
-    auto const delta{static_cast<std::uint16_t>(frame_step << 6)};
+    auto const delta{static_cast<uint16_t>(frame_step << 6)};
     auto const sum{static_cast<unsigned int>(hangar.extension) + delta};
     if(sum >= maximum_door_extension) {
       hangar.extension = maximum_door_extension;
       return;
     }
-    hangar.extension = static_cast<std::uint16_t>(sum);
+    hangar.extension = static_cast<uint16_t>(sum);
   } else {
-    auto const distance{horizontal_distance(position, {static_cast<std::uint16_t>((centre % city_map_size.column) * 256 + 128),
-      static_cast<std::uint16_t>((centre / city_map_size.column) * 256 + berth_row_offset), 0})};
-    auto value{static_cast<std::uint16_t>(152 - distance)};
+    auto const distance{horizontal_distance(position, {static_cast<uint16_t>((centre % city_map_size.column) * 256 + 128),
+      static_cast<uint16_t>((centre / city_map_size.column) * 256 + berth_row_offset), 0})};
+    auto value{static_cast<uint16_t>(152 - distance)};
     if(distance != 0 && distance <= 152) value = 65535;
     unsigned int const sum{value + 232u};
-    hangar.extension = sum > 65535 ? static_cast<std::uint16_t>((sum & 255) * 257) : 0;
+    hangar.extension = sum > 65535 ? static_cast<uint16_t>((sum & 255) * 257) : 0;
   }
-  hangar.sound_level = static_cast<std::uint8_t>((hangar.extension & 255) | (hangar.extension >> 8));
+  hangar.sound_level = static_cast<uint8_t>((hangar.extension & 255) | (hangar.extension >> 8));
 }
 
 bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &hangar, bool const objectives_complete) {
@@ -107,7 +107,9 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   if(cells[centre].type != entrance_model_type) throw std::invalid_argument{"Return capture currently requires a type-17 hangar"};
   auto const &pose{player.pose()};
   if((pose.position.height >> 8) >= capture_height_limit_cells) return false;
-  auto const aligned{[](uint16_t const error){ return static_cast<uint8_t>((error >> 8) + alignment_half_width) < alignment_window_width; }};
+  auto const aligned{[](uint16_t const error){
+    return static_cast<uint8_t>((error >> 8) + alignment_half_width) < alignment_window_width;
+  }};
   if(!aligned(pose.angles.roll)) return false;
   maths::world_position const target{
     .column{static_cast<uint16_t>((centre % city_map_size.column) * 256 + 128)},
@@ -190,7 +192,10 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   }
   if(hangar.returning != hangar_return_phase::settling) return;
   auto const remaining{static_cast<uint16_t>(hangar.deadline - clock)};
-  if(remaining & 0x8000) { hangar.returning = hangar_return_phase::complete; return; }
+  if(remaining & 0x8000) {
+    hangar.returning = hangar_return_phase::complete;
+    return;
+  }
   auto const target_heading{static_cast<uint16_t>(player.tunnel ? 0 : 0x8000)};
   auto const heading{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.angles.heading - target_heading))};
   parameters.bank_limit = static_cast<uint16_t>(heading ^ (heading < 0 ? -1 : 0));

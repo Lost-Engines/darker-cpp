@@ -7,8 +7,8 @@
 #include "game/flight_controls.h"
 #include "game/player_crash.h"
 #include "game/skimma_flight.h"
-#include "game/tunnel_flight.h"
 #include "game/supply_pad.h"
+#include "game/tunnel_flight.h"
 
 namespace darker::game {
 
@@ -20,9 +20,9 @@ struct player_flight {
   flight_controls_state controls{};
   flight_steering look_drive{};
   player_crash_state lifecycle{};
-  std::uint16_t desired_height{0};
-  std::uint16_t forward_setting{248};
-  std::uint8_t engine_flags{1};
+  uint16_t desired_height{0};
+  uint16_t forward_setting{248};
+  uint8_t engine_flags{1};
   bool altitude_hold{false};
   bool scripted_altitude_hold{false};
   bool upgraded{false};
@@ -42,8 +42,8 @@ struct player_flight {
   void advance_motion(flight_controls_input input, bool brake, uint16_t frame_step,
     resources::geometry_bank const &bank, city_map const &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
   void apply_city_contact(city_collision_result contact, uint16_t clock, resources::geometry_bank const &bank, city_map &cells);
-  city_collision_result advance(flight_controls_input input, bool brake, std::uint16_t frame_step,
-    std::uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
+  city_collision_result advance(flight_controls_input input, bool brake, uint16_t frame_step,
+    uint16_t clock, resources::geometry_bank const &bank, city_map &cells, tunnel_network const *network = nullptr, supply_control supply_input = {});
 };
 
 } // namespace darker::game

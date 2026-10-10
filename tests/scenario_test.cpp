@@ -15,7 +15,7 @@ std::vector<std::byte> presentation() {
   return result;
 }
 
-} // namespace
+} // anonymous namespace
 
 TEST_CASE("Scenario language and program ranges survive resource copies", "[resources][scenario]") {
   /// Copying the owner must not leave language views pointing into the old allocation
@@ -40,7 +40,7 @@ TEST_CASE("Scenario language and program ranges survive resource copies", "[reso
 TEST_CASE("Scenario reader rejects truncated records and inverted language ranges", "[resources][scenario]") {
   /// Bad length fields and entries must fail before a bytecode consumer receives their ranges
   auto const original{presentation()};
-  for(std::size_t size{1}; size < original.size(); ++size) {
+  for(size_t size{1}; size < original.size(); ++size) {
     auto bytes{original};
     bytes.resize(size);
     CHECK_THROWS_AS(darker::resources::scenario_resource{std::move(bytes)}, std::invalid_argument);
@@ -57,7 +57,7 @@ TEST_CASE("Campaign stages select consecutive archive records", "[resources][sce
   for(unsigned int stage{1}; stage <= 120; ++stage) {
     auto const selection{darker::resources::select_campaign_stage(static_cast<uint8_t>(stage))};
     CHECK(selection.resource.archive == 4);
-    CHECK(selection.resource.slot*8 + selection.record == stage - 1);
+    CHECK(selection.resource.slot * 8 + selection.record == stage - 1);
     CHECK(selection.record < 8);
   }
   CHECK_THROWS_AS(darker::resources::select_campaign_stage(0), std::out_of_range);

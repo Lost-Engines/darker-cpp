@@ -17,30 +17,30 @@
 namespace darker::graphics {
 
 struct city_draw_item {
-  std::uint16_t cell{0};
-  std::size_t model_offset{0};
+  uint16_t cell{0};
+  size_t model_offset{0};
   model_placement placement{};
   model_path path{model_path::direct};
   bool background{false};
   bool force_flat{false};
   bool distant_point{false};
   std::optional<camera_basis> orientation{};
-  std::uint8_t object_light{255};
+  uint8_t object_light{255};
   game::particle_emitter const *emitter{nullptr};
   uint8_t phase{0};
   uint16_t draw_record{0};
   uint8_t projection_residue{0};
 };
 
-std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, std::uint16_t index,
-  std::uint8_t damage_mask, camera_basis const &basis, camera_position camera);
+std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &bank, game::city_cell cell, uint16_t index,
+  uint8_t damage_mask, camera_basis const &basis, camera_position camera);
 void order_city_models(std::vector<city_draw_item> &items);
 
 struct scene_object {
-  std::size_t model_offset;
+  size_t model_offset;
   game::object_pose pose;
-  std::uint8_t light{255};
-  std::uint16_t native_id{0};
+  uint8_t light{255};
+  uint16_t native_id{0};
 };
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
@@ -48,19 +48,19 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
 std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex const &origin, int bottom, uint8_t residue = 0);
 
 struct city_view {
-  std::uint16_t column{0};                                                     // original 1/256-cell position words
-  std::uint16_t row{0};
-  std::uint8_t column_fraction{0};
-  std::uint8_t row_fraction{0};
-  std::int16_t altitude{0};
+  uint16_t column{0};                                                          // original 1/256-cell position words
+  uint16_t row{0};
+  uint8_t column_fraction{0};
+  uint8_t row_fraction{0};
+  int16_t altitude{0};
   camera_angles angles{};
   screen_vertex origin{160, 84};
-  unsigned int radius{15};                                                    // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
+  unsigned int radius{15};                                                     // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
   int bottom{168};
   bool beacon_lighting{true};
   bool gouraud{true};
   bool underground{false};
-  bool unrestricted_visibility{false}; // Debug cameras can leave the connected tunnel cells
+  bool unrestricted_visibility{false};                                         // debug cameras can leave the connected tunnel cells
 };
 
 bool within_object_window(city_view const &view, maths::world_position const &position) noexcept;
@@ -73,18 +73,18 @@ struct particle_scene {
 
 class city_renderer {
 private:
-  std::vector<std::uint16_t> candidates;
+  std::vector<uint16_t> candidates;
   std::vector<city_draw_item> items;
-  std::array<uint8_t,game::city_map_cell_count> tunnel_visibility{};
+  std::array<uint8_t, game::city_map_cell_count> tunnel_visibility{};
   model_colours retained_colours{};
 
 public:
-  std::size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
-    std::span<game::city_cell const, game::city_map_cell_count> cells, city_view view, std::uint8_t damage_mask,
+  size_t draw(framework::render::indexed_cockpit_framebuffer &target, resources::geometry_bank const &bank,
+    std::span<game::city_cell const, game::city_map_cell_count> cells, city_view view, uint8_t damage_mask,
     distance_shading const &lighting, model_animation animation, std::span<scene_object const> objects = {}, particle_scene const *particles = nullptr);
 };
 
-void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> cells, std::uint8_t column, std::uint8_t row,
-  camera_angles angles, unsigned int radius, std::vector<std::uint16_t> &output);
+void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> cells, uint8_t column, uint8_t row,
+  camera_angles angles, unsigned int radius, std::vector<uint16_t> &output);
 
 } // namespace darker::graphics

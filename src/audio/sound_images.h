@@ -20,8 +20,8 @@ private:
     bool active{false};
   };
   std::vector<std::byte> driver, sequence;
-  std::array<track,16> tracks{};
-  std::array<uint8_t,256> registers{};
+  std::array<track, 16> tracks{};
+  std::array<uint8_t, 256> registers{};
   uint32_t clock_fraction{0x10001}, increment{0};
   uint8_t division{0}, tempo{0};
   uint8_t read(size_t offset) const;

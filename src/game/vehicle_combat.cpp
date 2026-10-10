@@ -19,23 +19,23 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   auto const x{static_cast<uint16_t>(vehicle.pose.position.column - player.position.column)};
   auto const y{static_cast<uint16_t>(vehicle.pose.position.row - player.position.row)};
   auto const distance{static_cast<uint16_t>((x ^ ((x & 0x8000) ? 0xffff : 0)) + ((y & 0x8000) ? -y : y))};
-  if(distance >= (0x200 + difficulty)*4 || player.position.height >= static_cast<uint16_t>(distance*8)) return nullptr;
-  constexpr std::array<uint16_t,5> reflection{0xffff,0xffff,0,0,0xffff};
-  auto lateral{static_cast<uint16_t>(x ^ reflection.at(direction/2))};
-  auto longitudinal{static_cast<uint16_t>(y ^ reflection.at(direction/2+1))};
-  if(direction & 2) std::swap(lateral,longitudinal);
+  if(distance >= (0x200 + difficulty) * 4 || player.position.height >= static_cast<uint16_t>(distance * 8)) return nullptr;
+  std::array<uint16_t, 5> constexpr reflection{0xffff, 0xffff, 0, 0, 0xffff};
+  auto lateral{static_cast<uint16_t>(x ^ reflection.at(direction / 2))};
+  auto longitudinal{static_cast<uint16_t>(y ^ reflection.at(direction / 2 + 1))};
+  if(direction & 2) std::swap(lateral, longitudinal);
   if(std::bit_cast<int16_t>(longitudinal) <= 0) return nullptr;
-  auto const angle{static_cast<uint8_t>(maths::direction_index(lateral,longitudinal) >> 3)};
+  auto const angle{static_cast<uint8_t>(maths::direction_index(lateral, longitudinal) >> 3)};
   if(static_cast<uint8_t>(angle ^ ((angle & 128) ? 255 : 0)) >= 14) return nullptr;
-  constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
+  std::array<int, 4> constexpr columns{0, -1, 0, 1}, rows{-1, 0, 1, 0};
   auto column{static_cast<uint8_t>(vehicle.pose.position.column >> 8)}, row{static_cast<uint8_t>(vehicle.pose.position.row >> 8)};
   for(unsigned int cell{0}; cell < 2; ++cell) {
-    column = static_cast<uint8_t>(column - columns.at(direction/2));
-    row = static_cast<uint8_t>(row - rows.at(direction/2));
-    // Native TEST clears carry, so 9210 treats an off-map probe as unobstructed.
+    column = static_cast<uint8_t>(column - columns.at(direction / 2));
+    row = static_cast<uint8_t>(row - rows.at(direction / 2));
+    // native TEST clears carry, so 9210 treats an off-map probe as unobstructed
     if((column | row) & 128) continue;
-    auto const type{cells[row * city_map_size.column+column].type};
-    if(type && types[type-1].collision_marker != resources::city_type::background_marker) return nullptr;
+    auto const type{cells[row * city_map_size.column + column].type};
+    if(type && types[type - 1].collision_marker != resources::city_type::background_marker) return nullptr;
   }
   vehicle.behaviour.attack_control = static_cast<uint8_t>(~vehicle.behaviour.attack_control);
   vehicle.last_shot = clock;
@@ -53,7 +53,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     .emitter{emitter},
     .model_token{model},
     .clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
     .target_token{0xd986}
   });
 }

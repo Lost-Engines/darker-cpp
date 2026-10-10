@@ -6,10 +6,10 @@
 #include "reference/navigation_samples.h"
 
 TEST_CASE("Every compass phase matches original-code pixel captures") {
-  for(std::uint8_t phase{0}; phase < 136; ++phase) {
+  for(uint8_t phase{0}; phase < 136; ++phase) {
     auto const points{darker::graphics::compass_points(phase)};
     auto const &expected{darker::test_reference::compass[phase]};
-    for(std::size_t i{0}; i < points.size(); ++i) {
+    for(size_t i{0}; i < points.size(); ++i) {
       REQUIRE(points[i].x == expected[i].x);
       REQUIRE(points[i].y == expected[i].y);
     }
@@ -31,7 +31,7 @@ TEST_CASE("Normal radar projection matches all captured headings, clipping and g
   for(auto const &sample : darker::test_reference::radar) {
     auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
       {
-        .position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)},
+        .position{static_cast<uint16_t>((60 + sample.x) * 256), static_cast<uint16_t>((60 + sample.y) * 256)},
         .group{sample.group}
       })};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
@@ -68,14 +68,14 @@ TEST_CASE("Radar suppresses hidden and uncovered contacts and preserves draw ord
 
 TEST_CASE("Skimma masked callbacks match independently extracted sprite coverage") {
   framework::render::indexed_cockpit_framebuffer cache;
-  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>((i * 17 + 3) % 251);
   for(auto const &sample : darker::test_reference::skimma) {
     auto target{cache};
     darker::graphics::skimma_bitmap_state state;
     if(sample.bearing) state.bearing = sample.state;
     else state.weapons[sample.index] = sample.state;
     darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::upgraded_skimma, {}, state);
-    std::uint64_t checksum{14695981039346656037ULL};
+    uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
     REQUIRE(checksum == sample.checksum);
   }
@@ -85,10 +85,10 @@ TEST_CASE("Radar retains fractional positions and native word wrapping at world 
   struct sample {
     darker::graphics::world_position player;
     darker::graphics::world_position contact;
-    std::uint16_t heading;
+    uint16_t heading;
     std::optional<darker::graphics::radar_pixel> expected;
   };
-  // Native 5AC9/5AE9 captures, with 59A3 coverage supplied as true and DBC1 pixel writes intercepted.
+  // native 5AC9/5AE9 captures, with 59A3 coverage supplied as true and DBC1 pixel writes intercepted
   std::array<sample, 8> const samples{{
     {
       .player{15377, 15487},
@@ -155,11 +155,11 @@ TEST_CASE("Radar retains fractional positions and native word wrapping at world 
 
 TEST_CASE("Skimma weapon rings match all native placement and source-selection captures") {
   framework::render::indexed_cockpit_framebuffer cache;
-  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>((i * 17 + 3) % 251);
   for(auto const &sample : darker::test_reference::rings) {
     auto target{cache};
     darker::graphics::draw_skimma_weapon_ring(cache, target, darker::graphics::craft::upgraded_skimma, sample.weapon, sample.radius, sample.remaining);
-    std::uint64_t checksum{14695981039346656037ULL};
+    uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
     REQUIRE(checksum == sample.checksum);
   }
@@ -171,8 +171,8 @@ TEST_CASE("Enlarged radar disc and heading match all 256 captured native surroun
   for(unsigned int phase{0}; phase < 256; ++phase) {
     INFO("heading=" << phase * 256);
     framework::render::indexed_cockpit_framebuffer target{};
-    darker::graphics::draw_enlarged_radar_surround(target, static_cast<std::uint16_t>(phase * 256));
-    std::uint64_t checksum{14695981039346656037ULL};
+    darker::graphics::draw_enlarged_radar_surround(target, static_cast<uint16_t>(phase * 256));
+    uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
     REQUIRE(checksum == darker::test_reference::enlarged_surround_checksums[phase]);
   }
@@ -182,7 +182,7 @@ TEST_CASE("Enlarged contact scale, clipping and palette colours match native cap
   for(auto const &sample : darker::test_reference::enlarged_radar) {
     auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
       {
-        .position{static_cast<std::uint16_t>((60 + sample.x) * 256), static_cast<std::uint16_t>((60 + sample.y) * 256)},
+        .position{static_cast<uint16_t>((60 + sample.x) * 256), static_cast<uint16_t>((60 + sample.y) * 256)},
         .group{sample.group}
       }, darker::graphics::radar_scale::enlarged)};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
@@ -196,11 +196,11 @@ TEST_CASE("Enlarged contact scale, clipping and palette colours match native cap
 
 TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and alignment-specific backgrounds") {
   framework::render::indexed_cockpit_framebuffer cache;
-  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>((i * 17 + 3) % 251);
   for(auto const &sample : darker::test_reference::heights) {
     auto target{cache};
     darker::graphics::draw_navigation_contact(cache, target, {156 + sample.alignment, 81}, sample.height, sample.reference);
-    std::uint64_t checksum{14695981039346656037ULL};
+    uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;
     REQUIRE(checksum == sample.checksum);
   }
@@ -209,9 +209,9 @@ TEST_CASE("Height-coded navigation contacts preserve signed byte wrapping and al
 TEST_CASE("Underground radar shares the grey contact ramp for every actor group") {
   /// 5876 selects 5C04 instead of the 5BFE/5C01 coloured entries; only the base colour changes
   for(auto const &sample : darker::test_reference::radar) {
-    auto const actual{darker::graphics::project_radar_contact({60*256, 60*256},sample.heading,
+    auto const actual{darker::graphics::project_radar_contact({60 * 256, 60 * 256}, sample.heading,
       {
-        .position{static_cast<uint16_t>((60+sample.x)*256), static_cast<uint16_t>((60+sample.y)*256)},
+        .position{static_cast<uint16_t>((60 + sample.x) * 256), static_cast<uint16_t>((60 + sample.y) * 256)},
         .group{darker::graphics::radar_group::underground}
       })};
     REQUIRE(actual.has_value() == sample.pixel.has_value());
@@ -219,6 +219,6 @@ TEST_CASE("Underground radar shares the grey contact ramp for every actor group"
     CHECK(actual->position.x == sample.pixel->position.x);
     CHECK(actual->position.y == sample.pixel->position.y);
     auto const original_base{sample.group == darker::graphics::radar_group::a ? 249 : 242};
-    CHECK(actual->colour == sample.pixel->colour-original_base+22);
+    CHECK(actual->colour == sample.pixel->colour - original_base + 22);
   }
 }

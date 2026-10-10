@@ -8,8 +8,8 @@
 
 namespace {
 
-template<std::size_t Size>
-std::string decode(std::array<unsigned char, Size> const &input, std::size_t const limit = 8'000'000) {
+template<size_t Size>
+std::string decode(std::array<unsigned char, Size> const &input, size_t const limit = 8'000'000) {
   /// Convert small independently constructed test streams to printable output
   auto const output{darker::resources::decompress(std::as_bytes(std::span{input}), limit)};
   return {reinterpret_cast<char const*>(output.data()), output.size()};
@@ -39,7 +39,7 @@ TEST_CASE("Literal word runs are copied without executable XOR transformation") 
 TEST_CASE("Truncation, invalid distance and trailing bytes are rejected") {
   std::array<unsigned char, 6> const valid{'A', 'B', 0x00, 0xef, 0x00, 0x00};
   auto const bytes{std::as_bytes(std::span{valid})};
-  for(std::size_t size{0}; size != bytes.size(); ++size) {
+  for(size_t size{0}; size != bytes.size(); ++size) {
     REQUIRE_THROWS(darker::resources::decompress(bytes.first(size)));
   }
   std::array<unsigned char, 6> const invalid_distance{'A', 'B', 0x00, 0xef, 0x02, 0x00};
@@ -52,10 +52,10 @@ TEST_CASE("Supported resource directory is contiguous within each archive") {
   auto const directory{darker::resources::resource_directory()};
   REQUIRE(directory.size() == 164);
   std::array<unsigned int, 5> const counts{79, 10, 14, 45, 16};
-  std::array<std::size_t, 5> const sizes{1'195'478, 1'337'498, 1'453'028, 1'402'901, 134'178};
-  std::size_t entry_index{0};
+  std::array<size_t, 5> const sizes{1'195'478, 1'337'498, 1'453'028, 1'402'901, 134'178};
+  size_t entry_index{0};
   for(unsigned int archive{0}; archive != counts.size(); ++archive) {
-    std::size_t offset{0};
+    size_t offset{0};
     for(unsigned int slot{0}; slot != counts[archive]; ++slot) {
       auto const &entry{directory[entry_index++]};
       REQUIRE(entry.id.archive == archive);

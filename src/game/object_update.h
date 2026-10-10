@@ -4,8 +4,8 @@
 
 namespace darker::game {
 
-// Values retain the original callback addresses for comparison with native traces.
-enum class object_update : std::uint16_t {
+// values retain the original callback addresses for comparison with native traces
+enum class object_update : uint16_t {
   inactive = 0x0000,
   effect_only = 0x6ed3,
   supply_pad = 0x7e49,

@@ -4,7 +4,7 @@
 
 namespace darker::resources {
 
-enum class scenario_configuration : std::uint8_t {
+enum class scenario_configuration : uint8_t {
   delphi_skimma,
   delphi_caero,
   halon_skimma,
@@ -12,8 +12,8 @@ enum class scenario_configuration : std::uint8_t {
   underground_caero,
 };
 
-constexpr scenario_configuration decode_scenario_configuration(std::uint8_t packed) noexcept {
-  // The high nibble selects a tunnel map or scenario-specific setup, not the craft configuration.
+constexpr scenario_configuration decode_scenario_configuration(uint8_t packed) noexcept {
+  // the high nibble selects a tunnel map or scenario-specific setup, not the craft configuration
   return static_cast<scenario_configuration>(packed & 15);
 }
 

@@ -5,9 +5,9 @@
 #include <optional>
 #include <span>
 #include <vector>
+#include "vectorstorm/vector/vector3.h"
 #include "game/effect_sound.h"
 #include "maths/world_coordinates.h"
-#include "vectorstorm/vector/vector3.h"
 
 namespace darker::game {
 
@@ -50,8 +50,8 @@ particle_emitter make_damage_trail(maths::world_position position, uint8_t sever
 class effect_system {
 private:
   struct sound_slots {
-    std::array<uint8_t,16> free{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
-    std::array<uint16_t,16> generations{};
+    std::array<uint8_t, 16> free{15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+    std::array<uint16_t, 16> generations{};
     size_t count{16};
   };
   sound_slots effect_slots, gun_slots;
@@ -64,17 +64,17 @@ public:
   std::vector<effect_sound> gun_sounds;
 
   template<typename Predicate> void retire_sounds(Predicate const &expired) {
-    /// Native 1CD4 prepends retired records to the free list in newest-first traversal order.
+    /// Native 1CD4 prepends retired records to the free list in newest-first traversal order
     auto const retire{[&](auto &pool, auto &slots, uint32_t const first_identity){
       for(size_t i{pool.size()}; i != 0; --i) {
-        auto const index{i-1};
+        auto const index{i - 1};
         if(!expired(pool[index])) continue;
-        slots.free[slots.count++] = static_cast<uint8_t>(pool[index].identity-first_identity);
-        pool.erase(pool.begin()+static_cast<ptrdiff_t>(index));
+        slots.free[slots.count++] = static_cast<uint8_t>(pool[index].identity - first_identity);
+        pool.erase(pool.begin() + static_cast<ptrdiff_t>(index));
       }
     }};
-    retire(sounds,effect_slots,1);
-    retire(gun_sounds,gun_slots,17);
+    retire(sounds, effect_slots, 1);
+    retire(gun_sounds, gun_slots, 17);
   }
 
   void spark(maths::world_position position, uint8_t phase, uint16_t sound_level, uint16_t clock);

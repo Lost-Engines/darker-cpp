@@ -6,19 +6,21 @@
 namespace darker::graphics {
 namespace {
 
-void put_pixel(framework::render::indexed_cockpit_framebuffer &target, int const x, int const y, std::uint8_t const colour) {
+void put_pixel(framework::render::indexed_cockpit_framebuffer &target, int const x, int const y, uint8_t const colour) {
   /// The line endpoint may lie on the excluded bottom boundary
   if(x >= 0 && x < 320 && y >= 0 && y < 240) target.pixels[y * 320 + x] = colour;
 }
 
-} // namespace
+} // anonymous namespace
 
 void draw_screen_line(framework::render::indexed_cockpit_framebuffer &target,
-  pixel_position const &start, pixel_position const &end, std::uint8_t const colour) {
+  pixel_position const &start, pixel_position const &end, uint8_t const colour) {
   /// A77B draws clipped endpoints with its original half-open vertical coverage
   auto first{start};
   auto last{end};
-  auto const inside{[](pixel_position const &point){ return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y <= 240; }};
+  auto const inside{[](pixel_position const &point){
+    return point.x >= 0 && point.x < 320 && point.y >= 0 && point.y <= 240;
+  }};
   if(!inside(first) || !inside(last)) throw std::invalid_argument{"Line endpoints exceed the display boundary"};
   if(first.x >= last.x) std::swap(first, last);
   auto const delta{last - first};
@@ -97,7 +99,7 @@ bool clip_world_line(pixel_position &first, pixel_position &last, int const bott
 }
 
 void draw_world_line(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &start, pixel_position const &end,
-  std::uint8_t const colour, int const bottom) {
+  uint8_t const colour, int const bottom) {
   /// Share the original line rasteriser with the HUD after the model line's viewport clipping
   auto first{start};
   auto last{end};
@@ -105,7 +107,7 @@ void draw_world_line(framework::render::indexed_cockpit_framebuffer &target, pix
 }
 
 void draw_disc(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &centre, unsigned int radius,
-  std::uint8_t const colour, int const bottom) {
+  uint8_t const colour, int const bottom) {
   /// A5C4 constructs mirrored spans through overlapping front/back writes; preserve its small-radius asymmetry
   if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Disc viewport exceeds the framebuffer"};
   radius = std::min(radius, 256u);
@@ -115,7 +117,10 @@ void draw_disc(framework::render::indexed_cockpit_framebuffer &target, pixel_pos
   }
   int const extent{static_cast<int>(radius)};
   if(centre.x + extent < 0 || centre.x - extent > 319 || centre.y - extent >= bottom || centre.y + extent < 0) return;
-  struct span { int left{0}; int right{0}; };
+  struct span {
+    int left{0};
+    int right{0};
+  };
   std::array<span, 1026> spans{};
   int constexpr middle{1024};
   int stack{middle - extent};

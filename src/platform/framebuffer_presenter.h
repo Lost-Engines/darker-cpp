@@ -19,8 +19,8 @@ public:
   ~framebuffer_presenter();
   framebuffer_presenter(framebuffer_presenter const&) = delete;
   framebuffer_presenter &operator=(framebuffer_presenter const&) = delete;
-  framebuffer_presenter(framebuffer_presenter&&) = delete;
-  framebuffer_presenter &operator=(framebuffer_presenter&&) = delete;
+  framebuffer_presenter(framebuffer_presenter &&) = delete;
+  framebuffer_presenter &operator=(framebuffer_presenter &&) = delete;
   void present(std::span<render::rgba_pixel const> pixels, int width, int height);
 
   template<unsigned int rows>

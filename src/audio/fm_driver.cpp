@@ -6,23 +6,23 @@
 namespace darker::audio {
 namespace {
 
-std::array<std::uint8_t, 9> constexpr operators{0, 1, 2, 8, 9, 10, 16, 17, 18};
+std::array<uint8_t, 9> constexpr operators{0, 1, 2, 8, 9, 10, 16, 17, 18};
 
-} // namespace
+} // anonymous namespace
 
-fm_program fm_driver::stop(std::uint8_t const channel) {
+fm_program fm_driver::stop(uint8_t const channel) {
   /// 0F0A silences the carrier and releases the key unless that release is already cached
   if(channel >= voices.size()) throw std::out_of_range{"FM channel exceeds nine voices"};
   if(voices[channel].block == 31) return {};
   voices[channel].block = 31;
   return {
-    .writes{{{static_cast<std::uint8_t>(0x43 + operators[channel]), 63}, {static_cast<std::uint8_t>(0xb0 + channel), 31}}},
+    .writes{{{static_cast<uint8_t>(0x43 + operators[channel]), 63}, {static_cast<uint8_t>(0xb0 + channel), 31}}},
     .count{2}
   };
 }
 
-fm_program fm_driver::program(std::uint8_t const channel, std::uint8_t const patch, std::uint16_t pitch,
-  std::uint16_t const level, bool const key_on, bool const retrigger) {
+fm_program fm_driver::program(uint8_t const channel, uint8_t const patch, uint16_t pitch,
+  uint16_t const level, bool const key_on, bool const retrigger) {
   /// 1121/10F4/39A9 program the original nonspatial OPL voice, retaining patch and block caches
   if(channel >= voices.size() || patch >= fm_patches.size()) throw std::out_of_range{"FM voice or patch index exceeds the original bank"};
   auto &voice{voices[channel]};
@@ -31,8 +31,8 @@ fm_program fm_driver::program(std::uint8_t const channel, std::uint8_t const pat
   fm_program result;
   auto const write{[&](int const address, int const value){
     result.writes[result.count++] = {
-      .address{static_cast<std::uint8_t>(address)},
-      .value{static_cast<std::uint8_t>(value)}
+      .address{static_cast<uint8_t>(address)},
+      .value{static_cast<uint8_t>(value)}
     };
   }};
   if(voice.patch != patch) {
@@ -52,12 +52,12 @@ fm_program fm_driver::program(std::uint8_t const channel, std::uint8_t const pat
     auto const release{stop(channel)};
     for(auto const command : release.view()) write(command.address, command.value);
   }
-  auto block{static_cast<std::uint8_t>((key_on ? 32 : 0) + ((p[0] & 192) >> 4) - 4)};
+  auto block{static_cast<uint8_t>((key_on ? 32 : 0) + ((p[0] & 192) >> 4) - 4)};
   while(pitch >= 768) {
     pitch >>= 1;
-    block = static_cast<std::uint8_t>(block + 4);
+    block = static_cast<uint8_t>(block + 4);
   }
-  block = static_cast<std::uint8_t>(block + (pitch >> 8));
+  block = static_cast<uint8_t>(block + (pitch >> 8));
   write(0xa0 + channel, pitch & 255);
   if(voice.block != block) {
     voice.block = block;

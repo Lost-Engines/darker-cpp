@@ -11,21 +11,21 @@ framework::render::indexed_cockpit_framebuffer digit_cache() {
   framework::render::indexed_cockpit_framebuffer cache;
   cache.pixels.fill(42);
   for(unsigned int digit{0}; digit < 10; ++digit) {
-    for(unsigned int row{0}; row < 5; ++row) std::fill_n(cache.pixels.begin() + (8 + digit * 5 + row) * 320 + 308, 4, static_cast<std::uint8_t>(digit));
+    for(unsigned int row{0}; row < 5; ++row) std::fill_n(cache.pixels.begin() + (8 + digit * 5 + row) * 320 + 308, 4, static_cast<uint8_t>(digit));
   }
   return cache;
 }
 
-} // namespace
+} // anonymous namespace
 
 TEST_CASE("Grid coordinate glyphs match native signed-byte and divide-by-nine boundaries") {
   auto const cache{digit_cache()};
   struct sample {
-    std::uint8_t encoded;
-    std::uint8_t tens;
-    std::uint8_t units;
+    uint8_t encoded;
+    uint8_t tens;
+    uint8_t units;
   };
-  // Captured from native 5429/5455; signed high-bit inputs take the same restoration path as zero.
+  // captured from native 5429/5455; signed high-bit inputs take the same restoration path as zero
   std::array<sample, 10> const samples{{
     {
       .encoded{0},
@@ -95,13 +95,13 @@ TEST_CASE("Weapon icons enforce slot roles, preserve backgrounds and restore emp
   framework::render::indexed_cockpit_framebuffer cache;
   cache.pixels.fill(42);
   for(unsigned int selection{1}; selection <= 10; ++selection) {
-    for(unsigned int row{8}; row < 20; ++row) std::fill_n(cache.pixels.begin() + row * 320 + 140 + selection * 8, 8, static_cast<std::uint8_t>(selection));
+    for(unsigned int row{8}; row < 20; ++row) std::fill_n(cache.pixels.begin() + row * 320 + 140 + selection * 8, 8, static_cast<uint8_t>(selection));
   }
   using darker::graphics::weapon_icon_slot;
   for(auto const slot : {weapon_icon_slot::primary, weapon_icon_slot::secondary}) {
     bool const primary{slot == weapon_icon_slot::primary};
     unsigned int const x{primary ? 260u : 268u};
-    for(std::uint8_t selection{1}; selection <= 10; ++selection) {
+    for(uint8_t selection{1}; selection <= 10; ++selection) {
       auto target{cache};
       target.pixels.fill(99);
       bool const primary_selection{selection == 1 || selection == 2 || selection == 3 || selection == 7};
@@ -143,9 +143,9 @@ TEST_CASE("Caero callbacks dispatch changed fields with row on the left and colu
 
 TEST_CASE("Skimma bearing changes restore previous pixels and ordinary craft reject a third weapon") {
   framework::render::indexed_cockpit_framebuffer cache;
-  for(std::size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<std::uint8_t>((i * 17 + 3) % 251);
-  for(std::uint8_t first{1}; first <= 7; ++first) {
-    for(std::uint8_t second{1}; second <= 7; ++second) {
+  for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>((i * 17 + 3) % 251);
+  for(uint8_t first{1}; first <= 7; ++first) {
+    for(uint8_t second{1}; second <= 7; ++second) {
       auto target{cache};
       auto fresh{cache};
       darker::graphics::skimma_bitmap_state const old_state{
@@ -172,11 +172,11 @@ TEST_CASE("Large coordinate font uses blank glyphs for unavailable coordinates")
   framework::render::indexed_cockpit_framebuffer cache;
   cache.pixels.fill(42);
   for(unsigned int digit{0}; digit < 12; ++digit) {
-    for(unsigned int row{0}; row < 7; ++row) std::fill_n(cache.pixels.begin() + (8 + digit * 7 + row) * 320 + 312, 8, static_cast<std::uint8_t>(digit));
+    for(unsigned int row{0}; row < 7; ++row) std::fill_n(cache.pixels.begin() + (8 + digit * 7 + row) * 320 + 312, 8, static_cast<uint8_t>(digit));
   }
   for(auto const encoded : {0, 1, 82, 127, 128, 255}) {
     auto target{cache};
-    darker::graphics::draw_grid_coordinate(cache, target, {56, 41}, static_cast<std::uint8_t>(encoded), darker::graphics::coordinate_font::large);
+    darker::graphics::draw_grid_coordinate(cache, target, {56, 41}, static_cast<uint8_t>(encoded), darker::graphics::coordinate_font::large);
     auto const tens{target.pixels[41 * 320 + 56]};
     auto const units{target.pixels[47 * 320 + 71]};
     if(encoded == 0 || encoded >= 128) {

@@ -8,13 +8,13 @@ namespace {
 
 constexpr auto beacon_lookup() {
   /// Reproduce 0396's wrapping nine-cell lookup, including the out-of-map sentinel region
-  std::array<std::uint8_t, 256> result{};
-  std::uint8_t constexpr sentinel_cell{0xbd};
-  std::uint8_t constexpr initial_cell{0xb8};
-  std::uint8_t index{sentinel_cell};
-  std::uint8_t value{initial_cell};
+  std::array<uint8_t, 256> result{};
+  uint8_t constexpr sentinel_cell{0xbd};
+  uint8_t constexpr initial_cell{0xb8};
+  uint8_t index{sentinel_cell};
+  uint8_t value{initial_cell};
   do {
-    value = static_cast<std::uint8_t>(value + beacon_spacing_cells);
+    value = static_cast<uint8_t>(value + beacon_spacing_cells);
     for(int count{0}; count < beacon_spacing_cells; ++count) result[index++] = value;
   } while(value != sentinel_cell);
   return result;
@@ -22,16 +22,16 @@ constexpr auto beacon_lookup() {
 
 auto constexpr lookup{beacon_lookup()};
 
-std::int16_t signed_word(int const value) {
+int16_t signed_word(int const value) {
   /// Wrap before interpreting the original signed coordinate products
-  return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(value));
+  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
-} // namespace
+} // anonymous namespace
 
 std::array<uint8_t, 2> beacon_grid_cell(maths::map_position const position) noexcept {
   /// Share the original nine-cell lookup with charging, coordinates and tower radar sampling
-  return {lookup[position.column >> 8],lookup[position.row >> 8]};
+  return {lookup[position.column >> 8], lookup[position.row >> 8]};
 }
 
 std::array<uint8_t, 2> beacon_grid_coordinates(maths::map_position const position) noexcept {
@@ -42,7 +42,7 @@ std::array<uint8_t, 2> beacon_grid_coordinates(maths::map_position const positio
   return {static_cast<uint8_t>(column + 1), static_cast<uint8_t>(row + 1)};
 }
 
-std::uint16_t beacon_light(std::span<city_cell const, city_map_cell_count> const cells,
+uint16_t beacon_light(std::span<city_cell const, city_map_cell_count> const cells,
   maths::world_position const position, maths::map_fractions const fractions) {
   /// 8450 samples one lattice cell of type 1, then applies its mutable strength to fixed-point distance attenuation
   int constexpr maximum_lit_height{0x2d60};
@@ -65,15 +65,15 @@ std::uint16_t beacon_light(std::span<city_cell const, city_map_cell_count> const
   auto const dx{signed_word((position.column - x * 256) * horizontal_distance_scale + (fractions.column >> 4) - scaled_cell_centre)};
   auto const dy{signed_word((position.row - y * 256) * horizontal_distance_scale + (fractions.row >> 4) - scaled_cell_centre)};
   auto const dz{signed_word(position.height * vertical_distance_scale - scaled_beacon_height)};
-  auto const squared{static_cast<std::uint32_t>(dx * dx) + static_cast<std::uint32_t>(dy * dy) + static_cast<std::uint32_t>(dz * dz)};
-  auto denominator{static_cast<std::uint16_t>(squared >> squared_distance_shift)};
+  auto const squared{static_cast<uint32_t>(dx * dx) + static_cast<uint32_t>(dy * dy) + static_cast<uint32_t>(dz * dz)};
+  auto denominator{static_cast<uint16_t>(squared >> squared_distance_shift)};
   if(denominator < minimum_distance_denominator) denominator = minimum_distance_denominator;
-  denominator = static_cast<std::uint16_t>(denominator + distance_denominator_bias);
+  denominator = static_cast<uint16_t>(denominator + distance_denominator_bias);
   auto const numerator{cell.state * light_strength_multiplier};
   if(denominator == 0 || numerator / denominator > maximum_light_result) {
     throw std::domain_error{"Beacon distance produces an original 16-bit division fault"};
   }
-  return static_cast<std::uint16_t>(numerator / denominator);
+  return static_cast<uint16_t>(numerator / denominator);
 }
 
 } // namespace darker::game

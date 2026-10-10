@@ -27,7 +27,7 @@ std::vector<std::byte> font_bytes() {
   return bytes;
 }
 
-} // namespace
+} // anonymous namespace
 
 TEST_CASE("Aircraft warning glyphs use native brightness and strongest-left ordering", "[graphics][font]") {
   auto bytes{font_bytes()};
@@ -38,13 +38,13 @@ TEST_CASE("Aircraft warning glyphs use native brightness and strongest-left orde
   unsigned int constexpr source{15800};
   bytes[table + index * 2] = static_cast<std::byte>((source - table) & 255);
   bytes[table + index * 2 + 1] = static_cast<std::byte>((source - table) >> 8);
-  bytes[source] = std::byte{0x23}; // Edge then ink; remaining pixels untouched
+  bytes[source] = std::byte{0x23};                                              // edge then ink; remaining pixels untouched
   darker::resources::font_resource const font{std::move(bytes)};
   for(auto const &sample : darker::test_reference::threat_samples) {
     framework::render::indexed_cockpit_framebuffer frame;
     frame.pixels.fill(42);
-    darker::graphics::draw_aircraft_threats(frame,font,sample.after);
-    for(std::size_t i{0}; i < 4; ++i) {
+    darker::graphics::draw_aircraft_threats(frame, font, sample.after);
+    for(size_t i{0}; i < 4; ++i) {
       auto const offset{180 * 320 + 232 - i * 8};
       auto const level{sample.levels[i]};
       CHECK(frame.pixels[offset] == (level == 0 ? 42 : level == 1 ? 0 : level + 223));
@@ -57,13 +57,13 @@ TEST_CASE("Aircraft warning glyphs use native brightness and strongest-left orde
 TEST_CASE("Font drawing preserves transparency and clips at framebuffer edges", "[graphics][font]") {
   /// Negative positions retain their source phase while only visible coverage reaches the target
   darker::resources::font_resource const font{font_bytes()};
-  for(std::int16_t const x : std::array<std::int16_t, 9>{-2, -1, 0, 1, 2, 3, 318, 319, 320}) {
+  for(int16_t const x : std::array<int16_t, 9>{-2, -1, 0, 1, 2, 3, 318, 319, 320}) {
     framework::render::indexed_cockpit_framebuffer frame;
     frame.pixels.fill(7);
     CHECK(darker::graphics::draw_glyph(frame, font, darker::resources::font_face::interface, 'A', {x, 239}, {
       .ink{9},
       .edge{4}
-    }) == static_cast<std::uint16_t>(x + 3));
+    }) == static_cast<uint16_t>(x + 3));
     for(int column{0}; column < 320; ++column) {
       CHECK(frame.pixels[239 * 320 + column] == (column == x ? 4 : column == x + 1 ? 9 : 7));
     }

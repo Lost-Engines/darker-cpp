@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #ifdef _WIN32
 #include <GL/glext.h>
-#endif
+#endif // _WIN32
 #include "render/framebuffer.h"
 
 namespace framework::platform {
@@ -38,7 +38,7 @@ framebuffer_presenter::~framebuffer_presenter() {
 
 void framebuffer_presenter::present(std::span<render::rgba_pixel const> const pixels, int const source_width, int const source_height) {
   /// Upload CPU pixels and draw a nearest-filtered quad inside a letterboxed viewport
-  if(source_width <= 0 || source_height <= 0 || pixels.size() != static_cast<std::size_t>(source_width) * static_cast<std::size_t>(source_height)) {
+  if(source_width <= 0 || source_height <= 0 || pixels.size() != static_cast<size_t>(source_width) * static_cast<size_t>(source_height)) {
     throw std::invalid_argument{"invalid presentation surface dimensions"};
   }
   int width{0};

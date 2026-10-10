@@ -11,20 +11,20 @@
 namespace darker::game {
 
 struct mission_script {
-  std::size_t continuation{0};
-  std::size_t checkpoint{0};
-  std::uint16_t checkpoint_clock{0};
-  std::uint16_t deadline{0};
+  size_t continuation{0};
+  size_t checkpoint{0};
+  uint16_t checkpoint_clock{0};
+  uint16_t deadline{0};
   bool stopped{false};
 };
 
 enum class message_alignment { centre, left, right };
 
 struct mission_message {
-  std::size_t offset{0};
-  std::uint8_t length{0};
-  std::uint8_t width{0};
-  std::uint16_t expiry{0};
+  size_t offset{0};
+  uint8_t length{0};
+  uint8_t width{0};
+  uint16_t expiry{0};
   message_alignment alignment{message_alignment::centre};
   std::span<std::byte const> text{};
 };
@@ -32,10 +32,10 @@ struct mission_message {
 struct mission_context {
   std::span<std::byte const> program{};
   std::span<std::byte const> text{};
-  std::span<std::uint8_t const> object_flags{};
+  std::span<uint8_t const> object_flags{};
   std::span<city_cell const> cells{};
-  std::uint32_t clock{0};
-  std::uint8_t time_multiplier{50};
+  uint32_t clock{0};
+  uint8_t time_multiplier{50};
   bool objectives_complete{false};
   bool at_target_cell{false};
   bool suppress_messages{false};
@@ -43,22 +43,22 @@ struct mission_context {
   std::function<void(uint8_t)> reset_score{};
   std::function<void(std::optional<uint16_t>)> set_altitude{};
   bool scripted_altitude_hold{false};
-  std::uint8_t object_counter{0};
-  std::uint8_t counter{0};
-  std::uint8_t animation_parameter{0};
-  std::size_t text_cursor{0};
+  uint8_t object_counter{0};
+  uint8_t counter{0};
+  uint8_t animation_parameter{0};
+  size_t text_cursor{0};
   std::vector<mission_message> messages{};
-  // The world admits reserves and returns the new objective-completion condition before script execution resumes.
-  std::function<bool(uint8_t,uint8_t)> activate_reserves{};
-  std::function<void(uint8_t,uint8_t,uint8_t)> change_beacons{};
+  // the world admits reserves and returns the new objective-completion condition before script execution resumes
+  std::function<bool(uint8_t, uint8_t)> activate_reserves{};
+  std::function<void(uint8_t, uint8_t, uint8_t)> change_beacons{};
   uint16_t current_cell{0};
-  std::function<void(uint16_t,bool)> set_target{};
+  std::function<void(uint16_t, bool)> set_target{};
   std::function<void(uint8_t)> select_weapon{};
   std::function<void(uint8_t)> set_building_attacks{};
   std::function<bool()> retire_distant_actor{};
   std::function<void(uint8_t)> set_aircraft_spawning{};
   std::function<uint16_t()> register_owner{};
-  std::function<void(mission_script &)> exchange_context{};
+  std::function<void(mission_script&)> exchange_context{};
   std::function<bool(uint8_t)> adjust_objectives{};
   std::function<size_t(std::span<std::byte const>)> replace_world_objectives{};
   std::function<void(uint8_t)> set_tunnel_oscillation{};
@@ -72,6 +72,6 @@ struct mission_context {
   std::function<size_t(std::span<std::byte const>)> mark_aircraft_sites{};
 };
 
-std::size_t advance_mission_script(mission_script &script, mission_context &context);
+size_t advance_mission_script(mission_script &script, mission_context &context);
 
 } // namespace darker::game

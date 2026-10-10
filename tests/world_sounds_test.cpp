@@ -1,23 +1,23 @@
-#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
-#include "reference/sound_pool_samples.h"
 #include <catch2/generators/catch_generators.hpp>
+#include <algorithm>
 #include <cmath>
 #include "audio/flight_sounds.h"
 #include "audio/world_sounds.h"
 #include "game/object_definitions.h"
+#include "maths/world_coordinates.h"
 #include "reference/object_sound_samples.h"
+#include "reference/sound_pool_samples.h"
 #include "reference/stereo_samples.h"
 #include "reference/voice_allocation_samples.h"
 #include "reference/world_sound_samples.h"
-#include "maths/world_coordinates.h"
 
 TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]") {
   /// Check wrapping positions, rejected distances and the original directional speed factors
   for(auto const &v : darker::test_reference::sound_admission) {
     CAPTURE(v);
-    auto const level{darker::audio::audible_level({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},
-      {static_cast<uint16_t>(v[3]),static_cast<uint16_t>(v[4]),static_cast<uint16_t>(v[5])}, static_cast<uint16_t>(v[6]), static_cast<uint8_t>(v[7]))};
+    auto const level{darker::audio::audible_level({static_cast<uint16_t>(v[0]), static_cast<uint16_t>(v[1]), static_cast<uint16_t>(v[2])},
+      {static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4]), static_cast<uint16_t>(v[5])}, static_cast<uint16_t>(v[6]), static_cast<uint8_t>(v[7]))};
     CHECK((level ? static_cast<int>(*level) : -1) == v[8]);
   }
   for(auto const &v : darker::test_reference::sound_velocity) {
@@ -50,7 +50,7 @@ TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]"
       },
       .speed{static_cast<uint16_t>(v[9])}
     };
-    CHECK(darker::audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
+    CHECK(darker::audio::spatial_pitch(static_cast<uint16_t>(v[3]), {static_cast<uint16_t>(v[0]), static_cast<uint16_t>(v[1]), static_cast<uint16_t>(v[2])}, listener, v[10] ? &source : nullptr) == v[11]);
   }
 }
 
@@ -58,7 +58,7 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
   /// Hit/miss classification changes both sprite lifetime and sound level, retaining an independent sound deadline
   for(auto const &v : darker::test_reference::gun_effects) {
     darker::game::effect_system effects;
-    effects.gun_impact({1234,5678,2400}, v[0] != 0, 65000);
+    effects.gun_impact({1234, 5678, 2400}, v[0] != 0, 65000);
     REQUIRE(effects.trails.size() == 1);
     REQUIRE(effects.gun_sounds.size() == 1);
     CHECK(effects.trails[0].flags == v[1]);
@@ -81,7 +81,7 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
 TEST_CASE("World voices retain channels and retrigger replacement sources", "[audio]") {
   /// A recipe's layers coexist with player sound; motion does not restart an already assigned note
   darker::game::mission_combat combat{{}};
-  combat.effects.spawn(0x7319,{0,0,0},0);
+  combat.effects.spawn(0x7319, {0, 0, 0}, 0);
   darker::audio::world_sounds mixer;
   darker::audio::fm_frame player{};
   player[0] = {
@@ -90,8 +90,8 @@ TEST_CASE("World voices retain channels and retrigger replacement sources", "[au
     .patch{7},
     .active{true}
   };
-  auto const first{mixer.mix(player,combat,{})};
-  auto const second{mixer.mix(player,combat,{})};
+  auto const first{mixer.mix(player, combat, {})};
+  auto const second{mixer.mix(player, combat, {})};
   unsigned int active{0};
   for(size_t i{0}; i < first.size(); ++i) {
     CHECK(first[i].generation == second[i].generation);
@@ -99,10 +99,12 @@ TEST_CASE("World voices retain channels and retrigger replacement sources", "[au
     if(first[i].active) ++active;
   }
   CHECK(active == combat.effects.sounds.size() + 1);
-  combat.effects.advance(5000,8);
-  auto const expired{mixer.mix(player,combat,{})};
+  combat.effects.advance(5000, 8);
+  auto const expired{mixer.mix(player, combat, {})};
   active = 0;
-  for(auto const &voice : expired) if(voice.active) ++active;
+  for(auto const &voice : expired) {
+    if(voice.active) ++active;
+  }
   CHECK(active == 1);
 }
 
@@ -115,14 +117,18 @@ TEST_CASE("Combat recipes produce finite PCM and release expired voices", "[audi
   float peak{0};
   bool heard{false};
   for(uint16_t clock{0}; clock < 3000; clock += 8) {
-    if(clock == 0 || clock == 128) combat.effects.spawn(0x7319, {0,0,0}, clock);
-    if(clock == 256) combat.effects.gun_impact({0,0,0}, true, clock);
+    if(clock == 0 || clock == 128) combat.effects.spawn(0x7319, {0, 0, 0}, clock);
+    if(clock == 256) combat.effects.gun_impact({0, 0, 0}, true, clock);
     combat.effects.advance(clock, 8);
     auto const voices{mixer.mix({}, combat, {})};
-    if(clock >= 2000) for(auto const &voice : voices) CHECK_FALSE(voice.active);
+    if(clock >= 2000) {
+      for(auto const &voice : voices) CHECK_FALSE(voice.active);
+    }
     REQUIRE(stream.publish(voices));
     stream.render(pcm);
-    REQUIRE(std::ranges::all_of(pcm, [](float const sample){ return std::isfinite(sample); }));
+    REQUIRE(std::ranges::all_of(pcm, [](float const sample){
+      return std::isfinite(sample);
+    }));
     for(auto const sample : pcm) {
       peak = std::max(peak, std::abs(sample));
       heard |= sample != 0;
@@ -145,14 +151,14 @@ TEST_CASE("Object sound callbacks match native engines, lifetime pitch and fadin
       },
       .speed{static_cast<uint16_t>(v[2])}
     };
-    auto const note{darker::audio::object_sound(darker::game::original_object_definitions[v[0]],pose,
+    auto const note{darker::audio::object_sound(darker::game::original_object_definitions[v[0]], pose,
       {
         .identity{static_cast<uint16_t>(v[1])},
         .flags{static_cast<uint8_t>(v[5])},
         .damage{static_cast<uint16_t>(v[6])},
         .fade{static_cast<uint8_t>(v[7])},
         .deadline{static_cast<uint16_t>(v[8])}
-      },static_cast<uint16_t>(v[4]))};
+      }, static_cast<uint16_t>(v[4]))};
     CHECK(note.pitch == v[9]);
     CHECK(note.level == v[10]);
     CHECK(note.active == (v[11] != 0));
@@ -169,24 +175,32 @@ TEST_CASE("Aircraft engines follow source admission without restarting moving vo
   };
   darker::game::mission_combat combat{{actor}};
   darker::audio::world_sounds mixer;
-  auto const first{mixer.mix({},combat,{},0)};
-  REQUIRE(std::ranges::count_if(first, [](auto const &note){ return note.active; }) == 1);
-  auto const voice{std::ranges::find_if(first, [](auto const &note){ return note.active; })};
-  auto const channel{static_cast<size_t>(voice-first.begin())};
+  auto const first{mixer.mix({}, combat, {}, 0)};
+  REQUIRE(std::ranges::count_if(first, [](auto const &note){
+    return note.active;
+  }) == 1);
+  auto const voice{std::ranges::find_if(first, [](auto const &note){
+    return note.active;
+  })};
+  auto const channel{static_cast<size_t>(voice - first.begin())};
   combat.actors.front().pose.position.column = 128;
-  auto const moving{mixer.mix({},combat,{},8)};
+  auto const moving{mixer.mix({}, combat, {}, 8)};
   CHECK(moving[channel].active);
   CHECK(moving[channel].generation == voice->generation);
   CHECK(moving[channel].level < voice->level);
-  for(auto const flag : {8,32}) {
+  for(auto const flag : {8, 32}) {
     combat.actors.front().flags = static_cast<uint8_t>(flag);
-    auto const silent{mixer.mix({},combat,{},16)};
-    CHECK(std::ranges::none_of(silent, [](auto const &note){ return note.active; }));
+    auto const silent{mixer.mix({}, combat, {}, 16)};
+    CHECK(std::ranges::none_of(silent, [](auto const &note){
+      return note.active;
+    }));
   }
   combat.actors.front().flags = 0;
   combat.actors.front().pose.position.column = 8192;
-  auto const distant{mixer.mix({},combat,{},24)};
-  CHECK(std::ranges::none_of(distant, [](auto const &note){ return note.active; }));
+  auto const distant{mixer.mix({}, combat, {}, 24)};
+  CHECK(std::ranges::none_of(distant, [](auto const &note){
+    return note.active;
+  }));
 }
 
 TEST_CASE("Physical sound channels match consecutive native allocation frames", "[audio]") {
@@ -194,16 +208,16 @@ TEST_CASE("Physical sound channels match consecutive native allocation frames", 
   darker::audio::voice_allocation allocator;
   for(auto const &sample : darker::test_reference::voice_allocation) {
     std::vector<darker::audio::sound_candidate> candidates;
-    for(size_t i{0}; i < sample[0]; ++i) candidates.push_back({sample[1+i*2],
+    for(size_t i{0}; i < sample[0]; ++i) candidates.push_back({sample[1 + i * 2],
       {
         .pitch{400},
-        .level{static_cast<uint16_t>(sample[2+i*2])},
+        .level{static_cast<uint16_t>(sample[2 + i * 2])},
         .active{true}
       }});
     auto const frame{allocator.allocate(candidates)};
     for(size_t i{0}; i < frame.size(); ++i) {
-      CHECK(allocator.identities()[i] == sample[49+i]);
-      CHECK(frame[i].active == (sample[49+i] != 0));
+      CHECK(allocator.identities()[i] == sample[49 + i]);
+      CHECK(frame[i].active == (sample[49 + i] != 0));
     }
   }
 }
@@ -211,9 +225,9 @@ TEST_CASE("Physical sound channels match consecutive native allocation frames", 
 TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audio]") {
   /// Native 363C requires an already submitted explosion to retain its physical voice
   darker::game::mission_combat combat{{}};
-  combat.effects.spawn(0x7319,{0,0,0},0);
+  combat.effects.spawn(0x7319, {0, 0, 0}, 0);
   darker::audio::world_sounds mixer;
-  std::array<darker::game::effect_sound,9> louder{};
+  std::array<darker::game::effect_sound, 9> louder{};
   for(size_t i{0}; i < louder.size(); ++i) louder[i] = {
     .definition{
       .duration{0},
@@ -222,25 +236,27 @@ TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audi
       .patch{0},
       .flags{2}
     },
-    .identity{static_cast<uint32_t>(i*65536+1)}
+    .identity{static_cast<uint32_t>(i * 65536 + 1)}
   };
-  mixer.mix({},combat,{},0,louder);
+  mixer.mix({}, combat, {}, 0, louder);
   REQUIRE_FALSE(combat.effects.sounds.empty());
-  auto const frame{mixer.mix({},combat,{})};
+  auto const frame{mixer.mix({}, combat, {})};
   CHECK(combat.effects.sounds.empty());
-  CHECK(std::ranges::none_of(frame,[](auto const &note){ return note.active; }));
+  CHECK(std::ranges::none_of(frame, [](auto const &note){
+    return note.active;
+  }));
 }
 
 TEST_CASE("A repeated fixed sound retriggers without changing physical ownership", "[audio]") {
   /// Fixed record identity survives a new note onset even when free-list order has changed
   darker::audio::voice_allocation allocator;
-  std::array<darker::audio::sound_candidate,2> sources{{
-    {1,{
+  std::array<darker::audio::sound_candidate, 2> sources{{
+    {1, {
       .pitch{400},
       .level{300},
       .active{true}
     }},
-    {2,{
+    {2, {
       .pitch{600},
       .level{100},
       .active{true}
@@ -251,8 +267,11 @@ TEST_CASE("A repeated fixed sound retriggers without changing physical ownership
   ++sources[0].note.generation;
   auto const repeated{allocator.allocate(sources)};
   CHECK(allocator.identities() == owners);
-  for(size_t i{0}; i < first.size(); ++i) if(first[i].active)
-    CHECK(repeated[i].generation == first[i].generation+(owners[i] == 1 ? 1 : 0));
+  for(size_t i{0}; i < first.size(); ++i) {
+    if(first[i].active) {
+      CHECK(repeated[i].generation == first[i].generation + (owners[i] == 1 ? 1 : 0));
+    }
+  }
 }
 
 TEST_CASE("Stereo attenuation matches the native camera transform and gain curves", "[audio]") {
@@ -272,14 +291,14 @@ TEST_CASE("Stereo attenuation matches the native camera transform and gain curve
         .depth{static_cast<int16_t>(v[8])}
       },
     }};
-    CHECK(darker::audio::stereo_attenuation({static_cast<uint16_t>(v[0]),static_cast<uint16_t>(v[1]),static_cast<uint16_t>(v[2])},basis,
-      static_cast<uint16_t>(v[9])) == std::array<uint8_t,2>{static_cast<uint8_t>(v[10]),static_cast<uint8_t>(v[11])});
+    CHECK(darker::audio::stereo_attenuation({static_cast<uint16_t>(v[0]), static_cast<uint16_t>(v[1]), static_cast<uint16_t>(v[2])}, basis,
+      static_cast<uint16_t>(v[9])) == std::array<uint8_t, 2>{static_cast<uint8_t>(v[10]), static_cast<uint8_t>(v[11])});
   }
 }
 
 TEST_CASE("Stereo carrier levels produce independent PCM without altering centred sound", "[audio]") {
   /// Exercise actual chip output rather than only the pan arithmetic
-  auto const energy{[](std::array<uint8_t,2> const attenuation){
+  auto const energy{[](std::array<uint8_t, 2> const attenuation){
     darker::audio::fm_stream stream{48000};
     darker::audio::fm_frame frame{};
     frame[0] = {
@@ -291,19 +310,19 @@ TEST_CASE("Stereo carrier levels produce independent PCM without altering centre
       .attenuation{attenuation}
     };
     REQUIRE(stream.publish(frame));
-    std::array<float,2048> pcm{};
-    std::array<double,2> result{};
+    std::array<float, 2048> pcm{};
+    std::array<double, 2> result{};
     for(unsigned int block{0}; block < 20; ++block) {
       stream.render(pcm);
-      for(size_t i{0}; i < pcm.size(); ++i) result[i%2] += pcm[i]*pcm[i];
+      for(size_t i{0}; i < pcm.size(); ++i) result[i % 2] += pcm[i] * pcm[i];
     }
     return result;
   }};
-  auto const left{energy({0,63})}, right{energy({63,0})}, centre{energy({255,255})};
-  CHECK(left[0] > left[1]*100);
-  CHECK(right[1] > right[0]*100);
-  // Nuked OPL retains the chip's inter-channel sample timing; compare accumulated energy within that skew.
-  CHECK(std::abs(centre[0]-centre[1]) < centre[0]*0.001);
+  auto const left{energy({0, 63})}, right{energy({63, 0})}, centre{energy({255, 255})};
+  CHECK(left[0] > left[1] * 100);
+  CHECK(right[1] > right[0] * 100);
+  // Nuked OPL retains the chip's inter-channel sample timing; compare accumulated energy within that skew
+  CHECK(std::abs(centre[0] - centre[1]) < centre[0] * 0.001);
   CHECK(centre[0] > 0);
 }
 
@@ -311,22 +330,22 @@ TEST_CASE("Timed player records require retained voices while continuous records
   /// Native 3599 abandons a displaced notification until another explicit trigger
   darker::audio::flight_sounds sounds;
   darker::game::player_flight player;
-  sounds.trigger(darker::audio::flight_sound::charged,0);
-  auto const first{sounds.advance(player,0,false,true,1024,0)};
+  sounds.trigger(darker::audio::flight_sound::charged, 0);
+  auto const first{sounds.advance(player, 0, false, true, 1024, 0)};
   REQUIRE(first[2].active);
   REQUIRE(first[5].active);
-  auto const lost{sounds.advance(player,8,false,true,1024,0)};
+  auto const lost{sounds.advance(player, 8, false, true, 1024, 0)};
   CHECK_FALSE(lost[2].active);
   CHECK(lost[5].active);
-  auto const free_again{sounds.advance(player,16,false,true,1024,0x1ff)};
+  auto const free_again{sounds.advance(player, 16, false, true, 1024, 0x1ff)};
   CHECK_FALSE(free_again[2].active);
-  sounds.trigger(darker::audio::flight_sound::charged,24);
-  auto const retriggered{sounds.advance(player,24,false,true,1024,0)};
+  sounds.trigger(darker::audio::flight_sound::charged, 24);
+  auto const retriggered{sounds.advance(player, 24, false, true, 1024, 0)};
   CHECK(retriggered[2].active);
   CHECK(retriggered[2].generation != first[2].generation);
   darker::game::mission_combat combat{{}};
   darker::audio::world_sounds mixer;
-  mixer.mix(retriggered,combat,{});
+  mixer.mix(retriggered, combat, {});
   CHECK((mixer.audible_player() & (1u << 2)) != 0);
 }
 
@@ -337,19 +356,19 @@ TEST_CASE("Mission notification reaches PCM through the fixed voice allocator", 
   darker::game::mission_combat combat{{}};
   darker::game::player_flight player;
   player.engine_flags = 0;
-  std::array<float,1536> pcm{};
+  std::array<float, 1536> pcm{};
   float peak{0};
-  bool const skimma{GENERATE(false,true)};
-  sounds.trigger(skimma ? darker::audio::flight_sound::skimma_message : darker::audio::flight_sound::message,0);
+  bool const skimma{GENERATE(false, true)};
+  sounds.trigger(skimma ? darker::audio::flight_sound::skimma_message : darker::audio::flight_sound::message, 0);
   for(uint16_t clock{0}; clock < 200; clock += 8) {
-    auto const notes{sounds.advance(player,clock,false,false,0,mixer.audible_player())};
+    auto const notes{sounds.advance(player, clock, false, false, 0, mixer.audible_player())};
     CHECK(notes[6].active == (clock < (skimma ? 112 : 160)));
     CHECK(notes[6].patch == (skimma ? 38 : 31));
     CHECK(notes[6].pitch == (skimma ? 3464 : 13056));
     CHECK(notes[6].level == (skimma ? 0xd800 : 0xc000));
-    REQUIRE(stream.publish(mixer.mix(notes,combat,{})));
+    REQUIRE(stream.publish(mixer.mix(notes, combat, {})));
     stream.render(pcm);
-    for(auto const sample : pcm) peak = std::max(peak,std::abs(sample));
+    for(auto const sample : pcm) peak = std::max(peak, std::abs(sample));
   }
   CHECK(peak > 0.01f);
 }
@@ -357,26 +376,32 @@ TEST_CASE("Mission notification reaches PCM through the fixed voice allocator", 
 TEST_CASE("Transient sound slots follow native oldest eviction and free-list reuse", "[audio]") {
   darker::game::effect_system effects;
   for(auto const &sample : darker::test_reference::sound_pool_samples) {
-    if(sample[0]) effects.spark({},3,40000,0);
-    else effects.retire_sounds([&](auto const &sound){ return (sample[1] & (1u << (sound.identity-17))) != 0; });
+    if(sample[0]) effects.spark({}, 3, 40000, 0);
+    else effects.retire_sounds([&](auto const &sound){
+      return (sample[1] & (1u << (sound.identity - 17))) != 0;
+    });
     REQUIRE(effects.gun_sounds.size() == sample[2]);
-    for(size_t i{0}; i < effects.gun_sounds.size(); ++i) CHECK(effects.gun_sounds[i].identity == sample[3+i]);
+    for(size_t i{0}; i < effects.gun_sounds.size(); ++i) CHECK(effects.gun_sounds[i].identity == sample[3 + i]);
   }
 }
 
 TEST_CASE("Recycled transient records retrigger a retained physical voice", "[audio]") {
   darker::game::mission_combat combat{{}};
   darker::audio::world_sounds mixer;
-  combat.effects.spark({},3,50000,0);
-  auto const first{mixer.mix({},combat,{})};
-  auto const active{std::ranges::find_if(first,[](auto const &note){ return note.active; })};
+  combat.effects.spark({}, 3, 50000, 0);
+  auto const first{mixer.mix({}, combat, {})};
+  auto const active{std::ranges::find_if(first, [](auto const &note){
+    return note.active;
+  })};
   REQUIRE(active != first.end());
-  auto const channel{static_cast<size_t>(active-first.begin())};
+  auto const channel{static_cast<size_t>(active - first.begin())};
   auto const identity{combat.effects.gun_sounds.front().identity};
-  combat.effects.retire_sounds([](auto const &){ return true; });
-  combat.effects.spark({},3,50000,1);
+  combat.effects.retire_sounds([](auto const&){
+    return true;
+  });
+  combat.effects.spark({}, 3, 50000, 1);
   REQUIRE(combat.effects.gun_sounds.front().identity == identity);
-  auto const second{mixer.mix({},combat,{})};
+  auto const second{mixer.mix({}, combat, {})};
   CHECK(second[channel].active);
   CHECK(second[channel].generation != first[channel].generation);
 }

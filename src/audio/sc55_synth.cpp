@@ -31,8 +31,8 @@ sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int 
   : state{std::make_unique<implementation>()} {
   if(sample_rate == 0) throw std::invalid_argument{"Sound Canvas output sample rate must be positive"};
   static std::once_flag diagnostics;
-  std::call_once(diagnostics, [] {
-    Diag_SetCallback([](Diag_Category category, std::string_view message) {
+  std::call_once(diagnostics, []{
+    Diag_SetCallback([](Diag_Category category, std::string_view message){
       if(category != Diag_Category::Debug) Diag_DefaultCallback(category, message);
     });
   });
@@ -44,18 +44,22 @@ sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int 
   RomLocationSet locations;
   locations.fill(true);
   if(!HashDirectoryFiles(rom_directory, HashDirectoryKind::TopLevel, files,
-    [](std::filesystem::directory_entry const &entry) { return entry.path().extension() == ".bin" && entry.file_size() <= 1048576; })
-    || !GetRomsetInfo(definitions, scc1a ? "cm300-v1.30" : "mk1-v1.21", files, locations, state->roms))
+    [](std::filesystem::directory_entry const &entry){
+      return entry.path().extension() == ".bin" && entry.file_size() <= 1048576;
+    })
+    || !GetRomsetInfo(definitions, scc1a ? "cm300-v1.30" : "mk1-v1.21", files, locations, state->roms)) {
     throw std::runtime_error{name + " ROMs missing or unrecognised in " + rom_directory.string() + "; supply a complete matching ROM set"};
-  if(!LoadRomset(state->roms, nullptr) || !state->synth.Init({}) || !state->synth.LoadRoms(scc1a ? Romset::CM300 : Romset::MK1, state->roms))
+  }
+  if(!LoadRomset(state->roms, nullptr) || !state->synth.Init({}) || !state->synth.LoadRoms(scc1a ? Romset::CM300 : Romset::MK1, state->roms)) {
     throw std::runtime_error{"Cannot initialise " + name + " emulation"};
+  }
   state->rate = sample_rate;
   state->synth.Reset();
   // use the chip's oversampled output and preserve its clock independently of host buffers
   state->synth.GetPCM().enable_oversampling = true;
   state->native_rate = PCM_GetOutputFrequency(state->synth.GetPCM());
-  state->synth.SetSampleCallback([](void *context, AudioFrame<int32_t> const &frame) {
-    auto &target{*static_cast<implementation *>(context)};
+  state->synth.SetSampleCallback([](void *context, AudioFrame<int32_t> const &frame){
+    auto &target{*static_cast<implementation*>(context)};
     Normalize(frame, target.received);
     target.ready = true;
   }, state.get());
@@ -66,9 +70,10 @@ sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int 
 sc55_synth::~sc55_synth() = default;
 
 void sc55_synth::send(midi_message const message) noexcept {
-  std::array<uint8_t,3> const bytes{message.status, message.first, message.second};
+  std::array<uint8_t, 3> const bytes{message.status, message.first, message.second};
   auto const kind{message.status & 0xf0};
-  state->synth.PostMIDI(std::span{bytes}.first(kind == 0xc0 || kind == 0xd0 ? 2 : 3));
+  state->synth.PostMIDI(std::span{bytes}.first(kind == 0xc0 || kind == 0xd0 ? 2 :
+  3));
 }
 
 void sc55_synth::reset() noexcept {
@@ -93,7 +98,7 @@ void sc55_synth::render(std::span<float> const stereo) noexcept {
     }
     float const fraction{static_cast<float>(state->phase) / static_cast<float>(state->rate)};
     stereo[i] = state->previous.left + (state->current.left - state->previous.left) * fraction;
-    stereo[i+1] = state->previous.right + (state->current.right - state->previous.right) * fraction;
+    stereo[i + 1] = state->previous.right + (state->current.right - state->previous.right) * fraction;
     state->phase += state->native_rate;
   }
 }

@@ -10,7 +10,7 @@ struct attitude_angles {
   uint16_t pitch{0};
   uint16_t roll{0};
 
-  bool operator==(attitude_angles const &) const = default;
+  bool operator==(attitude_angles const&) const = default;
 };
 
 struct view_axis {

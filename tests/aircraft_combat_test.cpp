@@ -116,12 +116,12 @@ TEST_CASE("Aircraft missile eligibility matches native firing settings and timer
     actor.selected_target = static_cast<uint16_t>(v[8]);
     actor.flags = static_cast<uint8_t>(v[9]);
     actor.last_shot = static_cast<uint16_t>(v[11]);
-    auto const slot{darker::game::aircraft_projectile_definition(actor,static_cast<uint8_t>(v[10]),
+    auto const slot{darker::game::aircraft_projectile_definition(actor, static_cast<uint8_t>(v[10]),
       {
         .heading{static_cast<uint16_t>(v[6])},
         .pitch{static_cast<uint16_t>(v[7])}
       },
-      static_cast<uint8_t>(v[3]),static_cast<uint16_t>(v[12]),static_cast<uint8_t>(v[2]),v[13] != 0)};
+      static_cast<uint8_t>(v[3]), static_cast<uint16_t>(v[12]), static_cast<uint8_t>(v[2]), v[13] != 0)};
     CHECK((slot ? static_cast<int>(*slot) : -1) == v[14]);
   }
 }
@@ -147,17 +147,20 @@ TEST_CASE("Aircraft bomb drops match native target, cooldown and exhausted-pool 
     actor.last_shot = static_cast<uint16_t>(v[4]);
     darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
     darker::game::launch_emitter const emitter{};
-    if(!v[3]) while(pool.launch({
-      .definition{darker::game::original_object_definitions[14]},
-      .emitter{emitter}
-    })) {}
-    auto const *shot{darker::game::drop_aircraft_bomb(pool,actor,v[1] != 0,static_cast<uint16_t>(v[5]),0)};
+    if(!v[3]) {
+      while(pool.launch({
+        .definition{darker::game::original_object_definitions[14]},
+        .emitter{emitter}
+      })) {
+      }
+    }
+    auto const *shot{darker::game::drop_aircraft_bomb(pool, actor, v[1] != 0, static_cast<uint16_t>(v[5]), 0)};
     CHECK((shot != nullptr) == (v[6] != 0));
     CHECK(actor.last_shot == v[7]);
     if(shot) {
       CHECK(shot->placement.angles.pitch == v[8]);
       CHECK(shot->target_token == actor.selected_target);
-      CHECK(shot->deadline == static_cast<uint16_t>(v[5] + 28*256));
+      CHECK(shot->deadline == static_cast<uint16_t>(v[5] + 28 * 256));
       CHECK(shot->parameters.definition == &darker::game::original_object_definitions[14]);
     }
   }

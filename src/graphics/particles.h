@@ -11,7 +11,7 @@ struct particle_point {
   int16_t x{0};
   int16_t y{0};
   int16_t depth{0};
-  bool operator==(particle_point const &) const = default;
+  bool operator==(particle_point const&) const = default;
 };
 
 std::vector<particle_point> project_emitter(game::particle_emitter const &emitter, model_placement centre,

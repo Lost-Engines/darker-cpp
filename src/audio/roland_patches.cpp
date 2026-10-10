@@ -13,12 +13,12 @@ auto roland_setup_messages(std::span<std::byte const> const file)->sysex_message
     if(cursor >= file.size()) throw std::invalid_argument{"Truncated Roland setup MIDI file"};
     return std::to_integer<uint8_t>(file[cursor++]);
   }};
-  auto const big_endian{[&](unsigned int const count) {
+  auto const big_endian{[&](unsigned int const count){
     uint32_t value{0};
     for(unsigned int i{0}; i < count; ++i) value = (value << 8) | read();
     return value;
   }};
-  auto const variable{[&] {
+  auto const variable{[&]{
     uint32_t value{0};
     for(unsigned int i{0}; i < 4; ++i) {
       auto const byte{read()};
@@ -27,18 +27,19 @@ auto roland_setup_messages(std::span<std::byte const> const file)->sysex_message
     }
     throw std::invalid_argument{"Invalid Roland setup MIDI event length"};
   }};
-  if(big_endian(4) != 0x4d546864 || big_endian(4) != 6 || big_endian(2) != 0 || big_endian(2) != 1)
+  if(big_endian(4) != 0x4d546864 || big_endian(4) != 6 || big_endian(2) != 0 || big_endian(2) != 1) {
     throw std::invalid_argument{"Roland setup requires a format-0 single-track MIDI file"};
-  big_endian(2); // Timing is irrelevant: upload the complete bank before playback.
+  }
+  big_endian(2);                                                               // timing is irrelevant: upload the complete bank before playback
   if(big_endian(4) != 0x4d54726b) throw std::invalid_argument{"Missing Roland setup MIDI track"};
   auto const track_size{big_endian(4)};
   if(track_size != file.size() - cursor) throw std::invalid_argument{"Invalid Roland setup MIDI track size"};
   sysex_messages messages;
   while(cursor < file.size()) {
-    variable(); // Delta time.
+    variable();                                                                // delta time
     auto const status{read()};
     if(status == 0xff) {
-      read(); // Metadata type.
+      read();                                                                  // metadata type
       auto const length{variable()};
       if(length > file.size() - cursor) throw std::invalid_argument{"Truncated Roland setup metadata"};
       cursor += length;
@@ -49,8 +50,9 @@ auto roland_setup_messages(std::span<std::byte const> const file)->sysex_message
     if(length < 9 || length > file.size() - cursor) throw std::invalid_argument{"Truncated Roland setup SysEx"};
     std::vector<uint8_t> message{0xf0};
     for(uint32_t i{0}; i < length; ++i) message.push_back(read());
-    if(message[1] != 0x41 || message[2] != 0x10 || message[3] != 0x16 || message[4] != 0x12 || message.back() != 0xf7)
+    if(message[1] != 0x41 || message[2] != 0x10 || message[3] != 0x16 || message[4] != 0x12 || message.back() != 0xf7) {
       throw std::invalid_argument{"Roland setup requires MT-32 device-17 DT1 messages"};
+    }
     unsigned int checksum{0};
     for(size_t i{5}; i + 1 < message.size(); ++i) {
       if(message[i] > 127) throw std::invalid_argument{"Invalid Roland setup SysEx data"};
@@ -68,8 +70,9 @@ auto load_roland_setup(std::filesystem::path const &path)->sysex_messages {
   if(size > 1024 * 1024) throw std::invalid_argument{"Roland setup bank is too large"};
   std::vector<std::byte> bytes(static_cast<size_t>(size));
   std::ifstream input{path, std::ios::binary};
-  if(!input.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size())))
+  if(!input.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()))) {
     throw std::runtime_error{"Cannot read Roland setup bank: " + path.string()};
+  }
   return roland_setup_messages(bytes);
 }
 
@@ -82,7 +85,7 @@ auto lapc_initialisation(std::span<std::byte const> const driver)->sysex_message
   if(driver.size() != 0x1d13) throw std::invalid_argument{"Unexpected LAPC-I driver size"};
   size_t cursor{static_cast<size_t>(read(0x1a94) | (read(0x1a95) << 8))};
   sysex_messages messages;
-  auto const append{[&](uint32_t const address, std::span<uint8_t const> const data) {
+  auto const append{[&](uint32_t const address, std::span<uint8_t const> const data){
     // 0823 emits Roland device 10h, model 16h, DT1; 0782 accumulates the seven-bit checksum
     std::vector<uint8_t> message{0xf0, 0x41, 0x10, 0x16, 0x12,
       static_cast<uint8_t>((address >> 14) & 127), static_cast<uint8_t>((address >> 7) & 127), static_cast<uint8_t>(address & 127)};
@@ -112,15 +115,15 @@ auto lapc_initialisation(std::span<std::byte const> const driver)->sysex_message
       }
       data.insert(data.end(), repeats, value);
     }
-    // Skip the ten-byte name: the original deliberately retains it and overwrites only synthesis parameters
+    // skip the ten-byte name: the original deliberately retains it and overwrites only synthesis parameters
     append(0x20000 + static_cast<uint32_t>(slot) * 256 + 10, data);
   }
   for(;;) {
     auto const slot{read(cursor++)};
     if(slot & 128) break;
-    std::array<uint8_t,4> packed{};
+    std::array<uint8_t, 4> packed{};
     for(auto &value : packed) value = read(cursor++);
-    std::array<uint8_t,7> const data{static_cast<uint8_t>(packed[0] >> 6), static_cast<uint8_t>(packed[0] & 63),
+    std::array<uint8_t, 7> const data{static_cast<uint8_t>(packed[0] >> 6), static_cast<uint8_t>(packed[0] & 63),
       static_cast<uint8_t>(packed[1] & 63), static_cast<uint8_t>(packed[2] & 127), static_cast<uint8_t>(packed[3] & 127),
       static_cast<uint8_t>(packed[1] >> 6), static_cast<uint8_t>(packed[2] >> 7)};
     append(0x14000 + static_cast<uint32_t>(slot) * 8, data);

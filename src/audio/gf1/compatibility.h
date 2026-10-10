@@ -19,7 +19,7 @@ struct MixerChannel {
   void Enable(bool) {
     // the host owns stream lifetime
   }
-  void AddSamples_s16(Bitu, Bit16s *) {
+  void AddSamples_s16(Bitu, Bit16s*) {
     // the adapter reads the core mixing buffer directly
   }
 };
@@ -27,8 +27,8 @@ enum DMAEvent { DMA_UNMASKED };
 struct DmaChannel {
   unsigned int currcnt{}, DMA16{};
   auto Read(Bitu count, void *target)->Bitu;
-  void Write(Bitu, void *);
-  void Register_Callback(void (*callback)(DmaChannel *, DMAEvent));
+  void Write(Bitu, void*);
+  void Register_Callback(void (*callback)(DmaChannel*, DMAEvent));
 };
 auto GetDMAChannel(unsigned int)->DmaChannel *;
 void PIC_ActivateIRQ(Bitu irq);

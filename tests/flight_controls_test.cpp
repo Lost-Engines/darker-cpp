@@ -4,15 +4,15 @@
 
 TEST_CASE("Keyboard and mouse steering preserve native smoothing and source priority", "[game][controls]") {
   /// Compare persistent targets, mouse history, published references and both timestep-scaled steering drives
-  std::size_t index{0};
+  size_t index{0};
   for(auto const &sample : darker::test_reference::flight_controls_samples) {
     CAPTURE(index);
-    auto const axis{[&](std::size_t const i){
+    auto const axis{[&](size_t const i){
       return darker::game::steering_axis_state{
-        .keyboard_target{static_cast<std::uint16_t>(sample.before[i])},
-        .mouse_target{static_cast<std::uint16_t>(sample.before[i + 1])},
-        .previous_mouse{static_cast<std::uint16_t>(sample.before[i + 2])},
-        .reference{static_cast<std::uint16_t>(sample.before[i + 3])},
+        .keyboard_target{static_cast<uint16_t>(sample.before[i])},
+        .mouse_target{static_cast<uint16_t>(sample.before[i + 1])},
+        .previous_mouse{static_cast<uint16_t>(sample.before[i + 2])},
+        .reference{static_cast<uint16_t>(sample.before[i + 3])},
       };
     }};
     darker::game::flight_controls_state state{
@@ -27,10 +27,10 @@ TEST_CASE("Keyboard and mouse steering preserve native smoothing and source prio
         .up{(held & 4) != 0},
         .down{(held & 8) != 0},
         .control{(held & 16) != 0},
-        .mouse_x{static_cast<std::uint16_t>(sample.input[1])},
-        .mouse_y{static_cast<std::uint16_t>(sample.input[2])},
-        .mouse_sensitivity{static_cast<std::uint16_t>(sample.input[4])}
-      }, static_cast<std::uint16_t>(sample.input[3]))};
+        .mouse_x{static_cast<uint16_t>(sample.input[1])},
+        .mouse_y{static_cast<uint16_t>(sample.input[2])},
+        .mouse_sensitivity{static_cast<uint16_t>(sample.input[4])}
+      }, static_cast<uint16_t>(sample.input[3]))};
     std::array<int, 8> const actual{state.bank.keyboard_target, state.bank.mouse_target, state.bank.previous_mouse, state.bank.reference,
       state.pitch.keyboard_target, state.pitch.mouse_target, state.pitch.previous_mouse, state.pitch.reference};
     REQUIRE(actual == sample.after);

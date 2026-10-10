@@ -25,21 +25,23 @@ TEST_CASE("Projectile expiry repairs native references and counters before list 
     record->target_token = record->native_id;
     tail->target_token = 0x1234;
     record->flags = 8;
-    record->lifecycle = static_cast<std::uint8_t>(sample.lifecycle);
+    record->lifecycle = static_cast<uint8_t>(sample.lifecycle);
     darker::game::projectile_references references{
       .selected_target{sample.selected ? record->native_id : head->native_id},
       .reference_2449{sample.selected ? record->native_id : tail->native_id},
-      .missile_view{sample.selected ? record->native_id : static_cast<std::uint16_t>(0x1234)},
+      .missile_view{sample.selected ? record->native_id : static_cast<uint16_t>(0x1234)},
     };
     darker::game::objective_counters objectives{
-      .completed{static_cast<std::uint8_t>(sample.completed)},
-      .outstanding{static_cast<std::uint8_t>(sample.outstanding)}
+      .completed{static_cast<uint8_t>(sample.completed)},
+      .outstanding{static_cast<uint8_t>(sample.outstanding)}
     };
     darker::game::weapon_ring_state ring{
       .target_spread{17}
     };
     auto const *next{darker::game::expire_projectile(pool, *record, references, objectives, ring)};
-    auto const id{[](darker::game::projectile const *const p)->int{ return p ? p->native_id : 0; }};
+    auto const id{[](darker::game::projectile const *const p)->int{
+      return p ? p->native_id : 0;
+    }};
     auto const &list{pool.objects()};
     std::array<int, 17> const actual{id(list.head), id(list.tail), id(list.free), id(next),
       head->target_token, record->target_token, tail->target_token, references.selected_target, references.reference_2449,

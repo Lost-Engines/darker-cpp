@@ -34,7 +34,7 @@ private:
   bool level_x{false};
   bool unsupported_stage{false};
   unsigned int selected{0};
-  std::array<int,2> pointer{-1,-1};
+  std::array<int, 2> pointer{-1, -1};
   int retained_music{-1};
   uint32_t title_ticks{0};
   bool confirmation{false};

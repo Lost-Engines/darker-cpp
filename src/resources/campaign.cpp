@@ -8,7 +8,7 @@ campaign_selection select_campaign_stage(uint8_t const stage) {
   if(stage == 0 || stage > 120) throw std::out_of_range{"Campaign stage is outside the normal scenario resources"};
   auto const index{static_cast<unsigned int>(stage - 1)};
   return {
-    .resource{4,index >> 3},
+    .resource{4, index >> 3},
     .record{index & 7}
   };
 }
@@ -28,7 +28,7 @@ scenario_resource const &campaign_resources::scenario(uint8_t const stage) {
 
 scenario_resource const &campaign_resources::supplementary() {
   /// BB3D retains archive 04/15 for blackout and supply-pad contexts independently of normal campaign stages
-  if(!shared_scenarios) shared_scenarios.emplace(archives.load({4,15}));
+  if(!shared_scenarios) shared_scenarios.emplace(archives.load({4, 15}));
   return *shared_scenarios;
 }
 

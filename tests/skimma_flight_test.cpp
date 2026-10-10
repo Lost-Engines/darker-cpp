@@ -4,11 +4,13 @@
 
 TEST_CASE("Complete Skimma flight updates match native persistent-state traces", "[game][flight]") {
   /// Both craft parameter sets cover steering saturation, altitude assistance, speed settings, braking and shield recharge
-  std::size_t index{0};
+  size_t index{0};
   for(auto const &sample : darker::test_reference::skimma_flight_samples) {
     CAPTURE(index);
     auto const &before{sample.before};
-    auto const word{[&](std::size_t const i){ return static_cast<std::uint16_t>(before[i]); }};
+    auto const word{[&](size_t const i){
+      return static_cast<uint16_t>(before[i]);
+    }};
     darker::game::skimma_flight_state state{
       .pose{
         .position{
@@ -17,9 +19,9 @@ TEST_CASE("Complete Skimma flight updates match native persistent-state traces",
           .height{word(2)}
         },
         .fractions{
-          .column{static_cast<std::uint8_t>(before[3])},
-          .row{static_cast<std::uint8_t>(before[4])},
-          .height{static_cast<std::uint8_t>(before[5])}
+          .column{static_cast<uint8_t>(before[3])},
+          .row{static_cast<uint8_t>(before[4])},
+          .height{static_cast<uint8_t>(before[5])}
         },
         .angles{
           .heading{word(6)},
@@ -42,22 +44,22 @@ TEST_CASE("Complete Skimma flight updates match native persistent-state traces",
     auto const &input{sample.input};
     darker::game::advance_skimma_flight(state,
       {
-        .angular_response{static_cast<std::uint16_t>(input[3])},
-        .vertical_bias{static_cast<std::int8_t>(input[6])}
+        .angular_response{static_cast<uint16_t>(input[3])},
+        .vertical_bias{static_cast<int8_t>(input[6])}
       },
       {
-        .bank_drive{static_cast<std::uint16_t>(input[1])},
-        .pitch_drive{static_cast<std::uint16_t>(input[2])},
-        .forward_setting{static_cast<std::uint16_t>(input[4])},
+        .bank_drive{static_cast<uint16_t>(input[1])},
+        .pitch_drive{static_cast<uint16_t>(input[2])},
+        .forward_setting{static_cast<uint16_t>(input[4])},
         .brake{input[5] != 0}
       },
-      static_cast<std::uint16_t>(input[0]));
+      static_cast<uint16_t>(input[0]));
     std::array<int, 16> const actual{state.pose.position.column, state.pose.position.row, state.pose.position.height,
       state.pose.fractions.column, state.pose.fractions.row, state.pose.fractions.height,
       state.pose.angles.heading, state.pose.angles.pitch, state.pose.angles.roll, state.pose.speed,
       state.damage.rotation.pitch, state.damage.rotation.turn, state.horizontal_velocity, state.vertical_velocity,
       state.pitch_assist_rate, state.damage.shield_charge};
-    for(std::size_t field{0}; field < actual.size(); ++field) {
+    for(size_t field{0}; field < actual.size(); ++field) {
       CAPTURE(field, before[field]);
       REQUIRE(actual[field] == sample.after[field]);
     }

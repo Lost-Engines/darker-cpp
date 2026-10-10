@@ -30,7 +30,7 @@ TEST_CASE("Caero Pinner and Brent firing matches original guards, targets and re
       .reserve{static_cast<uint16_t>(sample[0])}
     };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+    auto const result{darker::game::fire_caero_weapon(pool, energy, charge, {
       .emitter{emitter},
       .selection{static_cast<uint8_t>(sample[8])},
       .player_flags{static_cast<uint8_t>(sample[1])},
@@ -75,7 +75,7 @@ TEST_CASE("Chargeable charging and release match the native firing handler", "[g
       .reserve{static_cast<uint16_t>(sample[0])}
     };
     auto charge{static_cast<uint16_t>(sample[1])};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+    auto const result{darker::game::fire_caero_weapon(pool, energy, charge, {
       .emitter{emitter},
       .selection{9},
       .player_flags{static_cast<uint8_t>(sample[2])},
@@ -103,7 +103,7 @@ TEST_CASE("Chargeable impact strength matches native remaining-lifetime dispatch
   /// Preserve the signed high-byte cutoff and wrapped strength at every timer page boundary
   for(auto const &sample : darker::test_reference::chargeable_impact_samples) {
     CAPTURE(sample);
-    auto const strength{darker::game::chargeable_impact_strength(static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]))};
+    auto const strength{darker::game::chargeable_impact_strength(static_cast<uint16_t>(sample[0]), static_cast<uint16_t>(sample[1]))};
     CHECK(strength.has_value() == (sample[2] != 0));
     if(strength) CHECK(*strength == sample[3]);
   }
@@ -112,7 +112,7 @@ TEST_CASE("Chargeable impact strength matches native remaining-lifetime dispatch
 TEST_CASE("Chargeable sound follows the native charge and timer modulation", "[audio][weapons]") {
   /// Check the rising continuous tone and its silent zero-charge state against callback 370F
   for(auto const &sample : darker::test_reference::chargeable_tone_samples) {
-    auto const pitch{darker::audio::chargeable_sound_pitch(static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]))};
+    auto const pitch{darker::audio::chargeable_sound_pitch(static_cast<uint16_t>(sample[0]), static_cast<uint16_t>(sample[1]))};
     CHECK(pitch.has_value() == (sample[2] != 0));
     if(pitch) CHECK(*pitch == sample[3]);
   }
@@ -148,7 +148,7 @@ TEST_CASE("Diffuser firing matches native alternating selections and failure res
       .reserve{static_cast<uint16_t>(sample[2])}
     };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+    auto const result{darker::game::fire_caero_weapon(pool, energy, charge, {
       .emitter{emitter},
       .selection{static_cast<uint8_t>(sample[0])},
       .player_flags{static_cast<uint8_t>(sample[5])},
@@ -169,9 +169,9 @@ TEST_CASE("Diffuser building impacts match native gas target and wrapped detonat
   /// Compare valid skylights, rejected surfaces and both sides of the wrapped deadline against CE84
   for(auto const &sample : darker::test_reference::diffuser_impact_samples) {
     CAPTURE(sample);
-    darker::game::diffuser_state state{static_cast<uint16_t>(sample[4]),static_cast<uint16_t>(sample[6]),static_cast<uint16_t>(sample[7])};
-    auto const result{state.hit(sample[0] != 0,static_cast<uint8_t>(sample[1]),static_cast<uint8_t>(sample[2]),static_cast<uint16_t>(sample[3]),static_cast<uint16_t>(sample[5]))};
-    auto const expected{sample[8] == 0x67ea ? darker::game::diffuser_impact::gas
+    darker::game::diffuser_state state{static_cast<uint16_t>(sample[4]), static_cast<uint16_t>(sample[6]), static_cast<uint16_t>(sample[7])};
+    auto const result{state.hit(sample[0] != 0, static_cast<uint8_t>(sample[1]), static_cast<uint8_t>(sample[2]), static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[5]))};
+    auto const expected{sample[8] == 0x67ea   ? darker::game::diffuser_impact::gas
       : sample[8] == 0x67bf ? darker::game::diffuser_impact::destroyed : darker::game::diffuser_impact::rejected};
     CHECK(result == expected);
     CHECK(state.cell == sample[9]);
@@ -185,7 +185,7 @@ TEST_CASE("Caero Weapon impact strength matches native beacon sampling", "[game]
   for(auto const &sample : darker::test_reference::caero_impact_samples) {
     CAPTURE(sample);
     darker::game::city_map cells{};
-    cells[36*128+36] = {static_cast<uint8_t>(sample[3]),static_cast<uint8_t>(sample[4])};
-    CHECK(darker::game::caero_weapon_strength(cells,{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1]),static_cast<uint16_t>(sample[2])},static_cast<uint16_t>(sample[5])) == sample[6]);
+    cells[36 * 128 + 36] = {static_cast<uint8_t>(sample[3]), static_cast<uint8_t>(sample[4])};
+    CHECK(darker::game::caero_weapon_strength(cells, {static_cast<uint16_t>(sample[0]), static_cast<uint16_t>(sample[1]), static_cast<uint16_t>(sample[2])}, static_cast<uint16_t>(sample[5])) == sample[6]);
   }
 }

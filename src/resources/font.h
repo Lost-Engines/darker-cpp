@@ -10,10 +10,10 @@ namespace darker::resources {
 enum class font_face { interface, compact, wide };
 
 struct font_glyph {
-  std::uint8_t width{0};
-  std::uint8_t height{0};
-  std::uint8_t top{0};
-  std::uint16_t advance{0};
+  uint8_t width{0};
+  uint8_t height{0};
+  uint8_t top{0};
+  uint16_t advance{0};
   unsigned int stride{0};
   std::span<std::byte const> planes;
 };
@@ -24,7 +24,7 @@ private:
 
 public:
   explicit font_resource(std::vector<std::byte> resource);
-  font_glyph glyph(font_face face, std::uint8_t code, unsigned int alignment = 0) const;
+  font_glyph glyph(font_face face, uint8_t code, unsigned int alignment = 0) const;
 };
 
 } // namespace darker::resources

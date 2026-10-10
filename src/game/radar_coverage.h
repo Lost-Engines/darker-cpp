@@ -14,7 +14,7 @@ struct radar_coverage {
   static unsigned int constexpr mask_row_bits{4};
   static uint16_t constexpr full_coverage_mask{0x777};
 
-  std::array<uint8_t,2> centre{};
+  std::array<uint8_t, 2> centre{};
   uint16_t mask{0};
 
   bool contains(uint8_t column, uint8_t row) const noexcept;

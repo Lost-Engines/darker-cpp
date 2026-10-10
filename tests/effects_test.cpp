@@ -29,7 +29,9 @@ TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {
     }};
     auto const points{darker::graphics::project_emitter(emitter, centre, basis, {160, 84})};
     uint32_t hash{2166136261};
-    for(auto const &point : points) for(auto const value : {point.x, point.y, point.depth}) hash = (hash ^ static_cast<uint16_t>(value)) * 16777619;
+    for(auto const &point : points) {
+      for(auto const value : {point.x, point.y, point.depth}) hash = (hash ^ static_cast<uint16_t>(value)) * 16777619;
+    }
     CHECK(points.size() == static_cast<size_t>(v[12]));
     CHECK(hash == v[13]);
   }
@@ -64,7 +66,9 @@ TEST_CASE("Effect movement matches signed native byte arithmetic", "[effects]") 
 TEST_CASE("Particle pixels follow native source selection and scanline masks", "[effects]") {
   /// Fill the source with a position-dependent pattern so wrong atlas rows and alignment remain observable
   framework::render::indexed_cockpit_framebuffer sheet;
-  for(size_t y{0}; y < 240; ++y) for(size_t x{0}; x < 320; ++x) sheet.pixels[y * 320 + x] = static_cast<uint8_t>((y * 37 + x * 13) % 255 + 1);
+  for(size_t y{0}; y < 240; ++y) {
+    for(size_t x{0}; x < 320; ++x) sheet.pixels[y * 320 + x] = static_cast<uint8_t>((y * 37 + x * 13) % 255 + 1);
+  }
   for(auto const &v : darker::test_reference::particle_pixels) {
     CAPTURE(v);
     framework::render::indexed_cockpit_framebuffer frame{};
@@ -90,7 +94,7 @@ TEST_CASE("Effect phases and stationary trails match original records", "[effect
     CHECK((phase ? static_cast<int>(*phase) : -1) == v[2]);
   }
   for(auto const &v : darker::test_reference::effect_trails) {
-    auto const emitter{darker::game::make_damage_trail({16000,17000,2000}, static_cast<uint8_t>(v[0]), static_cast<uint16_t>(v[1]), 1000)};
+    auto const emitter{darker::game::make_damage_trail({16000, 17000, 2000}, static_cast<uint8_t>(v[0]), static_cast<uint16_t>(v[1]), 1000)};
     CHECK(emitter.position == darker::maths::world_position{
       .column{static_cast<uint16_t>(v[2])},
       .row{static_cast<uint16_t>(v[3])},

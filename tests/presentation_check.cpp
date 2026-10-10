@@ -12,7 +12,7 @@
 
 void check_presentations(darker::resources::archive_set const &archives) {
   /// Compare every startup and briefing animation frame with native-verified pixel streams
-  for(auto const id : {darker::resources::resource_id{1,0},{1,1},{1,2},{1,3},{1,5},{3,2}}) {
+  for(auto const id : {darker::resources::resource_id{1, 0}, {1, 1}, {1, 2}, {1, 3}, {1, 5}, {3, 2}}) {
     auto const frames{darker::presentation::decode_animation(archives.load(id))};
     for(auto const &sample : darker::test_reference::presentation_samples) {
       if(sample.archive != id.archive || sample.slot != id.slot) continue;
@@ -26,55 +26,59 @@ void check_presentations(darker::resources::archive_set const &archives) {
       if(frame.size() != sample.pixels || fingerprint != sample.fingerprint) throw std::runtime_error{"Presentation pixels differ from native DF36"};
     }
   }
-  darker::resources::font_resource const font{archives.load({0,29})};
+  darker::resources::font_resource const font{archives.load({0, 29})};
   for(auto const &sample : darker::test_reference::message_display_samples) {
     framework::render::indexed_cockpit_framebuffer caption_frame;
     caption_frame.pixels.fill(7);
     std::string const text{"Return to base."};
-    darker::graphics::draw_message(caption_frame,font,static_cast<darker::resources::font_face>(sample.face),
-      std::as_bytes(std::span{text}),{static_cast<int>(sample.x), static_cast<int>(sample.y)},
-      static_cast<uint16_t>(sample.width),{
+    darker::graphics::draw_message(caption_frame, font, static_cast<darker::resources::font_face>(sample.face),
+      std::as_bytes(std::span{text}), {static_cast<int>(sample.x), static_cast<int>(sample.y)},
+      static_cast<uint16_t>(sample.width), {
         .ink{24},
         .edge{18}
       });
     uint64_t fingerprint{0xcbf29ce484222325};
-    for(auto const pixel : caption_frame.pixels) fingerprint = (fingerprint ^ pixel)*0x100000001b3;
+    for(auto const pixel : caption_frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     if(fingerprint != sample.fingerprint) throw std::runtime_error{"Counted message pixels differ from B20E: face="
-      +std::to_string(sample.face)+", x="+std::to_string(sample.x)+", width="+std::to_string(sample.width)};
+      + std::to_string(sample.face) + ", x=" + std::to_string(sample.x) + ", width=" + std::to_string(sample.width)};
   }
   darker::resources::campaign_resources campaign{archives};
-  // C2BC uses the previous outcome in these 18 original campaign records.
-  std::array<uint8_t,18> constexpr conditional_entries{17,18,24,25,36,37,46,47,55,56,67,68,86,87,92,93,99,115};
-  for(auto const selected_language : {darker::resources::scenario_language::english, darker::resources::scenario_language::french, darker::resources::scenario_language::german}) for(uint8_t stage{1}; stage <= 116; ++stage) {
-    auto const &scenario{campaign.scenario(stage)};
-    auto const record{darker::resources::select_campaign_stage(stage).record};
-    darker::presentation::player loaded{archives,font,scenario,record,0,false,selected_language};
-    darker::presentation::player continued{archives,font,scenario,record,0,true,selected_language};
-    bool const conditional{std::ranges::find(conditional_entries,stage) != conditional_entries.end()};
-    auto const failure{"Campaign entry differs at stage " + std::to_string(stage)};
-    if(!conditional) {
-      if(loaded.finished() != continued.finished() || loaded.input_policy != continued.input_policy
-        || loaded.consumed_text() != continued.consumed_text()) throw std::runtime_error{failure};
-      continue;
+  // C2BC uses the previous outcome in these 18 original campaign records
+  std::array<uint8_t, 18> constexpr conditional_entries{17, 18, 24, 25, 36, 37, 46, 47, 55, 56, 67, 68, 86, 87, 92, 93, 99, 115};
+  for(auto const selected_language : {darker::resources::scenario_language::english, darker::resources::scenario_language::french, darker::resources::scenario_language::german}) {
+    for(uint8_t stage{1}; stage <= 116; ++stage) {
+      auto const &scenario{campaign.scenario(stage)};
+      auto const record{darker::resources::select_campaign_stage(stage).record};
+      darker::presentation::player loaded{archives, font, scenario, record, 0, false, selected_language};
+      darker::presentation::player continued{archives, font, scenario, record, 0, true, selected_language};
+      bool const conditional{std::ranges::find(conditional_entries, stage) != conditional_entries.end()};
+      auto const failure{"Campaign entry differs at stage " + std::to_string(stage)};
+      if(!conditional) {
+        if(loaded.finished() != continued.finished() || loaded.input_policy != continued.input_policy
+          || loaded.consumed_text() != continued.consumed_text()) throw std::runtime_error{failure};
+        continue;
+      }
+      if(loaded.input_policy == 0 || !continued.finished() || continued.input_policy != 0) throw std::runtime_error{failure};
+      auto const language{scenario.language(record, selected_language)};
+      auto const displacement{std::to_integer<uint8_t>(language[0]) | (std::to_integer<uint8_t>(language[1]) << 8)};
+      if(continued.consumed_text() != static_cast<size_t>(displacement)) throw std::runtime_error{failure + ": message displacement"};
+      for(unsigned int step{0}; !loaded.finished(); ++step) {
+        if(step == 4096) throw std::runtime_error{failure + ": briefing did not finish"};
+        loaded.advance(2000);
+        loaded.continue_page();
+      }
+      if(loaded.weapon_toggles != continued.weapon_toggles
+        || loaded.departure_destination != continued.departure_destination || loaded.difficulty != continued.difficulty
+        || loaded.score != continued.score || loaded.entry.has_value() != continued.entry.has_value()) {
+        throw std::runtime_error{failure + ": gameplay setup changed"};
+      }
+      if(loaded.entry && (loaded.entry->site != continued.entry->site || loaded.entry->heading != continued.entry->heading)) {
+        throw std::runtime_error{failure + ": entry pose changed"};
+      }
     }
-    if(loaded.input_policy == 0 || !continued.finished() || continued.input_policy != 0) throw std::runtime_error{failure};
-    auto const language{scenario.language(record,selected_language)};
-    auto const displacement{std::to_integer<uint8_t>(language[0]) | (std::to_integer<uint8_t>(language[1]) << 8)};
-    if(continued.consumed_text() != static_cast<size_t>(displacement)) throw std::runtime_error{failure + ": message displacement"};
-    for(unsigned int step{0}; !loaded.finished(); ++step) {
-      if(step == 4096) throw std::runtime_error{failure + ": briefing did not finish"};
-      loaded.advance(2000);
-      loaded.continue_page();
-    }
-    if(loaded.weapon_toggles != continued.weapon_toggles
-      || loaded.departure_destination != continued.departure_destination || loaded.difficulty != continued.difficulty
-      || loaded.score != continued.score || loaded.entry.has_value() != continued.entry.has_value())
-      throw std::runtime_error{failure + ": gameplay setup changed"};
-    if(loaded.entry && (loaded.entry->site != continued.entry->site || loaded.entry->heading != continued.entry->heading))
-      throw std::runtime_error{failure + ": entry pose changed"};
   }
   darker::resources::save_file level_saves;
-  darker::presentation::front_end level_entry{archives,font,campaign,level_saves,true};
+  darker::presentation::front_end level_entry{archives, font, campaign, level_saves, true};
   for(uint8_t const stage : {uint8_t{99}, uint8_t{100}, uint8_t{101}, uint8_t{105}, uint8_t{115}}) {
     level_entry.start_level(stage);
     auto const &scenario{campaign.scenario(stage)};
@@ -84,58 +88,66 @@ void check_presentations(darker::resources::archive_set const &archives) {
       briefing.advance(2000);
       briefing.continue_page();
     }
-    if(bool((level_entry.selected_pilot().weapons ^ briefing.weapon_toggles) & 4) != (stage >= 101))
+    if(bool((level_entry.selected_pilot().weapons ^ briefing.weapon_toggles) & 4) != (stage >= 101)) {
       throw std::runtime_error{"Debug level entry has the wrong upgraded missile availability"};
+    }
   }
   {
-    darker::resources::geometry_bank const bank{archives.load({0,30})};
-    auto const fresh{darker::game::make_city_map(archives.load({0,68}),true)};
+    darker::resources::geometry_bank const bank{archives.load({0, 30})};
+    auto const fresh{darker::game::make_city_map(archives.load({0, 68}), true)};
     for(uint8_t stage{1}; stage <= 98; ++stage) {
       auto const &record{campaign.scenario(stage).records()[darker::resources::select_campaign_stage(stage).record]};
       if((record.configuration & 15) != 1) continue;
       level_entry.start_level(stage);
       auto cells{fresh};
-      darker::game::restore_city_state(cells,bank.city_types(),level_entry.selected_pilot().delphi,stage);
-      darker::game::apply_scenario_cells(cells,record);
+      darker::game::restore_city_state(cells, bank.city_types(), level_entry.selected_pilot().delphi, stage);
+      darker::game::apply_scenario_cells(cells, record);
       darker::game::hangar_state hangar;
       if(level_entry.selected_pilot().return_site) hangar.return_site = level_entry.selected_pilot().return_site;
       auto const site{hangar.return_site};
-      if(stage == 68 && site != 0x4d62)
+      if(stage == 68 && site != 0x4d62) {
         throw std::runtime_error{"Level 68 must depart Administration HQ after the tunnel return"};
-      if(cells[(site >> 8)*128+((site & 255) >> 1)].type != 17)
+      }
+      if(cells[(site >> 8) * 128 + ((site & 255) >> 1)].type != 17) {
         throw std::runtime_error{"Direct level entry lost its surface hangar at stage " + std::to_string(stage)};
+      }
       darker::game::player_flight player;
-      darker::game::initialise_caero_hangar(player,cells,hangar,bank.header_at(bank.special_models()[25]).height);
+      darker::game::initialise_caero_hangar(player, cells, hangar, bank.header_at(bank.special_models()[25]).height);
     }
   }
   level_entry.start_level(4);
-  if(level_entry.selected_pilot().stage != 4 || level_entry.selected_record() != 3 || level_entry.selected_pilot().weapons == 0)
+  if(level_entry.selected_pilot().stage != 4 || level_entry.selected_record() != 3 || level_entry.selected_pilot().weapons == 0) {
     throw std::runtime_error{"Direct level entry lost its campaign index or preceding weapon awards"};
+  }
   level_entry.previous_level();
   if(level_entry.selected_pilot().stage != 3) throw std::runtime_error{"Previous level did not rewind"};
   level_entry.start_level(1);
   level_entry.previous_level();
-  if(level_entry.selected_pilot().stage != 1 || level_entry.selected_pilot().weapons != 0)
+  if(level_entry.selected_pilot().stage != 1 || level_entry.selected_pilot().weapons != 0) {
     throw std::runtime_error{"First level rewind must retain its fresh pre-briefing state"};
+  }
   level_entry.start_level(16);
   {
-    darker::resources::geometry_bank const bank{archives.load({0,30})};
-    auto const fresh{darker::game::make_city_map(archives.load({0,68}),true)};
+    darker::resources::geometry_bank const bank{archives.load({0, 30})};
+    auto const fresh{darker::game::make_city_map(archives.load({0, 68}), true)};
     auto restored{fresh};
-    darker::game::restore_city_state(restored,bank.city_types(),level_entry.selected_pilot().delphi,16);
+    darker::game::restore_city_state(restored, bank.city_types(), level_entry.selected_pilot().delphi, 16);
     for(size_t i{0}; i < fresh.size(); ++i) {
-      if(fresh[i].type == 1 && fresh[i].state == 255 && restored[i].state != 255)
+      if(fresh[i].type == 1 && fresh[i].state == 255 && restored[i].state != 255) {
         throw std::runtime_error{"Direct level entry extinguished a fresh beacon"};
+      }
     }
   }
   level_entry.selected_pilot().stage = 17;
   level_entry.continue_campaign();
-  if(level_entry.active() || !level_entry.entry() || level_entry.entry()->site != 0x3064 || level_entry.entry()->heading != 0x80)
+  if(level_entry.active() || !level_entry.entry() || level_entry.entry()->site != 0x3064 || level_entry.entry()->heading != 0x80) {
     throw std::runtime_error{"Tunnel continuation showed its load-only briefing or lost the entry pose"};
-  auto const tunnel_language{level_entry.selected_scenario().language(0,darker::resources::scenario_language::english)};
+  }
+  auto const tunnel_language{level_entry.selected_scenario().language(0, darker::resources::scenario_language::english)};
   auto const tunnel_cursor{std::to_integer<uint8_t>(tunnel_language[0]) | (std::to_integer<uint8_t>(tunnel_language[1]) << 8)};
-  if(level_entry.consumed_text() != static_cast<size_t>(tunnel_cursor))
+  if(level_entry.consumed_text() != static_cast<size_t>(tunnel_cursor)) {
     throw std::runtime_error{"Tunnel continuation lost the language message displacement"};
+  }
   level_entry.start_level(17);
   if(!level_entry.active()) throw std::runtime_error{"Direct tunnel entry omitted its briefing"};
   level_entry.start_level(101);
@@ -143,80 +155,88 @@ void check_presentations(darker::resources::archive_set const &archives) {
   if(level_entry.selected_pilot().stage != 99) throw std::runtime_error{"Previous level did not skip the Halon interlude"};
   level_entry.start_level(69);
   {
-    darker::resources::geometry_bank const bank{archives.load({0,30})};
+    darker::resources::geometry_bank const bank{archives.load({0, 30})};
     auto const restored{[&](uint8_t const stage){
-      auto city{darker::game::make_city_map(archives.load({0,68}),true)};
-      darker::game::restore_city_state(city,bank.city_types(),level_entry.selected_pilot().delphi,stage);
+      auto city{darker::game::make_city_map(archives.load({0, 68}), true)};
+      darker::game::restore_city_state(city, bank.city_types(), level_entry.selected_pilot().delphi, stage);
       return city;
     }};
-    if(restored(69)[72*128+63].state != 255)
+    if(restored(69)[72 * 128 + 63].state != 255) {
       throw std::runtime_error{"Level skip applied the current mission's beacon exit queue too early"};
+    }
     level_entry.start_level(80);
     auto const city{restored(80)};
-    for(auto const [column,row] : std::array<std::array<unsigned int,2>,3>{{{25,79},{24,80},{24,82}}}) {
-      if((city[row*128+column].state & 0x60) != 0x40)
+    for(auto const [column, row] : std::array<std::array<unsigned int, 2>, 3>{{{25, 79}, {24, 80}, {24, 82}}}) {
+      if((city[row * 128 + column].state & 0x60) != 0x40) {
         throw std::runtime_error{"Level skip must retain earlier tank target markings without destroying them"};
+      }
     }
-    if((city[68*128+66].state & 0x60) != 0x40)
+    if((city[68 * 128 + 66].state & 0x60) != 0x40) {
       throw std::runtime_error{"Level skip invented mission 69 house destruction"};
-    for(auto const [column,row] : std::array<std::array<unsigned int,2>,4>{{{54,63},{63,63},{63,72},{54,72}}}) {
-      if(city[row*128+column].state != 0)
+    }
+    for(auto const [column, row] : std::array<std::array<unsigned int, 2>, 4>{{{54, 63}, {63, 63}, {63, 72}, {54, 72}}}) {
+      if(city[row * 128 + column].state != 0) {
         throw std::runtime_error{"Level skip lost earlier beacon failures"};
+      }
     }
     level_entry.previous_level();
-    if(level_entry.selected_pilot().stage != 79 || !(restored(79)[80*128+24].state & 0x40))
+    if(level_entry.selected_pilot().stage != 79 || !(restored(79)[80 * 128 + 24].state & 0x40)) {
       throw std::runtime_error{"Previous-level reconstruction lost cumulative target markings"};
+    }
     level_entry.start_level(116);
-    if((restored(116)[13*128+13].state & 0x20) == 0)
+    if((restored(116)[13 * 128 + 13].state & 0x20) == 0) {
       throw std::runtime_error{"Level skip lost authored radio-beacon shutdown"};
+    }
     level_entry.start_level(1);
-    if(restored(1)[72*128+63].state != 255 || (restored(1)[80*128+24].state & 0x60))
+    if(restored(1)[72 * 128 + 63].state != 255 || (restored(1)[80 * 128 + 24].state & 0x60)) {
       throw std::runtime_error{"Restarting level one retained later campaign state"};
+    }
   }
   level_entry.start_level(116);
   if(level_entry.selected_record() != 3) throw std::runtime_error{"Final level entry lost its record"};
-  darker::resources::scenario_resource const mission{archives.load({4,0})};
-  darker::presentation::player briefing{archives,font,mission,0};
+  darker::resources::scenario_resource const mission{archives.load({4, 0})};
+  darker::presentation::player briefing{archives, font, mission, 0};
   framework::render::cockpit_framebuffer frame{};
-  // DA2F retains B2BD/B2C1 across pages: the second English page has no spacing command.
-  darker::presentation::player quotation{archives,font,mission,0};
+  // DA2F retains B2BD/B2C1 across pages: the second English page has no spacing command
+  darker::presentation::player quotation{archives, font, mission, 0};
   quotation.continue_page();
   quotation.draw(frame);
-  auto const background{archives.load({0,22})};
-  auto const palette{darker::graphics::decode_palette(background,{})};
+  auto const background{archives.load({0, 22})};
+  auto const palette{darker::graphics::decode_palette(background, {})};
   framework::render::indexed_cockpit_framebuffer expected{};
-  for(size_t i{0}; i < expected.pixels.size(); ++i) expected.pixels[i] = std::to_integer<uint8_t>(background[palette.bytes_consumed+i]);
-  auto const page{darker::graphics::lay_out_text(mission.language(0,darker::resources::scenario_language::english).subspan(269),
-    font,darker::resources::font_face::wide,{
+  for(size_t i{0}; i < expected.pixels.size(); ++i) expected.pixels[i] = std::to_integer<uint8_t>(background[palette.bytes_consumed + i]);
+  auto const page{darker::graphics::lay_out_text(mission.language(0, darker::resources::scenario_language::english).subspan(269),
+    font, darker::resources::font_face::wide, {
       .x{24},
       .y{154},
       .colour{0xfffe},
       .margin{8},
       .line_step{11}
     })};
-  for(auto const &glyph : page.glyphs) darker::graphics::draw_glyph(expected,font,darker::resources::font_face::wide,glyph.code,glyph.position,{
+  for(auto const &glyph : page.glyphs) darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, glyph.code, glyph.position, {
     .ink{255},
     .edge{254}
   });
-  for(auto const x : {287,305}) darker::graphics::draw_glyph(expected,font,darker::resources::font_face::wide,x == 287 ? 60 : 62,{x, 226},{
+  for(auto const x : {287, 305}) darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, x == 287 ? 60 : 62, {x, 226}, {
     .ink{255},
     .edge{254}
   });
   framework::render::cockpit_framebuffer expected_rgb{};
-  framework::render::expand_palette(expected,palette.palette.colours,expected_rgb);
-  if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels}))) throw std::runtime_error{"Quotation lost inherited spacing or original advance glyphs"};
-  for(auto const pointer : {std::array{283,230},std::array{284,225},std::array{301,239},std::array{302,225},std::array{310,224}}) {
+  framework::render::expand_palette(expected, palette.palette.colours, expected_rgb);
+  if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_rgb.pixels}))) throw std::runtime_error{"Quotation lost inherited spacing or original advance glyphs"};
+  for(auto const pointer : {std::array{283, 230}, std::array{284, 225}, std::array{301, 239}, std::array{302, 225}, std::array{310, 224}}) {
     auto hovered{expected};
     auto const glyph{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 60 : 62) : 0};
-    if(glyph) darker::graphics::draw_glyph(hovered,font,darker::resources::font_face::wide,static_cast<uint8_t>(glyph),
-      {glyph == 60 ? 287 : 305, 226},{
+    if(glyph) darker::graphics::draw_glyph(hovered, font, darker::resources::font_face::wide, static_cast<uint8_t>(glyph),
+      {glyph == 60 ? 287 : 305, 226}, {
         .ink{253},
         .edge{252}
       });
-    framework::render::expand_palette(hovered,palette.palette.colours,expected_rgb);
-    quotation.draw(frame,pointer);
-    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_rgb.pixels})))
+    framework::render::expand_palette(hovered, palette.palette.colours, expected_rgb);
+    quotation.draw(frame, pointer);
+    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_rgb.pixels}))) {
       throw std::runtime_error{"Presentation navigation differs from DA75/DA48 hover bounds and colours"};
+    }
   }
   unsigned int pages{0};
   do {
@@ -227,20 +247,20 @@ void check_presentations(darker::resources::archive_set const &archives) {
     if(pages > 4) throw std::runtime_error{"Unexpected briefing continuation"};
   } while(briefing.continue_page());
   if(pages != 4 || briefing.consumed_text() != 1085 || !briefing.finished()) throw std::runtime_error{"Briefing did not end at the first in-flight message"};
-  // DABA is patched to image Y=24: stored animation rows are relative to that origin.
+  // DABA is patched to image Y=24: stored animation rows are relative to that origin
   darker::graphics::palette_state portrait_palette;
-  for(auto id : {darker::resources::resource_id{0,22}, {0,24}, {3,12}, {0,23}, {3,9}}) portrait_palette = darker::graphics::decode_palette(archives.load(id),portrait_palette).palette;
-  auto const portrait_frames{darker::presentation::decode_animation(archives.load({1,2}))};
+  for(auto id : {darker::resources::resource_id{0, 22}, {0, 24}, {3, 12}, {0, 23}, {3, 9}}) portrait_palette = darker::graphics::decode_palette(archives.load(id), portrait_palette).palette;
+  auto const portrait_frames{darker::presentation::decode_animation(archives.load({1, 2}))};
   for(auto const &pixel : portrait_frames.back()) {
     auto const y{pixel.y + 24};
     if(pixel.x >= 120 || y >= 226) continue;
-    auto const actual{frame.pixels[y*320+pixel.x]};
+    auto const actual{frame.pixels[y * 320 + pixel.x]};
     auto const colour{portrait_palette.colours[pixel.colour]};
     if(actual.r != colour.r || actual.g != colour.g || actual.b != colour.b) throw std::runtime_error{"Briefing animation lost its scene-relative Y origin"};
   }
-  // Level 98 repeats background type 1 at D3A without another portrait blit.
-  // BFE4/C007 retains the underlying portrait while replacing the text page.
-  darker::presentation::player retained_portrait{archives,font,campaign.scenario(98),1};
+  // level 98 repeats background type 1 at D3A without another portrait blit
+  // BFE4/C007 retains the underlying portrait while replacing the text page
+  darker::presentation::player retained_portrait{archives, font, campaign.scenario(98), 1};
   retained_portrait.advance(10000);
   if(!retained_portrait.continue_page()) throw std::runtime_error{"Missing level 98 portrait page"};
   retained_portrait.advance(10000);
@@ -248,14 +268,17 @@ void check_presentations(darker::resources::archive_set const &archives) {
   retained_portrait.draw(before_page);
   if(!retained_portrait.continue_page()) throw std::runtime_error{"Missing level 98 continuation page"};
   retained_portrait.draw(frame);
-  for(size_t y{24}; y < 216; ++y) for(size_t x{16}; x < 112; ++x) {
-    auto const &before{before_page.pixels[y*320+x]};
-    auto const &after{frame.pixels[y*320+x]};
-    if(before.r != after.r || before.g != after.g || before.b != after.b)
-      throw std::runtime_error{"Repeated presentation background erased the retained portrait"};
+  for(size_t y{24}; y < 216; ++y) {
+    for(size_t x{16}; x < 112; ++x) {
+      auto const &before{before_page.pixels[y * 320 + x]};
+      auto const &after{frame.pixels[y * 320 + x]};
+      if(before.r != after.r || before.g != after.g || before.b != after.b) {
+        throw std::runtime_error{"Repeated presentation background erased the retained portrait"};
+      }
+    }
   }
   for(uint8_t stage{2}; stage <= 16; ++stage) {
-    darker::presentation::player next{archives,font,campaign.scenario(stage),darker::resources::select_campaign_stage(stage).record};
+    darker::presentation::player next{archives, font, campaign.scenario(stage), darker::resources::select_campaign_stage(stage).record};
     size_t scenes{0};
     do {
       for(unsigned int tick{0}; tick < 10000; tick += 50) {
@@ -266,7 +289,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     } while(next.continue_page());
     if(!next.finished()) throw std::runtime_error{"Campaign briefing remains active: " + std::to_string(stage)};
   }
-  darker::presentation::player launch_clip{archives,font,mission,1};
+  darker::presentation::player launch_clip{archives, font, mission, 1};
   launch_clip.advance(3000);
   auto const briefing_cursor{launch_clip.consumed_text()};
   if(!launch_clip.continue_page()) throw std::runtime_error{"Second mission has no launch clip continuation"};
@@ -278,11 +301,14 @@ void check_presentations(darker::resources::archive_set const &archives) {
     }
   }
   if(launch_clip.consumed_text() != briefing_cursor) throw std::runtime_error{"Clearing presentation text consumed mission messages"};
-  darker::resources::scenario_resource const startup{archives.load({4,15})};
-  darker::presentation::player intro{archives,font,startup,1};
-  for(unsigned int tick{0}; tick < 2000; ++tick) { intro.advance(1); intro.draw(frame); }
+  darker::resources::scenario_resource const startup{archives.load({4, 15})};
+  darker::presentation::player intro{archives, font, startup, 1};
+  for(unsigned int tick{0}; tick < 2000; ++tick) {
+    intro.advance(1);
+    intro.draw(frame);
+  }
   if(!intro.finished()) throw std::runtime_error{"Startup presentation failed to finish"};
-  darker::presentation::player committal{archives,font,startup,2};
+  darker::presentation::player committal{archives, font, startup, 2};
   for(unsigned int tick{0}; tick < 60000; tick += 33) {
     committal.advance(33);
     committal.draw(frame);
@@ -291,7 +317,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"Committal presentation failed to retain its text while looping"};
   }
   darker::resources::save_file saves;
-  darker::presentation::front_end front{archives,font,campaign,saves};
+  darker::presentation::front_end front{archives, font, campaign, saves};
   front.show_death(2);
   front.advance(60000);
   front.draw(frame);
@@ -308,65 +334,71 @@ void check_presentations(darker::resources::archive_set const &archives) {
     pilot.delphi.fill(std::byte{0x63});
     pilot.halon.fill(std::byte{0x29});
     auto const committed{darker::resources::encode_save(retry_save)};
-    darker::presentation::front_end retry{archives,font,campaign,retry_save,true};
+    darker::presentation::front_end retry{archives, font, campaign, retry_save, true};
     retry.show_abort(7);
-    darker::presentation::player expected_abort{archives,font,startup,3,7};
+    darker::presentation::player expected_abort{archives, font, startup, 3, 7};
     framework::render::cockpit_framebuffer expected_frame;
     for(unsigned int tick{0}; tick < 128; ++tick) {
       retry.advance(32);
       expected_abort.advance(32);
       retry.draw(frame);
       expected_abort.draw(expected_frame);
-      if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels})))
+      if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_frame.pixels}))) {
         throw std::runtime_error{"Early tunnel return did not display the original abort presentation"};
+      }
     }
-    if(retry.save_requested || darker::resources::encode_save(retry_save) != committed)
+    if(retry.save_requested || darker::resources::encode_save(retry_save) != committed) {
       throw std::runtime_error{"Aborted tunnel attempt changed committed campaign state"};
+    }
     retry.key(darker::presentation::front_key::accept);
     retry.key(darker::presentation::front_key::accept);
-    // Retrying from the menu must use the full load briefing, not the seamless success branch.
-    darker::presentation::player expected_retry{archives,font,campaign.scenario(67),2};
+    // retrying from the menu must use the full load briefing, not the seamless success branch
+    darker::presentation::player expected_retry{archives, font, campaign.scenario(67), 2};
     retry.draw(frame);
     expected_retry.draw(expected_frame);
-    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels}))
-      || darker::resources::encode_save(retry_save) != committed)
+    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_frame.pixels}))
+      || darker::resources::encode_save(retry_save) != committed) {
       throw std::runtime_error{"Aborted tunnel retry lost its briefing or saved surface history"};
-  }
-  // Loading after death/abort must retain every pilot and reopen the full briefing.
-  for(auto const stage : {16,17,18,67,68,99,105,115}) for(bool const aborted : {false,true}) {
-    darker::resources::save_file history;
-    for(size_t slot{0}; slot < history.pilots.size(); ++slot) {
-      auto &pilot{history.pilots[slot]};
-      pilot.stage = static_cast<uint8_t>(stage);
-      pilot.set_name("Retained campaign");
-      pilot.return_site = 0x4d62;
-      pilot.weapons = 0x0367;
-      pilot.delphi.fill(static_cast<std::byte>(0x63 + slot));
-      pilot.halon.fill(static_cast<std::byte>(0x29 + slot));
-      pilot.reserved.fill(static_cast<std::byte>(0x81 + slot));
     }
-    history.trailer = {std::byte{0x37},std::byte{0xa5}};
-    auto const committed{darker::resources::encode_save(history)};
-    auto restored{darker::resources::decode_save(committed)};
-    darker::presentation::front_end retry{archives,font,campaign,restored,true};
-    if(aborted) retry.show_abort(7);
-    else retry.show_death(7);
-    retry.advance(60000);
-    retry.key(darker::presentation::front_key::accept);
-    retry.key(darker::presentation::front_key::accept);
-    auto const saved_stage{static_cast<uint8_t>(stage)};
-    darker::presentation::player expected{archives,font,campaign.scenario(saved_stage),
-      darker::resources::select_campaign_stage(saved_stage).record};
-    framework::render::cockpit_framebuffer expected_frame;
-    retry.draw(frame);
-    expected.draw(expected_frame);
-    if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}),std::as_bytes(std::span{expected_frame.pixels}))
-      || retry.save_requested || darker::resources::encode_save(restored) != committed)
-      throw std::runtime_error{"Campaign retry lost its full briefing or changed a committed pilot record at stage " + std::to_string(stage)};
   }
-  // The hidden command must never be interpreted as a pilot name or a save-record setting.
+  // loading after death/abort must retain every pilot and reopen the full briefing
+  for(auto const stage : {16, 17, 18, 67, 68, 99, 105, 115}) {
+    for(bool const aborted : {false, true}) {
+      darker::resources::save_file history;
+      for(size_t slot{0}; slot < history.pilots.size(); ++slot) {
+        auto &pilot{history.pilots[slot]};
+        pilot.stage = static_cast<uint8_t>(stage);
+        pilot.set_name("Retained campaign");
+        pilot.return_site = 0x4d62;
+        pilot.weapons = 0x0367;
+        pilot.delphi.fill(static_cast<std::byte>(0x63 + slot));
+        pilot.halon.fill(static_cast<std::byte>(0x29 + slot));
+        pilot.reserved.fill(static_cast<std::byte>(0x81 + slot));
+      }
+      history.trailer = {std::byte{0x37}, std::byte{0xa5}};
+      auto const committed{darker::resources::encode_save(history)};
+      auto restored{darker::resources::decode_save(committed)};
+      darker::presentation::front_end retry{archives, font, campaign, restored, true};
+      if(aborted) retry.show_abort(7);
+      else retry.show_death(7);
+      retry.advance(60000);
+      retry.key(darker::presentation::front_key::accept);
+      retry.key(darker::presentation::front_key::accept);
+      auto const saved_stage{static_cast<uint8_t>(stage)};
+      darker::presentation::player expected{archives, font, campaign.scenario(saved_stage),
+        darker::resources::select_campaign_stage(saved_stage).record};
+      framework::render::cockpit_framebuffer expected_frame;
+      retry.draw(frame);
+      expected.draw(expected_frame);
+      if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_frame.pixels}))
+        || retry.save_requested || darker::resources::encode_save(restored) != committed) {
+        throw std::runtime_error{"Campaign retry lost its full briefing or changed a committed pilot record at stage " + std::to_string(stage)};
+      }
+    }
+  }
+  // the hidden command must never be interpreted as a pilot name or a save-record setting
   darker::resources::save_file command_saves;
-  darker::presentation::front_end commands{archives,font,campaign,command_saves};
+  darker::presentation::front_end commands{archives, font, campaign, command_saves};
   using darker::presentation::front_key;
   commands.key(front_key::accept);
   commands.advance(1024);
@@ -381,7 +413,7 @@ void check_presentations(darker::resources::archive_set const &archives) {
   commands.save_requested = false;
   commands.key(front_key::select);
   auto const saved_before{darker::resources::encode_save(command_saves)};
-  for(auto const phrase : {"level x","Level XI","Level X ","Level X"}) {
+  for(auto const phrase : {"level x", "Level XI", "Level X ", "Level X"}) {
     commands.character('*');
     commands.advance(10000);
     commands.key(front_key::three);
@@ -398,68 +430,80 @@ void check_presentations(darker::resources::archive_set const &archives) {
   commands.advance(60000);
   commands.key(front_key::back);
   if(!commands.level_skip_enabled()) throw std::runtime_error{"Death cleared the process-wide Level X patch"};
-  // Interstitial records must never construct a world using their FF configuration.
-  for(uint8_t const stage : std::array<uint8_t,9>{98,100,102,104,106,108,110,112,114}) {
+  // interstitial records must never construct a world using their FF configuration
+  for(uint8_t const stage : std::array<uint8_t, 9>{98, 100, 102, 104, 106, 108, 110, 112, 114}) {
     darker::resources::save_file interstitial_saves;
     interstitial_saves.pilots[0].stage = stage;
     interstitial_saves.pilots[0].weapons = 0x3ff;
-    darker::presentation::front_end transition{archives,font,campaign,interstitial_saves,true};
+    darker::presentation::front_end transition{archives, font, campaign, interstitial_saves, true};
     transition.key(front_key::one);
     transition.key(front_key::accept);
     for(unsigned int frame_index{0}; transition.active() && frame_index < 10000; ++frame_index) {
       transition.advance(32);
       transition.key(front_key::accept);
     }
-    if(transition.active() || interstitial_saves.pilots[0].stage != stage+1 || !transition.save_requested)
+    if(transition.active() || interstitial_saves.pilots[0].stage != stage + 1 || !transition.save_requested) {
       throw std::runtime_error{"Halon interstitial did not advance to its playable stage"};
-    if(interstitial_saves.pilots[0].weapons != 0x3ff)
+    }
+    if(interstitial_saves.pilots[0].weapons != 0x3ff) {
       throw std::runtime_error{"Presentation-only progression changed saved weapon state"};
+    }
   }
-  for(uint8_t const outcome : std::array<uint8_t,5>{1,2,3,4,255}) {
+  for(uint8_t const outcome : std::array<uint8_t, 5>{1, 2, 3, 4, 255}) {
     darker::resources::save_file challenge_save;
     challenge_save.pilots[0].stage = 41;
     challenge_save.pilots[0].weapons = 123;
-    challenge_save.trailer = {std::byte{12},std::byte{0xa5}};
+    challenge_save.trailer = {std::byte{12}, std::byte{0xa5}};
     auto const previous{darker::resources::encode_save(challenge_save)};
-    darker::presentation::front_end challenge{archives,font,campaign,challenge_save,true};
+    darker::presentation::front_end challenge{archives, font, campaign, challenge_save, true};
     challenge.key(front_key::nightmare);
     challenge.key(front_key::erase);
     challenge.key(front_key::back);
     challenge.key(front_key::accept);
-    for(unsigned int i{0}; challenge.active() && i < 200; ++i) { challenge.advance(32); challenge.key(front_key::accept); }
+    for(unsigned int i{0}; challenge.active() && i < 200; ++i) {
+      challenge.advance(32);
+      challenge.key(front_key::accept);
+    }
     if(challenge.active() || !challenge.nightmare_selected() || challenge.selected_record() != 0
-      || &challenge.selected_scenario() != &campaign.supplementary() || challenge.save_requested)
+      || &challenge.selected_scenario() != &campaign.supplementary() || challenge.save_requested) {
       throw std::runtime_error{"Nightmare failed its separate menu/scenario entry"};
-    if(!challenge.entry() || challenge.entry()->site != 0x4258 || challenge.entry()->heading != 0xc4)
+    }
+    if(!challenge.entry() || challenge.entry()->site != 0x4258 || challenge.entry()->heading != 0xc4) {
       throw std::runtime_error{"Nightmare lost its Kismet Square starting position"};
-    challenge.finish_nightmare(37,outcome);
+    }
+    challenge.finish_nightmare(37, outcome);
     challenge.advance(60000);
     challenge.draw(frame);
-    if(!challenge.active() || !challenge.save_requested || challenge_save.trailer[0] != std::byte{37})
+    if(!challenge.active() || !challenge.save_requested || challenge_save.trailer[0] != std::byte{37}) {
       throw std::runtime_error{"Nightmare failed to retain its best score"};
+    }
     auto const after{darker::resources::encode_save(challenge_save)};
-    if(!std::equal(previous.begin(),previous.begin()+6596,after.begin()) || after[6597] != previous[6597])
+    if(!std::equal(previous.begin(), previous.begin() + 6596, after.begin()) || after[6597] != previous[6597]) {
       throw std::runtime_error{"Nightmare changed a campaign record or the other trailer byte"};
+    }
     challenge.save_requested = false;
-    challenge.finish_nightmare(9,255);
-    if(challenge.save_requested || challenge_save.trailer[0] != std::byte{37})
+    challenge.finish_nightmare(9, 255);
+    if(challenge.save_requested || challenge_save.trailer[0] != std::byte{37}) {
       throw std::runtime_error{"A lower Nightmare score replaced the best score"};
+    }
     challenge.key(front_key::erase);
     challenge.key(front_key::yes);
     auto const erased{darker::resources::encode_save(challenge_save)};
     if(!challenge.save_requested || challenge_save.trailer[0] != std::byte{0}
-      || !std::equal(previous.begin(),previous.begin()+6596,erased.begin()) || erased[6597] != previous[6597])
+      || !std::equal(previous.begin(), previous.begin() + 6596, erased.begin()) || erased[6597] != previous[6597]) {
       throw std::runtime_error{"Erasing the Nightmare high score changed unrelated save data"};
+    }
   }
   darker::resources::save_file ending_save;
   ending_save.pilots[0].stage = 116;
-  darker::presentation::front_end ending{archives,font,campaign,ending_save,true};
+  darker::presentation::front_end ending{archives, font, campaign, ending_save, true};
   ending.key(front_key::one);
   ending.key(front_key::accept);
   for(unsigned int i{0}; i < 8000; ++i) ending.advance(32);
   ending.draw(frame);
-  if(!ending.active() || ending_save.pilots[0].stage != 116 || ending.save_requested)
+  if(!ending.active() || ending_save.pilots[0].stage != 116 || ending.save_requested) {
     throw std::runtime_error{"Ending must retain the completed campaign instead of entering a nonexistent stage"};
+  }
   ending.key(front_key::back);
   if(!ending.active()) throw std::runtime_error{"Ending back button entered flight"};
   std::cout << "Startup, committal and first three mission animation frames match native DF36; startup and four-page briefing complete; committal animation loops and returns to the menu." << std::endl;

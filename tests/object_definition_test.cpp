@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <cstdint>
+#include <utility>
 #include "game/object_definition.h"
 #include "game/object_definitions.h"
 #include "reference/definition_samples.h"
@@ -9,13 +9,13 @@ TEST_CASE("Object definition expansion matches all native records and unsigned b
   for(auto const &sample : darker::test_reference::definition_samples) {
     CAPTURE(sample.slot, sample.field, sample.value, sample.model);
     darker::game::object_definition definition;
-    if(sample.slot >= 0) definition = darker::game::original_object_definitions[static_cast<std::size_t>(sample.slot)];
+    if(sample.slot >= 0) definition = darker::game::original_object_definitions[static_cast<size_t>(sample.slot)];
     else {
       definition.update_entry = static_cast<darker::game::object_update>(0xbeef);
-      if(sample.field == 0) definition.angular_seed = static_cast<std::uint8_t>(sample.value);
+      if(sample.field == 0) definition.angular_seed = static_cast<uint8_t>(sample.value);
       else {
         auto const fields{std::array{&definition.motion_seeds.bank_response, &definition.motion_seeds.bank_limit, &definition.motion_seeds.turn_response}};
-        *fields.at(static_cast<std::size_t>(sample.field - 1)) = static_cast<std::uint8_t>(sample.value);
+        *fields.at(static_cast<size_t>(sample.field - 1)) = static_cast<uint8_t>(sample.value);
       }
     }
     darker::game::object_parameters parameters{
@@ -30,7 +30,7 @@ TEST_CASE("Object definition expansion matches all native records and unsigned b
         .turn_response{0xa5a5}
       },
     };
-    darker::game::apply_object_definition(parameters, definition, static_cast<std::uint16_t>(sample.model));
+    darker::game::apply_object_definition(parameters, definition, static_cast<uint16_t>(sample.model));
     CHECK(parameters.definition == &definition);
     CHECK(parameters.model_token == sample.expected_model);
     CHECK(std::to_underlying(parameters.update_entry) == sample.update);

@@ -8,7 +8,7 @@ TEST_CASE("Model discs match native span construction and clipping", "[graphics]
     CAPTURE(sample.x, sample.y, sample.radius, sample.bottom);
     framework::render::indexed_cockpit_framebuffer frame{};
     darker::graphics::draw_disc(frame, {sample.x, sample.y}, sample.radius, 73, sample.bottom);
-    std::uint64_t fingerprint{0xcbf29ce484222325};
+    uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
     REQUIRE(fingerprint == sample.fingerprint);
   }
@@ -16,7 +16,7 @@ TEST_CASE("Model discs match native span construction and clipping", "[graphics]
 
 TEST_CASE("World lines retain original clipped endpoints", "[graphics][primitives]") {
   /// Check rejection flags and rounded endpoints before the shared HUD/world line rasteriser
-  std::size_t index{0};
+  size_t index{0};
   for(auto const &sample : darker::test_reference::line_clip_samples) {
     CAPTURE(index);
     darker::graphics::pixel_position first{sample.input[0], sample.input[1]};

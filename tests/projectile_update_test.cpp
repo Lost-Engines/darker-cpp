@@ -1,21 +1,21 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <array>
 #include <cstdint>
+#include <utility>
 #include "game/object_definitions.h"
 #include "game/projectile_update.h"
 #include "reference/update_samples.h"
 
 TEST_CASE("Projectile update sequences preserve native deadline, snapshot and callback ordering") {
   darker::game::projectile record;
-  std::array<std::uint8_t, 5> constexpr flags{0x20, 0x20, 0x40, 0, 0x20};
-  std::array<std::uint16_t, 5> constexpr lifetimes{128, 1024, 128, 32, 0};
-  std::array<std::uint16_t, 5> constexpr altitudes{8192, 0x5000, 8192, 65535, 8192};
+  std::array<uint8_t, 5> constexpr flags{0x20, 0x20, 0x40, 0, 0x20};
+  std::array<uint16_t, 5> constexpr lifetimes{128, 1024, 128, 32, 0};
+  std::array<uint16_t, 5> constexpr altitudes{8192, 0x5000, 8192, 65535, 8192};
   for(auto const &sample : darker::test_reference::update_frame_samples) {
     CAPTURE(sample.callback, sample.mode, sample.target_kind, sample.tick);
     if(sample.tick == 0) {
       record = {};
-      auto const mode{static_cast<std::size_t>(sample.mode)};
+      auto const mode{static_cast<size_t>(sample.mode)};
       record.parameters.definition = &darker::game::original_object_definitions[0];
       record.parameters.update_entry = static_cast<darker::game::object_update>(sample.callback);
       record.parameters.angular_response = 480;
@@ -45,19 +45,19 @@ TEST_CASE("Projectile update sequences preserve native deadline, snapshot and ca
       record.previous_position = {0x1111, 0x2222, 0x3333};
       record.flags = flags[mode];
       record.fade = 123;
-      record.deadline = static_cast<std::uint16_t>(65500 + lifetimes[mode]);
+      record.deadline = static_cast<uint16_t>(65500 + lifetimes[mode]);
     }
     darker::game::object_pose const target{
       .position{
-        .column{static_cast<std::uint16_t>(sample.target[0])},
-        .row{static_cast<std::uint16_t>(sample.target[1])},
-        .height{static_cast<std::uint16_t>(sample.target[2])}
+        .column{static_cast<uint16_t>(sample.target[0])},
+        .row{static_cast<uint16_t>(sample.target[1])},
+        .height{static_cast<uint16_t>(sample.target[2])}
       }
     };
-    // Expiry must not need a target or execute the motion callback.
+    // expiry must not need a target or execute the motion callback
     auto const *resolved{sample.result[18] ? nullptr : sample.target_kind == 2 ? &record.placement : &target};
-    auto const status{darker::game::update_projectile(record, static_cast<std::uint16_t>(sample.clock),
-      static_cast<std::uint16_t>(sample.step), resolved)};
+    auto const status{darker::game::update_projectile(record, static_cast<uint16_t>(sample.clock),
+      static_cast<uint16_t>(sample.step), resolved)};
     auto const &p{record.placement};
     std::array<int, 19> const actual{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
       record.angular_motion.pitch, record.angular_motion.turn, p.angles.heading, p.angles.pitch, p.angles.roll, p.speed,

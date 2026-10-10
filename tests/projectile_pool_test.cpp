@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <array>
 #include <cstdint>
+#include <utility>
 #include "game/object_definitions.h"
 #include "game/projectile_pool.h"
 #include "maths/world_coordinates.h"
@@ -30,13 +30,13 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
         .height{255}
       }},
       .angles{
-        .heading{static_cast<std::uint16_t>(sample.heading)},
-        .pitch{static_cast<std::uint16_t>(sample.pitch)},
-        .roll{static_cast<std::uint16_t>(sample.roll)}
+        .heading{static_cast<uint16_t>(sample.heading)},
+        .pitch{static_cast<uint16_t>(sample.pitch)},
+        .roll{static_cast<uint16_t>(sample.roll)}
       },
       .speed{0x9876},
-      .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)},
-      .definition_strength{static_cast<std::uint8_t>(sample.strength)},
+      .side_flags{static_cast<uint8_t>(sample.edge ? 0x80 : 0)},
+      .definition_strength{static_cast<uint8_t>(sample.strength)},
     };
     auto const &definition{darker::game::original_object_definitions[10]};
     darker::game::projectile_launch const request{
@@ -87,8 +87,8 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
     .lifetime{256},
     .target_token{0x1234},
   };
-  std::array<darker::game::projectile *, 12> allocated{};
-  for(std::size_t i{0}; i < allocated.size(); ++i) {
+  std::array<darker::game::projectile*, 12> allocated{};
+  for(size_t i{0}; i < allocated.size(); ++i) {
     allocated[i] = pool.launch(request);
     REQUIRE(allocated[i] == &pool.records()[11 - i]);
     CHECK(pool.objects().head == allocated[i]);
@@ -103,7 +103,7 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
   CHECK(pool.objects().tail == allocated.front());
   CHECK(pool.objects().free == nullptr);
   auto *current{pool.objects().head};
-  for(std::size_t i{allocated.size()}; i-- > 0;) {
+  for(size_t i{allocated.size()}; i-- >0;) {
     REQUIRE(current == allocated[i]);
     current = current->next;
   }
@@ -129,7 +129,7 @@ TEST_CASE("Hostile projectile pool has six independent native slots") {
   for(unsigned int i{0}; i < 6; ++i) {
     auto *shot{hostile.launch(request)};
     REQUIRE(shot != nullptr);
-    CHECK(shot->native_id == 0xd6e6 + (5-i)*112);
+    CHECK(shot->native_id == 0xd6e6 + (5 - i) * 112);
     CHECK(hostile.resolve(shot->native_id) == shot);
     CHECK(player.resolve(shot->native_id) == nullptr);
   }

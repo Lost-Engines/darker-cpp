@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <array>
 #include <stdexcept>
+#include <utility>
 #include "game/object_definitions.h"
 #include "game/scenario_actor.h"
 #include "reference/scenario_actor_samples.h"
@@ -12,20 +12,20 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
     auto const &v{sample.input};
     darker::resources::scenario_placement placement{
       .form{static_cast<darker::resources::placement_form>(v[0])},
-      .definition_slot{static_cast<std::uint8_t>(v[2])},
+      .definition_slot{static_cast<uint8_t>(v[2])},
       .counted{v[3] != 0},
-      .attributes{static_cast<std::uint8_t>(v[5])},
-      .heading{static_cast<std::uint16_t>(v[4])},
-      .position{static_cast<std::uint16_t>(v[6]), static_cast<std::uint16_t>(v[7])},
+      .attributes{static_cast<uint8_t>(v[5])},
+      .heading{static_cast<uint16_t>(v[4])},
+      .position{static_cast<uint16_t>(v[6]), static_cast<uint16_t>(v[7])},
     };
     placement.behaviour = {static_cast<uint8_t>(v[8]), static_cast<uint8_t>(v[9]), static_cast<uint8_t>(v[10]),
       static_cast<uint8_t>(v[11]), static_cast<uint8_t>(v[12]), static_cast<uint8_t>(v[13])};
     if(v[0] != 2) {
-      placement.script_or_target = static_cast<std::uint16_t>(v[14]);
-      if(v[14] < 0x8000) placement.program_offset = static_cast<std::size_t>(v[17] + v[14]);
+      placement.script_or_target = static_cast<uint16_t>(v[14]);
+      if(v[14] < 0x8000) placement.program_offset = static_cast<size_t>(v[17] + v[14]);
     }
     auto const actor{darker::game::make_scenario_actor(placement, darker::game::original_object_definitions[v[2]],
-      0x400, static_cast<std::int16_t>(v[15]), static_cast<std::uint8_t>(v[16]), static_cast<std::uint8_t>(v[1]), 0)};
+      0x400, static_cast<int16_t>(v[15]), static_cast<uint8_t>(v[16]), static_cast<uint8_t>(v[1]), 0)};
     auto const &p{actor.parameters};
     CAPTURE(v);
     CHECK(std::array<int, 31>{actor.pose.position.column, actor.pose.position.row, actor.pose.position.height,

@@ -11,8 +11,8 @@ TEST_CASE("Sky and ground bands match native horizon projection", "[graphics][ba
     darker::graphics::draw_sky_ground(frame, {
       .pitch{sample.pitch},
       .roll{sample.roll}
-    }, {160, static_cast<std::int16_t>(sample.height / 2)}, sample.height);
-    std::uint64_t hash{14695981039346656037ull};
+    }, {160, static_cast<int16_t>(sample.height / 2)}, sample.height);
+    uint64_t hash{14695981039346656037ull};
     for(int i{0}; i < sample.height * 320; ++i) {
       hash ^= frame.pixels[i];
       hash *= 1099511628211ull;

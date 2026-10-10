@@ -5,31 +5,31 @@
 namespace darker::maths {
 namespace {
 
-std::int16_t word(int const value) noexcept {
+int16_t word(int const value) noexcept {
   /// Preserve wrapping intermediate words before the next signed multiplication
-  return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(value));
+  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
-std::int16_t multiply(std::int16_t const left, std::int16_t const right) noexcept {
+int16_t multiply(int16_t const left, int16_t const right) noexcept {
   /// IMUL followed by ADD/ADC retains the signed product shifted by fifteen
   return word((left * right) >> 15);
 }
 
 struct angle_components {
-  std::int16_t sine;
-  std::int16_t cosine;
+  int16_t sine;
+  int16_t cosine;
 };
 
-angle_components components(std::uint16_t const angle) noexcept {
+angle_components components(uint16_t const angle) noexcept {
   /// The camera caller rounds by fifteen before selecting a 1024-entry phase
-  auto const phase{static_cast<std::uint16_t>(angle + 15) >> 6};
+  auto const phase{static_cast<uint16_t>(angle + 15) >> 6};
   return {
     .sine{maths::original_sine[phase]},
     .cosine{maths::original_sine[(phase + 256) % 1024]}
   };
 }
 
-} // namespace
+} // anonymous namespace
 
 view_basis make_view_basis(attitude_angles const angles) noexcept {
   /// Translate 1D63's ordered fixed-point products and 1E40's local-axis installation

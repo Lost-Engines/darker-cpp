@@ -9,14 +9,14 @@
 namespace darker::graphics {
 namespace {
 
-std::int32_t signed_coordinate(std::int32_t const value) noexcept {
+int32_t signed_coordinate(int32_t const value) noexcept {
   /// Keep three-byte interpolation additions and subtractions within their original signed range
-  return std::bit_cast<std::int32_t>(static_cast<std::uint32_t>(value) << 8) >> 8;
+  return std::bit_cast<int32_t>(static_cast<uint32_t>(value) << 8) >> 8;
 }
 
-std::int16_t signed_word(int const value) noexcept {
+int16_t signed_word(int const value) noexcept {
   /// Interpolation quantises deltas to signed words before multiplying
-  return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(value));
+  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
 class interpreter {
@@ -27,9 +27,9 @@ private:
   model_colours const &colours;
   model_animation const &animation;
   camera_vertex anchor{};
-  std::uint16_t interpolation{0};
-  std::int16_t last_depth{0};
-  std::uint8_t distance_high;
+  uint16_t interpolation{0};
+  int16_t last_depth{0};
+  uint8_t distance_high;
   int bottom;
   model_path path;
   model_shading shading;
@@ -37,29 +37,29 @@ private:
   std::array<camera_vertex, 256> camera_vertices{};
   std::array<screen_vertex, 256> vertices{};
   std::array<bool, 256> defined{};
-  std::size_t cursor{0};
+  size_t cursor{0};
   unsigned int instructions{0};
 
-  std::uint8_t byte(std::size_t &position) const {
+  uint8_t byte(size_t &position) const {
     /// Consume a checked byte from the original geometry pool
     if(position >= pool.size()) throw std::invalid_argument{"Model instruction exceeds its geometry pool"};
-    return std::to_integer<std::uint8_t>(pool[position++]);
+    return std::to_integer<uint8_t>(pool[position++]);
   }
 
-  std::uint16_t word(std::size_t &position) const {
+  uint16_t word(size_t &position) const {
     /// Consume an unaligned little-endian operand
     auto const low{byte(position)};
-    return static_cast<std::uint16_t>(low | byte(position) << 8);
+    return static_cast<uint16_t>(low | byte(position) << 8);
   }
 
-  std::size_t relative(std::size_t const operand, std::uint16_t const displacement) const {
+  size_t relative(size_t const operand, uint16_t const displacement) const {
     /// Relative calls and jumps are based at the displacement word itself
-    auto const destination{static_cast<std::ptrdiff_t>(operand) + std::bit_cast<std::int16_t>(displacement)};
-    if(destination < 0 || static_cast<std::size_t>(destination) >= pool.size()) throw std::invalid_argument{"Model branch exceeds its geometry pool"};
-    return static_cast<std::size_t>(destination);
+    auto const destination{static_cast<ptrdiff_t>(operand) + std::bit_cast<int16_t>(displacement)};
+    if(destination < 0 || static_cast<size_t>(destination) >= pool.size()) throw std::invalid_argument{"Model branch exceeds its geometry pool"};
+    return static_cast<size_t>(destination);
   }
 
-  screen_vertex const &vertex(std::uint8_t const index) const {
+  screen_vertex const &vertex(uint8_t const index) const {
     /// Reject references to vertices not emitted by this model invocation
     if(!defined[index]) throw std::invalid_argument{"Model face references an undefined vertex"};
     return vertices[index];
@@ -74,9 +74,9 @@ private:
     defined[cursor++] = true;
   }
 
-  std::int16_t parameter(std::size_t &position) const {
+  int16_t parameter(size_t &position) const {
     /// 319E adds the low five cell-state bits to the operand with byte wrapping
-    return animation.parameters[static_cast<std::uint8_t>((animation.cell_state & 31) + byte(position))];
+    return animation.parameters[static_cast<uint8_t>((animation.cell_state & 31) + byte(position))];
   }
 
   void save_anchor() {
@@ -99,7 +99,7 @@ private:
     camera_vertex result{};
     if(path == model_path::near_clipped) {
       int const factor{interpolation >> 4};
-      // 32DC/330E read each endpoint from byte one: truncate both before subtraction.
+      // 32DC/330E read each endpoint from byte one: truncate both before subtraction
       result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(((current.horizontal >> 8) - (anchor.horizontal >> 8)) >> 2) * factor) >> 2));
       result.vertical = signed_coordinate(anchor.vertical + ((signed_word(((current.vertical >> 8) - (anchor.vertical >> 8)) >> 2) * factor) >> 2));
       result.depth = signed_coordinate(anchor.depth + ((signed_word(signed_coordinate(current.depth - anchor.depth) >> 2) * factor) >> 10));
@@ -115,30 +115,30 @@ private:
     defined[cursor++] = true;
   }
 
-  void set(std::size_t const axis, std::size_t &position) {
+  void set(size_t const axis, size_t &position) {
     /// Replace one cached coordinate contribution from its signed operand
-    projection.set_component(axis, std::bit_cast<std::int16_t>(word(position)));
+    projection.set_component(axis, std::bit_cast<int16_t>(word(position)));
   }
 
-  std::uint8_t colour(std::uint8_t const source) const noexcept {
+  uint8_t colour(uint8_t const source) const noexcept {
     /// 3383 resolves the supplied distance shade table and dynamic colour codes
     unsigned int shade{static_cast<unsigned int>(source & 31)};
     if(shade < 28) shade = colours.shades[shade];
     else {
-      unsigned int const value{static_cast<std::uint8_t>((colours.dynamic & 31) + colours.shades[27])};
-      shade = std::min(27u, static_cast<unsigned int>(static_cast<std::uint8_t>(value + 11 - (value >> 2))) >> 1);
+      unsigned int const value{static_cast<uint8_t>((colours.dynamic & 31) + colours.shades[27])};
+      shade = std::min(27u, static_cast<unsigned int>(static_cast<uint8_t>(value + 11 - (value >> 2))) >> 1);
     }
-    return static_cast<std::uint8_t>((source & 224) + shade);
+    return static_cast<uint8_t>((source & 224) + shade);
   }
 
 public:
   interpreter(framework::render::indexed_cockpit_framebuffer &frame, std::span<std::byte const> const bytes,
     projection_parameters const parameters, model_colours const &palette, int const height, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<std::uint8_t>(parameters.depth.whole >> 8)}, bottom{height}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
+    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, bottom{height}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
-  void run(std::size_t position, unsigned int const depth = 0) {
+  void run(size_t position, unsigned int const depth = 0) {
     /// Follow the original drawing commands with either direct or near-clipped vertex storage
     if(depth > 40) throw std::invalid_argument{"Model call nesting exceeds the supported bound"};
     while(true) {
@@ -146,11 +146,21 @@ public:
       auto const at{position};
       auto const opcode{byte(position)};
       switch(opcode) {
-      case 0x0d: return;
-      case 0x32: interpolation = static_cast<std::uint16_t>(parameter(position)); save_anchor(); break;
-      case 0x35: save_anchor(); break;
-      case 0x38: emit_interpolated(); break;
-      case 0x3b: projection.set_component(2, parameter(position)); break;
+      case 0x0d:
+        return;
+      case 0x32:
+        interpolation = static_cast<uint16_t>(parameter(position));
+        save_anchor();
+        break;
+      case 0x35:
+        save_anchor();
+        break;
+      case 0x38:
+        emit_interpolated();
+        break;
+      case 0x3b:
+        projection.set_component(2, parameter(position));
+        break;
       case 0x22:
         {
           auto const index{colour(byte(position))};
@@ -162,7 +172,7 @@ public:
           if(path == model_path::near_clipped && depth < 32) break;
           if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
           auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : vertices[cursor]};
-          draw_disc(target, {point.x, point.y}, radius / static_cast<std::uint16_t>(depth), index, bottom);
+          draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, bottom);
         }
         break;
       case 0x1e:
@@ -179,7 +189,8 @@ public:
             first = left_inside ? project_vertex(left, screen_origin) : near_intersection(right, left, screen_origin);
             last = right_inside ? project_vertex(right, screen_origin) : near_intersection(left, right, screen_origin);
           } else {
-            first = vertices[a]; last = vertices[b];
+            first = vertices[a];
+            last = vertices[b];
           }
           draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, bottom);
         }
@@ -193,7 +204,9 @@ public:
           else position = destination;
         }
         break;
-      case 0x2c: cursor = 0; break;
+      case 0x2c:
+        cursor = 0;
+        break;
       case 0x25:
         {
           auto const address{word(position)};
@@ -201,26 +214,84 @@ public:
           cursor = (address - 0xfc00) / 4;
         }
         break;
-      case 0x52: projection.zero_component(2); break;
-      case 0x56: projection.zero_component(0); break;
-      case 0x5a: projection.zero_component(1); break;
-      case 0x67: projection.negate_component(2); break;
-      case 0x6b: projection.negate_component(0); break;
-      case 0x6f: projection.negate_component(1); break;
-      case 0x5e: projection.zero_component(2); emit(); break;
-      case 0x61: projection.zero_component(0); emit(); break;
-      case 0x64: projection.zero_component(1); emit(); break;
-      case 0x73: projection.negate_component(2); emit(); break;
-      case 0x76: projection.negate_component(0); emit(); break;
-      case 0x79: projection.negate_component(1); emit(); break;
-      case 0x7c: set(1, position); set(2, position); emit(); break;
-      case 0x7f: set(2, position); emit(); break;
-      case 0x85: set(2, position); set(0, position); emit(); break;
-      case 0x88: set(0, position); emit(); break;
-      case 0x8e: set(2, position); set(0, position); set(1, position); emit(); break;
-      case 0x91: set(0, position); set(1, position); emit(); break;
-      case 0x94: set(1, position); emit(); break;
-      case 0x97: emit(); break;
+      case 0x52:
+        projection.zero_component(2);
+        break;
+      case 0x56:
+        projection.zero_component(0);
+        break;
+      case 0x5a:
+        projection.zero_component(1);
+        break;
+      case 0x67:
+        projection.negate_component(2);
+        break;
+      case 0x6b:
+        projection.negate_component(0);
+        break;
+      case 0x6f:
+        projection.negate_component(1);
+        break;
+      case 0x5e:
+        projection.zero_component(2);
+        emit();
+        break;
+      case 0x61:
+        projection.zero_component(0);
+        emit();
+        break;
+      case 0x64:
+        projection.zero_component(1);
+        emit();
+        break;
+      case 0x73:
+        projection.negate_component(2);
+        emit();
+        break;
+      case 0x76:
+        projection.negate_component(0);
+        emit();
+        break;
+      case 0x79:
+        projection.negate_component(1);
+        emit();
+        break;
+      case 0x7c:
+        set(1, position);
+        set(2, position);
+        emit();
+        break;
+      case 0x7f:
+        set(2, position);
+        emit();
+        break;
+      case 0x85:
+        set(2, position);
+        set(0, position);
+        emit();
+        break;
+      case 0x88:
+        set(0, position);
+        emit();
+        break;
+      case 0x8e:
+        set(2, position);
+        set(0, position);
+        set(1, position);
+        emit();
+        break;
+      case 0x91:
+        set(0, position);
+        set(1, position);
+        emit();
+        break;
+      case 0x94:
+        set(1, position);
+        emit();
+        break;
+      case 0x97:
+        emit();
+        break;
       case 0x01:
       case 0x02:
       case 0x03:
@@ -234,7 +305,7 @@ public:
           auto const index{colour(source_colour)};
           std::array<screen_vertex, 260> face{};
           std::array<shaded_vertex, 260> shaded_face{};
-          std::array<std::uint16_t, 256> vertex_shades{};
+          std::array<uint16_t, 256> vertex_shades{};
           std::array<camera_vertex, 256> camera_face{};
           for(unsigned int i{0}; i < count; ++i) {
             auto const source{byte(position)};
@@ -246,7 +317,7 @@ public:
               if(shading == model_shading::gouraud) {
                 if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
                 auto const shade{colours.shades[operand]};
-                vertex_shades[i] = static_cast<std::uint16_t>(((source_colour & 224) + shade) * 256 + shade + 128);
+                vertex_shades[i] = static_cast<uint16_t>(((source_colour & 224) + shade) * 256 + shade + 128);
                 shaded_face[i] = {
                   .x{face[i].x},
                   .y{face[i].y},
@@ -268,7 +339,7 @@ public:
         break;
       case 0x16:
         {
-          std::array<std::uint8_t, 3> const indices{byte(position), byte(position), byte(position)};
+          std::array<uint8_t, 3> const indices{byte(position), byte(position), byte(position)};
           for(auto const index : indices) {
             if(!defined[index]) throw std::invalid_argument{"Model visibility test references an undefined vertex"};
           }
@@ -289,30 +360,31 @@ public:
         {
           auto const threshold{byte(position)};
           auto const skip{byte(position)};
-          if(static_cast<std::uint8_t>(distance_high - threshold) & 128) position += skip;
+          if(static_cast<uint8_t>(distance_high - threshold) & 128) position += skip;
         }
         break;
-      default: throw std::invalid_argument{std::format("Unsupported flat model opcode {:02x} at pool offset {:04x}", opcode, at)};
+      default:
+        throw std::invalid_argument{std::format("Unsupported flat model opcode {:02x} at pool offset {:04x}", opcode, at)};
       }
     }
   }
 };
 
-} // namespace
+} // anonymous namespace
 
-void update_fountain_parameters(model_animation &animation, std::uint16_t const clock) noexcept {
+void update_fountain_parameters(model_animation &animation, uint16_t const clock) noexcept {
   /// DB1A resets six fountain heights and offsets the two active bands using the original sine table
-  std::fill_n(animation.parameters.begin() + 9, 6, static_cast<std::int16_t>(-384));
-  std::array<int, 7> constexpr amplitudes{118, 154, 136, 112, 85, 60, 118};          // original bytes at DB6A
-  auto const phase{static_cast<std::uint32_t>(static_cast<std::uint16_t>(clock << 5)) * 6};
+  std::fill_n(animation.parameters.begin() + 9, 6, static_cast<int16_t>(-384));
+  std::array<int, 7> constexpr amplitudes{118, 154, 136, 112, 85, 60, 118};    // original bytes at DB6A
+  auto const phase{static_cast<uint32_t>(static_cast<uint16_t>(clock << 5)) * 6};
   auto const band{phase >> 16};
   auto const sine{maths::original_sine[(phase & 65535) >> 7]};
-  animation.parameters[9 + band] += static_cast<std::int16_t>((amplitudes[band] * sine) >> 16);
-  animation.parameters[9 + (band + 1) % 6] -= static_cast<std::int16_t>((2 * amplitudes[band + 1] * sine) >> 16);
+  animation.parameters[9 + band] += static_cast<int16_t>((amplitudes[band] * sine) >> 16);
+  animation.parameters[9 + (band + 1) % 6] -= static_cast<int16_t>((2 * amplitudes[band + 1] * sine) >> 16);
 }
 
 void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::span<std::byte const> const pool,
-  std::size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation, model_shading const shading) {
+  size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation, model_shading const shading) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
   if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};

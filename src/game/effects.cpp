@@ -56,14 +56,14 @@ particle_emitter make_damage_trail(maths::world_position position, uint8_t const
 }
 
 void effect_system::append_sound(std::vector<effect_sound> &pool, sound_slots &slots, uint32_t const first_identity, effect_sound sound) {
-  /// 1CBF takes a free record or recycles the oldest active record, preserving its physical identity.
+  /// 1CBF takes a free record or recycles the oldest active record, preserving its physical identity
   uint8_t slot;
   if(slots.count != 0) slot = slots.free[--slots.count];
   else {
-    slot = static_cast<uint8_t>(pool.front().identity-first_identity);
+    slot = static_cast<uint8_t>(pool.front().identity - first_identity);
     pool.erase(pool.begin());
   }
-  sound.identity = first_identity+slot;
+  sound.identity = first_identity + slot;
   sound.generation = ++slots.generations[slot];
   pool.push_back(sound);
 }
@@ -89,7 +89,7 @@ void effect_system::spawn(uint16_t const recipe, maths::world_position const pos
     emitters.push_back(emitter);
   }
   for(auto const &sound : found->sounds) {
-    append_sound(sounds,effect_slots,1,{
+    append_sound(sounds, effect_slots, 1, {
       .position{position},
       .definition{sound},
       .deadline{static_cast<uint16_t>(clock + sound.duration)}
@@ -105,7 +105,7 @@ void effect_system::spark(maths::world_position const position, uint8_t const ph
     .start{clock},
     .flags{phase}
   });
-  append_sound(gun_sounds,gun_slots,17,{
+  append_sound(gun_sounds, gun_slots, 17, {
     .position{position},
     .definition{
       .duration{256},
@@ -121,7 +121,7 @@ void effect_system::spark(maths::world_position const position, uint8_t const ph
 void effect_system::gun_impact(maths::world_position position, bool const hit, uint16_t const clock) {
   /// 6730/6742 create a short endpoint sprite and an independently timed patch-22 sound
   position.height &= 0xfff8;
-  spark(position,static_cast<uint8_t>(hit ? 3 : 6),static_cast<uint16_t>(hit ? 0xde30 : 0xce30),clock);
+  spark(position, static_cast<uint8_t>(hit ? 3 : 6), static_cast<uint16_t>(hit ? 0xde30 : 0xce30), clock);
 }
 
 void effect_system::trail(maths::world_position const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {
@@ -135,7 +135,9 @@ void effect_system::advance(uint16_t const clock, uint16_t const step) {
   auto const expired{[&](auto const &emitter){
     return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - emitter.start)) > (emitter.flags & 127) * 64;
   }};
-  auto const sound_expired{[&](auto const &sound){ return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - sound.deadline)) >= 0; }};
+  auto const sound_expired{[&](auto const &sound){
+    return std::bit_cast<int16_t>(static_cast<uint16_t>(clock - sound.deadline)) >= 0;
+  }};
   retire_sounds(sound_expired);
   std::erase_if(emitters, expired);
   std::erase_if(trails, expired);

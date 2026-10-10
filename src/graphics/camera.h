@@ -9,25 +9,25 @@ namespace darker::graphics {
 using camera_angles = maths::attitude_angles;
 
 struct camera_position {
-  std::uint16_t column{0};                                                      // 1/1024 cell, matching the patched origin subtractors
-  std::uint16_t row{0};
-  std::int16_t altitude{0};
+  uint16_t column{0};                                                          // 1/1024 cell, matching the patched origin subtractors
+  uint16_t row{0};
+  int16_t altitude{0};
 };
 
 struct model_origin {
-  std::uint16_t column{0};                                                      // 1/256 cell, including the type record's fractional placement
-  std::uint16_t row{0};
-  std::int16_t height{0};                                                       // selected header height minus the type's vertical placement
+  uint16_t column{0};                                                          // 1/256 cell, including the type record's fractional placement
+  uint16_t row{0};
+  int16_t height{0};                                                           // selected header height minus the type's vertical placement
 };
 
 struct model_placement {
   projection_term horizontal{};
   projection_term vertical{};
   projection_term depth{};
-  std::uint16_t sorting_distance{0};
+  uint16_t sorting_distance{0};
 };
 
-using camera_basis = maths::view_basis;                             // model components A, B and C; map column/row use B and -A
+using camera_basis = maths::view_basis;                                        // model components A, B and C; map column/row use B and -A
 
 camera_basis orient_model(camera_basis const &camera, camera_angles angles) noexcept;
 

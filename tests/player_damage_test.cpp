@@ -10,15 +10,15 @@ TEST_CASE("Player damage and kick match every incoming byte for all three craft"
     CAPTURE(sample.craft, sample.cheat, sample.amount, sample.amplitude, sample.damage, sample.charge, sample.enabled);
     darker::game::player_damage_state state{
       .rotation{
-        .pitch{static_cast<std::uint16_t>(sample.pitch)},
-        .turn{static_cast<std::uint16_t>(sample.heading)}
+        .pitch{static_cast<uint16_t>(sample.pitch)},
+        .turn{static_cast<uint16_t>(sample.heading)}
       },
-      .damage{static_cast<std::uint16_t>(sample.damage)},
-      .shield_charge{static_cast<std::uint16_t>(sample.charge)},
+      .damage{static_cast<uint16_t>(sample.damage)},
+      .shield_charge{static_cast<uint16_t>(sample.charge)},
       .shield_enabled{sample.enabled != 0},
     };
-    auto seed{static_cast<std::uint16_t>(sample.seed)};
-    darker::game::apply_player_damage(state, static_cast<std::uint8_t>(sample.amount), static_cast<std::uint8_t>(sample.amplitude),
+    auto seed{static_cast<uint16_t>(sample.seed)};
+    darker::game::apply_player_damage(state, static_cast<uint8_t>(sample.amount), static_cast<uint8_t>(sample.amplitude),
       sample.craft != 25, sample.cheat != 0, seed);
     std::array<int, 5> const actual{state.rotation.pitch, state.rotation.turn, state.damage, state.shield_charge, seed};
     CHECK(actual == sample.result);
@@ -31,9 +31,9 @@ TEST_CASE("Skimma fractional shield recharge matches native overflow behaviour",
   for(auto const &sample : darker::test_reference::recharge_samples) {
     CAPTURE(sample.charge, sample.step);
     darker::game::player_damage_state state{
-      .shield_charge{static_cast<std::uint16_t>(sample.charge)}
+      .shield_charge{static_cast<uint16_t>(sample.charge)}
     };
-    darker::game::recharge_skimma_shield(state, static_cast<std::uint16_t>(sample.step));
+    darker::game::recharge_skimma_shield(state, static_cast<uint16_t>(sample.step));
     CHECK(state.shield_charge == sample.result);
   }
 }
@@ -43,10 +43,10 @@ TEST_CASE("Caero peripheral repair preserves the native phase and borrow rules",
   for(auto const &sample : darker::test_reference::repair_samples) {
     CAPTURE(sample.damage, sample.phase, sample.step);
     darker::game::player_damage_state state{
-      .damage{static_cast<std::uint16_t>(sample.damage)}
+      .damage{static_cast<uint16_t>(sample.damage)}
     };
-    auto phase{static_cast<std::uint16_t>(sample.phase)};
-    darker::game::repair_caero_damage(state, phase, static_cast<std::uint16_t>(sample.step));
+    auto phase{static_cast<uint16_t>(sample.phase)};
+    darker::game::repair_caero_damage(state, phase, static_cast<uint16_t>(sample.step));
     CHECK(state.damage == sample.result_damage);
     CHECK(phase == sample.result_phase);
   }

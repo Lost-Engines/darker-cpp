@@ -8,7 +8,7 @@
 namespace darker::graphics {
 
 void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, weapon_icon_slot const slot, std::uint8_t const selection) {
+  framework::render::indexed_cockpit_framebuffer &target, weapon_icon_slot const slot, uint8_t const selection) {
   /// Selection IDs include the automatic Dual Launch and Diffuser stages, not just number keys
   bool const primary{slot == weapon_icon_slot::primary};
   if(!primary && slot != weapon_icon_slot::secondary) throw std::invalid_argument{"unknown weapon icon slot"};
@@ -17,14 +17,14 @@ void draw_weapon_icon(framework::render::indexed_cockpit_framebuffer const &cach
     throw std::invalid_argument{"weapon selection is not valid for this icon slot"};
   }
   pixel_position const destination{primary ? 260 : 268, 195};
-  // Zero is an empty selection: restore the panel instead of sampling X=140.
+  // zero is an empty selection: restore the panel instead of sampling X=140
   pixel_position const source{selection == 0 ? destination : pixel_position{140 + selection * 8, 8}};
   copy_rectangle(cache.pixels, target.pixels, source, destination, 8, 12);
 }
 
 void draw_grid_coordinate(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, pixel_position const &destination,
-  std::uint8_t const encoded_coordinate, coordinate_font const font) {
+  uint8_t const encoded_coordinate, coordinate_font const font) {
   /// 5429/5472 share number conversion, but large invalid coordinates use blank glyphs
   if(font != coordinate_font::small && font != coordinate_font::large) throw std::invalid_argument{"unknown coordinate font"};
   bool const large{font == coordinate_font::large};
@@ -72,15 +72,15 @@ void update_skimma_bitmaps(framework::render::indexed_cockpit_framebuffer const 
     if(previous.bearing != 0) draw_strip(bearing_strips[previous.bearing - 1], bearing_destination, bearing_destination);
     if(current.bearing != 0) draw_strip(bearing_strips[current.bearing - 1], {8, 32}, bearing_destination);
   }
-  std::size_t const weapon_count{type == craft::skimma ? 2u : 3u};
-  for(std::size_t i{0}; i < weapon_count; ++i) {
+  size_t const weapon_count{type == craft::skimma ? 2u : 3u};
+  for(size_t i{0}; i < weapon_count; ++i) {
     if(previous.weapons[i] != current.weapons[i]) draw_strip(weapon_status_strips[i], weapon_status_sources[current.weapons[i]], weapon_status_destination);
   }
 }
 
 void draw_skimma_weapon_ring(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, craft const type,
-  std::uint8_t const weapon, std::uint8_t const radius, std::uint8_t const remaining, int const baseline_y) {
+  uint8_t const weapon, uint8_t const radius, uint8_t const remaining, int const baseline_y) {
   /// 5D83 uses signed sine high bytes and alignment-specific remaining/spent artwork
   if(type != craft::skimma && type != craft::upgraded_skimma) throw std::invalid_argument{"weapon ring requires a Skimma"};
   if(weapon >= (type == craft::skimma ? 2 : 3)) throw std::invalid_argument{"weapon ring index outside craft capacity"};

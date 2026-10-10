@@ -36,7 +36,7 @@ struct combat_scenario {
 };
 
 struct skimma_armament {
-  std::array<skimma_weapon_slot,3> slots{};
+  std::array<skimma_weapon_slot, 3> slots{};
   weapon_ring_state ring{
     .spread{508},
     .target_spread{508}
@@ -60,7 +60,7 @@ public:
   uint16_t random_state{0};
   uint16_t script_owner{0};
   uint16_t weapon_charge{0};
-  std::array<uint8_t,4> threat_errors{64,64,64,64};
+  std::array<uint8_t, 4> threat_errors{64, 64, 64, 64};
   skimma_armament skimma;
   diffuser_state diffuser;
   uint8_t primary_weapon{0};
@@ -95,7 +95,7 @@ public:
     std::optional<maths::world_position> player_start = std::nullopt);
 
 private:
-  std::array<uint8_t,256> retained_flags{};
+  std::array<uint8_t, 256> retained_flags{};
   uint8_t outstanding_objectives{0};
   void release_target(uint16_t token) noexcept;
   void fire_skimma_primary(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step, bool pressed);

@@ -15,7 +15,7 @@ uint16_t doppler_factor(game::object_pose const *motion, uint16_t heading, uint1
 uint16_t spatial_pitch(uint16_t pitch, maths::world_position source, game::object_pose const &listener,
   game::object_pose const *source_motion, game::object_pose const *listener_motion = nullptr) noexcept;
 
-std::array<uint8_t,2> stereo_attenuation(maths::world_position delta, maths::view_basis const &basis, uint16_t level) noexcept;
+std::array<uint8_t, 2> stereo_attenuation(maths::world_position delta, maths::view_basis const &basis, uint16_t level) noexcept;
 
 struct object_sound_state {
   uint16_t identity{0};

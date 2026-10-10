@@ -24,7 +24,7 @@ sine_wave::sine_wave(unsigned int const sample_rate, double const frequency, flo
 void sine_wave::fill_stereo(std::span<float> const samples) noexcept {
   /// Generate identical left/right PCM samples without allocating or restarting phase between buffers
   assert(samples.size() % 2 == 0 && "sine_wave requires complete stereo frames");
-  for(std::size_t frame{0}; frame != samples.size() / 2; ++frame) {
+  for(size_t frame{0}; frame != samples.size() / 2; ++frame) {
     float const gain{static_cast<float>(elapsed_frames) / static_cast<float>(ramp_frames)};
     float const sample{amplitude * gain * static_cast<float>(std::sin(phase))};
     samples[frame * 2] = sample;

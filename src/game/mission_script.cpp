@@ -8,39 +8,44 @@
 namespace darker::game {
 namespace {
 
-bool negative_difference(std::uint16_t const left, std::uint16_t const right) noexcept {
+bool negative_difference(uint16_t const left, uint16_t const right) noexcept {
   /// BF97 tests the subtraction's sign bit, including the exact half-range boundary
-  return static_cast<std::uint16_t>(left - right) & 0x8000;
+  return static_cast<uint16_t>(left - right) & 0x8000;
 }
 
-std::uint8_t read_byte(std::span<std::byte const> const bytes, std::size_t &cursor) {
+uint8_t read_byte(std::span<std::byte const> const bytes, size_t &cursor) {
   /// Keep scripts and counted-message streams bounded independently
   if(cursor >= bytes.size()) throw std::invalid_argument{"Mission script or message exceeds its resource section"};
-  return std::to_integer<std::uint8_t>(bytes[cursor++]);
+  return std::to_integer<uint8_t>(bytes[cursor++]);
 }
 
-bool flag_condition(std::uint8_t const value, std::uint8_t const operand) noexcept {
+bool flag_condition(uint8_t const value, uint8_t const operand) noexcept {
   /// C1FA uses a sign-extended operand to encode both all-set and all-clear bit tests
   auto const sign{operand & 128 ? 255 : 0};
   return ((value ^ operand) & (operand ^ sign)) == 0;
 }
 
-} // namespace
+} // anonymous namespace
 
-std::size_t advance_mission_script(mission_script &script, mission_context &context) {
+size_t advance_mission_script(mission_script &script, mission_context &context) {
   /// BF97/BFA9 execute overdue instructions until a deadline yields; failed waits rewind to the saved checkpoint
-  auto const now{static_cast<std::uint16_t>(context.clock)};
-  std::size_t dispatched{0};
+  auto const now{static_cast<uint16_t>(context.clock)};
+  size_t dispatched{0};
   if(negative_difference(now, script.deadline)) return dispatched;
   if(script.stopped) {
     script.deadline = now;
     return dispatched;
   }
   auto cursor{script.continuation};
-  auto const byte{[&]{ return read_byte(context.program, cursor); }};
-  auto const word{[&]{ auto const low{byte()}; return static_cast<uint16_t>(low | byte()*256); }};
+  auto const byte{[&]{
+    return read_byte(context.program, cursor);
+  }};
+  auto const word{[&]{
+    auto const low{byte()};
+    return static_cast<uint16_t>(low | byte() * 256);
+  }};
   auto const delay{[&](unsigned int const duration){
-    script.deadline = static_cast<std::uint16_t>(script.deadline + duration * context.time_multiplier);
+    script.deadline = static_cast<uint16_t>(script.deadline + duration * context.time_multiplier);
     script.continuation = cursor;
   }};
   auto const wait{[&](bool const ready){
@@ -50,13 +55,13 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
     }
   }};
   while(!negative_difference(now, script.deadline)) {
-    // Valid programs can catch up many waits; reject an unbounded zero-time loop explicitly.
+    // valid programs can catch up many waits; reject an unbounded zero-time loop explicitly
     if(dispatched == 65536) throw std::runtime_error{"Mission script exceeded its instruction budget without yielding"};
     ++dispatched;
     auto const offset{cursor};
     auto const opcode{byte()};
     if(opcode >= 128) {
-      context.animation_parameter = static_cast<std::uint8_t>(opcode << 1);
+      context.animation_parameter = static_cast<uint8_t>(opcode << 1);
       continue;
     }
     switch(opcode) {
@@ -71,15 +76,16 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         uint16_t target{context.current_cell};
         if(opcode < 2) {
           auto const column{byte()};
-          target = static_cast<uint16_t>(column | byte()*256);
-        } else if(opcode < 4) target = static_cast<uint16_t>(0xd986 + byte()*112);
+          target = static_cast<uint16_t>(column | byte() * 256);
+        } else if(opcode < 4) target = static_cast<uint16_t>(0xd986 + byte() * 112);
         else if(opcode == 6) target = 0xd986;
         if(!context.set_target) throw std::runtime_error{"Mission target change has no object consumer"};
-        context.set_target(target,(opcode & 1) != 0);
+        context.set_target(target, (opcode & 1) != 0);
         delay(10);
       }
       break;
-    case 0x07: break;
+    case 0x07:
+      break;
     case 0x08:
       if(!context.retire_distant_actor) throw std::runtime_error{"Mission distance retirement has no actor consumer"};
       if(context.retire_distant_actor()) {
@@ -97,7 +103,7 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       {
         auto const count{byte()};
         if(!context.activate_reserves) throw std::runtime_error{"Mission reserve activation has no world consumer"};
-        context.objectives_complete = context.activate_reserves(opcode,count);
+        context.objectives_complete = context.activate_reserves(opcode, count);
       }
       break;
     case 0x0c:
@@ -115,7 +121,7 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
           .offset{context.text_cursor},
           .length{length},
           .width{width},
-          .expiry{static_cast<std::uint16_t>(now + duration * context.time_multiplier)},
+          .expiry{static_cast<uint16_t>(now + duration * context.time_multiplier)},
           .alignment{static_cast<message_alignment>(opcode - 0x0c)},
           .text{context.text}
         });
@@ -123,9 +129,15 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         delay(interval);
       }
       break;
-    case 0x0f: context.message_setting = byte(); break;
-    case 0x16: context.hud_reference = word(); break;
-    case 0x17: context.transition_output = word(); break;
+    case 0x0f:
+      context.message_setting = byte();
+      break;
+    case 0x16:
+      context.hud_reference = word();
+      break;
+    case 0x17:
+      context.transition_output = word();
+      break;
     case 0x18:
       if(!context.reset_shield) throw std::logic_error{"Mission shield reset has no player consumer"};
       context.reset_shield();
@@ -135,13 +147,15 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       if(!context.refill_weapon) throw std::logic_error{"Mission ammunition refill has no player consumer"};
       context.refill_weapon();
       break;
-    case 0x2d: context.progress = std::max(context.progress,byte()); break;
+    case 0x2d:
+      context.progress = std::max(context.progress, byte());
+      break;
     case 0x30:
       if(!context.toggle_weapons) throw std::logic_error{"Mission weapon toggle has no player consumer"};
       {
         auto const range{byte()};
         auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
-        context.toggle_weapons(std::rotl(mask,range >> 4));
+        context.toggle_weapons(std::rotl(mask, range >> 4));
       }
       break;
     case 0x38:
@@ -168,23 +182,28 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
     case 0x14:
       {
         uint8_t origin{0}, count{0};
-        if(opcode == 0x12 || opcode == 0x13) { origin = byte(); count = byte(); }
+        if(opcode == 0x12 || opcode == 0x13) {
+          origin = byte();
+          count = byte();
+        }
         if(!context.change_beacons) throw std::runtime_error{"Mission beacon change has no world consumer"};
-        context.change_beacons(opcode,origin,count);
+        context.change_beacons(opcode, origin, count);
         if(opcode != 0x14) delay(6);
       }
       break;
     case 0x1a:
       script.checkpoint = cursor;
-      script.checkpoint_clock = static_cast<std::uint16_t>((context.clock >> 8) + ((context.clock >> 7) & 1));
+      script.checkpoint_clock = static_cast<uint16_t>((context.clock >> 8) + ((context.clock >> 7) & 1));
       break;
     case 0x1b:
       {
-        auto const target{static_cast<std::uint16_t>(script.checkpoint_clock + byte() * 8)};
-        wait(negative_difference(target, static_cast<std::uint16_t>(context.clock >> 8)));
+        auto const target{static_cast<uint16_t>(script.checkpoint_clock + byte() * 8)};
+        wait(negative_difference(target, static_cast<uint16_t>(context.clock >> 8)));
       }
       break;
-    case 0x1e: wait(context.objectives_complete); break;
+    case 0x1e:
+      wait(context.objectives_complete);
+      break;
     case 0x1c:
       {
         auto const index{byte()};
@@ -198,16 +217,24 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
         auto const column_byte{byte()};
         auto const row{byte()};
         auto const mask{byte()};
-        auto const index{static_cast<std::size_t>(row) * city_map_size.column + (column_byte >> 1)};
+        auto const index{static_cast<size_t>(row) * city_map_size.column + (column_byte >> 1)};
         if(index >= context.cells.size()) throw std::out_of_range{"Mission wait refers to an unknown world cell"};
         auto const &cell{context.cells[index]};
         wait(flag_condition(column_byte & 1 ? cell.state : cell.type, mask));
       }
       break;
-    case 0x1f: wait(byte() <= context.object_counter); break;
-    case 0x20: wait(byte() <= context.counter); break;
-    case 0x21: wait(context.at_target_cell); break;
-    case 0x22: delay(byte()); break;
+    case 0x1f:
+      wait(byte() <= context.object_counter);
+      break;
+    case 0x20:
+      wait(byte() <= context.counter);
+      break;
+    case 0x21:
+      wait(context.at_target_cell);
+      break;
+    case 0x22:
+      delay(byte());
+      break;
     case 0x23:
       script.stopped = true;
       script.continuation = cursor;
@@ -229,10 +256,10 @@ std::size_t advance_mission_script(mission_script &script, mission_context &cont
       break;
     case 0x25:
       {
-        auto const displacement{std::bit_cast<std::int8_t>(byte())};
-        auto const target{static_cast<std::ptrdiff_t>(cursor) + displacement};
-        if(target < 0 || static_cast<std::size_t>(target) >= context.program.size()) throw std::invalid_argument{"Mission branch exceeds its shared section"};
-        cursor = static_cast<std::size_t>(target);
+        auto const displacement{std::bit_cast<int8_t>(byte())};
+        auto const target{static_cast<ptrdiff_t>(cursor) + displacement};
+        if(target < 0 || static_cast<size_t>(target) >= context.program.size()) throw std::invalid_argument{"Mission branch exceeds its shared section"};
+        cursor = static_cast<size_t>(target);
       }
       break;
     case 0x27:

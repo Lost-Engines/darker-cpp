@@ -11,20 +11,20 @@
 namespace darker::graphics {
 namespace {
 
-std::int16_t signed_word(int const value) noexcept {
+int16_t signed_word(int const value) noexcept {
   /// Preserve original 16-bit wrapping before interpreting a signed intermediate
-  return std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(value));
+  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
-} // namespace
+} // anonymous namespace
 
-std::uint8_t compass_phase(std::uint16_t const heading) noexcept {
+uint8_t compass_phase(uint16_t const heading) noexcept {
   /// 56C7–56CF rotates the heading high byte and quantises it to 136 marker states
-  auto const rotated{static_cast<std::uint8_t>((heading >> 8) + 64)};
-  return static_cast<std::uint8_t>((rotated * 136) >> 8);
+  auto const rotated{static_cast<uint8_t>((heading >> 8) + 64)};
+  return static_cast<uint8_t>((rotated * 136) >> 8);
 }
 
-std::array<pixel_position, 5> compass_points(std::uint8_t const phase) {
+std::array<pixel_position, 5> compass_points(uint8_t const phase) {
   /// 5395 folds the phase into the original paired-byte arc and reflects each coordinate
   if(phase >= 136) throw std::invalid_argument{"compass phase must be below 136"};
   unsigned int index{phase};
@@ -43,19 +43,19 @@ std::array<pixel_position, 5> compass_points(std::uint8_t const phase) {
   return result;
 }
 
-void update_compass(framework::render::indexed_cockpit_framebuffer &target, std::uint8_t const previous, std::uint8_t const current) {
+void update_compass(framework::render::indexed_cockpit_framebuffer &target, uint8_t const previous, uint8_t const current) {
   /// 5384 erases five old pixels with zero, then draws the new five-colour marker
   auto const old_points{compass_points(previous)};
   auto const new_points{compass_points(current)};
-  std::array<std::uint8_t, 5> constexpr colours{0x9e, 0x9c, 0x9c, 0x9c, 0x9e};
-  for(auto const &point : old_points) target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = 0;
+  std::array<uint8_t, 5> constexpr colours{0x9e, 0x9c, 0x9c, 0x9c, 0x9e};
+  for(auto const &point : old_points) target.pixels[static_cast<size_t>(point.y * 320 + point.x)] = 0;
   for(unsigned int i{0}; i < new_points.size(); ++i) {
     auto const point{new_points[i]};
-    target.pixels[static_cast<std::size_t>(point.y * 320 + point.x)] = colours[i];
+    target.pixels[static_cast<size_t>(point.y * 320 + point.x)] = colours[i];
   }
 }
 
-std::optional<radar_pixel> project_radar_contact(world_position const &player, std::uint16_t const heading, radar_contact const contact, radar_scale const scale) {
+std::optional<radar_pixel> project_radar_contact(world_position const &player, uint16_t const heading, radar_contact const contact, radar_scale const scale) {
   /// 5AC9–5B55 retain byte-window rejection, signed high products and word truncation
   int constexpr contact_window_radius_cells{21};
   int constexpr contact_window_width_cells{2 * contact_window_radius_cells};
@@ -67,8 +67,8 @@ std::optional<radar_pixel> project_radar_contact(world_position const &player, s
   if(contact.group != radar_group::a && contact.group != radar_group::b && contact.group != radar_group::underground) throw std::invalid_argument{"unknown radar contact group"};
   if(scale != radar_scale::normal && scale != radar_scale::enlarged) throw std::invalid_argument{"unknown radar scale"};
   if(contact.hidden || !contact.covered) return std::nullopt;
-  auto const relative_x{static_cast<std::uint16_t>(contact.position.x - player.x + contact_window_radius_cells * 256)};
-  auto const relative_y{static_cast<std::uint16_t>(contact.position.y - player.y + contact_window_radius_cells * 256)};
+  auto const relative_x{static_cast<uint16_t>(contact.position.x - player.x + contact_window_radius_cells * 256)};
+  auto const relative_y{static_cast<uint16_t>(contact.position.y - player.y + contact_window_radius_cells * 256)};
   if((relative_x >> 8) >= contact_window_width_cells || (relative_y >> 8) >= contact_window_width_cells) return std::nullopt;
   auto const x{signed_word((relative_x - contact_window_radius_cells * 256) * 2)};
   auto const y{signed_word((relative_y - contact_window_radius_cells * 256) * 2)};
@@ -85,56 +85,56 @@ std::optional<radar_pixel> project_radar_contact(world_position const &player, s
     int const shift{contact.group == radar_group::a ? 8 : 9};
     return radar_pixel{
       .position{enlarged_centre + offset},
-      .colour{static_cast<std::uint8_t>(7 - ((radius_squared - enlarged_radius_squared) >> shift))},
+      .colour{static_cast<uint8_t>(7 - ((radius_squared - enlarged_radius_squared) >> shift))},
     };
   }
   if(radius_squared > radar_layout::radius_squared) return std::nullopt;
   int const base_colour{contact.group == radar_group::underground ? radar_layout::grey_centre_colour : contact.group == radar_group::a ? group_a_centre_colour : group_b_centre_colour};
   return radar_pixel{
     .position{radar_layout::centre + offset},
-    .colour{static_cast<std::uint8_t>(base_colour - (radius_squared >> radar_layout::brightness_distance_shift))},
+    .colour{static_cast<uint8_t>(base_colour - (radius_squared >> radar_layout::brightness_distance_shift))},
   };
 }
 
 void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
-  world_position const &player, std::uint16_t const heading, std::span<radar_contact const> const contacts) {
+  world_position const &player, uint16_t const heading, std::span<radar_contact const> const contacts) {
   /// Preserve supplied list order; coverage and allegiance decisions belong to game logic
   for(auto const &contact : contacts) {
     if(auto const pixel{project_radar_contact(player, heading, contact)}) {
-      target.pixels[static_cast<std::size_t>(pixel->position.y * 320 + pixel->position.x)] = pixel->colour;
+      target.pixels[static_cast<size_t>(pixel->position.y * 320 + pixel->position.x)] = pixel->colour;
     }
   }
 }
 
 namespace {
 
-void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &anchor, std::uint8_t const colour) {
+void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target, pixel_position const &anchor, uint8_t const colour) {
   /// 5BE2 emits a twelve-pixel rounded diamond at anchor offsets one through four
   for(int y{1}; y <= 4; ++y) {
     bool const narrow{y == 1 || y == 4};
     for(int x{narrow ? 2 : 1}; x <= (narrow ? 3 : 4); ++x) {
       int const px{anchor.x + x};
       int const py{anchor.y + y};
-      if(px >= 0 && px < 320 && py >= 0 && py < 240) target.pixels[static_cast<std::size_t>(py * 320 + px)] = colour;
+      if(px >= 0 && px < 320 && py >= 0 && py < 240) target.pixels[static_cast<size_t>(py * 320 + px)] = colour;
     }
   }
 }
 
-} // namespace
+} // anonymous namespace
 
 void draw_navigation_contact(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, pixel_position const &destination,
-  std::uint8_t const height, std::uint8_t const reference_height) {
+  uint8_t const height, uint8_t const reference_height) {
   /// 5B92 restores an alignment-specific mask, then colours the glyph by signed byte height difference
-  auto const difference{std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(height - reference_height))};
+  auto const difference{std::bit_cast<int8_t>(static_cast<uint8_t>(height - reference_height))};
   int const half{difference >> 1};
   int const magnitude{std::min(10, half < 0 ? ~half : half)};
-  auto const colour{static_cast<std::uint8_t>((half < 0 ? 183 : 151) - magnitude)};
+  auto const colour{static_cast<uint8_t>((half < 0 ? 183 : 151) - magnitude)};
   copy_mask(cache.pixels, target.pixels, {navigation_source_x[destination.x & 3], 8}, destination, navigation_mask);
   draw_contact_symbol(target, destination, colour);
 }
 
-void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t const heading) {
+void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer &target, uint16_t const heading) {
   /// A5D6/A712 construct exclusive-right spans symmetric about two central scanlines
   std::array<int, 63> half_widths{};
   int x{63};

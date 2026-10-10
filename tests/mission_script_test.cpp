@@ -1,43 +1,43 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <array>
 #include <bit>
 #include <cstddef>
 #include <stdexcept>
+#include <utility>
+#include "game/actor_activation.h"
 #include "game/mission_script.h"
 #include "game/skimma_weapons.h"
-#include "reference/supply_script_samples.h"
-#include "game/actor_activation.h"
 #include "reference/actor_retirement_samples.h"
 #include "reference/mission_script_samples.h"
 #include "reference/script_target_samples.h"
+#include "reference/supply_script_samples.h"
 
 TEST_CASE("Mission deadlines, checkpoint retries and message scheduling match native handlers", "[game][mission]") {
   /// Compare the scheduler with original code, including half-range clocks and overdue catch-up
   for(auto const &sample : darker::test_reference::mission_script_samples) {
     std::array<std::byte, 16> program{};
-    for(std::size_t i{0}; i < sample.size; ++i) program[i] = static_cast<std::byte>(sample.program[i]);
+    for(size_t i{0}; i < sample.size; ++i) program[i] = static_cast<std::byte>(sample.program[i]);
     std::array<std::byte, 6> const text{std::byte{0}, std::byte{24}, std::byte{3}, std::byte{'A'}, std::byte{'B'}, std::byte{'C'}};
     auto const &input{sample.input};
-    std::array<std::uint8_t, 4> const flags{0, 0, 0, static_cast<std::uint8_t>(input[6])};
+    std::array<uint8_t, 4> const flags{0, 0, 0, static_cast<uint8_t>(input[6])};
     darker::game::city_map cells{};
-    cells[20 * 128 + 10].state = static_cast<std::uint8_t>(input[6]);
+    cells[20 * 128 + 10].state = static_cast<uint8_t>(input[6]);
     darker::game::mission_script script{
-      .checkpoint{static_cast<std::size_t>(input[3])},
-      .checkpoint_clock{static_cast<std::uint16_t>(input[4])},
-      .deadline{static_cast<std::uint16_t>(input[1])},
+      .checkpoint{static_cast<size_t>(input[3])},
+      .checkpoint_clock{static_cast<uint16_t>(input[4])},
+      .deadline{static_cast<uint16_t>(input[1])},
     };
     darker::game::mission_context context{
       .program{std::span{program}.first(sample.size)},
       .text{text},
       .object_flags{flags},
       .cells{cells},
-      .clock{static_cast<std::uint32_t>(input[0])},
-      .time_multiplier{static_cast<std::uint8_t>(input[2])},
+      .clock{static_cast<uint32_t>(input[0])},
+      .time_multiplier{static_cast<uint8_t>(input[2])},
       .objectives_complete{input[5] == 0},
       .suppress_messages{input[8] != 0},
-      .object_counter{static_cast<std::uint8_t>(input[6])},
-      .counter{static_cast<std::uint8_t>(input[7])},
+      .object_counter{static_cast<uint8_t>(input[6])},
+      .counter{static_cast<uint8_t>(input[7])},
     };
     auto const count{darker::game::advance_mission_script(script, context)};
     std::array<int, 8> const result{
@@ -123,7 +123,7 @@ TEST_CASE("Script target assignments match native tokens flags and pacing", "[ga
         flags = static_cast<uint8_t>((flags & 0xfd) | (flag_02 ? 2 : 0));
       }}
     };
-    darker::game::advance_mission_script(script,context);
+    darker::game::advance_mission_script(script, context);
     CAPTURE(v);
     CHECK(token == v[7]);
     CHECK(flags == v[8]);
@@ -139,8 +139,8 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
     CAPTURE(v);
     darker::game::scenario_actor actor;
     actor.pose.position = {
-      .column{static_cast<uint16_t>(v[0]*256)},
-      .row{static_cast<uint16_t>(v[1]*256)},
+      .column{static_cast<uint16_t>(v[0] * 256)},
+      .row{static_cast<uint16_t>(v[1] * 256)},
       .height{0}
     };
     actor.flags = static_cast<uint8_t>(v[4]);
@@ -148,12 +148,12 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
     actor.expiry = 0x1234;
     darker::game::object_pose const player{
       .position{
-        .column{static_cast<uint16_t>(v[2]*256)},
-        .row{static_cast<uint16_t>(v[3]*256)},
+        .column{static_cast<uint16_t>(v[2] * 256)},
+        .row{static_cast<uint16_t>(v[3] * 256)},
         .height{0}
       }
     };
-    constexpr std::array program{std::byte{8},std::byte{0x23}};
+    std::array constexpr program{std::byte{8}, std::byte{0x23}};
     darker::game::mission_script script{
       .deadline{static_cast<uint16_t>(v[5])}
     };
@@ -161,9 +161,11 @@ TEST_CASE("Distant actor retirement matches native distance boundaries and scrip
       .program{program},
       .clock{v[5]},
       .time_multiplier{static_cast<uint8_t>(v[6])},
-      .retire_distant_actor{[&]{ return darker::game::retire_distant_actor(actor,player,static_cast<uint16_t>(v[5])); }}
+      .retire_distant_actor{[&]{
+        return darker::game::retire_distant_actor(actor, player, static_cast<uint16_t>(v[5]));
+      }}
     };
-    darker::game::advance_mission_script(script,context);
+    darker::game::advance_mission_script(script, context);
     CHECK(actor.flags == v[7]);
     CHECK(script.stopped == (v[8] != 0));
     CHECK(script.deadline == v[9]);
@@ -177,21 +179,27 @@ TEST_CASE("Supply script state and ammunition match the original scheduler", "[g
   /// Execute combined original command sequences including monotonic progress and wrapped mask operands
   for(auto const &s : darker::test_reference::supply_script_samples) {
     CAPTURE(s.input);
-    std::array<std::byte,15> program;
+    std::array<std::byte, 15> program;
     for(size_t i{0}; i < program.size(); ++i) program[i] = static_cast<std::byte>(s.program[i]);
     auto mask{static_cast<uint16_t>(s.input[1])}, shield{static_cast<uint16_t>(s.input[2])};
-    darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(s.input[4]),static_cast<uint8_t>(s.input[5])};
+    darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(s.input[4]), static_cast<uint8_t>(s.input[5])};
     darker::game::mission_script script;
     darker::game::mission_context context{
       .program{program}
     };
     context.progress = static_cast<uint8_t>(s.input[0]);
-    context.toggle_weapons = [&](uint16_t const value){ mask ^= value; };
-    context.reset_shield = [&]{ shield = static_cast<uint16_t>((shield & 255) | 0xbf00); };
-    context.refill_weapon = [&]{ darker::game::refill_skimma_weapon(ammunition,static_cast<uint8_t>(s.input[3])); };
-    darker::game::advance_mission_script(script,context);
+    context.toggle_weapons = [&](uint16_t const value){
+      mask ^= value;
+    };
+    context.reset_shield = [&]{
+      shield = static_cast<uint16_t>((shield & 255) | 0xbf00);
+    };
+    context.refill_weapon = [&]{
+      darker::game::refill_skimma_weapon(ammunition, static_cast<uint8_t>(s.input[3]));
+    };
+    darker::game::advance_mission_script(script, context);
     CHECK(script.stopped);
-    CHECK(std::array<int,8>{context.message_setting,context.hud_reference,context.transition_output,context.progress,
-      mask,shield,ammunition.working,ammunition.reserve} == s.output);
+    CHECK(std::array<int, 8>{context.message_setting, context.hud_reference, context.transition_output, context.progress,
+      mask, shield, ammunition.working, ammunition.reserve} == s.output);
   }
 }

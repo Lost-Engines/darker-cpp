@@ -7,14 +7,14 @@
 
 namespace darker::game {
 
-inline constexpr std::array<uint16_t,8> delphi_aircraft_sites{0x0355,0x0b70,0x1b33,0x3754,0x3757,0x5e6a,0x6612,0x7052};
+inline std::array<uint16_t, 8> constexpr delphi_aircraft_sites{0x0355, 0x0b70, 0x1b33, 0x3754, 0x3757, 0x5e6a, 0x6612, 0x7052};
 
 struct aircraft_spawning {
   std::vector<uint16_t> timers = std::vector<uint16_t>(8);
-  std::vector<uint16_t> sites{delphi_aircraft_sites.begin(),delphi_aircraft_sites.end()};
+  std::vector<uint16_t> sites{delphi_aircraft_sites.begin(), delphi_aircraft_sites.end()};
   uint16_t departure_heading{0x4000};
   bool halon{false};
-  std::array<int16_t,8> platforms{};
+  std::array<int16_t, 8> platforms{};
   bool enabled{true};
 };
 

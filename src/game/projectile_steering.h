@@ -12,8 +12,8 @@ namespace darker::game {
 
 struct map_guidance_target {
   maths::map_position position{};
-  std::uint16_t height{0};
-  std::uint16_t height_extent{0};
+  uint16_t height{0};
+  uint16_t height_extent{0};
 };
 
 map_guidance_target resolve_map_guidance(uint16_t cell, city_map const &cells, resources::geometry_bank const &bank, uint8_t damage_mask);
@@ -24,10 +24,10 @@ void advance_chargeable_projectile(projectile &record, object_pose const &target
 
 void advance_dual_projectile(projectile &record, object_pose const &target, uint16_t separation, uint16_t frame_step);
 
-void advance_homing_projectile(projectile &record, std::uint16_t target_heading, std::uint16_t target_pitch, std::uint16_t frame_step);
+void advance_homing_projectile(projectile &record, uint16_t target_heading, uint16_t target_pitch, uint16_t frame_step);
 
-void advance_object_homing_projectile(projectile &record, object_pose const &target, std::uint16_t frame_step);
+void advance_object_homing_projectile(projectile &record, object_pose const &target, uint16_t frame_step);
 
-void advance_map_homing_projectile(projectile &record, map_guidance_target target, std::uint16_t frame_step);
+void advance_map_homing_projectile(projectile &record, map_guidance_target target, uint16_t frame_step);
 
 } // namespace darker::game

@@ -4,6 +4,6 @@
 
 namespace darker::game {
 
-std::uint16_t next_random(std::uint16_t &state) noexcept;
+uint16_t next_random(uint16_t &state) noexcept;
 
 } // namespace darker::game

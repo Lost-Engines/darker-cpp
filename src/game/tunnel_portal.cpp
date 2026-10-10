@@ -9,7 +9,7 @@ namespace darker::game {
 void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t const heading, int16_t const model_height) {
   /// BD65 starts underground above the entry portal, with the original heading-dependent cell fractions and supplied energy
   if((site & 1) || (site >> 8) >= city_map_size.row || (heading & 63)) throw std::invalid_argument{"Invalid underground entry site or orientation"};
-  constexpr std::array<std::array<uint8_t,2>,4> offsets{{{128,40},{216,128},{128,216},{40,128}}};
+  std::array<std::array<uint8_t, 2>, 4> constexpr offsets{{{128, 40}, {216, 128}, {128, 216}, {40, 128}}};
   auto const fraction{offsets[heading >> 6]};
   player = {};
   player.tunnel.emplace();
@@ -18,7 +18,7 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
   player.tunnel->off_route_time = 0x0200;
   player.tunnel->connection.cell = static_cast<uint16_t>((site & 0xff00) | ((site & 255) >> 1));
   player.lifecycle.flags = 0x10;
-  player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data.player().drive_multiplier*8);
+  player.forward_setting = static_cast<uint16_t>(original_object_definitions[28].role_data.player().drive_multiplier * 8);
   auto &craft{std::get<caero_flight_state>(player.craft)};
   craft.flying = true;
   craft.energy = {
@@ -27,11 +27,11 @@ void initialise_tunnel_entry(player_flight &player, uint16_t const site, uint8_t
     .boost{0x1fff}
   };
   craft.pose.position = {
-    .column{static_cast<uint16_t>((site & 255)*128 + fraction[0])},
+    .column{static_cast<uint16_t>((site & 255) * 128 + fraction[0])},
     .row{static_cast<uint16_t>((site & 0xff00) + fraction[1])},
     .height{static_cast<uint16_t>(1536 - model_height)}
   };
-  craft.pose.angles.heading = static_cast<uint16_t>(heading*256);
+  craft.pose.angles.heading = static_cast<uint16_t>(heading * 256);
 }
 
 void update_tunnel_portal(player_flight &player, city_map &cells, hangar_state &hangar, uint16_t const frame_step) {
@@ -39,7 +39,7 @@ void update_tunnel_portal(player_flight &player, city_map &cells, hangar_state &
   if(!player.tunnel) throw std::invalid_argument{"Underground portal update requires tunnel player state"};
   if(player.noclip || player.lifecycle.crashing || hangar.returning != hangar_return_phase::none) return;
   if(player.lifecycle.flags & 0x10) {
-    advance_hangar_departure(player,cells,hangar,frame_step);
+    advance_hangar_departure(player, cells, hangar, frame_step);
     return;
   }
   auto const &position{player.pose().position};

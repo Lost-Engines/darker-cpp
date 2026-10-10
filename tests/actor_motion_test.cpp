@@ -9,23 +9,23 @@ TEST_CASE("Actor steering matches the original pitch, bank and heading coupling"
     auto const &v{sample.input};
     darker::game::object_pose pose{
       .angles{
-        .heading{static_cast<std::uint16_t>(v[0])},
-        .pitch{static_cast<std::uint16_t>(v[1])},
-        .roll{static_cast<std::uint16_t>(v[2])}
+        .heading{static_cast<uint16_t>(v[0])},
+        .pitch{static_cast<uint16_t>(v[1])},
+        .roll{static_cast<uint16_t>(v[2])}
       }
     };
     darker::game::actor_attitude state{
-      .pitch_rate{static_cast<std::uint16_t>(v[3])},
-      .bank_rate{static_cast<std::uint16_t>(v[4])}
+      .pitch_rate{static_cast<uint16_t>(v[3])},
+      .bank_rate{static_cast<uint16_t>(v[4])}
     };
     auto const step{darker::game::steer_actor(pose, state,
       {
-        .response{static_cast<std::uint16_t>(v[5])},
-        .bank_response{static_cast<std::uint16_t>(v[6])},
-        .bank_limit{static_cast<std::uint16_t>(v[7])},
-        .turn_response{static_cast<std::uint16_t>(v[8])}
+        .response{static_cast<uint16_t>(v[5])},
+        .bank_response{static_cast<uint16_t>(v[6])},
+        .bank_limit{static_cast<uint16_t>(v[7])},
+        .turn_response{static_cast<uint16_t>(v[8])}
       },
-      static_cast<std::uint16_t>(v[9]), static_cast<std::uint16_t>(v[10]), static_cast<std::uint16_t>(v[11]))};
+      static_cast<uint16_t>(v[9]), static_cast<uint16_t>(v[10]), static_cast<uint16_t>(v[11]))};
     CHECK(std::array<int, 6>{pose.angles.heading, pose.angles.pitch, pose.angles.roll, state.pitch_rate, state.bank_rate, step} == sample.output);
   }
 }
@@ -36,24 +36,24 @@ TEST_CASE("Actor acceleration and displacement match native word and fractional 
     auto const &v{sample.input};
     darker::game::object_pose pose{
       .position{
-        .column{static_cast<std::uint16_t>(v[0])},
-        .row{static_cast<std::uint16_t>(v[1])},
-        .height{static_cast<std::uint16_t>(v[2])}
+        .column{static_cast<uint16_t>(v[0])},
+        .row{static_cast<uint16_t>(v[1])},
+        .height{static_cast<uint16_t>(v[2])}
       },
       .fractions{
-        .column{static_cast<std::uint8_t>(v[3])},
-        .row{static_cast<std::uint8_t>(v[4])},
-        .height{static_cast<std::uint8_t>(v[5])}
+        .column{static_cast<uint8_t>(v[3])},
+        .row{static_cast<uint8_t>(v[4])},
+        .height{static_cast<uint8_t>(v[5])}
       },
       .angles{
-        .heading{static_cast<std::uint16_t>(v[6])},
-        .pitch{static_cast<std::uint16_t>(v[7])},
-        .roll{static_cast<std::uint16_t>(v[8])}
+        .heading{static_cast<uint16_t>(v[6])},
+        .pitch{static_cast<uint16_t>(v[7])},
+        .roll{static_cast<uint16_t>(v[8])}
       },
-      .speed{static_cast<std::uint16_t>(v[9])},
+      .speed{static_cast<uint16_t>(v[9])},
     };
-    darker::game::advance_actor_speed(pose, static_cast<std::uint8_t>(v[10]), static_cast<std::uint8_t>(v[11]),
-      static_cast<std::uint8_t>(v[12]), static_cast<std::uint16_t>(v[13]));
+    darker::game::advance_actor_speed(pose, static_cast<uint8_t>(v[10]), static_cast<uint8_t>(v[11]),
+      static_cast<uint8_t>(v[12]), static_cast<uint16_t>(v[13]));
     CHECK(std::array<int, 7>{pose.position.column, pose.position.row, pose.position.height, pose.fractions.column, pose.fractions.row, pose.fractions.height, pose.speed} == sample.output);
   }
 }

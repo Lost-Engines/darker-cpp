@@ -20,7 +20,9 @@ std::vector<particle_point> project_emitter(game::particle_emitter const &emitte
     coefficients[i] = {((basis[1].*members[i] * std::bit_cast<int16_t>(emitter.radius)) >> 16) >> 2,
       ((basis[0].*members[i] * std::bit_cast<int16_t>(emitter.radius)) >> 16) >> 2};
   }
-  auto const wrap24{[](int const value){ return std::bit_cast<int32_t>(static_cast<uint32_t>(value) << 8) >> 8; }};
+  auto const wrap24{[](int const value){
+    return std::bit_cast<int32_t>(static_cast<uint32_t>(value) << 8) >> 8;
+  }};
   unsigned int index{static_cast<unsigned int>(emitter.angle >> 5)};
   std::vector<particle_point> points;
   size_t far{0}, near{0};
@@ -75,8 +77,10 @@ void draw_particle(framework::render::indexed_cockpit_framebuffer &target,
     if(point.x >= 0 && point.x < 320 && point.y >= 0 && point.y < bottom) target.pixels[point.y * 320 + point.x] = particle_point_colours[phase];
     return;
   }
-  int const table{point.depth < 1752 ? 0x6b9c : point.depth < 2454 ? 0x6b79 : point.depth < 3510 ? 0x6b5e : point.depth < 4914 ? 0x6b47 : 0x6b34};
-  auto const at{[](int const address){ return particle_selectors[address - 0x6b34]; }};
+  int const table{point.depth < 1752 ? 0x6b9c : point.depth < 2454 ? 0x6b79 : point.depth < 3510   ? 0x6b5e : point.depth < 4914   ? 0x6b47 : 0x6b34};
+  auto const at{[](int const address){
+    return particle_selectors[address - 0x6b34];
+  }};
   int const radius{at(table + 10)};
   int const x{point.x - radius}, y{point.y - radius};
   int const alignment{x & 2}, destination_x{x & ~1};

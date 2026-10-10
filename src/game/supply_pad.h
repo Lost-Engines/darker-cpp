@@ -15,7 +15,10 @@ struct supply_pad_state {
   uint8_t fraction{0};
 };
 
-struct supply_control { uint16_t output{700}; bool supplementary_active{false}; };
+struct supply_control {
+  uint16_t output{700};
+  bool supplementary_active{false};
+};
 
 void initialise_skimma_pad(player_flight &player, uint16_t site, uint8_t heading, int16_t model_height, bool upgraded);
 bool begin_supply_approach(player_flight &player, city_map const &cells, supply_pad_state &pad) noexcept;

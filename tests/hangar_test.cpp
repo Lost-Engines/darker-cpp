@@ -11,9 +11,9 @@ TEST_CASE("Caero hangar placement matches native startup", "[game][hangar]") {
     cells[centre].type = 17;
     darker::game::player_flight player;
     darker::game::hangar_state hangar{
-      .return_site{static_cast<std::uint16_t>(sample.site)}
+      .return_site{static_cast<uint16_t>(sample.site)}
     };
-    darker::game::initialise_caero_hangar(player, cells, hangar, static_cast<std::int16_t>(sample.model_height));
+    darker::game::initialise_caero_hangar(player, cells, hangar, static_cast<int16_t>(sample.model_height));
     auto const &pose{player.pose()};
     CHECK(std::array<int, 3>{pose.position.column, pose.position.row, pose.position.height} == sample.position);
     CHECK(std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} == sample.angles);
@@ -30,21 +30,21 @@ TEST_CASE("Caero gate extension and departure match native updates", "[game][han
     darker::game::city_map cells{};
     auto const centre{(sample.site >> 8) * 128 + ((sample.site & 255) >> 1)};
     cells[centre].type = 17;
-    cells[(sample.y >> 8) * 128 + (sample.x >> 8)].type = static_cast<std::uint8_t>(sample.type);
+    cells[(sample.y >> 8) * 128 + (sample.x >> 8)].type = static_cast<uint8_t>(sample.type);
     darker::game::player_flight player;
     player.pose().position = {
-      .column{static_cast<std::uint16_t>(sample.x)},
-      .row{static_cast<std::uint16_t>(sample.y)},
+      .column{static_cast<uint16_t>(sample.x)},
+      .row{static_cast<uint16_t>(sample.y)},
       .height{0}
     };
     player.lifecycle.flags = 16;
     darker::game::hangar_state hangar{
-      .return_site{static_cast<std::uint16_t>(sample.site)},
+      .return_site{static_cast<uint16_t>(sample.site)},
       .next_return_site{static_cast<uint16_t>(sample.destination)},
-      .extension{static_cast<std::uint16_t>(sample.gate)},
+      .extension{static_cast<uint16_t>(sample.gate)},
       .sound_level{0x35}
     };
-    darker::game::advance_hangar_departure(player, cells, hangar, static_cast<std::uint16_t>(sample.step));
+    darker::game::advance_hangar_departure(player, cells, hangar, static_cast<uint16_t>(sample.step));
     CHECK(hangar.extension == sample.result);
     CHECK(hangar.return_site == sample.return_site);
     CHECK(hangar.sound_level == sample.sound);

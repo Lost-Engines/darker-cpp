@@ -1,12 +1,12 @@
-// Included after the fetched GF1 core; only this adapter sees its internal types.
+// included after the fetched GF1 core; only this adapter sees its internal types
 auto DmaChannel::Read(Bitu count, void *target)->Bitu {
-  context->dma_reader({static_cast<std::byte *>(target), count});
+  context->dma_reader({static_cast<std::byte*>(target), count});
   return count;
 }
-void DmaChannel::Write(Bitu, void *) {
+void DmaChannel::Write(Bitu, void*) {
   throw std::runtime_error{"UltraMID requested unsupported recording DMA"};
 }
-void DmaChannel::Register_Callback(void (*callback)(DmaChannel *, DMAEvent)) {
+void DmaChannel::Register_Callback(void (*callback)(DmaChannel*, DMAEvent)) {
   if(callback) callback(this, DMA_UNMASKED);
 }
 auto GetDMAChannel(unsigned int)->DmaChannel * {
@@ -67,10 +67,10 @@ auto gf1_device::advance(double milliseconds)->unsigned int {
   state->time = target;
   return std::exchange(state->irq, 0);
 }
-auto gf1_device::sample()->std::array<int16_t,2> {
+auto gf1_device::sample()->std::array<int16_t, 2> {
   gf1_detail::context = state.get();
   gf1_detail::GUS_CallBack(1);
-  std::array<int16_t,2> output{};
+  std::array<int16_t, 2> output{};
   std::memcpy(output.data(), state->mix, sizeof(output));
   return output;
 }

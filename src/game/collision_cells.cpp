@@ -5,13 +5,13 @@
 
 namespace darker::game {
 
-std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::uint16_t const y,
-  std::uint16_t const end_x, std::uint16_t const end_y) {
+std::vector<collision_cell> swept_collision_cells(uint16_t const x, uint16_t const y,
+  uint16_t const end_x, uint16_t const end_y) {
   /// 655E–662A visits cells in the original major/minor-axis order, retaining its fractional crossing bias
   std::vector<collision_cell> result;
   collision_cell cell{
-    .column{static_cast<std::uint8_t>(x >> 8)},
-    .row{static_cast<std::uint8_t>(y >> 8)}
+    .column{static_cast<uint8_t>(x >> 8)},
+    .row{static_cast<uint8_t>(y >> 8)}
   };
   auto const visit{[&]{
     if(cell.column < city_map_size.column && cell.row < city_map_size.row) result.push_back(cell);
@@ -20,8 +20,8 @@ std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::ui
     visit();
     return result;
   }
-  int const delta_x{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(end_x - x))};
-  int const delta_y{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(end_y - y))};
+  int const delta_x{std::bit_cast<int16_t>(static_cast<uint16_t>(end_x - x))};
+  int const delta_y{std::bit_cast<int16_t>(static_cast<uint16_t>(end_y - y))};
   unsigned int major{static_cast<unsigned int>(delta_x < 0 ? -delta_x : delta_x)};
   unsigned int minor{static_cast<unsigned int>(delta_y < 0 ? -delta_y : delta_y)};
   unsigned int major_fraction{(delta_x < 0 ? ~x : x) & 255u};
@@ -43,7 +43,7 @@ std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::ui
   error &= 65535;
   for(unsigned int i{0}; i < count; ++i) {
     if(i != 0) {
-      *major_cell = static_cast<std::uint8_t>(*major_cell + major_step);
+      *major_cell = static_cast<uint8_t>(*major_cell + major_step);
       visit();
       error += slope;
       crossing = error > 65535;
@@ -51,7 +51,7 @@ std::vector<collision_cell> swept_collision_cells(std::uint16_t const x, std::ui
     } else if(crossing) {
       visit();
     }
-    if(crossing) *minor_cell = static_cast<std::uint8_t>(*minor_cell + minor_step);
+    if(crossing) *minor_cell = static_cast<uint8_t>(*minor_cell + minor_step);
     if(i == 0 || crossing) visit();
   }
   return result;

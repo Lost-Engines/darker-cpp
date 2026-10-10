@@ -6,21 +6,21 @@
 namespace darker::game {
 namespace {
 
-std::uint8_t byte(std::span<std::byte const> const data, std::size_t const offset) {
+uint8_t byte(std::span<std::byte const> const data, size_t const offset) {
   /// Collision pointers refer to the bank's trailing world data, never host addresses
   if(offset >= data.size()) throw std::invalid_argument{"Truncated city collision stream"};
-  return std::to_integer<std::uint8_t>(data[offset]);
+  return std::to_integer<uint8_t>(data[offset]);
 }
 
-int signed_byte(std::span<std::byte const> const data, std::size_t const offset) {
+int signed_byte(std::span<std::byte const> const data, size_t const offset) {
   /// Horizontal endpoints are signed byte offsets from the type's cell anchor
-  return std::bit_cast<std::int8_t>(byte(data, offset));
+  return std::bit_cast<int8_t>(byte(data, offset));
 }
 
-} // namespace
+} // anonymous namespace
 
 std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &bank, unsigned int const type,
-  std::uint8_t const state, std::uint8_t const damage_mask, std::uint8_t const column, std::uint8_t const row, std::uint16_t const expansion) {
+  uint8_t const state, uint8_t const damage_mask, uint8_t const column, uint8_t const row, uint16_t const expansion) {
   /// 607A–60D2 expands the selected model's collision stream into category-bearing axis-aligned boxes
   auto const model{bank.city_model_offset(type, state, damage_mask)};
   auto const &descriptor{bank.city_types()[type - 1]};
@@ -28,7 +28,7 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
   auto const pool{bank.model_pool()};
   auto const pointer{static_cast<unsigned int>(byte(pool, model + 4) | byte(pool, model + 5) << 8)};
   if(pointer < 0x8000) throw std::invalid_argument{"City collision pointer precedes its world data"};
-  std::size_t cursor{pointer - 0x8000};
+  size_t cursor{pointer - 0x8000};
   auto const data{bank.world_data()};
   int const column_origin{column * 256 + descriptor.column_fraction};
   int const row_origin{row * 256 + descriptor.row_fraction};
@@ -45,18 +45,18 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
     int const upper_height{lower_height + ((opcode & 7) << 8) + byte(data, cursor++)};
     result.push_back({
       .bounds{
-        vec3<std::uint16_t>{
-          static_cast<std::uint16_t>(column_origin + signed_byte(data, cursor) - expansion),
-          static_cast<std::uint16_t>(row_origin + signed_byte(data, cursor + 2) - expansion),
-          static_cast<std::uint16_t>(lower_height - expansion),
+        vec3<uint16_t>{
+          static_cast<uint16_t>(column_origin + signed_byte(data, cursor) - expansion),
+          static_cast<uint16_t>(row_origin + signed_byte(data, cursor + 2) - expansion),
+          static_cast<uint16_t>(lower_height - expansion),
         },
-        vec3<std::uint16_t>{
-          static_cast<std::uint16_t>(column_origin + signed_byte(data, cursor + 1) + 1 + expansion),
-          static_cast<std::uint16_t>(row_origin + signed_byte(data, cursor + 3) + 1 + expansion),
-          static_cast<std::uint16_t>(upper_height + expansion),
+        vec3<uint16_t>{
+          static_cast<uint16_t>(column_origin + signed_byte(data, cursor + 1) + 1 + expansion),
+          static_cast<uint16_t>(row_origin + signed_byte(data, cursor + 3) + 1 + expansion),
+          static_cast<uint16_t>(upper_height + expansion),
         },
       },
-      .category{static_cast<std::uint8_t>(opcode >> 3)},
+      .category{static_cast<uint8_t>(opcode >> 3)},
     });
     cursor += 4;
   }

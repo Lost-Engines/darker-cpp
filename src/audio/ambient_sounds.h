@@ -24,13 +24,13 @@ struct ambient_source {
   uint16_t generation{0};
 };
 
-std::array<ambient_source,10> make_ambient_sources(uint16_t clock = 0);
+std::array<ambient_source, 10> make_ambient_sources(uint16_t clock = 0);
 bool advance_ambient_source(ambient_source &source, ambient_context const &context,
   game::city_map const &cells, bool was_playing);
 
 class ambient_sounds {
 private:
-  std::array<ambient_source,10> sources{make_ambient_sources()};
+  std::array<ambient_source, 10> sources{make_ambient_sources()};
 
 public:
   std::vector<game::effect_sound> advance(ambient_context const &context, game::city_map const &cells,

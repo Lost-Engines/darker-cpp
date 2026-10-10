@@ -27,7 +27,7 @@ std::vector<std::byte> bank_bytes() {
   return data;
 }
 
-} // namespace
+} // anonymous namespace
 
 TEST_CASE("Geometry banks retain typed directories, aliases and bounded resource views", "[resources][models]") {
   /// Preserve original pool-relative offsets instead of rewriting or copying model bytecode
@@ -51,7 +51,7 @@ TEST_CASE("Geometry banks retain typed directories, aliases and bounded resource
 TEST_CASE("Geometry banks reject truncated directories, pools and invalid model links", "[resources][models]") {
   /// Bounds checks cover original pack parsing and later state-driven link traversal
   auto const original{bank_bytes()};
-  for(std::size_t size{0}; size < 47; ++size) {
+  for(size_t size{0}; size < 47; ++size) {
     auto truncated{original};
     truncated.resize(size);
     REQUIRE_THROWS_AS(darker::resources::geometry_bank{std::move(truncated)}, std::invalid_argument);

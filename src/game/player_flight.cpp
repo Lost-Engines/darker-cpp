@@ -8,8 +8,8 @@ namespace darker::game {
 
 uint8_t player_flight::definition_slot() const noexcept {
   /// The scenario's low configuration nibble selects definitions 24–28, independently of the visible craft family
-  if(scenario_configuration) return static_cast<uint8_t>(24+*scenario_configuration);
-  return tunnel ? 28 : std::holds_alternative<caero_flight_state>(craft) ? 25 : upgraded ? 27 : 26;
+  if(scenario_configuration) return static_cast<uint8_t>(24 + *scenario_configuration);
+  return tunnel ? 28 : std::holds_alternative<caero_flight_state>(craft) ? 25 : upgraded                                            ? 27 : 26;
 }
 
 uint8_t player_flight::world_damage_mask() const noexcept {
@@ -19,12 +19,16 @@ uint8_t player_flight::world_damage_mask() const noexcept {
 
 object_pose &player_flight::pose() noexcept {
   /// Both craft callbacks expose the same position and attitude to collision and camera consumers
-  return std::visit([](auto &state)->object_pose &{ return state.pose; }, craft);
+  return std::visit([](auto &state)->object_pose &{
+    return state.pose;
+  }, craft);
 }
 
 object_pose const &player_flight::pose() const noexcept {
   /// Rendering borrows the current pose without altering simulation state
-  return std::visit([](auto const &state)->object_pose const &{ return state.pose; }, craft);
+  return std::visit([](auto const &state)->object_pose const &{
+    return state.pose;
+  }, craft);
 }
 
 void player_flight::command(flight_command const command) noexcept {
@@ -67,7 +71,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   /// Advance controls and craft motion before the campaign's common collision phase
   if(frame_step == 0) return;
   if(lifecycle.crashing) {
-    advance_player_crash(pose(),frame_step);
+    advance_player_crash(pose(), frame_step);
     return;
   }
   auto steering{update_flight_controls(controls, input, frame_step)};
@@ -80,30 +84,30 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
   if(frozen) return;
   bool const caero{std::holds_alternative<caero_flight_state>(craft)};
   auto const &definition{original_object_definitions[noclip && caero ? 25 : definition_slot()]};
-  auto const gain{static_cast<std::uint16_t>(definition.angular_seed * 8)};
-  auto const bias{static_cast<std::int8_t>(definition.role_data.player().drive_bias)};
+  auto const gain{static_cast<uint16_t>(definition.angular_seed * 8)};
+  auto const bias{static_cast<int8_t>(definition.role_data.player().drive_bias)};
   if(tunnel && !noclip) {
     if(!caero || !network) throw std::logic_error{"Tunnel player flight requires a Caero and its route network"};
     auto const cell{tunnel->connection.cell};
     auto const type{cells.at((cell >> 8) * city_map_size.column + (cell & 127)).type};
     auto const marker{type ? bank.city_types()[type - 1].collision_marker : uint8_t{0}};
-    advance_tunnel_flight(std::get<caero_flight_state>(craft),*tunnel,
+    advance_tunnel_flight(std::get<caero_flight_state>(craft), *tunnel,
       {
         .pitch_reference{controls.pitch.reference},
         .bank_reference{controls.bank.reference},
         .pitch_drive{steering.pitch},
         .forward_setting{forward_setting},
         .angular_response{gain},
-        .aim_response{static_cast<uint16_t>(original_object_definitions[0].angular_seed*8)},
+        .aim_response{static_cast<uint16_t>(original_object_definitions[0].angular_seed * 8)},
         .cell_collision_marker{marker},
         .engine{(engine_flags & 1) != 0},
         .brake{brake}
-      },frame_step,cells,*network);
+      }, frame_step, cells, *network);
   } else if(caero) {
     advance_caero_flight(std::get<caero_flight_state>(craft),
       {
         .angular_response{gain},
-        .drive_multiplier{static_cast<std::uint16_t>(definition.role_data.player().drive_multiplier * 8)},
+        .drive_multiplier{static_cast<uint16_t>(definition.role_data.player().drive_multiplier * 8)},
         .vertical_bias{bias},
         .desired_height{desired_height},
         .height_reference{controls.pitch.reference}
@@ -119,7 +123,7 @@ void player_flight::advance_motion(flight_controls_input const input, bool const
       },
       frame_step, cells);
   } else if(supply.phase != supply_phase::flight) {
-    advance_supply_motion(*this,supply,supply_input.output,supply_input.supplementary_active,controls.pitch.reference,frame_step);
+    advance_supply_motion(*this, supply, supply_input.output, supply_input.supplementary_active, controls.pitch.reference, frame_step);
   } else {
     advance_skimma_flight(std::get<skimma_flight_state>(craft), {
       .angular_response{gain},
@@ -145,7 +149,7 @@ void player_flight::apply_city_contact(city_collision_result const contact, uint
       auto &cell{cells[contact.row * city_map_size.column + contact.column]};
       auto const model{bank.city_model_offset(cell.type, cell.state, mask)};
       auto const pool{bank.model_pool()};
-      if(pool[model] != std::byte{0} || pool[model + 1] != std::byte{0}) cell.state = static_cast<std::uint8_t>(cell.state + 32);
+      if(pool[model] != std::byte{0} || pool[model + 1] != std::byte{0}) cell.state = static_cast<uint8_t>(cell.state + 32);
     }
     if(start_player_crash(pose(), lifecycle, clock)) engine_flags = 0;
   }
@@ -157,10 +161,10 @@ city_collision_result player_flight::advance(flight_controls_input const input, 
   /// Compose standalone flight and city collision for callers without a mission actor simulation
   bool const collidable{frame_step != 0 && !lifecycle.crashing && !noclip};
   auto const previous{pose().position};
-  advance_motion(input,brake,frame_step,bank,cells,network,supply_input);
+  advance_motion(input, brake, frame_step, bank, cells, network, supply_input);
   if(!collidable) return {};
-  auto const contact{sweep_city(bank,cells,world_damage_mask(),previous,pose().position)};
-  apply_city_contact(contact,clock,bank,cells);
+  auto const contact{sweep_city(bank, cells, world_damage_mask(), previous, pose().position)};
+  apply_city_contact(contact, clock, bank, cells);
   return contact;
 }
 

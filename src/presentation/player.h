@@ -10,9 +10,16 @@
 
 namespace darker::presentation {
 
-struct landing_entry { uint16_t site; uint8_t heading; };
+struct landing_entry {
+  uint16_t site;
+  uint8_t heading;
+};
 
-struct animation_pixel { uint16_t x; uint16_t y; uint8_t colour; };
+struct animation_pixel {
+  uint16_t x;
+  uint16_t y;
+  uint8_t colour;
+};
 using animation_frame = std::vector<animation_pixel>;
 std::vector<animation_frame> decode_animation(std::span<std::byte const> data);
 
@@ -29,17 +36,25 @@ private:
   uint8_t interval{1}, selected{7}, object_counter{0};
   bool stopped{false}, repeat_delay{false};
   bool continued_mission{false};
-  struct animation_pair { uint8_t current{160}; uint8_t target{160}; };
+  struct animation_pair {
+    uint8_t current{160};
+    uint8_t target{160};
+  };
   std::array<animation_pair, 12> pairs{};
   std::array<std::vector<animation_frame>, 2> animations;
-  std::array<size_t,2> animation_counts{};
+  std::array<size_t, 2> animation_counts{};
   framework::render::indexed_cockpit_framebuffer background{};
   graphics::palette_state colours;
   std::optional<uint8_t> background_type;
   std::vector<std::byte> image_pixels;
   graphics::formatted_page page;
-  struct caption { std::span<std::byte const> text; uint32_t expiry{0}; int16_t x{0}; uint16_t width{0}; };
-  std::array<caption,3> captions{};
+  struct caption {
+    std::span<std::byte const> text;
+    uint32_t expiry{0};
+    int16_t x{0};
+    uint16_t width{0};
+  };
+  std::array<caption, 3> captions{};
   uint8_t caption_y{229}, caption_width_extension{0};
   uint16_t caption_colours{0xfffe};
   resources::font_face face{resources::font_face::compact};
@@ -67,7 +82,7 @@ public:
   bool continue_page();
   bool finished() const noexcept;
   size_t consumed_text() const noexcept;
-  void draw(framework::render::cockpit_framebuffer &output, std::array<int,2> pointer = {-1,-1}) const;
+  void draw(framework::render::cockpit_framebuffer &output, std::array<int, 2> pointer = {-1, -1}) const;
 };
 
 } // namespace darker::presentation

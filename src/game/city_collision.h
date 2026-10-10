@@ -8,6 +8,6 @@
 namespace darker::game {
 
 std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &bank, unsigned int type,
-  std::uint8_t state, std::uint8_t damage_mask, std::uint8_t column, std::uint8_t row, std::uint16_t expansion = 0);
+  uint8_t state, uint8_t damage_mask, uint8_t column, uint8_t row, uint16_t expansion = 0);
 
 } // namespace darker::game

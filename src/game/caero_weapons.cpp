@@ -12,7 +12,7 @@ diffuser_impact diffuser_state::hit(bool const gas, uint8_t const category, uint
   uint8_t constexpr diffuser_collision_category{3};
   uint8_t constexpr permitted_target_flag{0x40};
   int constexpr gas_lifetime_ticks{0x2800};
-  uint16_t constexpr trigger_window_start{0xf000}; // wrapped -0x1000: the final 4096 ticks
+  uint16_t constexpr trigger_window_start{0xf000};                             // wrapped -0x1000: the final 4096 ticks
   if(category != diffuser_collision_category || !(state & permitted_target_flag)) return diffuser_impact::rejected;
   if(gas) {
     cell = target;
@@ -27,7 +27,7 @@ diffuser_impact diffuser_state::hit(bool const gas, uint8_t const category, uint
 
 uint8_t caero_weapon_strength(city_map const &cells, maths::world_position const position, uint16_t const victim) {
   /// CF21 leaves the victim pointer in AX, so 8450 uses its nibbles as sub-coordinate fractions
-  auto const light{beacon_light(cells,position,{static_cast<uint8_t>(victim),static_cast<uint8_t>(victim >> 8)})};
+  auto const light{beacon_light(cells, position, {static_cast<uint8_t>(victim), static_cast<uint8_t>(victim >> 8)})};
   int constexpr beacon_strength_shift{6};
   int constexpr unpowered_weapon_strength{45};
   return static_cast<uint8_t>((light >> beacon_strength_shift) + unpowered_weapon_strength);
@@ -71,9 +71,9 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
     if(request.held) {
       if(charge) {
         auto const drain{static_cast<uint16_t>(request.frame_step * (charge == 0xffff ? 2 : 64))};
-        auto const spent{std::min(energy.reserve,drain)};
+        auto const spent{std::min(energy.reserve, drain)};
         energy.reserve -= spent;
-        charge = static_cast<uint16_t>(std::min(unsigned{charge} + spent,65535u));
+        charge = static_cast<uint16_t>(std::min(unsigned{charge} + spent, 65535u));
       }
       return {
         .ready{true}

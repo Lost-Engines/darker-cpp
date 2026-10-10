@@ -16,12 +16,12 @@ struct resource_id {
 
 struct directory_entry {
   resource_id id;
-  std::size_t offset;
-  std::size_t compressed_size;
+  size_t offset;
+  size_t compressed_size;
 };
 
 std::span<directory_entry const> resource_directory() noexcept;
-std::vector<std::byte> read_binary_file(std::filesystem::path const &path, std::size_t size_limit);
+std::vector<std::byte> read_binary_file(std::filesystem::path const &path, size_t size_limit);
 
 class archive_set {
 private:

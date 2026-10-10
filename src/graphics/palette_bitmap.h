@@ -14,7 +14,7 @@ struct palette_state {
 
 struct palette_update {
   palette_state palette;
-  std::size_t bytes_consumed;
+  size_t bytes_consumed;
 };
 
 struct palette_bitmap {

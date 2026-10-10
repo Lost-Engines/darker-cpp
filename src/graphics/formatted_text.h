@@ -10,23 +10,23 @@
 namespace darker::graphics {
 
 struct text_cursor {
-  std::uint16_t x{0};
-  std::uint16_t y{0};
-  std::uint16_t colour{0};
-  std::uint8_t margin{0};
-  std::int8_t line_step{16};
-  std::uint8_t runtime_number{0};
+  uint16_t x{0};
+  uint16_t y{0};
+  uint16_t colour{0};
+  uint8_t margin{0};
+  int8_t line_step{16};
+  uint8_t runtime_number{0};
 };
 
 struct positioned_glyph {
   pixel_position position{};
-  std::uint16_t colour{0};
-  std::uint8_t code{0};
+  uint16_t colour{0};
+  uint8_t code{0};
 };
 
 struct formatted_page {
   std::vector<positioned_glyph> glyphs{};
-  std::size_t consumed{0};
+  size_t consumed{0};
   text_cursor cursor{};
 };
 

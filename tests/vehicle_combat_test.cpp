@@ -15,7 +15,7 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
       .row{static_cast<uint16_t>(s[2])},
       .height{static_cast<uint16_t>(s[3])}
     };
-    vehicle.pose.angles.heading = static_cast<uint16_t>(s[4]*8192);
+    vehicle.pose.angles.heading = static_cast<uint16_t>(s[4] * 8192);
     vehicle.behaviour.attack_control = static_cast<uint8_t>(s[8]);
     vehicle.last_shot = static_cast<uint16_t>(s[9]);
     darker::game::object_pose const player{
@@ -26,14 +26,14 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
       }
     };
     darker::game::city_map cells{};
-    std::array<darker::resources::city_type,2> types{};
-    constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
+    std::array<darker::resources::city_type, 2> types{};
+    std::array<int, 4> constexpr columns{0, -1, 0, 1}, rows{-1, 0, 1, 0};
     auto column{static_cast<uint8_t>(s[1] >> 8)}, row{static_cast<uint8_t>(s[2] >> 8)};
     for(size_t i{0}; i < types.size(); ++i) {
-      types[i].collision_marker = static_cast<uint8_t>(s[13+i]);
-      column = static_cast<uint8_t>(column-columns[s[4]/2]);
-      row = static_cast<uint8_t>(row-rows[s[4]/2]);
-      if(column < 128 && row < 128) cells[row*128+column].type = static_cast<uint8_t>(i+1);
+      types[i].collision_marker = static_cast<uint8_t>(s[13 + i]);
+      column = static_cast<uint8_t>(column - columns[s[4] / 2]);
+      row = static_cast<uint8_t>(row - rows[s[4] / 2]);
+      if(column < 128 && row < 128) cells[row * 128 + column].type = static_cast<uint8_t>(i + 1);
     }
     darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
     darker::game::launch_emitter const emitter{};
@@ -43,16 +43,16 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
         .emitter{emitter}
       }));
     }
-    auto const *shot{darker::game::fire_vehicle_missile(pool,vehicle,player,cells,types,
-      static_cast<uint8_t>(s[4]),static_cast<uint16_t>(s[10]),static_cast<uint8_t>(s[11]),0x400)};
+    auto const *shot{darker::game::fire_vehicle_missile(pool, vehicle, player, cells, types,
+      static_cast<uint8_t>(s[4]), static_cast<uint16_t>(s[10]), static_cast<uint8_t>(s[11]), 0x400)};
     CHECK(vehicle.behaviour.attack_control == s[15]);
     CHECK(vehicle.last_shot == s[16]);
     CHECK((shot != nullptr) == (s[17] != 0));
     if(shot) {
-      CHECK(shot->deadline == static_cast<uint16_t>(s[10]+s[18]));
+      CHECK(shot->deadline == static_cast<uint16_t>(s[10] + s[18]));
       CHECK(shot->target_token == 0xd986);
       CHECK(shot->parameters.definition == &darker::game::original_object_definitions[18]);
-      CHECK(shot->placement.angles.heading == static_cast<uint16_t>(vehicle.pose.angles.heading+0x8000));
+      CHECK(shot->placement.angles.heading == static_cast<uint16_t>(vehicle.pose.angles.heading + 0x8000));
       CHECK(shot->placement.angles.pitch == 0x0abe);
     }
   }
@@ -80,7 +80,7 @@ TEST_CASE("Vehicle routes call the native firing check only on supported actions
     };
     uint8_t flags{0};
     uint16_t random{0};
-    auto const result{darker::game::advance_vehicle_route(route,pose,flags,{},static_cast<uint16_t>(s[2]),0,random)};
+    auto const result{darker::game::advance_vehicle_route(route, pose, flags, {}, static_cast<uint16_t>(s[2]), 0, random)};
     CHECK(result.firing_direction.has_value() == (s[3] != 255));
     if(result.firing_direction) CHECK(*result.firing_direction == s[3]);
   }

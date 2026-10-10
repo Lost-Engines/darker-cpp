@@ -13,30 +13,30 @@ private:
   resources::font_face face;
   formatted_page &page;
 
-  std::uint8_t byte() {
+  uint8_t byte() {
     /// Never let a malformed page consume the next record or an unrelated allocation
     if(page.consumed == text.size()) throw std::invalid_argument{"Unterminated or truncated formatted text"};
-    return std::to_integer<std::uint8_t>(text[page.consumed++]);
+    return std::to_integer<uint8_t>(text[page.consumed++]);
   }
 
-  void glyph(std::uint8_t const code) {
+  void glyph(uint8_t const code) {
     /// Record original coordinates and colour tokens; palette translation remains the drawing consumer's job
     auto &cursor{page.cursor};
     page.glyphs.push_back({
-      .position{std::bit_cast<std::int16_t>(cursor.x), std::bit_cast<std::int16_t>(cursor.y)},
+      .position{std::bit_cast<int16_t>(cursor.x), std::bit_cast<int16_t>(cursor.y)},
       .colour{cursor.colour},
       .code{code}
     });
-    cursor.x = static_cast<std::uint16_t>(cursor.x + font.glyph(face, code).advance);
+    cursor.x = static_cast<uint16_t>(cursor.x + font.glyph(face, code).advance);
   }
 
-  std::uint16_t centred_width() const {
+  uint16_t centred_width() const {
     /// E2C1 counts stored widths rather than spacing-adjusted advances, stopping only at zero
-    std::uint16_t width{0};
+    uint16_t width{0};
     for(auto const value : text.subspan(page.consumed)) {
-      auto const code{std::to_integer<std::uint8_t>(value)};
+      auto const code{std::to_integer<uint8_t>(value)};
       if(!code) return width;
-      width = static_cast<std::uint16_t>(width + (code < 33 ? 4 : font.glyph(face, code).width));
+      width = static_cast<uint16_t>(width + (code < 33 ? 4 : font.glyph(face, code).width));
     }
     throw std::invalid_argument{"Unterminated centred text"};
   }
@@ -58,7 +58,8 @@ public:
         continue;
       }
       switch(code) {
-      case 0: return;
+      case 0:
+        return;
       case 1:
         cursor.y = byte();
         cursor.x = byte();
@@ -66,45 +67,46 @@ public:
       case 2:
         {
           auto const low{byte()};
-          auto const colour{static_cast<std::uint16_t>(low | byte() << 8)};
+          auto const colour{static_cast<uint16_t>(low | byte() << 8)};
           if(colour != 0xffff) cursor.colour = colour;
         }
         break;
       case 3:
         cursor.x = cursor.margin;
-        cursor.y = static_cast<std::uint16_t>(cursor.y + cursor.line_step);
+        cursor.y = static_cast<uint16_t>(cursor.y + cursor.line_step);
         break;
       case 4:
-        cursor.x = static_cast<std::uint16_t>(((static_cast<std::uint16_t>(cursor.x - cursor.margin)) | 15) + 1 + cursor.margin);
+        cursor.x = static_cast<uint16_t>(((static_cast<uint16_t>(cursor.x - cursor.margin)) | 15) + 1 + cursor.margin);
         break;
       case 5:
         cursor.margin = byte();
-        cursor.line_step = std::bit_cast<std::int8_t>(byte());
+        cursor.line_step = std::bit_cast<int8_t>(byte());
         cursor.x = cursor.margin;
         break;
       case 6:
-        cursor.x = static_cast<std::uint16_t>(320 - centred_width()) >> 1;
+        cursor.x = static_cast<uint16_t>(320 - centred_width()) >> 1;
         run(depth + 1);
         break;
       case 7:
         {
-          std::array<std::uint8_t, 3> digits{};
-          std::size_t count{0};
+          std::array<uint8_t, 3> digits{};
+          size_t count{0};
           auto value{cursor.runtime_number};
           do {
-            digits[count++] = static_cast<std::uint8_t>('0' + value % 10);
+            digits[count++] = static_cast<uint8_t>('0' + value % 10);
             value /= 10;
           } while(value);
           while(count) glyph(digits[--count]);
         }
         break;
-      default: throw std::invalid_argument{"Unknown original text formatting command"};
+      default:
+        throw std::invalid_argument{"Unknown original text formatting command"};
       }
     }
   }
 };
 
-} // namespace
+} // anonymous namespace
 
 formatted_page lay_out_text(std::span<std::byte const> const text, resources::font_resource const &font,
   resources::font_face const face, text_cursor const cursor) {

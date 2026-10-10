@@ -20,7 +20,7 @@ struct tunnel_segment {
 
 struct tunnel_junction {
   uint8_t flags{0};
-  std::array<tunnel_segment,3> edges{};
+  std::array<tunnel_segment, 3> edges{};
 };
 
 struct tunnel_boundary {
@@ -48,7 +48,7 @@ struct tunnel_start {
 
 class tunnel_network {
 private:
-  std::array<std::byte,3200> data{};
+  std::array<std::byte, 3200> data{};
   tunnel_segment segment_at(int offset) const;
 
 public:

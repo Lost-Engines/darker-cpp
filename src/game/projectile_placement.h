@@ -11,11 +11,11 @@ namespace darker::game {
 struct launch_emitter {
   maths::world_position position{};
   maths::position_fractions fractions{};
-  // Heading, pitch, roll, in native wrapping angle units.
+  // heading, pitch, roll, in native wrapping angle units
   maths::attitude_angles angles{};
-  std::uint16_t speed{0};
-  std::uint8_t side_flags{0};
-  std::uint8_t definition_strength{0};
+  uint16_t speed{0};
+  uint8_t side_flags{0};
+  uint8_t definition_strength{0};
 };
 
 object_pose place_projectile(launch_emitter const &emitter);

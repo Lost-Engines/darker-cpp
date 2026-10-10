@@ -7,14 +7,14 @@ namespace darker::resources {
 
 std::string pilot_record::display_name() const {
   /// Bound even an unterminated imported name to its original 29-byte field
-  return {name.begin(),std::find(name.begin(),name.end(),'\0')};
+  return {name.begin(), std::find(name.begin(), name.end(), '\0')};
 }
 
 void pilot_record::set_name(std::string_view const value) {
   /// Leave space for a terminator without disturbing the other saved fields
   if(value.size() >= name.size() || value.find('\0') != std::string_view::npos) throw std::invalid_argument{"Invalid pilot name"};
   name.fill('\0');
-  std::ranges::copy(value,name.begin());
+  std::ranges::copy(value, name.begin());
 }
 
 uint16_t save_checksum(std::span<std::byte const> const bytes) noexcept {
@@ -33,10 +33,15 @@ save_file decode_save(std::span<std::byte const> const bytes) {
   auto const stored{std::to_integer<uint8_t>(bytes[6598]) | (std::to_integer<uint8_t>(bytes[6599]) << 8)};
   if(save_checksum(bytes.first(6598)) != stored) throw std::invalid_argument{"Save file checksum mismatch"};
   size_t cursor{0};
-  auto const byte{[&]{ return std::to_integer<uint8_t>(bytes[cursor++]); }};
-  auto const word{[&]{ auto const low{byte()}; return static_cast<uint16_t>(low | (byte() << 8)); }};
+  auto const byte{[&]{
+    return std::to_integer<uint8_t>(bytes[cursor++]);
+  }};
+  auto const word{[&]{
+    auto const low{byte()};
+    return static_cast<uint16_t>(low | (byte() << 8));
+  }};
   auto const block{[&](auto &destination){
-    std::ranges::copy(bytes.subspan(cursor,destination.size()),destination.begin());
+    std::ranges::copy(bytes.subspan(cursor, destination.size()), destination.begin());
     cursor += destination.size();
   }};
   save_file result;
@@ -53,14 +58,19 @@ save_file decode_save(std::span<std::byte const> const bytes) {
   return result;
 }
 
-std::array<std::byte,save_file_size> encode_save(save_file const &save) {
+std::array<std::byte, save_file_size> encode_save(save_file const &save) {
   /// Serialise explicit DOS offsets independently of host alignment and structure padding
-  std::array<std::byte,save_file_size> result{};
+  std::array<std::byte, save_file_size> result{};
   size_t cursor{0};
-  auto const byte{[&](uint8_t const value){ result[cursor++] = static_cast<std::byte>(value); }};
-  auto const word{[&](uint16_t const value){ byte(static_cast<uint8_t>(value)); byte(static_cast<uint8_t>(value >> 8)); }};
+  auto const byte{[&](uint8_t const value){
+    result[cursor++] = static_cast<std::byte>(value);
+  }};
+  auto const word{[&](uint16_t const value){
+    byte(static_cast<uint8_t>(value));
+    byte(static_cast<uint8_t>(value >> 8));
+  }};
   auto const block{[&](auto const &source){
-    std::ranges::copy(source,result.begin() + static_cast<ptrdiff_t>(cursor));
+    std::ranges::copy(source, result.begin() + static_cast<ptrdiff_t>(cursor));
     cursor += source.size();
   }};
   for(auto const &pilot : save.pilots) {
@@ -85,13 +95,13 @@ void write_save(std::filesystem::path const &path, save_file const &save) {
   try {
     std::ofstream stream;
     stream.exceptions(std::ios::failbit | std::ios::badbit);
-    stream.open(temporary,std::ios::binary | std::ios::trunc);
-    stream.write(reinterpret_cast<char const*>(bytes.data()),static_cast<std::streamsize>(bytes.size()));
+    stream.open(temporary, std::ios::binary | std::ios::trunc);
+    stream.write(reinterpret_cast<char const*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
     stream.close();
-    std::filesystem::rename(temporary,path);
+    std::filesystem::rename(temporary, path);
   } catch(...) {
     std::error_code ignored;
-    std::filesystem::remove(temporary,ignored);
+    std::filesystem::remove(temporary, ignored);
     throw;
   }
 }

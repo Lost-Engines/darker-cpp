@@ -6,7 +6,7 @@ namespace darker::game {
 
 std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
   std::span<scenario_actor const> const active, city_map const &cells, resources::geometry_bank const &bank,
-  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor &, actor_course, uint8_t)> const &fire, std::function<void(scenario_actor &)> const &drop, std::array<uint8_t,4> *const threat_errors) {
+  uint8_t const damage_mask, uint16_t frame_step, std::function<void(scenario_actor&, actor_course, uint8_t)> const &fire, std::function<void(scenario_actor&)> const &drop, std::array<uint8_t, 4> *const threat_errors) {
   /// Compose 8823's airborne navigation after its script update; report firing checks for the weapon owner
   actor.previous_position = actor.pose.position;
   auto const &definition{*actor.parameters.definition};
@@ -41,7 +41,9 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   if(actor.definition_slot == 23 && course.distance < 100 && drop) drop(actor);
   auto const firing_course{course};
   reset_actor_clearance(actor);
-  for(auto const &neighbour : active) if(neighbour.category == actor_category::air) consider_actor_clearance(actor, neighbour, course);
+  for(auto const &neighbour : active) {
+    if(neighbour.category == actor_category::air) consider_actor_clearance(actor, neighbour, course);
+  }
   adjust_actor_clearance(actor, course, actor_city_clearance(actor.pose, cells, bank, damage_mask));
   auto const manoeuvre{choose_actor_manoeuvre(actor, course)};
   if(manoeuvre.firing_distance && fire) fire(actor, firing_course, *manoeuvre.firing_distance);

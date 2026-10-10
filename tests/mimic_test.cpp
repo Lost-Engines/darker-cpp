@@ -24,7 +24,7 @@ TEST_CASE("Pinner Mimic steering and displacement match complete native updates"
         .roll{static_cast<uint16_t>(sample[11])}
       }
     };
-    darker::game::advance_mimic_projectile(shot,player,static_cast<uint16_t>(sample[12]),static_cast<uint16_t>(sample[13]));
+    darker::game::advance_mimic_projectile(shot, player, static_cast<uint16_t>(sample[12]), static_cast<uint16_t>(sample[13]));
     CHECK(shot.placement.angles.heading == sample[20 + 0]);
     CHECK(shot.placement.angles.pitch == sample[20 + 1]);
     CHECK(shot.placement.angles.roll == sample[20 + 2]);

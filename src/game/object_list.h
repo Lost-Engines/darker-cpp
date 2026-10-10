@@ -4,8 +4,8 @@
 
 namespace darker::game {
 
-// Records provide Record *next and Record *previous and keep a stable address.
-// Free records use only next; previous and payload are deliberately retained.
+// records provide Record *next and Record *previous and keep a stable address
+// free records use only next; previous and payload are deliberately retained
 template<typename Record>
 struct object_list {
   Record *head{nullptr};
@@ -51,7 +51,7 @@ template<typename Record>
 Record *allocate_or_reuse_object(object_list<Record> &list) {
   /// 1CBF falls back to moving the oldest active record to the head
   if(auto *record{allocate_object(list)}) return record;
-  // The original fallback assumes at least two active records.
+  // the original fallback assumes at least two active records
   if(!list.tail || !list.tail->previous) throw std::logic_error{"object reuse requires at least two active records"};
   auto *record{list.tail};
   list.tail = record->previous;

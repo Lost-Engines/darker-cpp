@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <vector>
 #include "graphics/palette_bitmap.h"
-#include "render/indexed_framebuffer.h"
 #include "reference/palette_fade_samples.h"
+#include "render/indexed_framebuffer.h"
 
 TEST_CASE("Palette skips retain previous colours and literals replace single entries") {
   darker::graphics::palette_state previous;
@@ -50,12 +50,14 @@ TEST_CASE("Indexed bitmap keeps indices independent of palette presentation") {
 
 TEST_CASE("Palette fade gain and DAC lookup match native AFA2 and AFAD") {
   /// Compare all fade phases and every component at all 65 native brightness levels
-  for(uint16_t phase{0}; phase < 512; ++phase)
+  for(uint16_t phase{0}; phase < 512; ++phase) {
     CHECK(darker::graphics::palette_fade_gain(phase) == darker::test_reference::fade_gains[phase]);
+  }
   for(uint8_t gain{0}; gain <= 64; ++gain) {
     uint64_t fingerprint{0xcbf29ce484222325};
-    for(unsigned int value{0}; value < 256; ++value)
-      fingerprint = (fingerprint^darker::graphics::palette_dac_component(static_cast<uint8_t>(value),gain))*0x100000001b3;
+    for(unsigned int value{0}; value < 256; ++value) {
+      fingerprint = (fingerprint ^ darker::graphics::palette_dac_component(static_cast<uint8_t>(value), gain)) * 0x100000001b3;
+    }
     CHECK(fingerprint == darker::test_reference::fade_components[gain]);
   }
 }

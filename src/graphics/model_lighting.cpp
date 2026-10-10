@@ -11,19 +11,19 @@ distance_shading::distance_shading(unsigned int const count) {
   for(int shade{0}; shade < 28; ++shade) {
     int const step{((shade - 1) * 256) / static_cast<int>(count - 1)};
     for(unsigned int distance{0}; distance < count; ++distance) {
-      tables[distance][shade] = static_cast<std::uint8_t>((shade * 256 + 128 - static_cast<int>(distance) * step) >> 8);
+      tables[distance][shade] = static_cast<uint8_t>((shade * 256 + 128 - static_cast<int>(distance) * step) >> 8);
     }
   }
 }
 
-model_colours distance_shading::colours(std::uint16_t depth, model_path const path, std::uint8_t const light) const {
+model_colours distance_shading::colours(uint16_t depth, model_path const path, uint8_t const light) const {
   /// 2CE4 folds beacon strength into distance; the near path clamps a negative origin depth before the wrapping subtraction
   if(path == model_path::near_clipped && (depth & 0x8000)) depth = 0;
-  auto const adjusted{static_cast<std::uint16_t>(depth + 16 * (255 - light))};
-  auto const index{std::min<std::size_t>(adjusted >> 8, tables.size() - 1)};
+  auto const adjusted{static_cast<uint16_t>(depth + 16 * (255 - light))};
+  auto const index{std::min<size_t>(adjusted >> 8, tables.size() - 1)};
   return {
     .shades{tables[index]},
-    .dynamic{static_cast<std::uint8_t>(0xf0 | (light >> 4))}
+    .dynamic{static_cast<uint8_t>(0xf0 | (light >> 4))}
   };
 }
 

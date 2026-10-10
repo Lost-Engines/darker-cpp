@@ -2,8 +2,8 @@
 #include <array>
 #include "game/actor_activation.h"
 #include "game/aircraft_spawning.h"
-#include "reference/aircraft_spawning_samples.h"
 #include "reference/actor_activation_samples.h"
+#include "reference/aircraft_spawning_samples.h"
 
 TEST_CASE("Air reserve placement matches the native player and neighbour scans", "[actors]") {
   /// Exercise wrapping coordinates and signed altitude boundaries through complete native C39E calls
@@ -11,13 +11,13 @@ TEST_CASE("Air reserve placement matches the native player and neighbour scans",
     CAPTURE(sample);
     darker::game::scenario_actor actor;
     darker::game::object_pose player;
-    std::array<darker::game::scenario_actor,3> neighbours;
+    std::array<darker::game::scenario_actor, 3> neighbours;
     for(size_t axis{0}; axis < 3; ++axis) {
       actor.pose.position[axis] = static_cast<uint16_t>(sample[axis]);
       player.position[axis] = static_cast<uint16_t>(sample[axis + 3]);
-      for(size_t i{0}; i < neighbours.size(); ++i) neighbours[i].pose.position[axis] = static_cast<uint16_t>(sample[6 + i*3 + axis]);
+      for(size_t i{0}; i < neighbours.size(); ++i) neighbours[i].pose.position[axis] = static_cast<uint16_t>(sample[6 + i * 3 + axis]);
     }
-    darker::game::place_air_reserve(actor,player,neighbours);
+    darker::game::place_air_reserve(actor, player, neighbours);
     for(size_t axis{0}; axis < 3; ++axis) CHECK(actor.pose.position[axis] == sample[15 + axis]);
   }
 }
@@ -53,7 +53,7 @@ TEST_CASE("Reserve activation preserves category heads and reverses each admitte
       .index{6}
     },
   };
-  darker::game::activate_scenario_reserves(active,reserves,actor_category::air,2,{},1234);
+  darker::game::activate_scenario_reserves(active, reserves, actor_category::air, 2, {}, 1234);
   REQUIRE(active.size() == 4);
   CHECK(active[0].index == 5);
   CHECK(active[1].index == 4);
@@ -73,13 +73,13 @@ TEST_CASE("Warehouse preparation matches native cell variants and platform param
     darker::game::aircraft_spawning state;
     for(size_t i{0}; i < darker::game::delphi_aircraft_sites.size(); ++i) {
       auto const site{darker::game::delphi_aircraft_sites[i]};
-      cells[(site >> 8)*128 + (site & 127)].state = static_cast<uint8_t>(v[i]);
+      cells[(site >> 8) * 128 + (site & 127)].state = static_cast<uint8_t>(v[i]);
     }
-    darker::game::prepare_delphi_aircraft_sites(state,cells);
+    darker::game::prepare_delphi_aircraft_sites(state, cells);
     for(size_t i{0}; i < darker::game::delphi_aircraft_sites.size(); ++i) {
       auto const site{darker::game::delphi_aircraft_sites[i]};
-      CHECK(cells[(site >> 8)*128 + (site & 127)].state == v[i+8]);
-      CHECK(state.platforms[i] == v[i+16]);
+      CHECK(cells[(site >> 8) * 128 + (site & 127)].state == v[i + 8]);
+      CHECK(state.platforms[i] == v[i + 16]);
     }
   }
 }

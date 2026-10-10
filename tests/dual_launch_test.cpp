@@ -26,7 +26,7 @@ TEST_CASE("Dual Launch separation matches the native paired projectile metric", 
         .height{static_cast<uint16_t>(s[5])}
       }
     };
-    CHECK(darker::game::dual_launch_separation(source,target) == s[6]);
+    CHECK(darker::game::dual_launch_separation(source, target) == s[6]);
   }
 }
 
@@ -48,7 +48,7 @@ TEST_CASE("Dual Launch blast matches native category bounds and impact strength"
         .height{static_cast<uint16_t>(s[5])}
       }
     };
-    auto const strength{darker::game::dual_launch_impact(source,target,s[6] != 0)};
+    auto const strength{darker::game::dual_launch_impact(source, target, s[6] != 0)};
     CHECK(strength.has_value() == (s[7] != 0));
     if(strength) CHECK(*strength == s[8]);
   }
@@ -82,7 +82,7 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
       .reserve{static_cast<uint16_t>(s[1])}
     };
     uint16_t charge{0};
-    auto const result{darker::game::fire_caero_weapon(pool,energy,charge,{
+    auto const result{darker::game::fire_caero_weapon(pool, energy, charge, {
       .emitter{emitter},
       .selection{static_cast<uint8_t>(s[0])},
       .player_flags{static_cast<uint8_t>(s[2])},
@@ -119,12 +119,12 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
     shot.angular_motion.pitch = static_cast<uint16_t>(sample[11]);
     shot.angular_motion.turn = static_cast<uint16_t>(sample[12]);
     uint16_t pitch{614};
-    if(sample[18]) darker::game::advance_direct_projectile(shot.placement,*shot.parameters.definition,static_cast<uint16_t>(sample[17]));
+    if(sample[18]) darker::game::advance_direct_projectile(shot.placement, *shot.parameters.definition, static_cast<uint16_t>(sample[17]));
     else {
-      auto const separation{darker::game::dual_launch_separation(shot.placement,target)};
+      auto const separation{darker::game::dual_launch_separation(shot.placement, target)};
       REQUIRE(separation >= 20);
-      darker::game::advance_dual_projectile(shot,target,separation,static_cast<uint16_t>(sample[17]));
-      pitch = static_cast<uint16_t>((0x80c-std::min<uint16_t>(separation,0xcd)) >> 2);
+      darker::game::advance_dual_projectile(shot, target, separation, static_cast<uint16_t>(sample[17]));
+      pitch = static_cast<uint16_t>((0x80c - std::min<uint16_t>(separation, 0xcd)) >> 2);
     }
     CHECK(shot.placement.angles.heading == sample[27 + 0]);
     CHECK(shot.placement.angles.pitch == sample[27 + 1]);

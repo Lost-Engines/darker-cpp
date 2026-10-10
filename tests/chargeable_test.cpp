@@ -23,8 +23,8 @@ TEST_CASE("Chargeable steering, spin and displacement match native updates", "[w
     shot.inherited_roll = static_cast<uint16_t>(sample[10]);
     shot.angular_motion.pitch = static_cast<uint16_t>(sample[11]);
     shot.angular_motion.turn = static_cast<uint16_t>(sample[12]);
-    darker::game::advance_chargeable_projectile(shot,sample[18] ? shot.placement : target,
-      static_cast<uint16_t>(sample[16]),static_cast<uint16_t>(sample[17]));
+    darker::game::advance_chargeable_projectile(shot, sample[18] ? shot.placement : target,
+      static_cast<uint16_t>(sample[16]), static_cast<uint16_t>(sample[17]));
     CHECK(shot.placement.angles.heading == sample[27 + 0]);
     CHECK(shot.placement.angles.pitch == sample[27 + 1]);
     CHECK(shot.placement.angles.roll == sample[27 + 2]);

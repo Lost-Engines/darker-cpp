@@ -26,14 +26,16 @@ auto midi_music::delta(track &part)->uint32_t {
 
 void midi_music::timing() {
   /// SCC-1 0668, LAPC-I 0669, GUS 0658 and AWE32 0FA0 use the same Q16 tempo arithmetic
-  constexpr uint32_t ticks_per_minute{0x04446390 / 0x5d24};
+  uint32_t constexpr ticks_per_minute{0x04446390 / 0x5d24};
   increment = static_cast<uint32_t>((static_cast<uint64_t>(division) * tempo << 16) / ticks_per_minute);
 }
 
 void midi_music::start(std::span<std::byte const> const song, midi_sink const &sink) {
   if(song.empty() || song.size() > 65536 || song.front() != std::byte{1}) throw std::invalid_argument{"Expected one Sound Images MIDI song"};
   sequence.assign(song.begin(), song.end());
-  auto const word{[&](size_t const p){ return std::to_integer<uint8_t>(sequence.at(p)) | (std::to_integer<uint8_t>(sequence.at(p + 1)) << 8); }};
+  auto const word{[&](size_t const p){
+    return std::to_integer<uint8_t>(sequence.at(p)) | (std::to_integer<uint8_t>(sequence.at(p + 1)) << 8);
+  }};
   auto const descriptor{static_cast<size_t>(word(word(1)))};
   division = std::to_integer<uint8_t>(sequence.at(descriptor));
   tempo = std::to_integer<uint8_t>(sequence.at(descriptor + 1));
@@ -50,13 +52,15 @@ void midi_music::start(std::span<std::byte const> const song, midi_sink const &s
     part.delay = delta(part);
     part.active = true;
   }
-  if(variant != music_variant::gus) for(uint8_t i{0}; i < count; ++i) sink({static_cast<uint8_t>(0xb0 | tracks[i].channel), 7, 127});
+  if(variant != music_variant::gus) {
+    for(uint8_t i{0}; i < count; ++i) sink({static_cast<uint8_t>(0xb0 | tracks[i].channel), 7, 127});
+  }
   timing();
 }
 
 void midi_music::event(track &part, midi_sink const &sink) {
   auto const op{byte(part)};
-  auto const send{[&](uint8_t const status, uint8_t const first, uint8_t const second = 0) {
+  auto const send{[&](uint8_t const status, uint8_t const first, uint8_t const second = 0){
     sink({static_cast<uint8_t>(status | part.channel), first, second});
   }};
   if(op < 128) {
@@ -64,30 +68,60 @@ void midi_music::event(track &part, midi_sink const &sink) {
     send(0x90, op, byte(part));
     return;
   }
-  if(op < 0x90) { part.channel = op & 15; return; }
+  if(op < 0x90) {
+    part.channel = op & 15;
+    return;
+  }
   switch(op) {
-  case 0x90: send(0x90, byte(part), 0); break;
-  case 0x91: send(0xb0, 123, 0); part.active = false; break;
-  case 0x92: send(0xc0, byte(part)); break;
-  case 0x93: tempo = byte(part); timing(); break;
-  case 0x94: break;
-  case 0x95: send(0xe0, 0, byte(part)); break;
-  case 0x96: send(0xb0, 7, byte(part)); break;
-  case 0x97: byte(part); break;
-  case 0x98: part.cursor = part.loop; break;
+  case 0x90:
+    send(0x90, byte(part), 0);
+    break;
+  case 0x91:
+    send(0xb0, 123, 0);
+    part.active = false;
+    break;
+  case 0x92:
+    send(0xc0, byte(part));
+    break;
+  case 0x93:
+    tempo = byte(part);
+    timing();
+    break;
+  case 0x94:
+    break;
+  case 0x95:
+    send(0xe0, 0, byte(part));
+    break;
+  case 0x96:
+    send(0xb0, 7, byte(part));
+    break;
+  case 0x97:
+    byte(part);
+    break;
+  case 0x98:
+    part.cursor = part.loop;
+    break;
   case 0x99:
     if(variant != music_variant::scc1 || part.channel <= 11) send(0x90, part.note, 0);
     break;
-  case 0x9a: part.active = false; break;
-  case 0x9b: send(0xb0, 10, byte(part)); break;
-  case 0x9c: part.loop = part.cursor; break;
+  case 0x9a:
+    part.active = false;
+    break;
+  case 0x9b:
+    send(0xb0, 10, byte(part));
+    break;
+  case 0x9c:
+    part.loop = part.cursor;
+    break;
   case 0x9d: {
     auto const controller{byte(part)};
     send(0xb0, controller, byte(part));
     break;
   }
-  case 0xff: break;
-  default: throw std::invalid_argument{"Unsupported Sound Images MIDI command"};
+  case 0xff:
+    break;
+  default:
+    throw std::invalid_argument{"Unsupported Sound Images MIDI command"};
   }
 }
 

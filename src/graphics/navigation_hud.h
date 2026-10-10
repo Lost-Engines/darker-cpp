@@ -9,7 +9,7 @@
 
 namespace darker::graphics {
 
-using world_position = vec2<std::uint16_t>;
+using world_position = vec2<uint16_t>;
 
 enum class radar_group { a, b, underground };
 
@@ -32,27 +32,27 @@ inline int constexpr grey_centre_colour{22};
 
 struct radar_view_state {
   world_position player;
-  std::uint16_t heading;
-  std::uint8_t row;
-  std::uint8_t column;
+  uint16_t heading;
+  uint8_t row;
+  uint8_t column;
 };
 
 struct radar_pixel {
   pixel_position position;
-  std::uint8_t colour;
+  uint8_t colour;
 };
 
-std::uint8_t compass_phase(std::uint16_t heading) noexcept;
-std::array<pixel_position, 5> compass_points(std::uint8_t phase);
-void update_compass(framework::render::indexed_cockpit_framebuffer &target, std::uint8_t previous, std::uint8_t current);
-std::optional<radar_pixel> project_radar_contact(world_position const &player, std::uint16_t heading, radar_contact contact, radar_scale scale = radar_scale::normal);
+uint8_t compass_phase(uint16_t heading) noexcept;
+std::array<pixel_position, 5> compass_points(uint8_t phase);
+void update_compass(framework::render::indexed_cockpit_framebuffer &target, uint8_t previous, uint8_t current);
+std::optional<radar_pixel> project_radar_contact(world_position const &player, uint16_t heading, radar_contact contact, radar_scale scale = radar_scale::normal);
 void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
-  world_position const &player, std::uint16_t heading, std::span<radar_contact const> contacts);
+  world_position const &player, uint16_t heading, std::span<radar_contact const> contacts);
 
 void draw_navigation_contact(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, pixel_position const &destination,
-  std::uint8_t height, std::uint8_t reference_height);
-void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer &target, std::uint16_t heading);
+  uint8_t height, uint8_t reference_height);
+void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer &target, uint16_t heading);
 void draw_enlarged_radar(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, radar_view_state view, std::span<radar_contact const> contacts);
 

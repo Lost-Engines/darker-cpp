@@ -28,13 +28,13 @@ TEST_CASE("Projectile placement matches both native launch paths including fract
         .height{255}
       }},
       .angles{
-        .heading{static_cast<std::uint16_t>(sample.heading)},
-        .pitch{static_cast<std::uint16_t>(sample.pitch)},
-        .roll{static_cast<std::uint16_t>(sample.roll)}
+        .heading{static_cast<uint16_t>(sample.heading)},
+        .pitch{static_cast<uint16_t>(sample.pitch)},
+        .roll{static_cast<uint16_t>(sample.roll)}
       },
       .speed{0x9876},
-      .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)},
-      .definition_strength{static_cast<std::uint8_t>(sample.strength)},
+      .side_flags{static_cast<uint8_t>(sample.edge ? 0x80 : 0)},
+      .definition_strength{static_cast<uint8_t>(sample.strength)},
     };
     auto const result{darker::game::place_projectile(emitter)};
     std::array<int, 10> const actual{

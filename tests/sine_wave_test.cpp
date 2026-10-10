@@ -26,7 +26,7 @@ TEST_CASE("Steady tone is quiet, centred, stereo and at the requested frequency"
   tone.fill_stereo(samples);
   unsigned int crossings{0};
   double sum{0.0};
-  for(std::size_t i{0}; i != samples.size(); i += 2) {
+  for(size_t i{0}; i != samples.size(); i += 2) {
     REQUIRE(std::isfinite(samples[i]));
     REQUIRE(std::abs(samples[i]) <= 0.020001f);
     REQUIRE(samples[i] == samples[i + 1]);

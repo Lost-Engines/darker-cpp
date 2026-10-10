@@ -8,33 +8,33 @@ namespace {
 class reader {
 private:
   std::span<std::byte const> data;
-  std::size_t cursor;
-  std::size_t end;
+  size_t cursor;
+  size_t end;
 
 public:
-  reader(std::span<std::byte const> const source, std::size_t const start, std::size_t const limit) : data{source}, cursor{start}, end{limit} {
+  reader(std::span<std::byte const> const source, size_t const start, size_t const limit) : data{source}, cursor{start}, end{limit} {
     /// Keep every setup read inside its record's shared section
     if(start > limit || limit > data.size()) throw std::invalid_argument{"Scenario range exceeds its resource"};
   }
 
-  std::size_t position() const noexcept {
+  size_t position() const noexcept {
     /// Preserve original resource-relative addresses for scripts and diagnostics
     return cursor;
   }
 
-  std::uint8_t byte() {
+  uint8_t byte() {
     /// Reject a truncated operand before advancing the cursor
     if(cursor == end) throw std::invalid_argument{"Truncated scenario record"};
-    return std::to_integer<std::uint8_t>(data[cursor++]);
+    return std::to_integer<uint8_t>(data[cursor++]);
   }
 
-  std::uint16_t word() {
+  uint16_t word() {
     /// Decode unaligned little-endian operands explicitly
     auto const low{byte()};
-    return static_cast<std::uint16_t>(low | byte() << 8);
+    return static_cast<uint16_t>(low | byte() << 8);
   }
 
-  void skip(std::size_t const count) {
+  void skip(size_t const count) {
     /// Retain native blocks as data; no embedded machine code is executed by the loader
     if(count > end - cursor) throw std::invalid_argument{"Scenario block exceeds its shared section"};
     cursor += count;
@@ -46,7 +46,8 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
   auto const end{record.shared.offset + record.shared.size};
   reader input{data, record.shared.offset + 4, end};
   record.beacon_sequence.offset = input.position();
-  while(input.byte() != 255) {}
+  while(input.byte() != 255) {
+  }
   record.beacon_sequence.size = input.position() - record.beacon_sequence.offset - 1;
   for(auto &list : record.cell_lists) {
     for(;;) {
@@ -64,7 +65,7 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
     }
   }
   record.objective_cell_list = record.cell_lists[1].terminator == 254 ? 1 : 2;
-  std::size_t object_index{0};
+  size_t object_index{0};
   for(auto &group : record.groups) {
     for(;;) {
       auto const start{input.position()};
@@ -75,7 +76,7 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
         if((instruction != 0x83 && instruction != 0x81) || input.byte() != 0xc6) {
           throw std::invalid_argument{"Unrecognised native scenario setup header"};
         }
-        auto const length{static_cast<std::size_t>(instruction == 0x83 ? input.byte() : input.word())};
+        auto const length{static_cast<size_t>(instruction == 0x83 ? input.byte() : input.word())};
         auto const consumed{input.position() - start - 1};
         if(length < consumed) throw std::invalid_argument{"Invalid native scenario setup length"};
         input.skip(length - consumed);
@@ -92,17 +93,17 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
         .source{
           .offset{start}
         },
-        .definition_slot{static_cast<std::uint8_t>(header & 63)},
+        .definition_slot{static_cast<uint8_t>(header & 63)},
         .counted{(header & 128) != 0},
       };
       if(object.definition_slot > 32) throw std::invalid_argument{"Unknown scenario object definition"};
       object.form = header & 64 ? placement_form::absolute_static : object.definition_slot > 28 ? placement_form::compact_special : placement_form::moving;
       if(object.form == placement_form::moving) object.attributes = input.byte();
-      object.heading = static_cast<std::uint16_t>(input.byte() << 8);
+      object.heading = static_cast<uint16_t>(input.byte() << 8);
       if(object.form == placement_form::absolute_static) {
         object.position = {input.word(), input.word()};
       } else {
-        object.position = {static_cast<std::uint16_t>(input.byte() * 256 + 128), static_cast<std::uint16_t>(input.byte() * 256 + 128)};
+        object.position = {static_cast<uint16_t>(input.byte() * 256 + 128), static_cast<uint16_t>(input.byte() * 256 + 128)};
         if(object.form == placement_form::moving) {
           object.behaviour = {input.byte(), input.byte(), input.byte(), input.byte(), input.byte(), input.byte()};
         }
@@ -122,15 +123,15 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
   record.player_program = input.position();
 }
 
-} // namespace
+} // anonymous namespace
 
 scenario_resource::scenario_resource(std::vector<std::byte> resource) : data{std::move(resource)} {
   /// BAC1–BAF5 walks length-prefixed records; all stored ranges remain valid across moves and copies
-  std::size_t cursor{0};
+  size_t cursor{0};
   while(cursor < data.size()) {
     reader header{data, cursor, data.size()};
-    std::size_t const size{header.word()};
-    std::array<std::size_t, 4> const boundaries{header.word(), header.word(), header.word(), size};
+    size_t const size{header.word()};
+    std::array<size_t, 4> const boundaries{header.word(), header.word(), header.word(), size};
     if(size > data.size() - cursor - 2 || boundaries[0] < 10
       || boundaries[0] > boundaries[1] || boundaries[1] > boundaries[2] || boundaries[2] > size) {
       throw std::invalid_argument{"Invalid scenario language directory"};
@@ -145,7 +146,7 @@ scenario_resource::scenario_resource(std::vector<std::byte> resource) : data{std
         .size{boundaries[0] - 6}
       },
     };
-    for(std::size_t i{0}; i < record.languages.size(); ++i) {
+    for(size_t i{0}; i < record.languages.size(); ++i) {
       record.languages[i] = {
         .offset{cursor + 2 + boundaries[i]},
         .size{boundaries[i + 1] - boundaries[i]}
@@ -173,9 +174,9 @@ std::span<std::byte const> scenario_resource::bytes(resource_range const range) 
   return std::span{data}.subspan(range.offset, range.size);
 }
 
-std::span<std::byte const> scenario_resource::language(std::size_t const record, scenario_language const language) const {
+std::span<std::byte const> scenario_resource::language(size_t const record, scenario_language const language) const {
   /// Select original formatted language bytes, retaining page and message control codes
-  return bytes(directory.at(record).languages.at(static_cast<std::size_t>(language)));
+  return bytes(directory.at(record).languages.at(static_cast<size_t>(language)));
 }
 
 } // namespace darker::resources

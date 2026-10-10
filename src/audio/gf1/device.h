@@ -7,7 +7,9 @@
 #include <span>
 
 namespace darker::audio {
-namespace gf1_detail { struct device_state; }
+namespace gf1_detail {
+  struct device_state;
+}
 
 class gf1_device {
 private:
@@ -20,7 +22,7 @@ public:
   void write(unsigned int port, unsigned int size, unsigned int value);
   void dma_count(unsigned int count);
   auto advance(double milliseconds)->unsigned int;
-  auto sample()->std::array<int16_t,2>;
+  auto sample()->std::array<int16_t, 2>;
 };
 
 } // namespace darker::audio

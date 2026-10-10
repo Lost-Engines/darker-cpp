@@ -10,7 +10,7 @@ TEST_CASE("Object target direction matches native quadrants, axes and signed wor
   for(auto const &sample : darker::test_reference::direction_samples) {
     CAPTURE(sample.x, sample.y, sample.z);
     auto const result{darker::maths::object_target_direction({65535, 2000, 32768},
-      {static_cast<std::uint16_t>(sample.x), static_cast<std::uint16_t>(sample.y), static_cast<std::uint16_t>(sample.z)})};
+      {static_cast<uint16_t>(sample.x), static_cast<uint16_t>(sample.y), static_cast<uint16_t>(sample.z)})};
     CHECK(result.heading == sample.heading);
     CHECK(result.pitch == sample.pitch);
   }
@@ -45,13 +45,13 @@ TEST_CASE("Full object-homing trajectories follow native moving, coincident and 
     }
     darker::game::object_pose const target{
       .position{
-        .column{static_cast<std::uint16_t>(sample.target[0])},
-        .row{static_cast<std::uint16_t>(sample.target[1])},
-        .height{static_cast<std::uint16_t>(sample.target[2])}
+        .column{static_cast<uint16_t>(sample.target[0])},
+        .row{static_cast<uint16_t>(sample.target[1])},
+        .height{static_cast<uint16_t>(sample.target[2])}
       }
     };
     darker::game::advance_object_homing_projectile(record, sample.scenario == 5 ? record.placement : target,
-      static_cast<std::uint16_t>(sample.step));
+      static_cast<uint16_t>(sample.step));
     auto const &p{record.placement};
     std::array<int, 12> const actual{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
       record.angular_motion.pitch, record.angular_motion.turn, p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};

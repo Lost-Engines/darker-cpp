@@ -16,12 +16,12 @@ projectile *expire_projectile(projectile_pool &pool, projectile &record, project
   }
   if(references.reference_2449 == record.native_id) references.reference_2449 = 0;
   if(references.missile_view == record.native_id) references.missile_view = 0;
-  auto const counted{static_cast<std::uint8_t>(record.lifecycle & 1)};
-  objectives.completed = static_cast<std::uint8_t>(objectives.completed + counted);
-  objectives.outstanding = adjust_objective_counter(objectives.outstanding,static_cast<uint8_t>(-counted));
-  auto const lifecycle{static_cast<std::uint8_t>(record.lifecycle & 0xfe)};
+  auto const counted{static_cast<uint8_t>(record.lifecycle & 1)};
+  objectives.completed = static_cast<uint8_t>(objectives.completed + counted);
+  objectives.outstanding = adjust_objective_counter(objectives.outstanding, static_cast<uint8_t>(-counted));
+  auto const lifecycle{static_cast<uint8_t>(record.lifecycle & 0xfe)};
   if(lifecycle == 0) return pool.unlink(record);
-  if(lifecycle < 0xfe) record.lifecycle = static_cast<std::uint8_t>(lifecycle - 2);
+  if(lifecycle < 0xfe) record.lifecycle = static_cast<uint8_t>(lifecycle - 2);
   return pool.recycle(record);
 }
 

@@ -5,10 +5,10 @@ namespace darker::game {
 projectile_pool::projectile_pool(projectile_list const category)
   : count{category == projectile_list::player ? 12u : 6u}, first_id{static_cast<uint16_t>(category == projectile_list::player ? 0xd1a6 : 0xd6e6)} {
   /// 1D3C/1D49 build separate twelve-shot player and six-shot hostile free lists
-  std::uint16_t id{first_id};
+  uint16_t id{first_id};
   for(auto &record : std::span{storage}.first(count)) {
     record.native_id = id;
-    id = static_cast<std::uint16_t>(id + 112);
+    id = static_cast<uint16_t>(id + 112);
     record.next = list.free;
     list.free = &record;
   }
@@ -18,7 +18,7 @@ projectile *projectile_pool::launch(projectile_launch const request) {
   /// CB01 expands and positions an allocated record without clearing retained fields
   auto *record{allocate_object(list)};
   if(!record) return nullptr;
-  record->deadline = static_cast<std::uint16_t>(request.clock + request.lifetime);
+  record->deadline = static_cast<uint16_t>(request.clock + request.lifetime);
   record->inherited_roll = request.emitter.angles.roll;
   record->target_token = request.target_token;
   apply_object_definition(record->parameters, request.definition, request.model_token);
@@ -40,7 +40,7 @@ projectile *projectile_pool::unlink(projectile &record) {
   return unlink_object(list, record);
 }
 
-projectile *projectile_pool::resolve(std::uint16_t const native_id) noexcept {
+projectile *projectile_pool::resolve(uint16_t const native_id) noexcept {
   /// Native IDs preserve original target references without dereferencing DOS addresses
   if(native_id < first_id) return nullptr;
   unsigned int const offset{static_cast<unsigned int>(native_id - first_id)};

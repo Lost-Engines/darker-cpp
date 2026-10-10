@@ -37,17 +37,17 @@ struct hud_component {
 };
 
 std::span<hud_component const> cockpit_components(craft type);
-std::size_t instrument_limit(craft type, std::size_t component);
+size_t instrument_limit(craft type, size_t component);
 framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::render::indexed_framebuffer const &sheet);
 void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, std::uint8_t state);
-void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft type, std::uint8_t colour);
+  framework::render::indexed_cockpit_framebuffer &target, uint8_t state);
+void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft type, uint8_t colour);
 void draw_skimma_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target);
 void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target);
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, craft type, std::size_t component,
-  std::uint8_t old_state, std::uint8_t new_state);
+  framework::render::indexed_cockpit_framebuffer &target, craft type, size_t component,
+  uint8_t old_state, uint8_t new_state);
 
 } // namespace darker::graphics

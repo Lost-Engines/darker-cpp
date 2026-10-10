@@ -10,25 +10,33 @@ cockpit_sheet cockpit_resource_slot(resources::scenario_configuration const conf
   /// BC69 selects 00/15 for the Delphi Skimma; the other configurations use craft-specific sheets
   using enum resources::scenario_configuration;
   switch(configuration) {
-  case delphi_skimma: return cockpit_sheet::delphi_skimma;
-  case delphi_caero: case underground_caero: return cockpit_sheet::caero;
-  case halon_skimma: return cockpit_sheet::halon_skimma;
-  case halon_upgraded_skimma: return cockpit_sheet::halon_upgraded_skimma;
-  default: throw std::invalid_argument{"Unknown cockpit configuration"};
+  case delphi_skimma:
+    return cockpit_sheet::delphi_skimma;
+  case delphi_caero:
+  case underground_caero:
+    return cockpit_sheet::caero;
+  case halon_skimma:
+    return cockpit_sheet::halon_skimma;
+  case halon_upgraded_skimma:
+    return cockpit_sheet::halon_upgraded_skimma;
+  default:
+    throw std::invalid_argument{"Unknown cockpit configuration"};
   }
 }
 
 std::span<hud_component const> cockpit_components(craft const type) {
   /// Select the original Caero or shared Skimma directory
   switch(type) {
-  case craft::caero: return components_4615;
+  case craft::caero:
+    return components_4615;
   case craft::skimma:
-  case craft::upgraded_skimma: return components_4d70;
+  case craft::upgraded_skimma:
+    return components_4d70;
   }
   throw std::invalid_argument{"unknown cockpit craft"};
 }
 
-std::size_t instrument_limit(craft const type, std::size_t const component) {
+size_t instrument_limit(craft const type, size_t const component) {
   /// Ordinary Skimma has sixteen engine-output steps; the upgrade has twenty
   unsigned int constexpr skimma_engine_output_field{0x454d};
   auto const components{cockpit_components(type)};
@@ -46,13 +54,13 @@ framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::ren
 }
 
 void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, std::uint8_t const state) {
+  framework::render::indexed_cockpit_framebuffer &target, uint8_t const state) {
   /// 5192 draws the startup range into the same mask as the ordinary shield-strength gauge
   unsigned int constexpr skimma_shield_component{1};
   if(state > skimma_instruments::shield_startup_limit) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
   auto const range{skimma_shield_strips(state)};
   auto const &descriptor{components_4d70[skimma_shield_component]};
-  // 51AD converts native BL into a pulse width, with BH selecting its final strip.
+  // 51AD converts native BL into a pulse width, with BH selecting its final strip
   for(unsigned int i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
     auto const &strip{descriptor.strips[i]};
     copy_mask(cache.pixels, target.pixels, {descriptor.on_source.x, descriptor.on_source.y + strip.y_offset},
@@ -60,7 +68,7 @@ void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer c
   }
 }
 
-void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft const type, std::uint8_t const colour) {
+void clear_windscreen(framework::render::indexed_cockpit_framebuffer &target, craft const type, uint8_t const colour) {
   /// Reserve the original view rectangle for a later world renderer
   int const top{type == craft::caero ? 8 : 0};
   int const height{type == craft::caero ? 168 : 180};
@@ -71,28 +79,28 @@ void draw_caero_frame_edges(framework::render::indexed_cockpit_framebuffer const
   framework::render::indexed_cockpit_framebuffer &target) {
   /// 5575–559F restores the nonrectangular cockpit edge after the world and instruments
   std::array<mask_row, 7> constexpr upper_instrument{{
-    {23,13}, {14,27}, {12,30}, {10,34}, {9,37}, {7,41}, {5,44},
+    {23, 13}, {14, 27}, {12, 30}, {10, 34}, {9, 37}, {7, 41}, {5, 44},
   }};
-  // DFB0 samples logical row 43 through the Caero +8 source row table; destination 169 is unshifted.
-  copy_mask(cache.pixels,target.pixels,{72, 51},{48, 169},upper_instrument);
-  std::fill_n(target.pixels.begin() + 8 * 320 + 122,76,152);
-  std::fill_n(target.pixels.begin() + 175 * 320 + 182,53,21);
+  // DFB0 samples logical row 43 through the Caero +8 source row table; destination 169 is unshifted
+  copy_mask(cache.pixels, target.pixels, {72, 51}, {48, 169}, upper_instrument);
+  std::fill_n(target.pixels.begin() + 8 * 320 + 122, 76, 152);
+  std::fill_n(target.pixels.begin() + 175 * 320 + 182, 53, 21);
 }
 
 void draw_skimma_frame_edges(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target) {
   /// 54FE–5531 restores three source-sheet masks around the Skimma's rectangular world view
   std::array<mask_row, 16> constexpr top{{
-    {0,78}, {0,68}, {0,58}, {0,50}, {0,43}, {0,37}, {0,31}, {0,27},
-    {0,23}, {0,19}, {0,16}, {0,13}, {0,10}, {0,7}, {0,4}, {0,1},
+    {0, 78}, {0, 68}, {0, 58}, {0, 50}, {0, 43}, {0, 37}, {0, 31}, {0, 27},
+    {0, 23}, {0, 19}, {0, 16}, {0, 13}, {0, 10}, {0, 7}, {0, 4}, {0, 1},
   }};
   std::array<mask_row, 9> constexpr instruments{{
-    {75,79}, {53,126}, {39,157}, {32,179}, {30,193}, {29,204}, {28,212}, {17,223}, {7,233},
+    {75, 79}, {53, 126}, {39, 157}, {32, 179}, {30, 193}, {29, 204}, {28, 212}, {17, 223}, {7, 233},
   }};
   std::array<mask_row, 29> constexpr left{{
-    {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,8}, {0,9}, {0,10}, {0,12},
-    {0,13}, {0,15}, {0,17}, {0,18}, {0,20}, {0,22}, {0,24}, {0,26}, {0,28}, {0,30},
-    {0,32}, {0,34}, {0,37}, {0,39}, {0,42}, {0,45}, {0,48}, {0,52}, {0,58},
+    {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 8}, {0, 9}, {0, 10}, {0, 12},
+    {0, 13}, {0, 15}, {0, 17}, {0, 18}, {0, 20}, {0, 22}, {0, 24}, {0, 26}, {0, 28}, {0, 30},
+    {0, 32}, {0, 34}, {0, 37}, {0, 39}, {0, 42}, {0, 45}, {0, 48}, {0, 52}, {0, 58},
   }};
   copy_mask(cache.pixels, target.pixels, {0, 8}, {0, 0}, top);
   copy_mask(cache.pixels, target.pixels, {24, 8}, {80, 171}, instruments);
@@ -100,11 +108,11 @@ void draw_skimma_frame_edges(framework::render::indexed_cockpit_framebuffer cons
 }
 
 void update_instrument(framework::render::indexed_cockpit_framebuffer const &cache,
-  framework::render::indexed_cockpit_framebuffer &target, craft const type, std::size_t const component,
-  std::uint8_t const old_state, std::uint8_t const new_state) {
+  framework::render::indexed_cockpit_framebuffer &target, craft const type, size_t const component,
+  uint8_t const old_state, uint8_t const new_state) {
   /// Translate 457B–45A6 strip-count changes and 51B8 scanline-mask copying
-  std::uint8_t constexpr strip_count_mask{0x7f};
-  std::uint8_t constexpr alternate_source_flag{0x80};
+  uint8_t constexpr strip_count_mask{0x7f};
+  uint8_t constexpr alternate_source_flag{0x80};
   unsigned int constexpr caero_engine_light_field{0x4552};
   auto const limit{instrument_limit(type, component)};
   auto const &descriptor{cockpit_components(type)[component]};
@@ -125,7 +133,7 @@ void update_instrument(framework::render::indexed_cockpit_framebuffer const &cac
     for(unsigned int row{0}; row < strip.rows.size(); ++row) {
       int const source_y{sy + static_cast<int>(row)};
       int const destination_y{dy + static_cast<int>(row)};
-      // AF57 shifts logical rows 0–167 by eight in the normal Caero cockpit.
+      // AF57 shifts logical rows 0–167 by eight in the normal Caero cockpit
       int const source_offset{type == craft::caero && source_y < 168 ? 8 : 0};
       int const destination_offset{type == craft::caero && destination_y < 168 ? 8 : 0};
       copy_mask(cache.pixels, target.pixels, {source.x, source_y + source_offset},

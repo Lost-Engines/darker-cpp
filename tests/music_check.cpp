@@ -9,17 +9,17 @@
 #include "audio/fm_stream.h"
 #include "audio/roland_patches.h"
 #include "audio/roland_synth.h"
-#include "reference/roland_initialisation.h"
 #include "audio/sound_images.h"
 #include "reference/midi_music_samples.h"
 #include "reference/midi_transition_samples.h"
 #include "reference/music_samples.h"
+#include "reference/roland_initialisation.h"
 
 void check_music(darker::resources::archive_set const &archives) {
   if(!std::string_view{DARKER_TEST_SC55_ROM_DIR}.empty()) {
     darker::audio::fm_stream stream{48000};
-    std::array<std::vector<std::byte>,6> songs;
-    for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0,39 + group * 5});
+    std::array<std::vector<std::byte>, 6> songs;
+    for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = archives.load({0, 39 + group * 5});
     stream.configure_sc55_music(DARKER_TEST_SC55_ROM_DIR, std::move(songs));
     for(int group{0}; group < 6; ++group) {
       stream.select_music(group);
@@ -28,20 +28,21 @@ void check_music(darker::resources::archive_set const &archives) {
       double variation{0};
       for(size_t i{2}; i < pcm.size(); ++i) {
         if(!std::isfinite(pcm[i])) throw std::runtime_error{"SC-55 produced non-finite PCM"};
-        variation += std::abs(pcm[i]-pcm[i-2]);
+        variation += std::abs(pcm[i] - pcm[i - 2]);
       }
       if(variation < 1.0) throw std::runtime_error{"SC-55 music group is silent"};
     }
     stream.select_music(-1);
-    std::array<float,512> silence{};
+    std::array<float, 512> silence{};
     stream.render(silence);
     std::cout << "Six music groups and consecutive selections produce SC-55 v1.21 PCM." << std::endl;
   }
-  auto const upload{darker::audio::lapc_initialisation(archives.load({0,35}))};
+  auto const upload{darker::audio::lapc_initialisation(archives.load({0, 35}))};
   std::vector<uint8_t> bytes;
   for(auto const &message : upload) bytes.insert(bytes.end(), message.begin(), message.end());
-  if(!std::ranges::equal(bytes, darker::test_reference::roland_initialisation))
+  if(!std::ranges::equal(bytes, darker::test_reference::roland_initialisation)) {
     throw std::runtime_error{"Roland instrument upload differs from native driver"};
+  }
   for(bool const bank : {false, true}) {
     if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()
       || std::string_view{bank ? DARKER_TEST_ROLAND_GM_BANK : DARKER_TEST_SOUNDFONT}.empty()) continue;
@@ -50,7 +51,7 @@ void check_music(darker::resources::archive_set const &archives) {
       darker::audio::roland_synth supplemented{DARKER_TEST_MT32_ROM_DIR, 48000, upload, bank ? "" : DARKER_TEST_SOUNDFONT, bank ? DARKER_TEST_ROLAND_GM_BANK : ""};
       original.send({0x99, key, 110});
       supplemented.send({0x99, key, 110});
-      std::array<float,512> original_pcm{}, supplemented_pcm{};
+      std::array<float, 512> original_pcm{}, supplemented_pcm{};
       double difference{0};
       for(int block{0}; block < 100; ++block) {
         original.render(original_pcm);
@@ -64,7 +65,7 @@ void check_music(darker::resources::archive_set const &archives) {
       if(key != 42 && difference < 1) throw std::runtime_error{"Roland percussion fallback did not sound an unmapped note"};
       original.reset();
       supplemented.reset();
-      // Allow the SoundFont quick-release envelope to finish after all-sounds-off.
+      // allow the SoundFont quick-release envelope to finish after all-sounds-off
       for(int block{0}; block < (bank ? 2000 : 20); ++block) {
         original.render(original_pcm);
         supplemented.render(supplemented_pcm);
@@ -73,16 +74,17 @@ void check_music(darker::resources::archive_set const &archives) {
     }
     std::cout << (bank ? "Roland bank" : "SoundFont") << " fallback sounds all four missing percussion keys, preserves mapped notes and stops on reset." << std::endl;
   }
-  if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty())
+  if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()) {
     std::cout << "Roland PCM check omitted: configure DARKER_TEST_MT32_ROM_DIR to enable it." << std::endl;
+  }
   for(bool const full_bank : {false, true}) {
     if(std::string_view{DARKER_TEST_MT32_ROM_DIR}.empty()
       || (full_bank && std::string_view{DARKER_TEST_ROLAND_GM_BANK}.empty())) continue;
-    std::array<std::vector<std::byte>,6> roland_songs;
-    for(unsigned int group{0}; group < 6; ++group) roland_songs[group] = archives.load({0,40 + group * 5});
+    std::array<std::vector<std::byte>, 6> roland_songs;
+    for(unsigned int group{0}; group < 6; ++group) roland_songs[group] = archives.load({0, 40 + group * 5});
     darker::audio::fm_stream stream{48000};
-    stream.configure_roland_music(DARKER_TEST_MT32_ROM_DIR, archives.load({0,35}), std::move(roland_songs), {}, {}, full_bank ? DARKER_TEST_ROLAND_GM_BANK : "");
-    std::array<float,512> pcm{};
+    stream.configure_roland_music(DARKER_TEST_MT32_ROM_DIR, archives.load({0, 35}), std::move(roland_songs), {}, {}, full_bank ? DARKER_TEST_ROLAND_GM_BANK : "");
+    std::array<float, 512> pcm{};
     for(int group{0}; group < 6; ++group) {
       stream.select_music(group);
       double energy{0};
@@ -98,19 +100,19 @@ void check_music(darker::resources::archive_set const &archives) {
     std::cout << (full_bank ? "Full GM bank followed by Darker instruments" : "Original Roland setup") << ": six groups render finite, audible PCM." << std::endl;
   }
   /// Compare complete timed OPL streams with native 0295 execution across repeated songs
-  auto const driver{archives.load({0,33})};
-  std::array<std::vector<std::byte>,6> songs;
+  auto const driver{archives.load({0, 33})};
+  std::array<std::vector<std::byte>, 6> songs;
   for(size_t group{0}; group < songs.size(); ++group) {
     auto const &sample{darker::test_reference::music_samples[group]};
-    songs[group] = archives.load({0,sample.resource});
+    songs[group] = archives.load({0, sample.resource});
     darker::audio::sound_images music{driver};
     uint64_t hash{0xcbf29ce484222325};
     unsigned int tick{0}, writes{0};
     darker::audio::fm_sink const sink{[&](auto const command){
-      for(unsigned int const byte : {tick & 255,tick >> 8,static_cast<unsigned int>(command.address),static_cast<unsigned int>(command.value)}) hash = (hash ^ byte) * 0x100000001b3;
+      for(unsigned int const byte : {tick & 255, tick >> 8, static_cast<unsigned int>(command.address), static_cast<unsigned int>(command.value)}) hash = (hash ^ byte) * 0x100000001b3;
       ++writes;
     }};
-    music.start(songs[group],sink);
+    music.start(songs[group], sink);
     for(tick = 0; tick < sample.ticks; ++tick) music.advance(sink);
     if(hash != sample.fingerprint || writes != sample.writes) throw std::runtime_error{"Sound Images OPL trace differs from native driver for group " + std::to_string(group)};
   }
@@ -119,13 +121,13 @@ void check_music(darker::resources::archive_set const &archives) {
     uint64_t hash{0xcbf29ce484222325};
     unsigned int tick{0}, writes{0};
     darker::audio::fm_sink const sink{[&](auto const command){
-      for(unsigned int const byte : {tick & 255,tick >> 8,static_cast<unsigned int>(command.address),static_cast<unsigned int>(command.value)}) hash = (hash ^ byte) * 0x100000001b3;
+      for(unsigned int const byte : {tick & 255, tick >> 8, static_cast<unsigned int>(command.address), static_cast<unsigned int>(command.value)}) hash = (hash ^ byte) * 0x100000001b3;
       ++writes;
     }};
-    music.start(songs[sample.source],sink);
+    music.start(songs[sample.source], sink);
     for(tick = 0; tick < 1280; ++tick) {
       if(tick == 512 && sample.pause) music.stop(sink);
-      if(tick == (sample.pause ? 768u : 512u)) music.start(songs[sample.target],sink);
+      if(tick == (sample.pause ? 768u : 512u)) music.start(songs[sample.target], sink);
       if(!sample.pause || tick < 512 || tick >= 768) music.advance(sink);
     }
     if(hash != sample.fingerprint || writes != sample.writes) throw std::runtime_error{"Music selection or stop/resume differs from the native driver"};
@@ -163,11 +165,11 @@ void check_music(darker::resources::archive_set const &archives) {
   }
   if(std::string_view{DARKER_TEST_SOUNDFONT}.empty()) std::cout << "Sampled PCM check omitted: configure DARKER_TEST_SOUNDFONT to enable it." << std::endl;
   else for(unsigned int variant{1}; variant < 5; ++variant) {
-    std::array<std::vector<std::byte>,6> sampled_songs;
+    std::array<std::vector<std::byte>, 6> sampled_songs;
     for(unsigned int group{0}; group < 6; ++group) sampled_songs[group] = archives.load({0, 38 + variant + group * 5});
     darker::audio::fm_stream stream{48000};
     stream.configure_sampled_music(static_cast<darker::audio::music_variant>(variant), DARKER_TEST_SOUNDFONT, std::move(sampled_songs));
-    std::array<float,512> pcm{};
+    std::array<float, 512> pcm{};
     for(int group{0}; group < 6; ++group) {
       stream.select_music(group);
       double energy{0};
@@ -199,16 +201,16 @@ void check_music(darker::resources::archive_set const &archives) {
   }
   std::cout << "All 24 sampled arrangements match native timed events across repeated loops." << std::endl;
   if(!std::string_view{DARKER_TEST_SOUNDFONT}.empty()) std::cout << "All 24 arrangements render finite, audible SoundFont PCM and return to OPL effects." << std::endl;
-  // Changing device block sizes must not alter music timing or sample output.
+  // changing device block sizes must not alter music timing or sample output
   auto const render{[&](size_t const block){
     darker::audio::fm_stream stream{48000};
-    stream.configure_music(driver,songs);
+    stream.configure_music(driver, songs);
     stream.select_music(0);
-    std::array<float,2048> pcm{};
+    std::array<float, 2048> pcm{};
     uint64_t hash{0xcbf29ce484222325};
     double energy{0};
     for(size_t offset{0}; offset < 48000 * 20;) {
-      auto const frames{std::min(block,48000 * 20 - offset)};
+      auto const frames{std::min(block, 48000 * 20 - offset)};
       auto output{std::span{pcm}.first(frames * 2)};
       stream.render(output);
       for(float const value : output) {

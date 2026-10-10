@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
-#include <utility>
 #include <array>
 #include <cstdint>
 #include <stdexcept>
+#include <utility>
 #include "game/aircraft_combat.h"
 #include "game/object_impact.h"
 #include "reference/actor_impact_samples.h"
@@ -14,18 +14,18 @@ TEST_CASE("Object impacts match native damage, angular kick and delayed destruct
     CAPTURE(sample.strength, sample.resistance, sample.mode, sample.damage, sample.flags, sample.seed);
     darker::game::object_impact_state state{
       .rotation{
-        .pitch{static_cast<std::uint16_t>(sample.pitch)},
-        .turn{static_cast<std::uint16_t>(sample.heading)}
+        .pitch{static_cast<uint16_t>(sample.pitch)},
+        .turn{static_cast<uint16_t>(sample.heading)}
       },
-      .impact_accumulator{static_cast<std::uint16_t>(sample.accumulator)},
-      .damage{static_cast<std::uint16_t>(sample.damage)},
+      .impact_accumulator{static_cast<uint16_t>(sample.accumulator)},
+      .damage{static_cast<uint16_t>(sample.damage)},
       .update_entry{darker::game::object_update::surface_actor},
-      .deadline{static_cast<std::uint16_t>(sample.deadline)},
-      .flags{static_cast<std::uint8_t>(sample.flags)},
+      .deadline{static_cast<uint16_t>(sample.deadline)},
+      .flags{static_cast<uint8_t>(sample.flags)},
     };
-    auto seed{static_cast<std::uint16_t>(sample.seed)};
-    auto const effect{darker::game::apply_object_impact(state, static_cast<std::uint8_t>(sample.strength),
-      static_cast<std::uint8_t>(sample.resistance), sample.mode == 2, static_cast<std::uint16_t>(sample.clock), seed)};
+    auto seed{static_cast<uint16_t>(sample.seed)};
+    auto const effect{darker::game::apply_object_impact(state, static_cast<uint8_t>(sample.strength),
+      static_cast<uint8_t>(sample.resistance), sample.mode == 2, static_cast<uint16_t>(sample.clock), seed)};
     std::array<int, 9> const actual{state.rotation.pitch, state.rotation.turn, state.impact_accumulator,
       state.damage, std::to_underlying(state.update_entry), state.deadline, state.flags, seed, static_cast<int>(effect)};
     CHECK(actual == sample.result);
@@ -37,7 +37,7 @@ TEST_CASE("Ordinary object impact rejects separate removal paths before changing
   darker::game::object_impact_state state{
     .update_entry{darker::game::object_update::surface_actor}
   };
-  std::uint16_t seed{17};
+  uint16_t seed{17};
   REQUIRE_THROWS_AS(darker::game::apply_object_impact(state, 1, 0, false, 0, seed), std::invalid_argument);
   CHECK(seed == 17);
   CHECK(state.damage == 0);
@@ -51,7 +51,7 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
   for(auto const &sample : darker::test_reference::actor_impact_samples) {
     CAPTURE(sample);
     darker::game::object_definition definition{
-      .role_data{darker::game::craft_definition_data{0,0,0,0,0,0,0,static_cast<uint8_t>(sample[1])}}
+      .role_data{darker::game::craft_definition_data{0, 0, 0, 0, 0, 0, 0, static_cast<uint8_t>(sample[1])}}
     };
     darker::game::scenario_actor actor;
     actor.parameters.definition = &definition;
@@ -59,7 +59,7 @@ TEST_CASE("Special actor impacts match native removal and effect dispatch", "[ga
     actor.expiry = static_cast<uint16_t>(sample[4]);
     actor.flags = static_cast<uint8_t>(sample[3]);
     uint16_t random{17};
-    auto const result{darker::game::hit_actor(actor,52,static_cast<uint16_t>(sample[2]),random)};
+    auto const result{darker::game::hit_actor(actor, 52, static_cast<uint16_t>(sample[2]), random)};
     CHECK(result.effect == sample[5]);
     CHECK(result.at_actor == static_cast<bool>(sample[6]));
     CHECK(result.remove == static_cast<bool>(sample[7]));

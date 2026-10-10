@@ -39,7 +39,7 @@ scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resou
     for(auto &actor : actors) {
       if(actor.category != category || (excluded && actor.index == *excluded)) continue;
       auto candidate{end};
-      if(sweep_aircraft(actor.pose,bank.header_at(actor.parameters.model_token).extent,expansion,start,candidate)) result = &actor;
+      if(sweep_aircraft(actor.pose, bank.header_at(actor.parameters.model_token).extent, expansion, start, candidate)) result = &actor;
     }
   }
   return result;
@@ -138,7 +138,7 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
     .emitter{emitter},
     .model_token{model_token},
     .clock{clock},
-    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime*256)},
+    .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
     .target_token{actor.selected_target}
   })};
   if(shot) shot->placement.angles.pitch = 0xc800;
@@ -148,7 +148,7 @@ projectile *drop_aircraft_bomb(projectile_pool &pool, scenario_actor &actor, boo
 std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pose const &player, uint8_t const player_flags,
   uint16_t const player_extent, actor_course const course, uint8_t const distance, uint16_t const clock, uint16_t const changes, uint16_t &random_state, uint8_t const target_protection_mask) {
   /// 8B65's slot-19 close-range gun tests the original DX aim bounds and timer bits, then traces a randomised ray
-  // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch.
+  // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch
   if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;
   if(actor.selected_target != 0xd986 || (player_flags & target_protection_mask)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
@@ -160,7 +160,7 @@ std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pos
   if((elapsed & 0x100) || !(changes & 0x80)) return std::nullopt;
   gun_trace result{
     .start{actor.pose.position},
-    .end{skimma_gun_endpoint(actor.pose,0,random_state)}
+    .end{skimma_gun_endpoint(actor.pose, 0, random_state)}
   };
   result.hit = sweep_aircraft(player, player_extent, 10, result.start, result.end);
   return result;

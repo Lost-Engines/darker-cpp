@@ -11,48 +11,48 @@
 namespace darker::resources {
 
 struct resource_range {
-  std::size_t offset{0};
-  std::size_t size{0};
+  size_t offset{0};
+  size_t size{0};
 };
 
 enum class scenario_language { english, french, german };
 enum class placement_form { moving, compact_special, absolute_static };
 
 struct scenario_cell {
-  std::uint8_t column{0};
-  std::uint8_t row{0};
+  uint8_t column{0};
+  uint8_t row{0};
 };
 
 struct scenario_cell_list {
   std::vector<scenario_cell> cells;
-  std::uint8_t terminator{255};
+  uint8_t terminator{255};
 };
 
 struct actor_behaviour {
-  std::uint8_t attack_control{}; // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
-  std::uint8_t awareness_threshold{};
-  std::uint8_t awareness_decay{};
-  std::uint8_t awareness_rise{};
-  std::uint8_t awareness_strength{};
-  std::uint8_t evasion{};
+  uint8_t attack_control{};                                                    // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
+  uint8_t awareness_threshold{};
+  uint8_t awareness_decay{};
+  uint8_t awareness_rise{};
+  uint8_t awareness_strength{};
+  uint8_t evasion{};
 };
 
 struct scenario_placement {
   resource_range source{};
   placement_form form{placement_form::moving};
-  std::uint8_t definition_slot{0};
+  uint8_t definition_slot{0};
   bool counted{false};
-  std::uint8_t attributes{0};
-  std::uint16_t heading{0};
+  uint8_t attributes{0};
+  uint16_t heading{0};
   maths::map_position position{};
   actor_behaviour behaviour{};
-  std::optional<std::uint16_t> script_or_target;
-  std::optional<std::size_t> program_offset;
+  std::optional<uint16_t> script_or_target;
+  std::optional<size_t> program_offset;
 };
 
 struct scenario_native_setup {
   resource_range source{};
-  std::size_t current_object{0};
+  size_t current_object{0};
 };
 
 struct scenario_group {
@@ -64,14 +64,14 @@ struct scenario_record {
   resource_range source{};
   resource_range shared{};
   std::array<resource_range, 3> languages{};
-  std::size_t entry_offset{0};
-  std::uint8_t time_multiplier{0};
-  std::uint8_t configuration{255};
+  size_t entry_offset{0};
+  uint8_t time_multiplier{0};
+  uint8_t configuration{255};
   resource_range beacon_sequence{};
   std::array<scenario_cell_list, 3> cell_lists;
   unsigned int objective_cell_list{2};
   std::array<scenario_group, 3> groups;
-  std::optional<std::size_t> player_program;
+  std::optional<size_t> player_program;
 };
 
 class scenario_resource {
@@ -83,7 +83,7 @@ public:
   explicit scenario_resource(std::vector<std::byte> resource);
   std::span<scenario_record const> records() const noexcept;
   std::span<std::byte const> bytes(resource_range range) const;
-  std::span<std::byte const> language(std::size_t record, scenario_language language) const;
+  std::span<std::byte const> language(size_t record, scenario_language language) const;
 };
 
 } // namespace darker::resources

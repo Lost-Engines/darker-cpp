@@ -9,8 +9,8 @@ namespace {
 class decoder {
 private:
   std::span<std::byte const> input;
-  std::size_t output_limit;
-  std::size_t position{0};
+  size_t output_limit;
+  size_t position{0};
   unsigned int bits{0x4000};
   std::vector<std::byte> output;
 
@@ -50,10 +50,10 @@ private:
   }
 
 public:
-  decoder(std::span<std::byte const> const input, std::size_t const output_limit) :
+  decoder(std::span<std::byte const> const input, size_t const output_limit) :
     input{input},
     output_limit{output_limit} {
-  }
+    }
 
   std::vector<std::byte> run() {
     /// Decode original archive literals, runs and matches until the explicit end token
@@ -108,7 +108,7 @@ public:
 
 } // anonymous namespace
 
-std::vector<std::byte> decompress(std::span<std::byte const> const input, std::size_t const output_limit) {
+std::vector<std::byte> decompress(std::span<std::byte const> const input, size_t const output_limit) {
   /// Decode a bounded resource without retaining references to the compressed source
   return decoder{input, output_limit}.run();
 }
