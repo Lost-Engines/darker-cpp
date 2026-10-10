@@ -93,3 +93,30 @@ TEST_CASE("Draw traversal supplies the native record byte after a farther subtre
     CHECK(items[i].projection_residue == residues[i]);
   }
 }
+
+TEST_CASE("Distant objects with shade code 31 render without a preceding mesh", "[graphics][city]") {
+  // A complete special-model header with zero LOD thresholds selects the point
+  // path. No bytecode is needed, and an empty city leaves the shade latch zero.
+  std::vector<std::byte> bytes(17);
+  bytes[1] = std::byte{1}; // one special model at pool offset zero
+  bytes[4] = std::byte{11}; // pool size
+  bytes[11] = std::byte{255}; // header +5: ramp 7, shade code 31
+  darker::resources::geometry_bank const bank{std::move(bytes)};
+  darker::game::city_map cells{};
+  darker::graphics::city_renderer renderer;
+  darker::graphics::city_view const view{
+    .row{4096},
+    .origin{160, 120},
+  };
+  std::array<darker::graphics::scene_object, 1> const objects{{{
+    .model_offset{0},
+    .pose{
+      .position{
+        .row{3072},
+      },
+    },
+  }}};
+  framework::render::indexed_cockpit_framebuffer frame{};
+  CHECK(renderer.draw(frame, bank, cells, view, 0x60, darker::graphics::distance_shading{}, {}, objects) == 1);
+  CHECK(frame.pixels[120 * 320 + 160] == 224);
+}

@@ -133,3 +133,19 @@ does not require cockpit camera mode; nonzero camera modes branch directly to
 the enlarged-radar check at 55A5. Underground flight remains excluded. The
 overlay is composed after the scene and cockpit, independently of cockpit
 visibility.
+
+## Distant point shade codes
+
+The point-colour lookup at 2D71 differs from polygon colour resolution: it uses
+all five low bits directly, without the dynamic-colour branch for codes 28–31.
+Native shade rows contain only 28 bytes, so those four codes read the first four
+bytes of the following row. `model_colours::point_shade_tail` retains these bytes
+alongside the normal shade latch. Beyond the final allocated row we explicitly
+use zero padding, rather than read unrelated scratch memory. Isolated execution
+of the original routine checked all 256 colour bytes against every row of both
+28-row and 60-row tables (22,528 cases), with a zero-initialised workspace.
+
+A regression renders a point with code 31 before any mesh has populated the
+shade latch. This previously threw an array bounds exception; it now retains
+the point's palette ramp and the initial zero shade. Extended draw distances
+make these point representations much more common.

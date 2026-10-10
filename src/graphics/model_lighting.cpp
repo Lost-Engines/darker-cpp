@@ -31,10 +31,14 @@ model_colours distance_shading::colours(render_geometry::coordinate_bits depth, 
   if(path == model_path::near_clipped && (depth & depth_sign_bit)) depth = 0;
   auto const adjusted{static_cast<render_geometry::coordinate_bits>(depth + darkness_depth_scale * (full_beacon_light - light))};
   auto const index{std::min<size_t>(adjusted >> scene_limits::distance_shade_shift, tables.size() - 1)};
-  return {
+  model_colours result{
     .shades{tables[index]},
     .dynamic{static_cast<uint8_t>(dynamic_colour_base | (light >> 4))}
   };
+  // Retain the original next-row lookup explicitly. Beyond the final table,
+  // use zero padding rather than reading unrelated emulated scratch memory.
+  if(index + 1 < tables.size()) std::copy_n(tables[index + 1].begin(), result.point_shade_tail.size(), result.point_shade_tail.begin());
+  return result;
 }
 
 } // namespace darker::graphics

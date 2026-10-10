@@ -29,3 +29,22 @@ TEST_CASE("Every generated distance shade matches the original table", "[graphic
     REQUIRE(fingerprint == sample.fingerprint);
   }
 }
+
+TEST_CASE("Distant point colours retain the native cross-row shade lookup", "[graphics][lighting]") {
+  using namespace darker::graphics;
+  for(unsigned int const count : {28u, 60u}) {
+    distance_shading const lighting{count};
+    for(unsigned int row{0}; row < count; ++row) {
+      auto const colours{lighting.colours(row * 256, model_path::direct, 255)};
+      auto const next{lighting.colours((row + 1) * 256, model_path::direct, 255)};
+      for(unsigned int source{0}; source < 256; ++source) {
+        auto const shade{source & model_colours::shade_mask};
+        auto const expected{shade < model_colours::shade_count ? colours.shades[shade]
+          : row + 1 < count ? next.shades[shade - model_colours::shade_count] : uint8_t{0}};
+        CHECK(colours.point_colour(static_cast<uint8_t>(source)) == static_cast<uint8_t>((source & model_colours::ramp_mask) + expected));
+      }
+    }
+  }
+  // A point can precede the first mesh and therefore use the zeroed shade latch.
+  CHECK(model_colours{}.point_colour(255) == 224);
+}

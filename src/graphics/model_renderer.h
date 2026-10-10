@@ -26,6 +26,15 @@ struct model_colours {
   static unsigned int constexpr shade_mask{0x1f};
   std::array<uint8_t, shade_count> shades{};
   uint8_t dynamic{0};
+  // 2D71 uses all five shade bits without the polygon dynamic-colour branch.
+  // Its last four indices spill into the following contiguous shade row.
+  std::array<uint8_t, shade_mask + 1 - shade_count> point_shade_tail{};
+
+  uint8_t point_colour(uint8_t source) const noexcept {
+    auto const shade{source & shade_mask};
+    auto const value{shade < shade_count ? shades[shade] : point_shade_tail[shade - shade_count]};
+    return static_cast<uint8_t>((source & ramp_mask) + value);
+  }
 };
 
 // Owned by a renderer and reused across models. Only emitted prefixes are read;
