@@ -334,3 +334,10 @@ thread to an audio worker. Enable these with `DARKER_TEST_GUS_DIR` and
 The hardware cores are emulator implementations, so listening comparisons
 against actual AWE32/GUS recordings are still valuable; these checks establish
 working original-driver playback, not proof of bit-identical analogue output.
+
+Both Gravis and AWE32 register polling must retain every generated PCM sample, including reads
+inside UltraMID interrupt handlers. Discarding that output caused periodic
+waveform discontinuities and audible clicks despite rendering faster than real
+time. The adapters queue those samples in order. Gravis advances its BIOS clock
+with the same generated-sample count. The opening-arrangement regression check
+covers the discontinuities alongside the existing buffer-size checks.

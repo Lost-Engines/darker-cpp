@@ -3,6 +3,7 @@
 #include <array>
 #include <cctype>
 #include <cstdint>
+#include <deque>
 #include <fstream>
 #include <map>
 #include <stdexcept>
@@ -43,6 +44,7 @@ struct gus_synth::implementation {
   unsigned int rate{}, pending_irq{};
   uint64_t phase{}, bios_phase{};
   std::array<int16_t,2> previous{}, current{};
+  std::deque<std::array<int16_t,2>> pending_samples;
   bool boot{true}, resident{}, primed{};
   std::string failure;
 
@@ -178,9 +180,9 @@ struct gus_synth::implementation {
       chip.advance(0.01);
     }
     if(!boot && (port == 0x344 || port == 0x345)) {
-      // UltraMID polls voice ramps synchronously during all-notes-off
-      chip.sample();
-      if(auto const irq{chip.advance(1000.0 / 44100)}) pending_irq = irq;
+      // Register polling also advances voices. Preserve this PCM for the host,
+      // including samples generated while native interrupt handlers run.
+      advance_sample();
     }
     if(port == 0x40 || port == 0x42) return (65535 - reads) & 255;
     if(port == 0x61) return (reads & 1) * 0x20;
@@ -266,19 +268,26 @@ struct gus_synth::implementation {
     boot = false;
     files.clear();
   }
-  auto sample()->std::array<int16_t,2> {
-    auto const output{chip.sample()};
+  void advance_sample() {
+    pending_samples.push_back(chip.sample());
     if(auto const raised{chip.advance(1000.0 / 44100)}) pending_irq = raised;
-    unsigned int const irq{std::exchange(pending_irq, 0)};
-    if(irq) {
-      unsigned int const vector{irq - 1 + 8};
-      call(memory_word(vector * 4 + 2), memory_word(vector * 4));
-    }
     bios_phase += 1193180;
-    if(bios_phase >= uint64_t{44100} * 65536) {
-      bios_phase -= uint64_t{44100} * 65536;
-      call(memory_word(8 * 4 + 2), memory_word(8 * 4));
+  }
+  auto sample()->std::array<int16_t,2> {
+    if(pending_samples.empty()) {
+      advance_sample();
+      unsigned int const irq{std::exchange(pending_irq, 0)};
+      if(irq) {
+        unsigned int const vector{irq - 1 + 8};
+        call(memory_word(vector * 4 + 2), memory_word(vector * 4));
+      }
+      if(bios_phase >= uint64_t{44100} * 65536) {
+        bios_phase -= uint64_t{44100} * 65536;
+        call(memory_word(8 * 4 + 2), memory_word(8 * 4));
+      }
     }
+    auto const output{pending_samples.front()};
+    pending_samples.pop_front();
     return output;
   }
 };

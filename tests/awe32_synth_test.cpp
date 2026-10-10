@@ -59,6 +59,14 @@ TEST_CASE("All six AWE32 arrangements survive consecutive group changes", "[audi
     REQUIRE(std::ranges::all_of(pcm, [](float value) { return std::isfinite(value); }));
     for(float const value : pcm) energy += std::abs(value);
     REQUIRE(energy > 1);
+    if(group == 0) {
+      // With the known ROM and opening arrangement, discarding register-read
+      // PCM caused a 0.750-sized discontinuity; retaining it stays below 0.488.
+      float largest_step{};
+      for(size_t i{2}; i < pcm.size(); ++i)
+        largest_step = std::max(largest_step, std::abs(pcm[i] - pcm[i - 2]));
+      REQUIRE(largest_step < 0.6f);
+    }
     stream.select_music(-1);
     std::array<float,512> silence{};
     stream.render(silence);

@@ -1,6 +1,7 @@
 #include "audio/awe32_synth.h"
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <stdexcept>
 #include <string>
 #include <emu8k.h>
@@ -14,7 +15,8 @@ struct awe32_synth::implementation {
   unsigned int rate{};
   uint64_t phase{};
   std::array<int16_t,2> previous{}, current{};
-  bool primed{};
+  std::deque<std::array<int16_t,2>> pending_samples;
+  bool primed{}, initialised{};
 
   ~implementation() {
     if(cpu) uc_close(cpu);
@@ -44,10 +46,23 @@ struct awe32_synth::implementation {
 
   static uint32_t input(uc_engine *, uint32_t port, int size, void *context) {
     auto &self{*static_cast<implementation *>(context)};
-    // advance hardware while the native initialiser polls the sample counter
-    std::array<int16_t,2> discarded{};
-    self.chip.Generate(discarded.data(), 1);
+    // Polling must advance the hardware, but runtime reads must not cut pieces
+    // out of active voices. Keep their PCM in playback order.
+    std::array<int16_t,2> pcm{};
+    self.chip.Generate(pcm.data(), 1);
+    if(self.initialised) self.pending_samples.push_back(pcm);
     return size == 1 ? self.chip.Inb(port) : self.chip.Inw(port);
+  }
+
+  auto sample()->std::array<int16_t,2> {
+    if(pending_samples.empty()) {
+      std::array<int16_t,2> pcm{};
+      chip.Generate(pcm.data(), 1);
+      return pcm;
+    }
+    auto const pcm{pending_samples.front()};
+    pending_samples.pop_front();
+    return pcm;
   }
 
   static void output(uc_engine *, uint32_t port, int size, uint32_t value, void *context) {
@@ -79,6 +94,7 @@ awe32_synth::awe32_synth(std::filesystem::path const &rom, std::span<std::byte c
   implementation::check(uc_hook_add(state->cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void *>(implementation::output), state.get(), 1, 0, UC_X86_INS_OUT));
   // execute only the original embedded synthesis library; sequencing remains C++
   state->call(0x1002);
+  state->initialised = true;
 }
 
 awe32_synth::~awe32_synth() = default;
@@ -103,7 +119,7 @@ void awe32_synth::reset() noexcept {
 
 void awe32_synth::render(std::span<float> const stereo) noexcept {
   if(!state->primed) {
-    state->chip.Generate(state->current.data(), 1);
+    state->current = state->sample();
     state->previous = state->current;
     state->primed = true;
   }
@@ -111,7 +127,7 @@ void awe32_synth::render(std::span<float> const stereo) noexcept {
     while(state->phase >= state->rate) {
       state->phase -= state->rate;
       state->previous = state->current;
-      state->chip.Generate(state->current.data(), 1);
+      state->current = state->sample();
     }
     float const fraction{static_cast<float>(state->phase) / static_cast<float>(state->rate)};
     for(size_t channel{}; channel < 2; ++channel)
