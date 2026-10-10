@@ -158,13 +158,14 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
-    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, gravis or soundblaster_awe32")
+    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, roland-scc1a, gravis or soundblaster_awe32")
     ("roland-gm-bank", boost::program_options::value<std::string>(), "load the whole Roland MTGM.MID bank before Darker custom instruments on the same device")
     ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
     ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")
     ("gus-ram", boost::program_options::value<unsigned int>()->default_value(1024), "Gravis RAM in KiB: 256, 512, 768 or 1024")
     ("gus-dir", boost::program_options::value<std::string>(), "Gravis UltraSound directory (default: ULTRASND in game directory)")
     ("awe32-rom", boost::program_options::value<std::string>(), "AWE32 sample ROM (default: awe32.raw in game directory)")
+    ("scc1a-rom-dir", boost::program_options::value<std::string>(), "SCC-1A v1.30 ROM directory (default: game directory)")
     ("sc55-rom-dir", boost::program_options::value<std::string>(), "SC-55 v1.21 ROM directory (default: game directory)")
     ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland-lapc)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
@@ -189,10 +190,10 @@ auto main(int const argc, char const *const argv[])->int {
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
   auto const music_name{arguments["music"].as<std::string>()};
-  if(music_name == "roland") return startup_failure("--music=roland is ambiguous; choose --music=roland-lapc (MT-32/CM-32L family) or --music=roland-sc55 (Sound Canvas)");
+  if(music_name == "roland") return startup_failure("--music=roland is ambiguous; choose --music=roland-lapc (MT-32/CM-32L family), --music=roland-sc55 or --music=roland-scc1a (Sound Canvas)");
   std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland-lapc", "gravis", "soundblaster_awe32"};
-  auto const music_position{std::find(music_names.begin(), music_names.end(), music_name == "roland-sc55" ? "midi" : music_name)};
-  if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland-lapc, roland-sc55, gravis or soundblaster_awe32");
+  auto const music_position{std::find(music_names.begin(), music_names.end(), (music_name == "roland-sc55" || music_name == "roland-scc1a") ? "midi" : music_name)};
+  if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland-lapc, roland-sc55, roland-scc1a, gravis or soundblaster_awe32");
   auto const music_variant{music_name == "none" ? darker::audio::music_variant::soundblaster : static_cast<darker::audio::music_variant>(music_position - music_names.begin())};
   if(arguments.contains("mt32-rom-dir") && music_variant != darker::audio::music_variant::lapc1) return startup_failure("--mt32-rom-dir requires --music=roland-lapc");
   bool const full_roland_bank{arguments.contains("roland-gm-bank")};
@@ -208,7 +209,8 @@ auto main(int const argc, char const *const argv[])->int {
   if(arguments.contains("gus-dir") && (music_name != "gravis" || arguments.contains("soundfont"))) return startup_failure("--gus-dir requires --music=gravis without --soundfont");
   if(arguments.contains("awe32-rom") && (music_name != "soundblaster_awe32" || arguments.contains("soundfont"))) return startup_failure("--awe32-rom requires --music=soundblaster_awe32 without --soundfont");
   if(arguments.contains("sc55-rom-dir") && music_name != "roland-sc55") return startup_failure("--sc55-rom-dir requires --music=roland-sc55");
-  if(music_name == "roland-sc55" && arguments.contains("soundfont")) return startup_failure("--music=roland-sc55 uses ROMs, not --soundfont");
+  if(arguments.contains("scc1a-rom-dir") && music_name != "roland-scc1a") return startup_failure("--scc1a-rom-dir requires --music=roland-scc1a");
+  if((music_name == "roland-sc55" || music_name == "roland-scc1a") && arguments.contains("soundfont")) return startup_failure("Sound Canvas emulation uses ROMs, not --soundfont");
   auto const opl_name{arguments["opl"].as<std::string>()};
   if(opl_name != "nuked" && opl_name != "dosbox") return startup_failure("--opl must be nuked or dosbox");
   constexpr int display_width{framework::render::cockpit_framebuffer::width};
@@ -739,10 +741,12 @@ auto main(int const argc, char const *const argv[])->int {
         auto const rom{arguments.contains("awe32-rom") ? std::filesystem::path{arguments["awe32-rom"].as<std::string>()} : data_directory / "awe32.raw"};
         audio.configure_awe32_music(rom, archives.load({0,37}), std::move(songs));
       }
-      else if(music_name == "roland-sc55") {
-        auto const rom_directory{arguments.contains("sc55-rom-dir") ? std::filesystem::path{arguments["sc55-rom-dir"].as<std::string>()} : data_directory};
-        audio.configure_sc55_music(rom_directory, std::move(songs));
-        std::cout << "Music: SC-55 v1.21 hardware emulation, original SCC-1/General MIDI arrangement" << std::endl;
+      else if(music_name == "roland-sc55" || music_name == "roland-scc1a") {
+        bool const scc1a{music_name == "roland-scc1a"};
+        auto const option{scc1a ? "scc1a-rom-dir" : "sc55-rom-dir"};
+        auto const rom_directory{arguments.contains(option) ? std::filesystem::path{arguments[option].as<std::string>()} : data_directory};
+        audio.configure_sc55_music(rom_directory, std::move(songs), scc1a ? darker::audio::sound_canvas_model::scc1a : darker::audio::sound_canvas_model::sc55);
+        std::cout << "Music: " << (scc1a ? "SCC-1A v1.30" : "SC-55 v1.21") << " hardware emulation, original SCC-1/General MIDI arrangement" << std::endl;
       }
       else if(music_variant == darker::audio::music_variant::lapc1 && (!arguments.contains("soundfont") || percussion_fallback)) {
         auto const rom_directory{arguments.contains("mt32-rom-dir") ? std::filesystem::path{arguments["mt32-rom-dir"].as<std::string>()} : data_directory};

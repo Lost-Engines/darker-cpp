@@ -1,6 +1,6 @@
 # Music arrangements and synthesis
 
-`--music=none|soundblaster_fm|midi|roland-lapc|roland-sc55|gravis|soundblaster_awe32` disables music or selects one of the five original
+`--music=none|soundblaster_fm|midi|roland-lapc|roland-sc55|roland-scc1a|gravis|soundblaster_awe32` disables music or selects one of the five original
 arrangements for all six music groups. Selection applies to startup, menus,
 briefings and films; it does not change procedural flight sound effects.
 The Roland option names identify the hardware family; the native driver names are:
@@ -11,13 +11,14 @@ The Roland option names identify the hardware family; the native driver names ar
 | `soundblaster_fm` | Sound Blaster FM |
 | `midi` | Roland SCC-1 / General MIDI, SoundFont rendition |
 | `roland-sc55` | Same original General MIDI arrangement, emulated SC-55 v1.21 |
+| `roland-scc1a` | Same original General MIDI arrangement, emulated SCC-1A v1.30 |
 | `roland-lapc` | Roland LAPC-I / MT-32 family |
 | `gravis` | Gravis UltraSound |
 | `soundblaster_awe32` | Sound Blaster AWE32 |
 
 `roland-lapc` names the original LAPC-I driver, emulated with CM-32L or MT-32
 ROMs. The ambiguous former name `roland` is rejected with guidance to choose
-`roland-lapc` or `roland-sc55`.
+`roland-lapc`, `roland-sc55` or `roland-scc1a`.
 The existing ROM-directory and percussion-bank switches retain their names.
 
 Sound Blaster FM remains the default, using the original FM instruments and the
@@ -356,3 +357,35 @@ per song. Per-song loading is an UltraMID capability, but is not offered here:
 it would change the game's original approach. The fetch script supplies the
 union of patches required by the four original preload maps. All six groups
 are checked at every RAM size.
+
+## SCC-1A v1.30 hardware playback
+
+`--music=roland-scc1a` selects Nuked-SC55's CM-300/SCC-1 hardware path with
+its verified SCC-1A v1.30 firmware. This is a separate choice from SC-55 v1.21;
+both use Darker's original SCC-1 event stream, unchanged.
+
+Supply the complete five-file SCC-1A set in the game directory, or point
+`--scc1a-rom-dir` at it. The fetch helper does not yet download this set.
+The archive `8vvq0a.zip`, under `roms/scc1a/`, supplied a complete set matching
+the emulator's built-in SHA-256 definitions:
+
+| File | SHA-256 |
+|---|---|
+| cm300_rom1.bin | 9ec66abb5231b6c6f46f48b33d5412703041037d69a6803626ac402f25552af2 |
+| cm300_rom2.bin | f89442734fdebacae87c7707c01b2d7fdbf5940abae738987aee912d34b5882e |
+| cm300_waverom1.bin | 40c093cbfb4441a5c884e623f882a80b96b2527f9fd431e074398d206c0f073d |
+| cm300_waverom2.bin | 9bbbcac747bd6f7a2693f4ef10633db8ab626f17d3d9c47c83c3839d4dd2f613 |
+| cm300_waverom3.bin | 5b753f6cef4cfc7fcafe1430fecbb94a739b874e55356246a46abe24097ee491 |
+
+The v1.30 internal and external program ROMs must be paired; the internal ROM
+is not a replacement for the still-missing original SCC-1 v1.10/v1.20 MCU dump.
+Neither ROMs nor archive are bundled with the engine. `--soundfont` is not
+applicable. Set `DARKER_TEST_SCC1A_ROM_DIR` when configuring CMake to exercise
+real firmware note playback, reset and host-buffer independence.
+
+A six-group comparison (first 30 seconds each, fresh devices, 48 kHz float
+output, no normalisation) found average level differences within 0.30 dB and
+broad band-power differences below 12 kHz within 0.45 dB. The PCM is not
+identical even after a constant-delay search; similar average spectra do not
+exclude audible differences in transients, modulation or effects. This is a
+separate hardware rendition, without any changes to the game's arrangement.

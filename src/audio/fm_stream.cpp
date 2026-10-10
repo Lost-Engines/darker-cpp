@@ -123,9 +123,9 @@ void fm_stream::configure_awe32_music(std::filesystem::path const &rom, std::spa
   state->songs = std::move(songs);
 }
 
-void fm_stream::configure_sc55_music(std::filesystem::path const &rom_directory, std::array<std::vector<std::byte>,6> songs) {
+void fm_stream::configure_sc55_music(std::filesystem::path const &rom_directory, std::array<std::vector<std::byte>,6> songs, sound_canvas_model const model) {
   for(auto const &song : songs) if(song.empty() || song.size() > 65536) throw std::invalid_argument{"Invalid SC-55 music resource size"};
-  state->sampled_synth = std::make_unique<sc55_synth>(rom_directory, state->sample_rate);
+  state->sampled_synth = std::make_unique<sc55_synth>(rom_directory, state->sample_rate, model);
   state->sampled_music = std::make_unique<midi_music>(music_variant::scc1);
   state->music.reset();
   state->songs = std::move(songs);

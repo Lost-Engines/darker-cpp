@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <algorithm>
 #include <cmath>
 #include <span>
@@ -6,10 +7,12 @@
 #include <vector>
 #include "audio/sc55_synth.h"
 
-TEST_CASE("SC-55 firmware produces notes independently of host buffer size", "[audio][sc55]") {
-  if(std::string_view{DARKER_TEST_SC55_ROM_DIR}.empty()) SKIP("Supply DARKER_TEST_SC55_ROM_DIR for hardware synthesis verification");
-  auto const render{[](size_t const block_size) {
-    darker::audio::sc55_synth synth{DARKER_TEST_SC55_ROM_DIR, 48000};
+TEST_CASE("Sound Canvas firmware produces notes independently of host buffer size", "[audio][sc55][scc1a]") {
+  auto const model{GENERATE(darker::audio::sound_canvas_model::sc55, darker::audio::sound_canvas_model::scc1a)};
+  auto const directory{model == darker::audio::sound_canvas_model::scc1a ? DARKER_TEST_SCC1A_ROM_DIR : DARKER_TEST_SC55_ROM_DIR};
+  if(std::string_view{directory}.empty()) SKIP("Supply the matching DARKER_TEST_SC55_ROM_DIR or DARKER_TEST_SCC1A_ROM_DIR");
+  auto const render{[&](size_t const block_size) {
+    darker::audio::sc55_synth synth{directory, 48000, model};
     std::vector<float> output(48000 * 4);
     synth.reset();
     synth.send({0xc0, 0});

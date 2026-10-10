@@ -358,6 +358,7 @@ set(DARKER_TEST_MT32_ROM_DIR "" CACHE PATH "Optional Roland ROM directory for Mu
 set(DARKER_TEST_ROLAND_GM_BANK "" CACHE FILEPATH "Optional Roland MTGM.MID bank for percussion fallback verification")
 set(DARKER_TEST_GUS_DIR "" CACHE PATH "Optional UltraMID and patch directory for Gravis verification")
 set(DARKER_TEST_AWE32_ROM "" CACHE FILEPATH "Optional AWE32 ROM for native synthesis verification")
+set(DARKER_TEST_SCC1A_ROM_DIR "" CACHE PATH "Optional SCC-1A v1.30 ROM directory for PCM verification")
 set(DARKER_TEST_SC55_ROM_DIR "" CACHE PATH "Optional SC-55 v1.21 ROM directory for PCM verification")
 set(DARKER_TEST_SOUNDFONT "" CACHE FILEPATH "Optional GM SoundFont for sampled music PCM verification")
 
@@ -491,7 +492,7 @@ if(BUILD_TESTING)
   )
   configure_first_party(framework_tests)
   include("${catch2_SOURCE_DIR}/extras/Catch.cmake")
-  target_compile_definitions(framework_tests PRIVATE DARKER_TEST_GUS_DIR="${DARKER_TEST_GUS_DIR}" DARKER_TEST_AWE32_ROM="${DARKER_TEST_AWE32_ROM}" DARKER_TEST_RESOURCE_DIR="${DARKER_REFERENCE_DIR}" DARKER_TEST_SC55_ROM_DIR="${DARKER_TEST_SC55_ROM_DIR}")
+  target_compile_definitions(framework_tests PRIVATE DARKER_TEST_SCC1A_ROM_DIR="${DARKER_TEST_SCC1A_ROM_DIR}" DARKER_TEST_GUS_DIR="${DARKER_TEST_GUS_DIR}" DARKER_TEST_AWE32_ROM="${DARKER_TEST_AWE32_ROM}" DARKER_TEST_RESOURCE_DIR="${DARKER_REFERENCE_DIR}" DARKER_TEST_SC55_ROM_DIR="${DARKER_TEST_SC55_ROM_DIR}")
   catch_discover_tests(framework_tests)
   if(DARKER_INSTALL_DIR AND DARKER_REFERENCE_DIR)
     add_test(NAME resources.original_pack_comparison

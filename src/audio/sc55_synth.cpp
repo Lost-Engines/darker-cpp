@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 #include <diagnostics.h>
 #include <emu.h>
 #include <file_hashing.h>
@@ -26,15 +27,17 @@ struct sc55_synth::implementation {
   }
 };
 
-sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int const sample_rate)
+sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int const sample_rate, sound_canvas_model const model)
   : state{std::make_unique<implementation>()} {
-  if(sample_rate == 0) throw std::invalid_argument{"SC-55 output sample rate must be positive"};
+  if(sample_rate == 0) throw std::invalid_argument{"Sound Canvas output sample rate must be positive"};
   static std::once_flag diagnostics;
   std::call_once(diagnostics, [] {
     Diag_SetCallback([](Diag_Category category, std::string_view message) {
       if(category != Diag_Category::Debug) Diag_DefaultCallback(category, message);
     });
   });
+  bool const scc1a{model == sound_canvas_model::scc1a};
+  std::string const name{scc1a ? "SCC-1A v1.30" : "SC-55 v1.21"};
   HashedFileRegistry files;
   RomsetRegistry definitions;
   for(auto const &definition : GetStandardRomsetDefinitions()) definitions.AddRomset(definition);
@@ -42,10 +45,10 @@ sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int 
   locations.fill(true);
   if(!HashDirectoryFiles(rom_directory, HashDirectoryKind::TopLevel, files,
     [](std::filesystem::directory_entry const &entry) { return entry.path().extension() == ".bin" && entry.file_size() <= 1048576; })
-    || !GetRomsetInfo(definitions, "mk1-v1.21", files, locations, state->roms))
-    throw std::runtime_error{"SC-55 v1.21 ROMs missing or unrecognised in " + rom_directory.string() + "; run fetch-assets.sh or supply --sc55-rom-dir"};
-  if(!LoadRomset(state->roms, nullptr) || !state->synth.Init({}) || !state->synth.LoadRoms(Romset::MK1, state->roms))
-    throw std::runtime_error{"Cannot initialise SC-55 v1.21 emulation"};
+    || !GetRomsetInfo(definitions, scc1a ? "cm300-v1.30" : "mk1-v1.21", files, locations, state->roms))
+    throw std::runtime_error{name + " ROMs missing or unrecognised in " + rom_directory.string() + "; supply a complete matching ROM set"};
+  if(!LoadRomset(state->roms, nullptr) || !state->synth.Init({}) || !state->synth.LoadRoms(scc1a ? Romset::CM300 : Romset::MK1, state->roms))
+    throw std::runtime_error{"Cannot initialise " + name + " emulation"};
   state->rate = sample_rate;
   state->synth.Reset();
   // use the chip's oversampled output and preserve its clock independently of host buffers
