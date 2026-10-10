@@ -30,9 +30,10 @@ std::span<hud_component const> cockpit_components(craft const type) {
 
 std::size_t instrument_limit(craft const type, std::size_t const component) {
   /// Ordinary Skimma has sixteen engine-output steps; the upgrade has twenty
+  unsigned int constexpr skimma_engine_output_field{0x454d};
   auto const components{cockpit_components(type)};
   if(component >= components.size()) throw std::out_of_range{"cockpit component index"};
-  if(type == craft::skimma && components[component].field == 0x454d) return 16;
+  if(type == craft::skimma && components[component].field == skimma_engine_output_field) return skimma_instruments::engine_output_limit;
   return components[component].strips.size();
 }
 
@@ -47,9 +48,10 @@ framework::render::indexed_cockpit_framebuffer make_cockpit_cache(framework::ren
 void draw_skimma_shield_startup(framework::render::indexed_cockpit_framebuffer const &cache,
   framework::render::indexed_cockpit_framebuffer &target, std::uint8_t const state) {
   /// 5192 draws the startup range into the same mask as the ordinary shield-strength gauge
-  if(state > 23) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
+  std::size_t constexpr skimma_shield_component{1};
+  if(state > skimma_instruments::shield_startup_limit) throw std::out_of_range{"Skimma shield startup state exceeds native range"};
   auto const range{skimma_shield_strips(state)};
-  auto const &descriptor{components_4d70[1]};
+  auto const &descriptor{components_4d70[skimma_shield_component]};
   // 51AD converts native BL into a pulse width, with BH selecting its final strip.
   for(std::size_t i{range.end > range.first ? range.end - range.first - 1u : 0u}; i < range.end; ++i) {
     auto const &strip{descriptor.strips[i]};
@@ -101,16 +103,19 @@ void update_instrument(framework::render::indexed_cockpit_framebuffer const &cac
   framework::render::indexed_cockpit_framebuffer &target, craft const type, std::size_t const component,
   std::uint8_t const old_state, std::uint8_t const new_state) {
   /// Translate 457B–45A6 strip-count changes and 51B8 scanline-mask copying
+  std::uint8_t constexpr strip_count_mask{0x7f};
+  std::uint8_t constexpr alternate_source_flag{0x80};
+  unsigned int constexpr caero_engine_light_field{0x4552};
   auto const limit{instrument_limit(type, component)};
   auto const &descriptor{cockpit_components(type)[component]};
-  std::size_t const old_count{static_cast<std::size_t>(old_state & 127)};
-  std::size_t const new_count{static_cast<std::size_t>(new_state & 127)};
+  std::size_t const old_count{static_cast<std::size_t>(old_state & strip_count_mask)};
+  std::size_t const new_count{static_cast<std::size_t>(new_state & strip_count_mask)};
   if(old_count > limit || new_count > limit) throw std::out_of_range{"instrument state exceeds craft limit"};
-  if(((old_state | new_state) & 128) && !(type == craft::caero && descriptor.field == 0x4552)) {
+  if(((old_state | new_state) & alternate_source_flag) && !(type == craft::caero && descriptor.field == caero_engine_light_field)) {
     throw std::invalid_argument{"alternate source is verified only for the Caero engine light"};
   }
   bool const restoring{new_count < old_count};
-  auto source{restoring ? descriptor.destination : (new_state & 128) ? descriptor.alternate_source : descriptor.on_source};
+  auto source{restoring ? descriptor.destination : (new_state & alternate_source_flag) ? descriptor.alternate_source : descriptor.on_source};
   std::size_t const first{old_count == new_count ? (new_count ? new_count - 1 : 0) : std::min(old_count, new_count)};
   std::size_t const end{std::max(old_count, new_count)};
   for(std::size_t i{first}; i < end; ++i) {

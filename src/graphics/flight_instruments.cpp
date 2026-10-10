@@ -67,6 +67,8 @@ shield_strip_range skimma_shield_strips(std::uint8_t const strength) noexcept {
 skimma_instruments measure_skimma_instruments(std::uint16_t const height, std::uint16_t const shield_charge, bool const shield_enabled,
   bool const warning_flash, std::uint16_t const clock, std::uint16_t &shield_deadline) noexcept {
   /// 579C–5828 separates the height warning, shield startup animation and available shield-strength strip
+  std::uint8_t constexpr first_shield_sweep_state{4};
+  int constexpr shield_sweep_states{skimma_instruments::shield_startup_limit - first_shield_sweep_state + 1};
   skimma_instruments result{
     .low_altitude{static_cast<std::uint8_t>(height < 1024 && !(warning_flash && (clock & 256)) ? 1 : 0)}
   };
@@ -81,7 +83,7 @@ skimma_instruments measure_skimma_instruments(std::uint16_t const height, std::u
     if(high <= 2) result.shield_startup = high == 1 ? 1 : 0;
     else {
       auto const phase{static_cast<std::uint16_t>(remaining - 768) >> 2};
-      result.shield_startup = static_cast<std::uint8_t>(4 + ((20 * static_cast<std::uint8_t>(~phase)) >> 8));
+      result.shield_startup = static_cast<std::uint8_t>(first_shield_sweep_state + ((shield_sweep_states * static_cast<std::uint8_t>(~phase)) >> 8));
     }
     return result;
   } else {
@@ -100,8 +102,10 @@ skimma_instruments measure_skimma_instruments(std::uint16_t const height, std::u
 
 std::uint8_t skimma_speed_instrument(std::uint16_t const speed, bool const upgraded) noexcept {
   /// 582B retains the low byte of the unsigned product's high word before selecting the craft-specific strip limit
-  auto const value{static_cast<std::uint8_t>((static_cast<std::uint32_t>(speed) * 0x760) >> 16)};
-  return std::min<std::uint8_t>(value, upgraded ? 20 : 16);
+  std::uint32_t constexpr speed_to_strip_multiplier{0x760};
+  unsigned int constexpr speed_to_strip_fraction_bits{16};
+  auto const value{static_cast<std::uint8_t>((static_cast<std::uint32_t>(speed) * speed_to_strip_multiplier) >> speed_to_strip_fraction_bits)};
+  return std::min(value, upgraded ? skimma_instruments::upgraded_engine_output_limit : skimma_instruments::engine_output_limit);
 }
 
 } // namespace darker::graphics

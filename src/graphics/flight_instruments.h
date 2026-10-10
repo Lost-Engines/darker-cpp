@@ -28,6 +28,10 @@ struct shield_strip_range {
 shield_strip_range skimma_shield_strips(std::uint8_t strength) noexcept;
 
 struct skimma_instruments {
+  static std::uint8_t constexpr engine_output_limit{16};
+  static std::uint8_t constexpr upgraded_engine_output_limit{20};
+  static std::uint8_t constexpr shield_startup_limit{23};
+
   std::uint8_t low_altitude{0};
   std::uint8_t shield{0};
   std::uint8_t shield_startup{0};
