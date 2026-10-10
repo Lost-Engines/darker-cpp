@@ -1,12 +1,10 @@
 # Package only the Runtime install tree, never build outputs or local game data.
-foreach(required IN ITEMS PACKAGE_ROOT OUTPUT_DIR PLATFORM CONFIGURATION COMMIT)
+foreach(required IN ITEMS PACKAGE_ROOT OUTPUT_DIR PLATFORM)
   if(NOT DEFINED ${required} OR "${${required}}" STREQUAL "")
     message(FATAL_ERROR "Missing package argument: ${required}")
   endif()
 endforeach()
 file(MAKE_DIRECTORY "${OUTPUT_DIR}")
-file(WRITE "${PACKAGE_ROOT}/darker/BUILD.txt"
-  "Commit: ${COMMIT}\nPlatform: ${PLATFORM}\nConfiguration: ${CONFIGURATION}\n")
 string(REGEX REPLACE "-.*$" "" platform_name "${PLATFORM}")
 set(name "darker-${platform_name}")
 if(PLATFORM MATCHES "^windows-")

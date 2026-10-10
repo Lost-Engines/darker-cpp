@@ -175,19 +175,12 @@ jobs:
           cmake --install build --prefix "$PWD/package/darker" --component Runtime
           if [[ "$RUNNER_OS" == Windows ]]; then
             # Verify that the executable needs only Windows system DLLs.
-            PATH="$(cygpath "$WINDIR")/System32:$(cygpath "$WINDIR")" package/darker/bin/darker.exe --help
-            mkdir -p package/darker/share/doc/darker/third_party/toolchain
-            cp -R /ucrt64/share/licenses/gcc /ucrt64/share/licenses/winpthreads \
-              package/darker/share/doc/darker/third_party/toolchain/
+            PATH="$(cygpath "$WINDIR")/System32:$(cygpath "$WINDIR")" package/darker/darker.exe --help
           else
-            package/darker/bin/darker --help
-          fi
-          if [[ "$RUNNER_OS" == Linux ]]; then
-            cp /usr/share/doc/gcc-14-base/copyright package/darker/share/doc/darker/third_party/gcc-runtime.txt
+            package/darker/darker --help
           fi
           cmake -DPACKAGE_ROOT="$PWD/package" -DOUTPUT_DIR="$PWD/dist" \
-            -DPLATFORM=${{ matrix.platform }} -DCONFIGURATION=${{ matrix.configuration }} \
-            -DCOMMIT="$GITHUB_SHA" -P cmake/package.cmake
+            -DPLATFORM=${{ matrix.platform }} -P cmake/package.cmake
       - name: Upload package
         uses: actions/upload-artifact@v7
         with:
@@ -246,7 +239,7 @@ jobs:
           if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" --draft --target "$GITHUB_SHA" \
               --title "Darker ${GITHUB_SHA:0:7}" \
-              --notes 'Automated Release builds for Linux x86-64, Windows x86-64 and macOS Apple Silicon. All six builds passed their asset-independent tests. Original game data and optional synthesiser ROMs are supplied separately. See the included README for setup.'
+              --notes 'Automated Release builds for Linux x86-64, Windows x86-64 and macOS Apple Silicon. All six builds passed their asset-independent tests. Original game data and optional synthesiser ROMs are supplied separately. See the repository README for setup.'
           fi
           gh release upload "$tag" "${packages[@]}" dist/SHA256SUMS --clobber
           gh release edit "$tag" --draft=false --latest

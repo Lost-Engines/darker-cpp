@@ -52,27 +52,21 @@ GitHub's repository settings must permit its workflow token to create releases.
 ## Package contents and use
 
 Published archives are named `darker-linux.tar.gz`, `darker-windows.zip` and
-`darker-macos.tar.gz`. Architecture and configuration are recorded in `BUILD.txt`;
-CI artifact names also identify the configuration.
+`darker-macos.tar.gz`. CI artifact names identify architecture and configuration.
 
-Each archive contains a `darker/` directory with:
+Each archive contains a `darker/` directory with only:
 
-- `bin/darker` (or `bin/darker.exe`);
-- the optional Bash asset-fetch helper and its URL/checksum lists;
-- documentation, dependency notices and source/build references;
-- `BUILD.txt`, recording the commit, platform and configuration.
+- `darker` (or `darker.exe`) at its top level;
+- `scripts/`, copied unchanged from the source tree, including `fetch-assets.sh`
+  and its URL/checksum files.
 
-No retail packs, synthesiser ROMs, saves, reference executable or test binaries
-are included. CI runs asset-independent tests; original-pack and ROM-dependent
-checks remain available locally when their CMake paths are supplied.
+Documentation and dependency information remain in the source repository.
+Game packs, saves, ROMs, soundfonts, patch banks and developer tools are not bundled.
 
-Unpack the archive and launch `bin/darker --data-dir /path/to/darker`, or run it
+Unpack the archive and launch `./darker --data-dir /path/to/darker`, or run it
 with the game installation as the current directory. Saves are written beside
-the packs, interoperably with the DOS game. AWE32 music requires its separately
-supplied sample ROM; the asset helper can fetch it, or `--music=soundblaster_fm`
-uses the game's own FM data. Windows users can supply a local installation;
-the fetch helper currently requires Bash, curl and sha256sum (for example MSYS2).
-On macOS, sha256sum is provided by GNU coreutils.
+the selected packs. The optional `scripts/fetch-assets.sh` helper requires Bash,
+curl and sha256sum. On macOS, sha256sum is provided by GNU coreutils.
 
 Linux packages target a modern Ubuntu 24.04-compatible runtime and require the
 system windowing and OpenGL drivers. Boost and GCC's C++ runtimes are linked
@@ -94,7 +88,7 @@ ctest --test-dir build-release --output-on-failure
 cmake --install build-release --prefix "$PWD/build-release/stage/darker" --component Runtime
 cmake -DPACKAGE_ROOT="$PWD/build-release/stage" \
   -DOUTPUT_DIR="$PWD/build-release/dist" -DPLATFORM=linux-x86_64 \
-  -DCONFIGURATION=Release -DCOMMIT="$(git rev-parse HEAD)" -P cmake/package.cmake
+  -P cmake/package.cmake
 ```
 
 Use a clean staging directory. Local builds use the libraries/toolchain selected
@@ -103,10 +97,9 @@ at configuration time, so their runtime requirements can differ from CI.
 It links non-system dependencies statically on Windows and GCC's C++ runtimes
 statically on Linux/macOS. macOS uses GCC for C++ and the final link; only the
 Cocoa and CoreAudio device implementations use Apple's Objective-C compiler.
-For example, inspect Linux dependencies with `ldd stage/darker/bin/darker`.
+For example, inspect Linux dependencies with `ldd stage/darker/darker`.
 Configure `DARKER_INSTALL_DIR` and `DARKER_REFERENCE_DIR` for original-pack
 integration tests; optional sound-device verification has separate asset paths.
 A local install/package operation never publishes a release.
 
-Packaging preserves upstream dependency notices and does not introduce a
-first-party licence or ownership claim.
+Packaging does not introduce a first-party licence or ownership claim.

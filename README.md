@@ -73,7 +73,7 @@ Keep these files and the checksum file beside the script when copying it
 elsewhere. To update a download address, edit its line in the relevant text file;
 no shell code needs changing.
 
-Installed builds provide `darker-fetch-assets`. An installer can offer this as
+Packaged builds include the unchanged `scripts/fetch-assets.sh`. An installer can offer this as
 an optional step, passing a writable user asset directory. Download and checksum warnings do not fail the installation; the helper exits
 zero after all phases. Failure to create or enter the destination returns one. No downloads
 run automatically during CMake installation or game startup. No save files are
@@ -249,7 +249,7 @@ and Release packages for Linux, Windows and macOS; code-changing pushes to
 `master` publish only the three Release packages after all six build/test jobs pass.
 
 See [binary packaging](docs/binary_packaging.md) for a clean installation of the
-single executable, documentation and dependency notices.
+single executable and unchanged `scripts/` directory.
 
 Use `--language=french` or `--language=german` for the original translated menus,
 credits, briefings and radio messages; English remains the default.
