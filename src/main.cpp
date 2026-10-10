@@ -188,8 +188,8 @@ auto main(int const argc, char const *const argv[])->int {
   auto const language{language_name == "english" ? darker::resources::scenario_language::english
     : language_name == "french" ? darker::resources::scenario_language::french : darker::resources::scenario_language::german};
   auto const scale{arguments["scale"].as<int>()};
-  auto music_name{arguments["music"].as<std::string>()};
-  if(music_name == "roland") music_name = "roland-lapc";
+  auto const music_name{arguments["music"].as<std::string>()};
+  if(music_name == "roland") return startup_failure("--music=roland is ambiguous; choose --music=roland-lapc (MT-32/CM-32L family) or --music=roland-sc55 (Sound Canvas)");
   std::array<std::string_view,5> constexpr music_names{"soundblaster_fm", "midi", "roland-lapc", "gravis", "soundblaster_awe32"};
   auto const music_position{std::find(music_names.begin(), music_names.end(), music_name == "roland-sc55" ? "midi" : music_name)};
   if(music_name != "none" && music_position == music_names.end()) return startup_failure("--music must be none, soundblaster_fm, midi, roland-lapc, roland-sc55, gravis or soundblaster_awe32");

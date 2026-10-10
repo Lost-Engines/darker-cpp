@@ -16,7 +16,8 @@ The Roland option names identify the hardware family; the native driver names ar
 | `soundblaster_awe32` | Sound Blaster AWE32 |
 
 `roland-lapc` names the original LAPC-I driver, emulated with CM-32L or MT-32
-ROMs. The former name `roland` remains accepted as a compatibility alias.
+ROMs. The ambiguous former name `roland` is rejected with guidance to choose
+`roland-lapc` or `roland-sc55`.
 The existing ROM-directory and percussion-bank switches retain their names.
 
 Sound Blaster FM remains the default, using the original FM instruments and the
