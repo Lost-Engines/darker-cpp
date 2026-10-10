@@ -553,6 +553,7 @@ auto main(int const argc, char const *const argv[])->int {
       using darker::presentation::front_key;
       if(action != GLFW_PRESS && key != GLFW_KEY_BACKSPACE) return;
       switch(key) {
+      case GLFW_KEY_KP_ENTER:
       case GLFW_KEY_ENTER: host.front->key(front_key::accept); break;
       case GLFW_KEY_SPACE: if(!host.front->editing_text()) host.front->key(front_key::accept); break;
       case GLFW_KEY_ESCAPE: host.front->key(front_key::back); break;
@@ -598,7 +599,7 @@ auto main(int const argc, char const *const argv[])->int {
       else glfwSetWindowShouldClose(window, GLFW_TRUE);
       return;
     }
-    if(action == GLFW_PRESS && key == GLFW_KEY_ENTER && host.hangar.returning == darker::game::hangar_return_phase::complete) {
+    if(action == GLFW_PRESS && (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER) && host.hangar.returning == darker::game::hangar_return_phase::complete) {
       host.exit_requested = session_exit::completed;
       return;
     }
@@ -622,7 +623,7 @@ auto main(int const argc, char const *const argv[])->int {
     if(action == GLFW_PRESS && (key == GLFW_KEY_F7 || key == GLFW_KEY_GRAVE_ACCENT)) host.pick_camera = true;
     if(action == GLFW_PRESS && key == GLFW_KEY_COMMA && host.camera.distance_step > 0) --host.camera.distance_step;
     if(action == GLFW_PRESS && key == GLFW_KEY_PERIOD && host.camera.distance_step < 5) ++host.camera.distance_step;
-    if(key == GLFW_KEY_ENTER && host.player.lifecycle.crashing) {
+    if((key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER) && host.player.lifecycle.crashing) {
       if(action == GLFW_PRESS) host.exit_requested = session_exit::death;
       return;
     }
@@ -684,6 +685,7 @@ auto main(int const argc, char const *const argv[])->int {
         host.sounds.trigger(std::holds_alternative<darker::game::caero_flight_state>(host.player.craft) ? flight_sound::caero_switch : flight_sound::skimma_switch, host.clock);
         break;
       case GLFW_KEY_A: host.player.command(flight_command::altitude_hold); break;
+      case GLFW_KEY_KP_ENTER:
       case GLFW_KEY_ENTER: {
         auto const *caero{std::get_if<darker::game::caero_flight_state>(&host.player.craft)};
         auto const previous{caero ? caero->energy.boost : 0};
