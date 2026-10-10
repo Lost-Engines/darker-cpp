@@ -221,7 +221,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
-          pattern: darker-*
+          pattern: darker-*-Release
           path: dist
           merge-multiple: true
       - name: Publish the tested packages
@@ -241,12 +241,12 @@ jobs:
           fi
           shopt -s nullglob
           packages=(dist/*.tar.gz dist/*.zip)
-          test "${#packages[@]}" -eq 6
+          test "${#packages[@]}" -eq 3
           (cd dist && sha256sum -- *.tar.gz *.zip > SHA256SUMS)
           if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" --draft --target "$GITHUB_SHA" \
               --title "Darker ${GITHUB_SHA:0:7}" \
-              --notes 'Automated Debug and Release builds for Linux x86-64, Windows x86-64 and macOS Apple Silicon. All six builds passed their asset-independent tests. Original game data and optional synthesiser ROMs are supplied separately. See the included README for setup.'
+              --notes 'Automated Release builds for Linux x86-64, Windows x86-64 and macOS Apple Silicon. All six builds passed their asset-independent tests. Original game data and optional synthesiser ROMs are supplied separately. See the included README for setup.'
           fi
           gh release upload "$tag" "${packages[@]}" dist/SHA256SUMS --clobber
           gh release edit "$tag" --draft=false --latest

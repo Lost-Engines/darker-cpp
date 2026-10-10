@@ -246,7 +246,7 @@ See [FM audio](docs/fm_audio.md) for the measured differences and verification.
 [Release status](docs/release_readiness.md) records implemented scope and deferred
 playtesting. [Build and release CI](.github/workflows/build.yml) produces Debug
 and Release packages for Linux, Windows and macOS; code-changing pushes to
-`master` publish them after all six build/test jobs pass.
+`master` publish only the three Release packages after all six build/test jobs pass.
 
 See [binary packaging](docs/binary_packaging.md) for a clean installation of the
 single executable, documentation and dependency notices.

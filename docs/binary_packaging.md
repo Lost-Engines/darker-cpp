@@ -1,7 +1,7 @@
 # Builds, packages and automatic releases
 
 The workflow is [`.github/workflows/build.yml`](../.github/workflows/build.yml).
-It builds and tests this matrix once, then publishes those same packages:
+It builds and tests this matrix once, then publishes only the Release packages:
 
 | Platform | Runner | Compiler | Configurations |
 | --- | --- | --- | --- |
@@ -33,13 +33,14 @@ last commit, including deletions.
 All six jobs must succeed before publishing. Compiler caches are limited to
 500 MB per platform/configuration, and the Boost installations are cached.
 Packages and test reports are retained as workflow artifacts for seven days.
-Publication reuses these artifacts; there is no second release compilation.
+Publication reuses the three Release artifacts; Debug packages remain available
+as CI artifacts only. There is no second release compilation.
 Obsolete pull-request runs are cancelled; master pushes have distinct groups.
 
 Each release is tagged `release-<full commit SHA>`. Packages are uploaded to a
 draft before it is published, with a `SHA256SUMS` file. Rerunning the workflow
 for the same commit updates the same release rather than creating another tag.
-After publishing all six replacement packages, the job deletes older published
+After publishing all three replacement packages, the job deletes older published
 releases and their assets. Drafts and lightweight Git tags are retained.
 Publication is serialised, and an older commit finishing late cannot replace a
 newer published descendant. A failed build or upload leaves the existing release
@@ -49,6 +50,10 @@ Release publication alone receives `contents: write`; build jobs are read-only.
 GitHub's repository settings must permit its workflow token to create releases.
 
 ## Package contents and use
+
+Published archives are named `darker-linux.tar.gz`, `darker-windows.zip` and
+`darker-macos.tar.gz`. Architecture and configuration are recorded in `BUILD.txt`;
+CI artifact names also identify the configuration.
 
 Each archive contains a `darker/` directory with:
 

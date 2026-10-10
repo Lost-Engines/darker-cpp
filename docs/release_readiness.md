@@ -47,7 +47,7 @@ for Linux x86-64, Windows x86-64 and macOS arm64. Every job runs the available
 asset-independent CTest suite and checks its installed executable's `--help`.
 CI does not download game packs or synthesiser ROMs to run private-asset tests.
 
-A code-changing push to `master` publishes the six tested packages after every
+A code-changing push to `master` publishes the three tested Release packages after every
 job succeeds. Documentation-only pushes do not run the workflow. Workflow,
 test and helper-script changes can exercise the builds but do not alone publish
 a release. See [binary packaging](binary_packaging.md) for exact filters,
