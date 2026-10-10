@@ -34,6 +34,35 @@ Original tick sources, modulo comparisons, self-modifying accumulators and updat
 
 Self-modifying code should become explicit parameters or state-machine transitions where understood. Startup changes, including the sine-table extension, are part of initialisation. A readable rewrite must preserve them even when the untouched executable bytes look different.
 
+## Named representations
+
+The reconstruction uses named records where the original stores several different
+fields consecutively. This changes how the C++ expresses the data, not the
+original arithmetic or update order:
+
+- `maths::world_coordinates<T>` names column, row and height;
+  `map_coordinates<T>` names the two horizontal components. Position words and
+  fractional bytes remain separate, with their original widths. Indexed access
+  remains available for algorithms that perform the same operation on each axis.
+- `maths::attitude_angles` names heading, pitch and roll. Projectile angular rates
+  name pitch and turn separately; their unused native word is retained when a
+  pool record is reused.
+- Object definitions expose named craft, projectile and player views of the
+  eight overlapping role bytes. `std::bit_cast` preserves those bytes without
+  accessing an inactive union member. Resource parsers still read individual
+  fields explicitly rather than interpreting external bytes as host structures.
+- `object_update` names the native callbacks while retaining their original
+  numeric addresses. Reference comparisons use `std::to_underlying` at the
+  boundary to captured native values.
+- Scenario actors have named behaviour fields and active, reserve and free
+  groups. Combat frame timing, input and scenario context are separate records;
+  Skimma armament groups the state used by its weapon routines.
+
+Arrays remain appropriate for actual sequences, lookup tables, fixed pools,
+encoded payloads and reserved bytes. Native-reference fixtures retain their
+captured representation. These changes do not alter ownership, object identity,
+allocation order, random-number consumption, timing or the main program's flow.
+
 ## Ownership and failure behaviour
 
 A decoded resource is an owning byte buffer. Parsers may create bounded views while its owner remains alive. Mutable game state must not alias immutable packed input by accident. Resource reload/reset behaviour will be recovered per consumer; no universal cache or object framework is assumed yet.
