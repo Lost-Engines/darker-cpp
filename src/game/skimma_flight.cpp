@@ -31,7 +31,7 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   /// 8108 combines shield recharge, speed-sensitive steering, pitch limits and the Skimma's forward/vertical drive
   recharge_skimma_shield(state.damage, frame_step);
   auto &angles{state.pose.angles};
-  unsigned int const deficit{state.pose.speed < 2047 ? 2047u - state.pose.speed : 0};
+  unsigned int const deficit{state.pose.speed < skimma_flight_rules::steering_assist_speed_limit ? skimma_flight_rules::steering_assist_speed_limit - state.pose.speed : 0};
   auto const gain{static_cast<uint16_t>((deficit * deficit) >> 7)};
   auto const bank_drive{word((word(gain) * word(input.bank_drive * 2)) >> 15)};
   auto const bank_response{calculate_driven_angular_response(state.damage.rotation.turn, parameters.angular_response, static_cast<uint16_t>(bank_drive), frame_step)};

@@ -3,13 +3,14 @@
 #include <cstdint>
 #include <span>
 #include "graphics/gouraud_polygon.h"
+#include "graphics/render_geometry.h"
 
 namespace darker::graphics {
 
 struct camera_vertex {
-  int32_t horizontal{0};                                                       // signed 24-bit values, with eight fractional bits
-  int32_t vertical{0};
-  int32_t depth{0};
+  render_geometry::accumulator horizontal{0};                                                       // signed 24-bit values, with eight fractional bits
+  render_geometry::accumulator vertical{0};
+  render_geometry::accumulator depth{0};
 };
 
 screen_vertex project_vertex(camera_vertex vertex, screen_vertex const &origin);

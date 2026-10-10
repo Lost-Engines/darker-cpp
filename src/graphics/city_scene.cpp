@@ -1,4 +1,5 @@
 #include "graphics/city_scene.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <ranges>
@@ -13,27 +14,27 @@ namespace darker::graphics {
 
 namespace {
 
-int16_t word(int const value) noexcept {
+render_geometry::coordinate word(render_geometry::accumulator const value) noexcept {
   /// Retain the culler's signed word arithmetic
-  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
+  return render_geometry::wrap_coordinate(value);
 }
 
-int magnitude(uint16_t const value) noexcept {
+int magnitude(render_geometry::coordinate_bits const value) noexcept {
   /// CWD/XOR complements negative coordinates rather than taking their mathematical absolute value
-  return value & 0x8000 ? static_cast<uint16_t>(~value) : value;
+  return value & (render_geometry::coordinate_bits{1} << (render_geometry::whole_bits - 1)) ? static_cast<render_geometry::coordinate_bits>(~value) : value;
 }
 
 std::optional<city_draw_item> classify_model(model_placement const placement, resources::model_header const header) {
   /// Apply the shared extent cull and direct/near model-path selection
   auto const diameter{word(header.extent * 2)};
-  auto bound{word(placement.depth.whole - 32)};
+  auto bound{word(placement.depth.whole - render_geometry::near_depth)};
   bool const near{bound <= diameter};
-  bool const force_flat{!near && static_cast<uint8_t>(static_cast<uint16_t>(bound) >> 8) >= header.flat_distance};
-  if(near && static_cast<uint16_t>(bound) >= static_cast<uint16_t>(diameter)) {
+  bool const force_flat{!near && static_cast<uint8_t>(static_cast<render_geometry::coordinate_bits>(bound) >> 8) >= header.flat_distance};
+  if(near && static_cast<render_geometry::coordinate_bits>(bound) >= static_cast<render_geometry::coordinate_bits>(diameter)) {
     if(word(bound + diameter) < 0) return std::nullopt;
-    bound = -32;
+    bound = -render_geometry::near_depth;
   }
-  bound = word(bound + word(diameter + 32));
+  bound = word(bound + word(diameter + render_geometry::near_depth));
   if(magnitude(placement.horizontal.whole) >= bound || magnitude(placement.vertical.whole) >= bound) return std::nullopt;
   return city_draw_item{
     .placement{placement},
@@ -54,11 +55,11 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
   auto const header{bank.header_at(offset)};
   bool const background{type.collision_marker == resources::city_type::background_marker};
   auto placement{place_model(basis, camera, {
-    .column{static_cast<uint16_t>((index % game::city_map_size.column) * 256 + type.column_fraction)},
-    .row{static_cast<uint16_t>((index / game::city_map_size.column) * 256 + type.row_fraction)},
+    .column{static_cast<uint16_t>((index % game::city_map_size.column) * maths::world_format::units_per_cell + type.column_fraction)},
+    .row{static_cast<uint16_t>((index / game::city_map_size.column) * maths::world_format::units_per_cell + type.row_fraction)},
     .height{word(header.height - (background ? 0 : type.collision_marker * 256))},
   })};
-  if(!background) placement.sorting_distance = static_cast<uint16_t>(placement.sorting_distance + header.extent);
+  if(!background) placement.sorting_distance = static_cast<render_geometry::sorting_distance>(placement.sorting_distance + header.extent);
   auto item{classify_model(placement, header)};
   if(item) {
     item->cell = index;
@@ -71,8 +72,8 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
 bool within_object_window(city_view const &view, maths::world_position const &position) noexcept {
   /// 26EE patches 2F35's byte window before word-sized projection can alias distant objects into nearby space
   auto const width{view.radius * 2 - 1};
-  auto const column{static_cast<uint8_t>((position.column >> 8) - (view.column >> 8) + view.radius - 1)};
-  auto const row{static_cast<uint8_t>((position.row >> 8) - (view.row >> 8) + view.radius - 1)};
+  auto const column{static_cast<uint8_t>((position.column >> maths::world_format::cell_fraction_bits) - (view.column >> maths::world_format::cell_fraction_bits) + view.radius - 1)};
+  auto const row{static_cast<uint8_t>((position.row >> maths::world_format::cell_fraction_bits) - (view.row >> maths::world_format::cell_fraction_bits) + view.radius - 1)};
   return column < width && row < width;
 }
 
@@ -80,8 +81,8 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   camera_basis const &basis, camera_position camera, bool const underground) {
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
   // retain two sub-word bits in projection units; subtracting from the camera adds the object's fractional displacement
-  camera.column = static_cast<uint16_t>(camera.column - (object.pose.fractions.column >> 6));
-  camera.row = static_cast<uint16_t>(camera.row - (object.pose.fractions.row >> 6));
+  camera.column = static_cast<render_geometry::coordinate_bits>(camera.column - (object.pose.fractions.column >> render_geometry::camera_fraction_shift));
+  camera.row = static_cast<render_geometry::coordinate_bits>(camera.row - (object.pose.fractions.row >> render_geometry::camera_fraction_shift));
   auto placement{place_model(basis, camera, {
     .column{object.pose.position.column},
     .row{object.pose.position.row},
@@ -89,7 +90,7 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
   })};
   auto const header{bank.header_at(object.model_offset)};
   // BC94 patches 2EDC from ADD to SUB for underground moving objects
-  placement.sorting_distance = static_cast<uint16_t>(placement.sorting_distance + (underground ? -header.extent : header.extent));
+  placement.sorting_distance = static_cast<render_geometry::sorting_distance>(placement.sorting_distance + (underground ? -header.extent : header.extent));
   auto item{classify_model(placement, header)};
   if(item) {
     item->model_offset = object.model_offset;
@@ -97,7 +98,7 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
     item->object_light = object.light;
     item->draw_record = object.native_id ? static_cast<uint16_t>(object.native_id + 14) : 0;
     item->distant_point = item->force_flat
-      && static_cast<uint8_t>(static_cast<uint16_t>(placement.depth.whole - 32) >> 8) >= header.point_distance;
+      && static_cast<uint8_t>(static_cast<render_geometry::coordinate_bits>(placement.depth.whole - render_geometry::near_depth) >> 8) >= header.point_distance;
   }
   return item;
 }
@@ -106,16 +107,16 @@ std::optional<screen_vertex> project_distant_object(model_placement const placem
   /// 2D32 consumes traversal AL for the Y divide, then projected Y's low byte for the X divide
   auto point{project_vertex({
     .horizontal{0},
-    .vertical{word(placement.vertical.whole) * 256 + residue},
-    .depth{word(placement.depth.whole) * 256}
+    .vertical{word(placement.vertical.whole) * render_geometry::fraction_scale + residue},
+    .depth{word(placement.depth.whole) * render_geometry::fraction_scale}
   }, origin)};
   if(point.y < 0 || point.y >= bottom) return std::nullopt;
   point.x = project_vertex({
-    .horizontal{word(placement.horizontal.whole) * 256 + static_cast<uint8_t>(point.y)},
+    .horizontal{word(placement.horizontal.whole) * render_geometry::fraction_scale + static_cast<uint8_t>(point.y)},
     .vertical{0},
-    .depth{word(placement.depth.whole) * 256}
+    .depth{word(placement.depth.whole) * render_geometry::fraction_scale}
   }, origin).x;
-  if(point.x < 0 || point.x >= 320 || point.y < 0 || point.y >= bottom) return std::nullopt;
+  if(point.x < 0 || point.x >= display_layout::width || point.y < 0 || point.y >= bottom) return std::nullopt;
   return point;
 }
 
@@ -160,9 +161,7 @@ void order_city_models(std::vector<city_draw_item> &items) {
 void collect_city_cells(std::span<game::city_cell const, game::city_map_cell_count> const cells, uint8_t const column, uint8_t const row,
   camera_angles const angles, unsigned int const radius, std::vector<uint16_t> &output) {
   /// 26EE traverses circular row spans, selecting the heading half unless pitch requires the full circle
-  unsigned int constexpr minimum_scan_radius_cells{2};
-  unsigned int constexpr maximum_scan_radius_cells{32};
-  if(radius < minimum_scan_radius_cells || radius > maximum_scan_radius_cells) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
+  if(radius < scene_limits::minimum_scan_radius_cells || radius > scene_limits::maximum_scan_radius_cells) throw std::invalid_argument{"City scan radius exceeds its supported bounds"};
   output.clear();
   // angles wrap at 65536 units per turn; discard six bits to use the 1024-step sine-table phase
   // +15 is the native quantisation bias, not round-to-nearest (+32); its original rationale is unknown
@@ -236,8 +235,8 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
   // projection needs 1/1024-cell units: multiply the word by four and retain the fraction's top two bits
   // narrowing deliberately wraps at 16 bits, matching the native camera-origin subtractors
   camera_position const camera{
-    .column{static_cast<uint16_t>(view.column * 4 + (view.column_fraction >> 6))},
-    .row{static_cast<uint16_t>(view.row * 4 + (view.row_fraction >> 6))},
+    .column{static_cast<render_geometry::coordinate_bits>(view.column * render_geometry::world_to_camera_scale + (view.column_fraction >> render_geometry::camera_fraction_shift))},
+    .row{static_cast<render_geometry::coordinate_bits>(view.row * render_geometry::world_to_camera_scale + (view.row_fraction >> render_geometry::camera_fraction_shift))},
     .altitude{view.altitude},
   };
   items.clear();
@@ -249,8 +248,8 @@ size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &targe
     return false;
   }};
   // visibility scans address whole map cells: the high byte discards the word's eight sub-cell bits
-  auto const camera_column{static_cast<uint8_t>(view.column >> 8)};
-  auto const camera_row{static_cast<uint8_t>(view.row >> 8)};
+  auto const camera_column{static_cast<uint8_t>(view.column >> maths::world_format::cell_fraction_bits)};
+  auto const camera_row{static_cast<uint8_t>(view.row >> maths::world_format::cell_fraction_bits)};
   if(view.underground && !view.unrestricted_visibility) {
     visit_tunnel_cells(cells, camera_column, camera_row, tunnel_visibility, place);
   } else {

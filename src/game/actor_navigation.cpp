@@ -5,6 +5,8 @@
 #include "maths/direction.h"
 #include "maths/world_coordinates.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 namespace {
 
@@ -22,7 +24,7 @@ actor_course target_course(object_pose const &actor, maths::world_position const
 
 void consider_aircraft_threat(std::array<uint8_t, 4> &errors, scenario_actor const &actor, actor_course const course) noexcept {
   /// 8A58 ranks the four best-aligned nearby aircraft targeting the player, worst first
-  if(actor.selected_target != 0xd986 || course.distance >= 0x0b00) return;
+  if(actor.selected_target != native_object_layout::player || course.distance >= 0x0b00) return;
   auto const error{[](uint16_t const desired, uint16_t const actual){
     auto const high{static_cast<uint8_t>(static_cast<uint16_t>(desired - actual) >> 8)};
     return static_cast<uint8_t>(high ^ (high & 128 ? 255 : 0));
@@ -37,9 +39,9 @@ void consider_aircraft_threat(std::array<uint8_t, 4> &errors, scenario_actor con
 void select_actor_target(scenario_actor &actor) noexcept {
   /// 8826 retains pursuit of the player while awareness is nonzero, otherwise resumes the scripted target
   if(actor.awareness.level != 0) {
-    if(actor.selected_target == 0xd986) return;
+    if(actor.selected_target == native_object_layout::player) return;
     if(actor.behaviour.awareness_threshold < (actor.awareness.level >> 8)) {
-      actor.selected_target = 0xd986;
+      actor.selected_target = native_object_layout::player;
       return;
     }
   }

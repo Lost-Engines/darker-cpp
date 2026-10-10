@@ -23,7 +23,7 @@ struct player_flight {
   flight_steering look_drive{};
   player_crash_state lifecycle{};
   uint16_t desired_height{0};
-  uint16_t forward_setting{248};
+  uint16_t forward_setting{skimma_flight_rules::low_drive};
   uint8_t engine_flags{1};
   bool altitude_hold{false};
   bool scripted_altitude_hold{false};

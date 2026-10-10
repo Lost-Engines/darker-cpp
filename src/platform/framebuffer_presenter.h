@@ -11,8 +11,8 @@ class framebuffer_presenter {
 private:
   GLFWwindow &window;
   unsigned int texture{0};
-  int texture_width{320};
-  int texture_height{200};
+  int texture_width{render::source_sheet_layout::width};
+  int texture_height{render::source_sheet_layout::height};
 
 public:
   framebuffer_presenter(GLFWwindow &window);

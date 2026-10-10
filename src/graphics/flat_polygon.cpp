@@ -1,4 +1,5 @@
 #include "graphics/flat_polygon.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <array>
 #include <bit>
@@ -141,7 +142,7 @@ void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, s
     step_edge(right_edge);
     auto const left{std::clamp(left_edge.x, 0, right + 1)};
     auto const end{std::clamp(right_edge.x, left, right + 1)};
-    std::fill(target.pixels.begin() + y * 320 + left, target.pixels.begin() + y * 320 + end, colour);
+    std::fill(target.pixels.begin() + y * display_layout::width + left, target.pixels.begin() + y * display_layout::width + end, colour);
   }
 }
 

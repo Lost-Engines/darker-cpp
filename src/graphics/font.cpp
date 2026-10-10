@@ -1,4 +1,5 @@
 #include "graphics/font.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 
@@ -11,13 +12,13 @@ uint16_t draw_glyph(framework::render::indexed_cockpit_framebuffer &target, reso
   auto const glyph{font.glyph(face, code, phase)};
   for(unsigned int y{0}; y < glyph.height; ++y) {
     int const row{position.y + glyph.top + static_cast<int>(y)};
-    if(row < 0 || row >= 240) continue;
+    if(row < 0 || row >= display_layout::height) continue;
     for(unsigned int x{0}; x < glyph.stride * 4; ++x) {
       int const column{position.x + static_cast<int>(x) - static_cast<int>(phase)};
-      if(column < 0 || column >= 320) continue;
+      if(column < 0 || column >= display_layout::width) continue;
       auto const bits{std::to_integer<uint8_t>(glyph.planes[y * glyph.stride + x / 4])};
       auto const plane{x & 3};
-      if(bits & (1 << plane)) target.pixels[static_cast<size_t>(row * 320 + column)] = bits & (16 << plane) ? colours.ink : colours.edge;
+      if(bits & (1 << plane)) target.pixels[static_cast<size_t>(row * display_layout::width + column)] = bits & (16 << plane) ? colours.ink : colours.edge;
     }
   }
   return static_cast<uint16_t>(position.x + glyph.advance);
@@ -30,8 +31,8 @@ void draw_message(framework::render::indexed_cockpit_framebuffer &target, resour
   if(width < 2) return;
   int const left{position.x - 3};
   int const right{left + (width / 2 + 3) * 2};
-  for(int y{std::max(0, position.y)}; y < std::min(240, position.y + 9); ++y) {
-    for(int x{std::max(0, left)}; x < std::min(320, right); ++x) target.pixels[static_cast<size_t>(y * 320 + x)] = 0;
+  for(int y{std::max(0, position.y)}; y < std::min(display_layout::height, position.y + 9); ++y) {
+    for(int x{std::max(0, left)}; x < std::min(display_layout::width, right); ++x) target.pixels[static_cast<size_t>(y * display_layout::width + x)] = 0;
   }
   draw_text(target, font, face, text, position, colours);
 }

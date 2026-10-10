@@ -7,6 +7,14 @@
 
 namespace darker::maths {
 
+struct world_format {
+  using position_component = uint16_t;
+  using fraction_component = uint8_t;
+  static unsigned int constexpr cell_fraction_bits{8};                        // low position byte locates the point within a map cell
+  static unsigned int constexpr fraction_bits{8};                             // additional sub-position byte retained by movement
+  static int constexpr units_per_cell{1 << cell_fraction_bits};
+};
+
 // components follow the native column, row, height order; arithmetic remains in the caller's units
 template<typename T>
 struct map_coordinates {
@@ -49,10 +57,10 @@ struct world_coordinates {
   bool operator==(world_coordinates const&) const = default;
 };
 
-using map_position = map_coordinates<uint16_t>;
-using map_fractions = map_coordinates<uint8_t>;
+using map_position = map_coordinates<world_format::position_component>;
+using map_fractions = map_coordinates<world_format::fraction_component>;
 
-using world_position = world_coordinates<uint16_t>;
-using position_fractions = world_coordinates<uint8_t>;
+using world_position = world_coordinates<world_format::position_component>;
+using position_fractions = world_coordinates<world_format::fraction_component>;
 
 } // namespace darker::maths

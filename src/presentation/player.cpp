@@ -76,10 +76,10 @@ void player::load_image(resources::resource_id const id) {
 void player::draw_image(unsigned int const width, unsigned int const height, unsigned int const x, unsigned int const y) {
   /// C0B4 copies the retained image using the current scene layout
   if(image_pixels.empty()) return;
-  if(image_pixels.size() != width * height || x + width > 320 || y + height > 240) throw std::invalid_argument{"Presentation image/layout mismatch"};
+  if(image_pixels.size() != width * height || x + width > framework::render::display_layout::width || y + height > framework::render::display_layout::height) throw std::invalid_argument{"Presentation image/layout mismatch"};
   for(size_t row{0}; row < height; ++row) {
     for(size_t column{0}; column < width; ++column) {
-      background.pixels[(row + y) * 320 + column + x] = std::to_integer<uint8_t>(image_pixels[row * width + column]);
+      background.pixels[(row + y) * framework::render::display_layout::width + column + x] = std::to_integer<uint8_t>(image_pixels[row * width + column]);
     }
   }
 }
@@ -326,7 +326,7 @@ void player::draw(framework::render::cockpit_framebuffer &output, std::array<int
     if(static_cast<size_t>(index) >= animations[channel].size()) throw std::invalid_argument{"Animation reference exceeds loaded frames"};
     for(auto const &pixel : animations[channel][index]) {
       auto const y{pixel.y + image_y};                                         // BFD3 patches DABA: the frame Y is relative to the scene image origin
-      if(pixel.x < 320 && y < 240) frame.pixels[y * 320 + pixel.x] = pixel.colour;
+      if(pixel.x < framework::render::display_layout::width && y < framework::render::display_layout::height) frame.pixels[y * framework::render::display_layout::width + pixel.x] = pixel.colour;
     }
   }
   for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame, font, face, glyph.code, glyph.position,

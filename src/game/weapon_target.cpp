@@ -8,6 +8,10 @@
 
 #include "vectorstorm/vector/vector2.h"
 
+#include "game/native_object_layout.h"
+
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 
 void weapon_target::clear() noexcept {
@@ -31,8 +35,8 @@ uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_acto
   city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
   /// 6D08 clips against the city, then selects the last intersecting aircraft without shortening the ray at its hull
   int constexpr target_ray_terrain_height{10};
-  int constexpr actor_records_base{0xd986};
-  int constexpr actor_record_bytes{112};
+  int constexpr actor_records_base{native_object_layout::actors};
+  int constexpr actor_record_bytes{native_object_layout::record_bytes};
   auto end{target_ray_end(player)};
   auto const hit{sweep_city(bank, cells, damage_mask, player.position, end, 0, target_ray_terrain_height)};
   uint16_t selected{hit.contact == city_contact::building ? static_cast<uint16_t>(hit.row * 256 + hit.column) : weapon_target::no_target};
@@ -103,7 +107,7 @@ void weapon_target::project(maths::world_position const &player,
     return;
   }
   if(!skimma) distance = static_cast<uint8_t>(radial >> 8);
-  bool const ground{original_object_definitions[skimma ? 10 + secondary_weapon : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
+  bool const ground{original_object_definitions[skimma ? object_catalogue::skimma_weapon(secondary_weapon) : secondary_weapon - 1].role_data.projectile().has_flag(projectile_flag::ground_target)};
   if(ground ? (token & weapon_target::aircraft_token_bit) || (!skimma && (cell_type == beacon_model_type || !(cell_state & permitted_ground_target_flag))) : !(token & weapon_target::aircraft_token_bit)) {
     clear();
     return;

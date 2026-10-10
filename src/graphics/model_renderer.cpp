@@ -1,4 +1,5 @@
 #include "graphics/model_renderer.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <format>
@@ -53,14 +54,14 @@ enum class model_opcode : uint8_t {
 };
 
 
-int32_t signed_coordinate(int32_t const value) noexcept {
+render_geometry::accumulator signed_coordinate(render_geometry::accumulator const value) noexcept {
   /// Keep three-byte interpolation additions and subtractions within their original signed range
-  return std::bit_cast<int32_t>(static_cast<uint32_t>(value) << 8) >> 8;
+  return render_geometry::wrap_projection(static_cast<render_geometry::accumulator_bits>(value));
 }
 
-int16_t signed_word(int const value) noexcept {
+render_geometry::coordinate signed_word(render_geometry::accumulator const value) noexcept {
   /// Interpolation quantises deltas to signed words before multiplying
-  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
+  return render_geometry::wrap_coordinate(value);
 }
 
 class interpreter {
@@ -72,7 +73,7 @@ private:
   model_animation const &animation;
   camera_vertex anchor{};
   uint16_t interpolation{0};
-  int16_t last_depth{0};
+  render_geometry::coordinate last_depth{0};
   uint8_t distance_high;
   int bottom;
   model_path path;
@@ -113,7 +114,7 @@ private:
     /// Store a projected vertex at the current original output index
     if(cursor >= vertices.size()) throw std::invalid_argument{"Model exceeds its projected vertex buffer"};
     camera_vertices[cursor] = projection.transform();
-    last_depth = signed_word(camera_vertices[cursor].depth >> 8);
+    last_depth = signed_word(camera_vertices[cursor].depth >> render_geometry::fraction_bits);
     if(path == model_path::direct) vertices[cursor] = project_vertex(camera_vertices[cursor], screen_origin);
     defined[cursor++] = true;
   }
@@ -131,7 +132,7 @@ private:
     } else {
       anchor = projection.transform();
       anchor.vertical = signed_coordinate(anchor.vertical + 0xba);             // 31D9 includes the adjacent MOV opcode byte at FCD4
-      anchor.depth = last_depth * 256;
+      anchor.depth = last_depth * render_geometry::fraction_scale;
     }
   }
 
@@ -144,15 +145,15 @@ private:
     if(path == model_path::near_clipped) {
       int const factor{interpolation >> 4};
       // 32DC/330E read each endpoint from byte one: truncate both before subtraction
-      result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(((current.horizontal >> 8) - (anchor.horizontal >> 8)) >> 2) * factor) >> 2));
-      result.vertical = signed_coordinate(anchor.vertical + ((signed_word(((current.vertical >> 8) - (anchor.vertical >> 8)) >> 2) * factor) >> 2));
+      result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(((current.horizontal >> render_geometry::fraction_bits) - (anchor.horizontal >> render_geometry::fraction_bits)) >> 2) * factor) >> 2));
+      result.vertical = signed_coordinate(anchor.vertical + ((signed_word(((current.vertical >> render_geometry::fraction_bits) - (anchor.vertical >> render_geometry::fraction_bits)) >> 2) * factor) >> 2));
       result.depth = signed_coordinate(anchor.depth + ((signed_word(signed_coordinate(current.depth - anchor.depth) >> 2) * factor) >> 10));
-      last_depth = signed_word(result.depth >> 8);
+      last_depth = signed_word(result.depth >> render_geometry::fraction_bits);
     } else {
       int const factor{interpolation >> 1};
       result.horizontal = signed_coordinate(anchor.horizontal + ((signed_word(signed_coordinate(current.horizontal - anchor.horizontal) >> 7) * factor) >> 8));
       result.vertical = signed_coordinate(anchor.vertical + ((signed_word(signed_coordinate(current.vertical - anchor.vertical) >> 7) * factor) >> 8));
-      result.depth = signed_word((anchor.depth >> 8) + ((signed_word((last_depth - (anchor.depth >> 8)) * 2) * factor) >> 16)) * 256;
+      result.depth = signed_word((anchor.depth >> render_geometry::fraction_bits) + ((signed_word((last_depth - (anchor.depth >> render_geometry::fraction_bits)) * 2) * factor) >> 16)) * render_geometry::fraction_scale;
       vertices[cursor] = project_vertex(result, screen_origin);
     }
     camera_vertices[cursor] = result;
@@ -215,8 +216,8 @@ public:
           if(cursor == 0) throw std::invalid_argument{"Model disc has no preceding vertex"};
           --cursor;
           auto const centre{camera_vertices[cursor]};
-          auto const depth{path == model_path::near_clipped ? signed_word(centre.depth >> 8) : last_depth};
-          if(path == model_path::near_clipped && depth < 32) break;
+          auto const depth{path == model_path::near_clipped ? signed_word(centre.depth >> render_geometry::fraction_bits) : last_depth};
+          if(path == model_path::near_clipped && depth < render_geometry::near_depth) break;
           if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
           auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : vertices[cursor]};
           draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, bottom);
@@ -231,7 +232,7 @@ public:
           screen_vertex first{}, last{};
           if(path == model_path::near_clipped) {
             auto const left{camera_vertices[a]}, right{camera_vertices[b]};
-            bool const left_inside{left.depth >= 32 * 256}, right_inside{right.depth >= 32 * 256};
+            bool const left_inside{left.depth >= render_geometry::near_depth_fixed}, right_inside{right.depth >= render_geometry::near_depth_fixed};
             if(!left_inside && !right_inside) break;
             first = left_inside ? project_vertex(left, screen_origin) : near_intersection(right, left, screen_origin);
             last = right_inside ? project_vertex(right, screen_origin) : near_intersection(left, right, screen_origin);
@@ -379,12 +380,12 @@ public:
           if(shaded && shading == model_shading::gouraud) {
             auto const projected_count{path == model_path::near_clipped
               ? clip_near_shaded_polygon(std::span{camera_face}.first(count), std::span{vertex_shades}.first(count), screen_origin, shaded_face) : count};
-            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), 319, bottom);
+            draw_gouraud_polygon(target, std::span{shaded_face}.first(projected_count), display_layout::right, bottom);
             break;
           }
           auto const projected_count{path == model_path::near_clipped
             ? clip_near_polygon(std::span{camera_face}.first(count), screen_origin, face) : count};
-          draw_flat_polygon(target, std::span{face}.first(projected_count), index, 319, bottom);
+          draw_flat_polygon(target, std::span{face}.first(projected_count), index, display_layout::right, bottom);
         }
         break;
       case model_opcode::skip_back_facing:
@@ -437,7 +438,7 @@ void draw_model(framework::render::indexed_cockpit_framebuffer &target, std::spa
   size_t const model_offset, projection_parameters const projection, model_colours const &colours, int const bottom, model_path const path, model_animation const &animation, model_shading const shading) {
   /// The common eleven-byte model header precedes drawing code for both city and special definitions
   if(model_offset > pool.size() || pool.size() - model_offset < 12) throw std::invalid_argument{"Model has no complete header and drawing body"};
-  if(bottom <= 0 || bottom > 240) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};
+  if(bottom <= 0 || bottom > display_layout::height) throw std::invalid_argument{"Model viewport exceeds the framebuffer height"};
   interpreter{target, pool, projection, colours, bottom, path, animation, shading}.run(model_offset + 11);
 }
 

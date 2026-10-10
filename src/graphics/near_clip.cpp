@@ -6,38 +6,38 @@
 namespace darker::graphics {
 namespace {
 
-int32_t wrap(int32_t const value) noexcept {
+render_geometry::accumulator wrap(render_geometry::accumulator const value) noexcept {
   /// Keep the original signed three-byte coordinate arithmetic
-  return std::bit_cast<int32_t>(static_cast<uint32_t>(value) << 8) >> 8;
+  return render_geometry::wrap_projection(static_cast<render_geometry::accumulator_bits>(value));
 }
 
-int16_t word(int const value) noexcept {
+render_geometry::screen_coordinate word(render_geometry::accumulator const value) noexcept {
   /// Add the screen origin with the original word wrapping
-  return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
+  return render_geometry::wrap_coordinate(value);
 }
 
-int16_t divide(int32_t const numerator, int16_t const depth, int16_t const origin) {
+render_geometry::screen_coordinate divide(render_geometry::accumulator const numerator, render_geometry::coordinate const depth, render_geometry::screen_coordinate const origin) {
   /// Preserve IDIV truncation and report the same zero-depth or quotient-overflow failure
   if(depth == 0) throw std::domain_error{"Model projection has zero depth"};
   auto const quotient{wrap(numerator) / depth};
-  if(quotient < std::numeric_limits<int16_t>::min() || quotient > std::numeric_limits<int16_t>::max()) {
+  if(quotient < std::numeric_limits<render_geometry::screen_coordinate>::min() || quotient > std::numeric_limits<render_geometry::screen_coordinate>::max()) {
     throw std::domain_error{"Model projection exceeds the original signed quotient"};
   }
   return word(quotient + origin);
 }
 
-int16_t intersection_coordinate(int32_t const value, int16_t const origin) noexcept {
+render_geometry::screen_coordinate intersection_coordinate(render_geometry::accumulator const value, render_geometry::screen_coordinate const origin) noexcept {
   /// 2359 saturates distant intersections before adding the screen origin; ordinary intersections shift arithmetically
-  auto const high{value >> 16};
-  if(high < -15 || high >= 15) return value < 0 ? -16383 : 16382;
-  return word((value >> 5) + origin);
+  auto const high{value >> render_geometry::whole_bits};
+  if(high < -render_geometry::intersection_high_word_limit || high >= render_geometry::intersection_high_word_limit) return value < 0 ? render_geometry::intersection_min : render_geometry::intersection_max;
+  return word((value >> render_geometry::near_projection_shift) + origin);
 }
 
 } // anonymous namespace
 
 screen_vertex project_vertex(camera_vertex const vertex, screen_vertex const &origin) {
   /// Project a retained camera-space vertex using its whole signed depth
-  auto const depth{word(vertex.depth >> 8)};
+  auto const depth{word(vertex.depth >> render_geometry::fraction_bits)};
   return {divide(vertex.horizontal, depth, origin.x), divide(vertex.vertical, depth, origin.y)};
 }
 
@@ -49,7 +49,7 @@ screen_vertex near_intersection(camera_vertex const inside, camera_vertex const 
   auto vertical_step{wrap(inside.vertical - outside.vertical)};
   auto depth_step{wrap(inside.depth - outside.depth + 1) >> 1};
   if(depth_step <= 0) throw std::domain_error{"Near-plane edge exceeds the original signed depth span"};
-  auto distance{(inside.depth >> 1) - 16 * 256};
+  auto distance{(inside.depth >> 1) - render_geometry::half_near_depth_fixed};
   while(distance != 0) {
     depth_step >>= 1;
     if(depth_step == 0) break;
@@ -79,8 +79,8 @@ size_t clip_near_polygon(std::span<camera_vertex const> const vertices, screen_v
   for(size_t i{0}; i < vertices.size(); ++i) {
     auto const current{vertices[i]};
     auto const next{vertices[(i + 1) % vertices.size()]};
-    bool const current_inside{current.depth >= 32 * 256};
-    bool const next_inside{next.depth >= 32 * 256};
+    bool const current_inside{current.depth >= render_geometry::near_depth_fixed};
+    bool const next_inside{next.depth >= render_geometry::near_depth_fixed};
     if(current_inside) emit(project_vertex(current, origin));
     if(current_inside != next_inside) emit(current_inside ? near_intersection(current, next, origin) : near_intersection(next, current, origin));
   }
@@ -101,13 +101,13 @@ size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertices, s
   }};
   for(size_t i{0}; i < vertices.size(); ++i) {
     auto const j{(i + 1) % vertices.size()};
-    bool const current_inside{vertices[i].depth >= 32 * 256}, next_inside{vertices[j].depth >= 32 * 256};
+    bool const current_inside{vertices[i].depth >= render_geometry::near_depth_fixed}, next_inside{vertices[j].depth >= render_geometry::near_depth_fixed};
     if(current_inside) emit(project_vertex(vertices[i], origin), shades[i]);
     if(current_inside == next_inside) continue;
     auto const inside{current_inside ? i : j}, outside{current_inside ? j : i};
-    auto const depth{vertices[inside].depth >> 8};
-    auto const divisor{static_cast<uint16_t>(2 * (depth - (vertices[outside].depth >> 8)))};
-    auto const numerator{static_cast<uint32_t>(depth - 32) * 65536};
+    auto const depth{vertices[inside].depth >> render_geometry::fraction_bits};
+    auto const divisor{static_cast<uint16_t>(2 * (depth - (vertices[outside].depth >> render_geometry::fraction_bits)))};
+    auto const numerator{static_cast<uint32_t>(depth - render_geometry::near_depth) * 65536};
     if(divisor == 0 || numerator / divisor > 65535) throw std::domain_error{"Near shade interpolation exceeds the original quotient"};
     auto const fraction{static_cast<int16_t>(numerator / divisor)};
     int const delta{word((shades[outside] - shades[inside]) * 2)};

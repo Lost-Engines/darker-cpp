@@ -6,6 +6,8 @@
 #include "game/object_definitions.h"
 #include "maths/direction.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 
 projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle, object_pose const &player,
@@ -54,7 +56,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
     .model_token{model},
     .clock{clock},
     .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
-    .target_token{0xd986}
+    .target_token{native_object_layout::player}
   });
 }
 

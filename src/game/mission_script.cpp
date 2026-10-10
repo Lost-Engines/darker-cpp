@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include "game/city_map.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 namespace {
 
@@ -77,8 +79,8 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
         if(opcode < 2) {
           auto const column{byte()};
           target = static_cast<uint16_t>(column | byte() * 256);
-        } else if(opcode < 4) target = static_cast<uint16_t>(0xd986 + byte() * 112);
-        else if(opcode == 6) target = 0xd986;
+        } else if(opcode < 4) target = native_object_layout::actor(byte());
+        else if(opcode == 6) target = native_object_layout::player;
         if(!context.set_target) throw std::runtime_error{"Mission target change has no object consumer"};
         context.set_target(target, (opcode & 1) != 0);
         delay(10);

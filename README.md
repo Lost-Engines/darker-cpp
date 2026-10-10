@@ -274,3 +274,5 @@ Use `--language=french` or `--language=german` for the original translated menus
 credits, briefings and radio messages; English remains the default.
 The original shared labels (including NIGHTMARE and the hidden cheat menu) remain
 in English, as in the retail game.
+
+For engine work and forks, see [rules, representations and extension points](docs/engine_rules.md).

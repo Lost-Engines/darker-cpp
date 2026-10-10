@@ -16,17 +16,17 @@ int16_t multiply(int16_t const left, int16_t const right) noexcept {
   return word((left * right) >> 15);
 }
 
-projection_term term(uint32_t const product) noexcept {
+projection_term term(render_geometry::accumulator_bits const product) noexcept {
   /// Keep the whole word and middle byte consumed by the model projector
   return {
-    .whole{static_cast<uint16_t>(product >> 16)},
-    .fraction{static_cast<uint8_t>(product >> 8)}
+    .whole{static_cast<render_geometry::coordinate_bits>(product >> render_geometry::product_whole_shift)},
+    .fraction{static_cast<render_geometry::fraction>(product >> render_geometry::product_fraction_shift)}
   };
 }
 
-uint16_t magnitude(int16_t const value) noexcept {
+render_geometry::sorting_distance magnitude(render_geometry::coordinate const value) noexcept {
   /// The sorting estimate complements negative words, producing abs(value) minus one
-  return static_cast<uint16_t>(value < 0 ? ~value : value);
+  return static_cast<render_geometry::sorting_distance>(value < 0 ? ~value : value);
 }
 
 } // anonymous namespace
@@ -69,21 +69,21 @@ camera_basis orient_model(camera_basis const &camera, camera_angles const angles
 
 model_placement place_model(camera_basis const &basis, camera_position const camera, model_origin const origin) noexcept {
   /// 2E21 transforms a cell origin while preserving word wrapping, fractional bytes and the sorting estimate
-  auto const column{word(origin.column * 4 - camera.column)};
-  auto const row{word(origin.row * 4 - camera.row)};
-  auto const height{word(origin.height + camera.altitude)};
-  auto const x{word(column * 2)};
-  auto const y{word(row * 2)};
+  auto const column{render_geometry::wrap_coordinate(origin.column * render_geometry::world_to_camera_scale - camera.column)};
+  auto const row{render_geometry::wrap_coordinate(origin.row * render_geometry::world_to_camera_scale - camera.row)};
+  auto const height{render_geometry::wrap_coordinate(origin.height + camera.altitude)};
+  auto const x{render_geometry::wrap_coordinate(column * render_geometry::model_horizontal_scale)};
+  auto const y{render_geometry::wrap_coordinate(row * render_geometry::model_horizontal_scale)};
   auto const transform{[&](int16_t projection_axis::*const member){
-    return term(static_cast<uint32_t>(basis[1].*member * x)
-      - static_cast<uint32_t>(basis[0].*member * y)
-      + static_cast<uint32_t>(basis[2].*member * height));
+    return term(static_cast<render_geometry::accumulator_bits>(static_cast<render_geometry::accumulator>(basis[1].*member) * x)
+      - static_cast<render_geometry::accumulator_bits>(static_cast<render_geometry::accumulator>(basis[0].*member) * y)
+      + static_cast<render_geometry::accumulator_bits>(static_cast<render_geometry::accumulator>(basis[2].*member) * height));
   }};
   return {
     .horizontal{transform(&projection_axis::horizontal)},
     .vertical{transform(&projection_axis::vertical)},
     .depth{transform(&projection_axis::depth)},
-    .sorting_distance{static_cast<uint16_t>(magnitude(column) + magnitude(row) + magnitude(camera.altitude))},
+    .sorting_distance{static_cast<render_geometry::sorting_distance>(magnitude(column) + magnitude(row) + magnitude(camera.altitude))},
   };
 }
 

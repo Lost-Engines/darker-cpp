@@ -1,14 +1,15 @@
 #include "graphics/tunnel_visibility.h"
 #include <array>
 #include <stdexcept>
+#include "graphics/render_geometry.h"
 
 namespace darker::graphics {
 
 void visit_tunnel_cells(std::span<game::city_cell const, game::city_map_cell_count> const cells, uint8_t const column, uint8_t const row,
   std::span<uint8_t, game::city_map_cell_count> const visibility, std::function<bool(uint16_t)> const &visit) {
   /// 2778 propagates model acceptance through the original cardinal, diagonal and eightfold outward visits
-  unsigned int constexpr cardinal_reach_cells{8};
-  unsigned int constexpr diagonal_reach_cells{7};
+  unsigned int constexpr cardinal_reach_cells{scene_limits::tunnel_radius_cells};
+  unsigned int constexpr diagonal_reach_cells{cardinal_reach_cells - 1};
   unsigned int constexpr outer_edge_width_cells{3};
   if(column >= game::city_map_size.column || row >= game::city_map_size.row) throw std::out_of_range{"Underground camera cell exceeds its map"};
   // addresses retain the original two-byte cell layout: 128 cells per row means a 256-byte row stride

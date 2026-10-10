@@ -7,6 +7,8 @@
 #include "game/skimma_weapons.h"
 #include "maths/world_coordinates.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 
 bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t const expansion,
@@ -102,7 +104,7 @@ void advance_falling_aircraft(scenario_actor &actor, game_duration frame_step) n
 std::optional<object_definition_index> aircraft_projectile_definition(scenario_actor const &actor, uint8_t const target_flags,
   actor_course const course, uint8_t const distance, clock_tick const clock, uint8_t const difficulty, bool const building_attacks) {
   /// 8AFD selects object missiles or the adjacent building-attack definition before the common aim and cooldown checks
-  if(actor.selected_target != 0xd986 && (actor.flags & 2)) return std::nullopt;
+  if(actor.selected_target != native_object_layout::player && (actor.flags & 2)) return std::nullopt;
   bool const building{!(actor.selected_target & 0x8000)};
   if(building ? (!building_attacks || distance >= 10) : (target_flags & 0x30)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
@@ -150,7 +152,7 @@ std::optional<gun_trace> fire_skimma_gun(scenario_actor const &actor, object_pos
   /// 8B65's slot-19 close-range gun tests the original DX aim bounds and timer bits, then traces a randomised ray
   // 8C28 doubles DH before 8B7C compares it with 16; behaviour byte 50 only controls the later projectile branch
   if(actor.definition_slot != 19 || distance >= 8) return std::nullopt;
-  if(actor.selected_target != 0xd986 || (player_flags & target_protection_mask)) return std::nullopt;
+  if(actor.selected_target != native_object_layout::player || (player_flags & target_protection_mask)) return std::nullopt;
   auto const speed{actor.parameters.definition->base_speed};
   auto const pitch_error{static_cast<uint8_t>((static_cast<uint16_t>(course.pitch - actor.pose.angles.pitch) >> 8) + speed)};
   if(pitch_error >= static_cast<uint8_t>(speed * 2)) return std::nullopt;

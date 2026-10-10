@@ -20,6 +20,10 @@
 #include "game/vehicle_combat.h"
 #include "maths/world_coordinates.h"
 
+#include "game/native_object_layout.h"
+
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 namespace {
 
@@ -87,7 +91,7 @@ void mission_combat::release_target(uint16_t const token) noexcept {
     }
   }
   if(target.token == token) target.clear();
-  if(camera_actor && token == static_cast<uint16_t>(0xd986 + *camera_actor * 112)) camera_actor.reset();
+  if(camera_actor && token == native_object_layout::actor(*camera_actor)) camera_actor.reset();
 }
 
 void mission_combat::spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, clock_tick const clock, game_duration const frame_step) {
@@ -122,7 +126,7 @@ void mission_combat::collide_player(player_flight &player, maths::world_position
   player_hit = true;
   if(reaction.remove) {
     retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
-    release_target(static_cast<uint16_t>(0xd986 + victim->index * 112));
+    release_target(native_object_layout::actor(victim->index));
     completed_objectives += victim->attributes & 1;
     adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
     actors.erase(actors.begin() + (victim - actors.data()));
@@ -143,7 +147,7 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
     auto const actor{find(index)};
     if(actor == actors.end()) return;
     retained_flags[index] = static_cast<uint8_t>(actor->flags | 0x20);
-    release_target(static_cast<uint16_t>(0xd986 + index * 112));
+    release_target(native_object_layout::actor(index));
     completed_objectives += actor->attributes & 1;
     adjust_objectives(static_cast<uint8_t>(-(actor->attributes & 1)));
     actors.erase(actor);
@@ -191,7 +195,7 @@ void mission_combat::detonate_dual_launch(projectile &shot, clock_tick const clo
         continue;
       }
       retained_flags[actor->index] = static_cast<uint8_t>(actor->flags | 0x20);
-      release_target(static_cast<uint16_t>(0xd986 + actor->index * 112));
+      release_target(native_object_layout::actor(actor->index));
       completed_objectives += actor->attributes & 1;
       adjust_objectives(static_cast<uint8_t>(-(actor->attributes & 1)));
       actor = actors.erase(actor);
@@ -255,7 +259,7 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
     effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
     if(reaction.remove) {
       retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
-      release_target(static_cast<uint16_t>(0xd986 + victim->index * 112));
+      release_target(native_object_layout::actor(victim->index));
       completed_objectives += victim->attributes & 1;
       adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
       actors.erase(actors.begin() + (victim - actors.data()));
@@ -289,7 +293,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto &actor){
     if(!advance_object_deadline(actor.flags, actor.expiry, actor.fade, actor.pose.position.height, clock)) return false;
-    release_target(static_cast<uint16_t>(0xd986 + actor.index * 112));
+    release_target(native_object_layout::actor(actor.index));
     completed_objectives += actor.attributes & 1;
     adjust_objectives(static_cast<uint8_t>(-(actor.attributes & 1)));
     auto const lifetime{static_cast<uint8_t>(actor.attributes & 0xfe)};
@@ -345,7 +349,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           actor.tunnel->oscillation = phase;
         };
         context.register_owner = [&]{
-          return std::exchange(script_owner, static_cast<uint16_t>(0xd986 + actor.index * 112));
+          return std::exchange(script_owner, native_object_layout::actor(actor.index));
         };
         advance_mission_script(actor.script, context);
         *find_actor() = std::move(actor);
@@ -383,7 +387,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
             apply_player_damage(damage, 0x15, 3, !caero, player.damage_cheat, random_state);
             player_hit = true;
           }
-          if(source.selected_target == 0xd986 || !(source.selected_target & 0x8000)) {
+          if(source.selected_target == native_object_layout::player || !(source.selected_target & 0x8000)) {
             if(auto const slot{aircraft_projectile_definition(source, player.lifecycle.flags, course, distance, clock, difficulty, building_attacks)}) {
               // CAF0 records the attempt time even if the hostile pool is exhausted
               source.last_shot = clock;
@@ -471,7 +475,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       .weapon{skimma.selection},
       .player_flags{player.lifecycle.flags},
       .pressed{secondary_pressed},
-      .model{bank.special_models()[10 + skimma.selection]},
+      .model{bank.special_models()[object_catalogue::skimma_weapon(skimma.selection)]},
       .clock{clock},
       .target{target.token}
     })};
@@ -482,11 +486,11 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto const resolve_target{[&](projectile &shot)->projectile_target {
     if(shot.parameters.update_entry == object_update::mimic) return &player.pose();
     if(shot.parameters.update_entry != object_update::homing_projectile && shot.parameters.update_entry != object_update::chargeable && shot.parameters.update_entry != object_update::dual_launch) return {};
-    if(shot.target_token == 0xd986) return &player.pose();
+    if(shot.target_token == native_object_layout::player) return &player.pose();
     if(!(shot.target_token & 0x8000)) return resolve_map_guidance(shot.target_token, cells, bank, damage_mask);
     if(shot.target_token == shot.native_id) return &shot.placement;
     auto const actor{std::ranges::find_if(actors, [&](auto const &candidate){
-      return 0xd986 + candidate.index * 112 == shot.target_token;
+      return native_object_layout::actor(candidate.index) == shot.target_token;
     })};
     if(actor != actors.end()) return &actor->pose;
     if(auto const *other{projectiles.resolve(shot.target_token)}) return &other->placement;
@@ -528,7 +532,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     if(target.token != 0xffff) {
       if(target.token & 0x8000) {
         auto const found{std::ranges::find_if(actors, [&](auto const &actor){
-          return 0xd986 + actor.index * 112 == target.token;
+          return native_object_layout::actor(actor.index) == target.token;
         })};
         if(found == actors.end()) target.clear();
         else {
@@ -572,12 +576,12 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         ? pinner_direct_strength(player.tunnel.has_value()) : shot->parameters.definition->impact_strength}};
     if(victim && strength) {
       auto const strength_input{shot->parameters.definition == &original_object_definitions[7]
-        ? caero_weapon_strength(cells, impact, static_cast<uint16_t>(0xd986 + victim->index * 112)) : *strength};
+        ? caero_weapon_strength(cells, impact, native_object_layout::actor(victim->index)) : *strength};
       auto const reaction{hit_actor(*victim, strength_input, clock, random_state, player.tunnel.has_value())};
       effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : impact, clock);
       if(reaction.remove) {
         retained_flags[victim->index] = static_cast<uint8_t>(victim->flags | 0x20);
-        release_target(static_cast<uint16_t>(0xd986 + victim->index * 112));
+        release_target(native_object_layout::actor(victim->index));
         completed_objectives += victim->attributes & 1;
         adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
         actors.erase(actors.begin() + (victim - actors.data()));

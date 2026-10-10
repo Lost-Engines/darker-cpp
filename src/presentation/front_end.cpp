@@ -20,7 +20,7 @@ void load_image(resources::archive_set const &archives, resources::resource_id c
   frame.pixels.fill(0);
   for(size_t row{0}; row < height; ++row) {
     for(size_t column{0}; column < width; ++column) {
-      frame.pixels[(y + row) * 320 + x + column] = std::to_integer<uint8_t>(bytes[decoded.bytes_consumed + row * width + column]);
+      frame.pixels[(y + row) * framework::render::display_layout::width + x + column] = std::to_integer<uint8_t>(bytes[decoded.bytes_consumed + row * width + column]);
     }
   }
 }
@@ -51,7 +51,7 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
   if(logo.size() != 80 * 17) throw std::invalid_argument{"Unexpected credits logo size"};
   for(size_t y{0}; y < 17; ++y) {
     for(size_t x{0}; x < 80; ++x) {
-      credits_background.pixels[(y + 48) * 320 + x + 120] = std::to_integer<uint8_t>(logo[y * 80 + x]);
+      credits_background.pixels[(y + 48) * framework::render::display_layout::width + x + 120] = std::to_integer<uint8_t>(logo[y * 80 + x]);
     }
   }
   auto const credits{original_credits.at(static_cast<size_t>(language))};
@@ -474,13 +474,13 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
   auto const centred{[&](std::string_view const value, int const y, uint8_t const colour){
     unsigned int width{0};
     for(auto const code : value) width += code == ' ' ? 4 : font.glyph(resources::font_face::interface, static_cast<uint8_t>(code)).width;
-    text(value, (320 - static_cast<int>(width)) / 2, y, colour);
+    text(value, (framework::render::display_layout::width - static_cast<int>(width)) / 2, y, colour);
   }};
   auto const panel{[&](int const x, int const y, int const width, int const height){
     // 08E9 copies the menu rectangle through VGA XOR with bit mask 80
     for(int row{y}; row < y + height; ++row) {
       for(int column{x}; column < x + width; ++column) {
-        frame.pixels[static_cast<size_t>(row * 320 + column)] ^= 128;
+        frame.pixels[static_cast<size_t>(row * framework::render::display_layout::width + column)] ^= 128;
       }
     }
   }};

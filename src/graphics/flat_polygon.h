@@ -3,12 +3,13 @@
 #include <array>
 #include <cstdint>
 #include <span>
+#include "graphics/render_geometry.h"
 #include "vectorstorm/vector/vector2.h"
 #include "render/indexed_framebuffer.h"
 
 namespace darker::graphics {
 
-using screen_vertex = vec2<int16_t>;
+using screen_vertex = vec2<render_geometry::screen_coordinate>;
 
 inline unsigned int constexpr polygon_vertex_limit{256};                       // model vertex indices are bytes
 inline unsigned int constexpr clipped_polygon_vertex_limit{polygon_vertex_limit + 4}; // one extra vertex per viewport plane
@@ -48,6 +49,6 @@ inline auto viewport_clip_planes(int const right, int const bottom) noexcept {
 bool back_facing(screen_vertex const &origin, screen_vertex const &next, screen_vertex const &previous) noexcept;
 
 void draw_flat_polygon(framework::render::indexed_cockpit_framebuffer &target, std::span<screen_vertex const> vertices,
-  uint8_t colour, int right = 319, int bottom = 240);
+  uint8_t colour, int right = display_layout::right, int bottom = display_layout::height);
 
 } // namespace darker::graphics

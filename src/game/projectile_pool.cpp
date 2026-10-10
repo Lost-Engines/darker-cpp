@@ -1,14 +1,16 @@
 #include "game/projectile_pool.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 
 projectile_pool::projectile_pool(projectile_list const category)
-  : count{category == projectile_list::player ? 12u : 6u}, first_id{static_cast<uint16_t>(category == projectile_list::player ? 0xd1a6 : 0xd6e6)} {
+  : count{category == projectile_list::player ? projectile_limits::player_capacity : projectile_limits::hostile_capacity}, first_id{static_cast<uint16_t>(category == projectile_list::player ? native_object_layout::player_projectiles : native_object_layout::hostile_projectiles)} {
   /// 1D3C/1D49 build separate twelve-shot player and six-shot hostile free lists
   uint16_t id{first_id};
   for(auto &record : std::span{storage}.first(count)) {
     record.native_id = id;
-    id = static_cast<uint16_t>(id + 112);
+    id = static_cast<uint16_t>(id + native_object_layout::record_bytes);
     list.add_free_record(record);
   }
 }
@@ -43,8 +45,8 @@ projectile *projectile_pool::resolve(uint16_t const native_id) noexcept {
   /// Native IDs preserve original target references without dereferencing DOS addresses
   if(native_id < first_id) return nullptr;
   unsigned int const offset{static_cast<unsigned int>(native_id - first_id)};
-  if(offset % 112 != 0 || offset / 112 >= count) return nullptr;
-  return &storage[offset / 112];
+  if(offset % native_object_layout::record_bytes != 0 || offset / native_object_layout::record_bytes >= count) return nullptr;
+  return &storage[offset / native_object_layout::record_bytes];
 }
 
 object_list<projectile> const &projectile_pool::objects() const noexcept {

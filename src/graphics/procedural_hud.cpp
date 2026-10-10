@@ -1,4 +1,5 @@
 #include "graphics/procedural_hud.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <cstddef>
@@ -12,7 +13,7 @@ namespace {
 
 void put_pixel(framework::render::indexed_cockpit_framebuffer &target, int const x, int const y, uint8_t const colour) noexcept {
   /// Keep host writes within the physical surface
-  if(x >= 0 && x < 320 && y >= 0 && y < 240) target.pixels[static_cast<size_t>(y * 320 + x)] = colour;
+  if(x >= 0 && x < display_layout::width && y >= 0 && y < display_layout::height) target.pixels[static_cast<size_t>(y * display_layout::width + x)] = colour;
 }
 
 size_t draw_outline(framework::render::indexed_cockpit_framebuffer &target,
@@ -74,7 +75,7 @@ attitude_line calculate_attitude(uint16_t const pitch_index, uint16_t const roll
   int const pitch_cosine{(maths::original_sine[(pitch_index + 256) % 1024] * 224) >> 16};
   int const roll_sine{maths::original_sine[roll_index]};
   int const roll_cosine{maths::original_sine[(roll_index + 256) % 1024]};
-  pixel_position const centre{160 + ((roll_sine * pitch_sine) >> 16), centre_y + ((roll_cosine * pitch_sine) >> 16)};
+  pixel_position const centre{display_layout::centre_x + ((roll_sine * pitch_sine) >> 16), centre_y + ((roll_cosine * pitch_sine) >> 16)};
   pixel_position const offset{(roll_cosine * pitch_cosine) >> 16, -((roll_sine * pitch_cosine) >> 16)};
   int const shade{(pitch_high * (pitch_high < 0 ? -45 : 44)) >> 8};
   return {
@@ -101,7 +102,7 @@ void draw_target_marker(framework::render::indexed_cockpit_framebuffer &target,
   default:
     throw std::invalid_argument{"unknown target marker"};
   }
-  if(centre.x < 0 || centre.x >= 320 || centre.y < 0 || centre.y >= 240) throw std::invalid_argument{"marker centre must be inside the display"};
+  if(centre.x < 0 || centre.x >= display_layout::width || centre.y < 0 || centre.y >= display_layout::height) throw std::invalid_argument{"marker centre must be inside the display"};
   int const extent{stream.front()};
   size_t cursor{1};
   for(int half{0}; half < 2; ++half) {

@@ -310,3 +310,6 @@ The flight checkpoint calls this for both Caero and Skimma before drawing city
 models. It does not change the 60-entry model shade tables, visibility radius,
 projection, or resource palettes. Underground background handling remains part
 of the future underground scene integration.
+
+See [rules, representations and extension points](engine_rules.md) for the owning
+types, constants and relationships to consider when modifying this subsystem.

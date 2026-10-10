@@ -1,3 +1,4 @@
+#include "game/native_object_layout.h"
 #include "audio/world_sounds.h"
 #include <algorithm>
 #include <bit>
@@ -149,7 +150,7 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       if(!actor.parameters.definition) continue;
       auto const note{object_sound(*actor.parameters.definition, actor.pose,
         {
-          .identity{static_cast<uint16_t>(0xd986 + actor.index * 112)},
+          .identity{darker::game::native_object_layout::actor(actor.index)},
           .flags{actor.flags},
           .damage{actor.awareness.cooldown},
           .fade{actor.fade},

@@ -12,8 +12,8 @@ namespace darker::graphics {
 using projection_axis = maths::view_axis;
 
 struct projection_term {
-  uint16_t whole{0};
-  uint8_t fraction{0};
+  render_geometry::coordinate_bits whole{0};
+  render_geometry::fraction fraction{0};
 };
 
 struct projection_parameters {
@@ -26,7 +26,7 @@ struct projection_parameters {
 
 struct projected_vertex {
   screen_vertex screen{};
-  int16_t depth{0};
+  render_geometry::coordinate depth{0};
 };
 
 class model_projection {
@@ -34,13 +34,13 @@ private:
   struct contribution {
     projection_term horizontal{};
     projection_term depth{};
-    uint16_t vertical{0};
+    render_geometry::coordinate_bits vertical{0};
   };
 
   projection_parameters parameters;
   std::array<contribution, 3> contributions{};
-  uint8_t vertical_ab_fraction{0};
-  uint8_t vertical_c_fraction{0};
+  render_geometry::fraction vertical_ab_fraction{0};
+  render_geometry::fraction vertical_c_fraction{0};
 
 public:
   explicit model_projection(projection_parameters parameters);

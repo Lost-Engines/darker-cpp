@@ -334,3 +334,6 @@ displays together, and `weapon_target` applies craft-specific projection and
 clearing rules. Their native state remains directly representable for setup and
 reference fixtures. Calculations involving separate actors, maps or projectile
 pools remain free functions; the main update sequence retains its original order.
+
+See [rules, representations and extension points](engine_rules.md) for the owning
+types, constants and relationships to consider when modifying this subsystem.

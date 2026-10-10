@@ -48,15 +48,15 @@ std::optional<city_draw_item> place_scene_object(resources::geometry_bank const 
 std::optional<screen_vertex> project_distant_object(model_placement placement, screen_vertex const &origin, int bottom, uint8_t residue = 0);
 
 struct city_view {
-  uint16_t column{0};                                                          // original 1/256-cell position words
-  uint16_t row{0};
-  uint8_t column_fraction{0};
-  uint8_t row_fraction{0};
-  int16_t altitude{0};
+  maths::world_format::position_component column{0};                                                          // original 1/256-cell position words
+  maths::world_format::position_component row{0};
+  maths::world_format::fraction_component column_fraction{0};
+  maths::world_format::fraction_component row_fraction{0};
+  render_geometry::coordinate altitude{0};
   camera_angles angles{};
-  screen_vertex origin{160, 84};
-  unsigned int radius{15};                                                     // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
-  int bottom{168};
+  screen_vertex origin{display_layout::centre_x, cockpit_view_layout::caero_centre_y};
+  unsigned int radius{scene_limits::surface_radius_cells};                                                     // BCE3–BCFB: Delphi/Halon radius (underground uses eight)
+  int bottom{cockpit_view_layout::caero_height};
   bool beacon_lighting{true};
   bool gouraud{true};
   bool underground{false};

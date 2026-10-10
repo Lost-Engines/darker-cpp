@@ -12,8 +12,8 @@ private:
   std::vector<std::array<uint8_t, model_colours::shade_count>> tables;
 
 public:
-  explicit distance_shading(unsigned int count = 60);
-  model_colours colours(uint16_t depth, model_path path, uint8_t light) const;
+  explicit distance_shading(unsigned int count = scene_limits::distance_shade_tables);
+  model_colours colours(render_geometry::coordinate_bits depth, model_path path, uint8_t light) const;
 };
 
 } // namespace darker::graphics

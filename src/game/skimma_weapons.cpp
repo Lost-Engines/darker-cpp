@@ -11,12 +11,9 @@
 namespace darker::game {
 namespace {
 
-std::array<uint8_t, 3> constexpr working_capacity{14, 8, 10};
-std::array<uint8_t, 3> constexpr reserve_capacity{5, 3, 4};
-
 void validate_weapon(uint8_t const weapon) {
   /// The caller selects a craft-available slot; the native tables contain three slots
-  if(weapon >= working_capacity.size()) throw std::invalid_argument{"Skimma weapon index must be below three"};
+  if(weapon >= skimma_weapon_specifications.size()) throw std::invalid_argument{"Skimma weapon index must be below three"};
 }
 
 } // anonymous namespace
@@ -63,7 +60,7 @@ projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, 
   if(!request.pressed || (request.player_flags & 0x20) || slot.flags != 3) return nullptr;
   bool const valid_target{request.weapon == 1 ? !(request.target & 0x8000) : (static_cast<uint16_t>(request.target + 1) & 0x8000) != 0};
   if(!valid_target) return nullptr;
-  auto const &definition{original_object_definitions[10 + request.weapon]};
+  auto const &definition{original_object_definitions[skimma_weapon_specifications[request.weapon].definition]};
   auto *shot{pool.launch({
     .definition{definition},
     .emitter{request.emitter},
@@ -96,8 +93,8 @@ void refill_skimma_weapon(weapon_ammunition &ammunition, uint8_t const weapon) {
   /// 5E44–5E58 refill both counters without changing the shared reload deadline
   validate_weapon(weapon);
   ammunition = {
-    .working{working_capacity[weapon]},
-    .reserve{reserve_capacity[weapon]}
+    .working{skimma_weapon_specifications[weapon].working_capacity},
+    .reserve{skimma_weapon_specifications[weapon].reserve_capacity}
   };
 }
 
@@ -109,7 +106,7 @@ bool skimma_armament::reload(uint8_t const weapon, clock_tick const clock) {
   auto const next{static_cast<uint8_t>(ammunition.reserve - 1)};
   if((next & 0x80) != 0) return false;
   ammunition = {
-    .working{working_capacity[weapon]},
+    .working{skimma_weapon_specifications[weapon].working_capacity},
     .reserve{next}
   };
   ring.reload_deadline = static_cast<uint16_t>(clock + reload_delay);

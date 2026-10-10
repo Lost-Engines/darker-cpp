@@ -3,6 +3,7 @@
 #include <bit>
 #include <stdexcept>
 #include "game/angular_motion.h"
+#include "game/flight_rules.h"
 #include "game/beacon_light.h"
 #include "game/flight_attitude.h"
 #include "game/flight_motion.h"
@@ -11,9 +12,7 @@
 namespace darker::game {
 namespace {
 
-uint16_t constexpr startup_energy_limit{0x5000};                               // high byte 80 yields five complete pips when doubled and masked
 uint16_t constexpr fraction_mask{0xff};
-uint16_t constexpr active_boost_duration{0x3800};                              // native drive-accounting units, not milliseconds
 
 int16_t word(int const value) noexcept {
   /// Retain each original word boundary before signed arithmetic
@@ -36,7 +35,7 @@ bool activate_caero_boost(caero_flight_state &state) noexcept {
   /// B963 spends one complete boost pip and replaces only the high byte of the active drive duration
   if(state.energy.boost < caero_energy_state::boost_pip_energy) return false;
   state.energy.boost -= caero_energy_state::boost_pip_energy;
-  state.active_boost = static_cast<uint16_t>((state.active_boost & fraction_mask) | active_boost_duration);
+  state.active_boost = static_cast<uint16_t>((state.active_boost & fraction_mask) | caero_flight_rules::active_boost_duration);
   return true;
 }
 
@@ -47,16 +46,15 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
     state.energy.buffer = caero_energy_state::buffer_capacity;
     state.energy.reserve = caero_energy_state::reserve_capacity;
     state.energy.boost = caero_energy_state::boost_capacity;
-    state.startup_energy = startup_energy_limit;
+    state.startup_energy = caero_flight_rules::startup_energy_limit;
   }
-  unsigned int constexpr startup_charge_rate{7};
   unsigned int constexpr complete_pip_mask{0xe0};                              // high-byte multiples of 32 represent complete boost pips
   uint16_t constexpr unlimited_beacon_strength{0x1800};                        // fixed light input for the debug free-flight path
   if(!state.flying) {
     if((state.active_boost >> 8) == 0) {
       if(input.engine_flags & 1) {
-        state.startup_energy = static_cast<uint16_t>(state.startup_energy + frame_step * startup_charge_rate);
-        if((state.startup_energy >> 8) >= (startup_energy_limit >> 8)) state.startup_energy = static_cast<uint16_t>((state.startup_energy & fraction_mask) | startup_energy_limit);
+        state.startup_energy = static_cast<uint16_t>(state.startup_energy + frame_step * caero_flight_rules::startup_charge_rate);
+        if((state.startup_energy >> 8) >= (caero_flight_rules::startup_energy_limit >> 8)) state.startup_energy = static_cast<uint16_t>((state.startup_energy & fraction_mask) | caero_flight_rules::startup_energy_limit);
       }
       state.energy.boost = static_cast<uint16_t>((state.energy.boost & 255) | (((state.startup_energy >> 8) * 2 & complete_pip_mask) << 8));
       return;

@@ -6,22 +6,22 @@ namespace {
 
 projection_term product(int16_t const value, int16_t const coefficient) noexcept {
   /// FD04/FD30/FD5C cache the upper word and middle byte of each signed product
-  auto const bits{static_cast<uint32_t>(static_cast<int32_t>(value) * coefficient)};
+  auto const bits{static_cast<render_geometry::accumulator_bits>(static_cast<render_geometry::accumulator>(value) * coefficient)};
   return {
-    .whole{static_cast<uint16_t>(bits >> 16)},
-    .fraction{static_cast<uint8_t>(bits >> 8)}
+    .whole{static_cast<render_geometry::coordinate_bits>(bits >> render_geometry::product_whole_shift)},
+    .fraction{static_cast<render_geometry::fraction>(bits >> render_geometry::product_fraction_shift)}
   };
 }
 
 void negate(projection_term &term) noexcept {
   /// Negate the cached 24-bit contribution rather than recomputing an unrounded product
-  term.whole = static_cast<uint16_t>(-term.whole - (term.fraction != 0 ? 1 : 0));
-  term.fraction = static_cast<uint8_t>(-term.fraction);
+  term.whole = static_cast<render_geometry::coordinate_bits>(-term.whole - (term.fraction != 0 ? 1 : 0));
+  term.fraction = static_cast<render_geometry::fraction>(-term.fraction);
 }
 
-uint32_t bits(projection_term const term) noexcept {
+render_geometry::accumulator_bits bits(projection_term const term) noexcept {
   /// Join the original coordinate word and fractional byte
-  return static_cast<uint32_t>(term.whole) * 256 + term.fraction;
+  return static_cast<render_geometry::accumulator_bits>(term.whole) * render_geometry::fraction_scale + term.fraction;
 }
 
 } // anonymous namespace
@@ -53,8 +53,8 @@ void model_projection::negate_component(size_t const axis) {
   negate(cached.horizontal);
   negate(cached.depth);
   auto &fraction{axis == 2 ? vertical_c_fraction : vertical_ab_fraction};
-  cached.vertical = static_cast<uint16_t>(-cached.vertical - (fraction != 0 ? 1 : 0));
-  fraction = static_cast<uint8_t>(-fraction);
+  cached.vertical = static_cast<render_geometry::coordinate_bits>(-cached.vertical - (fraction != 0 ? 1 : 0));
+  fraction = static_cast<render_geometry::fraction>(-fraction);
 }
 
 camera_vertex model_projection::transform() const noexcept {
@@ -65,15 +65,12 @@ camera_vertex model_projection::transform() const noexcept {
   for(auto const &cached : contributions) {
     horizontal += bits(cached.horizontal);
     depth += bits(cached.depth);
-    vertical += static_cast<uint32_t>(cached.vertical) * 256;
+    vertical += static_cast<render_geometry::accumulator_bits>(cached.vertical) * render_geometry::fraction_scale;
   }
-  auto const signed_coordinate{[](uint32_t const value){
-    return std::bit_cast<int32_t>(value << 8) >> 8;
-  }};
   return {
-    .horizontal{signed_coordinate(horizontal)},
-    .vertical{signed_coordinate(vertical)},
-    .depth{signed_coordinate(depth)}
+    .horizontal{render_geometry::wrap_projection(horizontal)},
+    .vertical{render_geometry::wrap_projection(vertical)},
+    .depth{render_geometry::wrap_projection(depth)}
   };
 }
 
@@ -82,7 +79,7 @@ projected_vertex model_projection::project() const {
   auto const vertex{transform()};
   return {
     .screen{project_vertex(vertex, parameters.origin)},
-    .depth{static_cast<int16_t>(vertex.depth >> 8)}
+    .depth{render_geometry::wrap_coordinate(vertex.depth >> render_geometry::fraction_bits)}
   };
 }
 

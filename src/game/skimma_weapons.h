@@ -9,6 +9,8 @@
 #include "game/time.h"
 #include "maths/world_coordinates.h"
 
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 
 struct weapon_ammunition {
@@ -41,7 +43,7 @@ struct weapon_ring_state {
 
 struct skimma_armament {
   static unsigned int constexpr ordinary_slot_count{2};
-  static unsigned int constexpr upgraded_slot_count{3};
+  static unsigned int constexpr upgraded_slot_count{object_catalogue::skimma_weapon_count};
   static uint16_t constexpr reload_delay{1024};
   static uint16_t constexpr untracked_spread{508};
 

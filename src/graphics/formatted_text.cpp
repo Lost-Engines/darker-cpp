@@ -1,4 +1,5 @@
 #include "graphics/formatted_text.h"
+#include "graphics/screen_layout.h"
 #include <array>
 #include <bit>
 #include <stdexcept>
@@ -84,7 +85,7 @@ public:
         cursor.x = cursor.margin;
         break;
       case 6:
-        cursor.x = static_cast<uint16_t>(320 - centred_width()) >> 1;
+        cursor.x = static_cast<uint16_t>(display_layout::width - centred_width()) >> 1;
         run(depth + 1);
         break;
       case 7:

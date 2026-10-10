@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "game/city_map.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 
 std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose const &player,
@@ -21,7 +23,7 @@ std::optional<uint8_t> advance_surface_actor(scenario_actor &actor, object_pose 
   actor_course course;
   if(actor.selected_target & 0x8000) {
     auto const target{std::ranges::find_if(active, [&](auto const &candidate){
-      return 0xd986 + candidate.index * 112 == actor.selected_target;
+      return native_object_layout::actor(candidate.index) == actor.selected_target;
     })};
     course = actor_object_course(actor.pose, target != active.end() && !(target->flags & 0x20) ? target->pose : player);
   } else {

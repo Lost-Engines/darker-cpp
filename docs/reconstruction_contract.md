@@ -133,3 +133,6 @@ Deferred candidates:
 
 Do not implement these extensions during reconstruction milestones. Defer their
 API and implementation design until the working original mechanisms are in place.
+
+See [rules, representations and extension points](engine_rules.md) for the owning
+types, constants and relationships to consider when modifying this subsystem.

@@ -5,15 +5,16 @@
 #include "game/city_map.h"
 #include "game/object_definitions.h"
 
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 
 uint8_t player_flight::definition_slot() const noexcept {
   /// The scenario's low configuration nibble selects definitions 24–28, independently of the visible craft family
-  uint8_t constexpr first_player_definition{24};
   auto const configuration{scenario_configuration.value_or(tunnel ? resources::scenario_configuration::underground_caero
     : std::holds_alternative<caero_flight_state>(craft) ? resources::scenario_configuration::delphi_caero
     : upgraded ? resources::scenario_configuration::halon_upgraded_skimma : resources::scenario_configuration::halon_skimma)};
-  return static_cast<uint8_t>(first_player_definition + std::to_underlying(configuration));
+  return object_catalogue::player(configuration);
 }
 
 uint8_t player_flight::world_damage_mask() const noexcept {
@@ -56,13 +57,13 @@ void player_flight::command(flight_command const command) noexcept {
       break;
     case flight_command::boost:
       if(caero) activate_caero_boost(*caero);
-      else if(upgraded) forward_setting = 640;
+      else if(upgraded) forward_setting = skimma_flight_rules::upgraded_boost_drive;
       break;
     case flight_command::speed_low:
-      if(!caero) forward_setting = 248;
+      if(!caero) forward_setting = skimma_flight_rules::low_drive;
       break;
     case flight_command::speed_high:
-      if(!caero) forward_setting = 500;
+      if(!caero) forward_setting = skimma_flight_rules::high_drive;
       break;
   }
 }

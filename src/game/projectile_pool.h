@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <span>
 #include "game/object_definition.h"
+#include "game/native_object_layout.h"
 #include "game/object_list.h"
 #include "game/projectile_placement.h"
 #include "game/time.h"
@@ -47,7 +48,7 @@ enum class projectile_list { player, hostile };
 
 class projectile_pool {
 public:
-  static size_t constexpr capacity{12};
+  static unsigned int constexpr capacity{projectile_limits::player_capacity};
 
   explicit projectile_pool(projectile_list category = projectile_list::player);
   projectile_pool(projectile_pool const&) = delete;

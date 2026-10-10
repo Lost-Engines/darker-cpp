@@ -6,9 +6,11 @@
 #include <array>
 #include "game/object_definition.h"
 
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 
-inline std::array<object_definition, 33> constexpr original_object_definitions{{
+inline std::array<object_definition, object_catalogue::definition_count> constexpr original_object_definitions{{
   // Slot 0, native definition 1926
   {
     .model_token{0x0000},

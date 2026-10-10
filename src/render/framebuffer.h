@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include "render/frame_layout.h"
 #include "vectorstorm/vector/vector4.h"
 
 namespace framework::render {
@@ -19,15 +20,15 @@ struct rgba_pixel : vec4<uint8_t> {
 
 static_assert(sizeof(rgba_pixel) == 4);
 
-template<unsigned int rows>
+template<unsigned int rows, unsigned int columns = source_sheet_layout::width>
 struct basic_framebuffer {
-  static unsigned int constexpr width{320};
+  static unsigned int constexpr width{columns};
   static unsigned int constexpr height{rows};
   std::array<rgba_pixel, width * height> pixels;
 };
 
-using framebuffer = basic_framebuffer<200>;
-using cockpit_framebuffer = basic_framebuffer<240>;
+using framebuffer = basic_framebuffer<source_sheet_layout::height, source_sheet_layout::width>;
+using cockpit_framebuffer = basic_framebuffer<display_layout::height, display_layout::width>;
 
 struct viewport {
   int x;
@@ -36,6 +37,6 @@ struct viewport {
   int height;
 };
 
-viewport fit_viewport(int width, int height, int source_width = 320, int source_height = 200) noexcept;
+viewport fit_viewport(int width, int height, int source_width = source_sheet_layout::width, int source_height = source_sheet_layout::height) noexcept;
 
 } // namespace framework::render

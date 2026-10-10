@@ -1,4 +1,5 @@
 #include "graphics/navigation_hud.h"
+#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <cstddef>
@@ -48,10 +49,10 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, uint
   auto const old_points{compass_points(previous)};
   auto const new_points{compass_points(current)};
   std::array<uint8_t, 5> constexpr colours{0x9e, 0x9c, 0x9c, 0x9c, 0x9e};
-  for(auto const &point : old_points) target.pixels[static_cast<size_t>(point.y * 320 + point.x)] = 0;
+  for(auto const &point : old_points) target.pixels[static_cast<size_t>(point.y * display_layout::width + point.x)] = 0;
   for(unsigned int i{0}; i < new_points.size(); ++i) {
     auto const point{new_points[i]};
-    target.pixels[static_cast<size_t>(point.y * 320 + point.x)] = colours[i];
+    target.pixels[static_cast<size_t>(point.y * display_layout::width + point.x)] = colours[i];
   }
 }
 
@@ -101,7 +102,7 @@ void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
   /// Preserve supplied list order; coverage and allegiance decisions belong to game logic
   for(auto const &contact : contacts) {
     if(auto const pixel{project_radar_contact(player, heading, contact)}) {
-      target.pixels[static_cast<size_t>(pixel->position.y * 320 + pixel->position.x)] = pixel->colour;
+      target.pixels[static_cast<size_t>(pixel->position.y * display_layout::width + pixel->position.x)] = pixel->colour;
     }
   }
 }
@@ -115,7 +116,7 @@ void draw_contact_symbol(framework::render::indexed_cockpit_framebuffer &target,
     for(int x{narrow ? 2 : 1}; x <= (narrow ? 3 : 4); ++x) {
       int const px{anchor.x + x};
       int const py{anchor.y + y};
-      if(px >= 0 && px < 320 && py >= 0 && py < 240) target.pixels[static_cast<size_t>(py * 320 + px)] = colour;
+      if(px >= 0 && px < display_layout::width && py >= 0 && py < display_layout::height) target.pixels[static_cast<size_t>(py * display_layout::width + px)] = colour;
     }
   }
 }
@@ -148,11 +149,11 @@ void draw_enlarged_radar_surround(framework::render::indexed_cockpit_framebuffer
     error += x--;
     half_widths[x] = y;
   } while(y < x);
-  std::fill_n(target.pixels.begin() + 40 * 320 + 56, 40, 8);
+  std::fill_n(target.pixels.begin() + 40 * display_layout::width + 56, 40, 8);
   for(int row{0}; row < 63; ++row) {
     int const width{half_widths[row]};
     for(int const destination : {107 - row, 108 + row}) {
-      std::fill_n(target.pixels.begin() + destination * 320 + 76 - width, width * 2, 8);
+      std::fill_n(target.pixels.begin() + destination * display_layout::width + 76 - width, width * 2, 8);
     }
   }
   draw_contact_symbol(target, {74, 105}, 139);

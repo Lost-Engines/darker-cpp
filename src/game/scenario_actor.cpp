@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include "game/object_definitions.h"
 
+#include "game/native_object_layout.h"
+
 namespace darker::game {
 
 scenario_actor make_scenario_actor(resources::scenario_placement const &placement,
@@ -64,7 +66,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   } else {
     if(!placement.script_or_target) throw std::invalid_argument{"Scenario actor has no script or target"};
     auto const target{static_cast<uint8_t>(*placement.script_or_target)};
-    if(target != 255) actor.target_token = static_cast<uint16_t>(0xd986 + target * 112);
+    if(target != 255) actor.target_token = native_object_layout::actor(target);
     actor.script.stopped = true;
   }
   return actor;

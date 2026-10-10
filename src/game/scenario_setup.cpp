@@ -3,6 +3,8 @@
 #include <ranges>
 #include <stdexcept>
 
+#include "game/object_catalogue.h"
+
 namespace darker::game {
 
 scenario_setup_kind identify_scenario_setup(std::span<std::byte const> const code) {
@@ -109,7 +111,7 @@ scenario_actor_groups make_scenario_actors(resources::scenario_record const &rec
   /// Preserve allocation order and translate the inline player, placement and actor mutations between groups
   auto const configuration{record.configuration & 15};
   uint8_t const world{static_cast<uint8_t>(configuration == 4 ? 2 : configuration <= 1 ? 0 : 1)};
-  auto const player_model{bank.special_models()[configuration == 4 ? 28 : 24 + configuration]};
+  auto const player_model{bank.special_models()[object_catalogue::player(static_cast<resources::scenario_configuration>(configuration))]};
   scenario_actor_groups result;
   uint8_t first{1};
   for(auto const &[source, actors] : std::views::zip(record.groups, std::array{&result.active, &result.reserves, &result.free})) {

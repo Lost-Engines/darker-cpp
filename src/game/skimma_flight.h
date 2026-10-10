@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "game/flight_rules.h"
 #include "game/object_pose.h"
 #include "game/player_damage.h"
 #include "game/time.h"
@@ -17,13 +18,13 @@ struct skimma_flight_state {
 
 struct skimma_flight_parameters {
   uint16_t angular_response{0};
-  int8_t vertical_bias{-106};
+  int8_t vertical_bias{skimma_flight_rules::default_vertical_bias};
 };
 
 struct skimma_flight_input {
   uint16_t bank_drive{0};
   uint16_t pitch_drive{0};
-  uint16_t forward_setting{248};
+  uint16_t forward_setting{skimma_flight_rules::low_drive};
   bool brake{false};
 };
 
