@@ -57,16 +57,19 @@ Published archives are named `darker-linux.tar.gz`, `darker-windows.zip` and
 Each archive contains a `darker/` directory with only:
 
 - `darker` (or `darker.exe`) at its top level;
-- `scripts/`, copied unchanged from the source tree, including `fetch-assets.sh`
-  and its URL/checksum files.
+- `scripts/`, containing `fetch-assets.bat` on Windows or `fetch-assets.sh` on
+  Linux/macOS, together with the shared URL/checksum files. Windows uses CRLF
+  throughout these editable files; Linux/macOS uses LF.
 
 Documentation and dependency information remain in the source repository.
 Game packs, saves, ROMs, soundfonts, patch banks and developer tools are not bundled.
 
 Unpack the archive and launch `./darker --data-dir /path/to/darker`, or run it
 with the game installation as the current directory. Saves are written beside
-the selected packs. The optional `scripts/fetch-assets.sh` helper requires Bash,
-curl and sha256sum. On macOS, sha256sum is provided by GNU coreutils.
+the selected packs. The Windows batch helper uses curl and CertUtil and defaults
+to the package directory beside the executable. The Bash helper requires curl
+and sha256sum and defaults to the per-user game directory. On macOS, sha256sum
+is provided by GNU coreutils. Either helper accepts a destination directory.
 
 Linux packages target a modern Ubuntu 24.04-compatible runtime and require the
 system windowing and OpenGL drivers. Boost and GCC's C++ runtimes are linked

@@ -46,19 +46,28 @@ If `DARKER.SAV` is absent, an old `darker-cpp.sav` in the working directory is
 read for migration; the next save writes `DARKER.SAV` and leaves the old file intact.
 
 
-Optional asset helper (Bash, curl and sha256sum):
+Optional asset helper on Linux/macOS (Bash, curl and sha256sum):
 
 ```sh
 ./scripts/fetch-assets.sh
 ./build/darker --music=roland-lapc
 ```
 
+On Windows, use the batch helper (curl and CertUtil):
+
+```bat
+scripts\fetch-assets.bat
+```
+
+Its default destination is the package directory beside `darker.exe`. Pass a
+destination directory as its first argument to use another installation.
+
 This fetches the five retail game packs, CM-32L ROM pair, five SC-55 v1.21 ROMs, multilingual manual
-and city reference map directly into the destination directory. The destination defaults to the same per-user game directory. Pass a directory
+and city reference map directly into the destination directory. The Bash helper defaults to the same per-user game directory. Pass a directory
 argument to fetch into a different installation.
 
-Downloads run in four phases: missing manuals and map first, game packs second,
-then missing CM-32L ROMs and SC-55 ROMs. If `DARKER.00` exists, the game phase is skipped.
+Downloads run in six phases: missing manuals and map first, game packs second,
+then missing CM-32L ROMs, SC-55 ROMs, the AWE32 ROM and Gravis patches. If `DARKER.00` exists, the game phase is skipped.
 Otherwise all five packs are downloaded directly into the destination, replacing
 any packs already there, then checked against SHA-256. Download or checksum
 failures produce warnings; files are left in place and later phases continue.
@@ -73,7 +82,9 @@ Keep these files and the checksum file beside the script when copying it
 elsewhere. To update a download address, edit its line in the relevant text file;
 no shell code needs changing.
 
-Packaged builds include the unchanged `scripts/fetch-assets.sh`. An installer can offer this as
+Packages include `scripts/fetch-assets.bat` on Windows and `scripts/fetch-assets.sh`
+on Linux/macOS. All editable files in the Windows `scripts/` directory use CRLF
+line endings; Linux/macOS files use LF. An installer can offer this as
 an optional step, passing a writable user asset directory. Download and checksum warnings do not fail the installation; the helper exits
 zero after all phases. Failure to create or enter the destination returns one. No downloads
 run automatically during CMake installation or game startup. No save files are
@@ -249,7 +260,7 @@ and Release packages for Linux, Windows and macOS; code-changing pushes to
 `master` publish only the three Release packages after all six build/test jobs pass.
 
 See [binary packaging](docs/binary_packaging.md) for a clean installation of the
-single executable and unchanged `scripts/` directory.
+single executable and platform-specific `scripts/` directory.
 
 Use `--language=french` or `--language=german` for the original translated menus,
 credits, briefings and radio messages; English remains the default.

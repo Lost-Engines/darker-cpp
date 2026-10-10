@@ -181,6 +181,10 @@ jobs:
           fi
           cmake -DPACKAGE_ROOT="$PWD/package" -DOUTPUT_DIR="$PWD/dist" \
             -DPLATFORM=${{ matrix.platform }} -P cmake/package.cmake
+      - name: Check installed Windows asset helper
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: package\darker\scripts\fetch-assets.bat --help
       - name: Upload package
         uses: actions/upload-artifact@v7
         with:
