@@ -72,7 +72,7 @@ void read_setup(scenario_record &record, std::span<std::byte const> const data) 
         if((instruction != 0x83 && instruction != 0x81) || input.byte() != 0xc6) {
           throw std::invalid_argument{"Unrecognised native scenario setup header"};
         }
-        std::size_t const length{instruction == 0x83 ? input.byte() : input.word()};
+        auto const length{static_cast<std::size_t>(instruction == 0x83 ? input.byte() : input.word())};
         auto const consumed{input.position() - start - 1};
         if(length < consumed) throw std::invalid_argument{"Invalid native scenario setup length"};
         input.skip(length - consumed);

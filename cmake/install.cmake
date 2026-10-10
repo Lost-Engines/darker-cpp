@@ -2,17 +2,7 @@ include(GNUInstallDirs)
 
 # Deliberately install only the game, documentation and dependency notices.
 # Original packs, saves, analysis captures and test executables are never installed.
-option(DARKER_BUNDLE_WINDOWS_RUNTIME "Include non-system DLLs in Windows packages" OFF)
-if(WIN32 AND DARKER_BUNDLE_WINDOWS_RUNTIME)
-  install(TARGETS darker RUNTIME_DEPENDENCY_SET darker_runtime
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
-  install(RUNTIME_DEPENDENCY_SET darker_runtime
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime
-    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-    POST_EXCLUDE_REGEXES ".*[Ss][Yy][Ss][Tt][Ee][Mm]32/.*")
-else()
-  install(TARGETS darker RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
-endif()
+install(TARGETS darker RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
 install(FILES README.md style-guide.md DESTINATION "${CMAKE_INSTALL_DOCDIR}" COMPONENT Runtime)
 install(DIRECTORY docs/ DESTINATION "${CMAKE_INSTALL_DOCDIR}/docs"
   COMPONENT Runtime FILES_MATCHING PATTERN "*.md")

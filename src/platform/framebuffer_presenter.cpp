@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
+#include <GL/glext.h>
+#endif
 #include "render/framebuffer.h"
 
 namespace framework::platform {

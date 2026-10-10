@@ -47,6 +47,7 @@ jobs:
             if [[ "$base" == 0000000000000000000000000000000000000000 ]]; then
               base=$(git hash-object -t tree /dev/null)
             fi
+            git cat-file -e "${base}^{tree}"
             if ! git diff --quiet "$base" "$GITHUB_SHA" -- src CMakeLists.txt cmake ':!cmake/package.cmake'; then
               release=true
             fi
@@ -112,9 +113,14 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install boost ccache ninja
-          echo CC=clang >> "$GITHUB_ENV"
-          echo CXX=clang++ >> "$GITHUB_ENV"
+          brew install gcc ccache ninja
+          gcc_prefix="$(brew --prefix gcc)"
+          gcc_cxx=("$gcc_prefix"/bin/g++-[0-9]*)
+          gcc_version="${gcc_cxx[0]##*g++-}"
+          echo "CC=$gcc_prefix/bin/gcc-$gcc_version" >> "$GITHUB_ENV"
+          echo "CXX=${gcc_cxx[0]}" >> "$GITHUB_ENV"
+          # GLFW's Cocoa integration uses Apple's Objective-C compiler.
+          echo OBJC=clang >> "$GITHUB_ENV"
           echo 'ARCHFLAGS=-arch arm64' >> "$GITHUB_ENV"
           echo MACOSX_DEPLOYMENT_TARGET=15.0 >> "$GITHUB_ENV"
 
@@ -127,38 +133,37 @@ jobs:
             ccache-${{ matrix.platform }}-${{ matrix.configuration }}-${{ hashFiles('cmake/**', 'CMakeLists.txt') }}-
             ccache-${{ matrix.platform }}-${{ matrix.configuration }}-
 
-      - name: Restore Linux Boost
-        if: runner.os == 'Linux'
+      - name: Restore Boost
+        if: runner.os != 'Windows'
         id: boost
         uses: actions/cache@v5
         with:
           path: .cache/boost
-          key: boost-1.90.0-ubuntu24-gcc14-static-v1
-      - name: Build Linux Boost
-        if: runner.os == 'Linux' && steps.boost.outputs.cache-hit != 'true'
+          key: boost-1.90.0-${{ matrix.platform }}-gcc-static-v2
+      - name: Build Boost
+        if: runner.os != 'Windows' && steps.boost.outputs.cache-hit != 'true'
         run: |
           curl --fail --location --retry 3 -o "$RUNNER_TEMP/boost.tar.gz" \
             https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz
-          echo "5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9  $RUNNER_TEMP/boost.tar.gz" | sha256sum --check
+          echo "5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9  $RUNNER_TEMP/boost.tar.gz" | shasum -a 256 --check
           tar -xzf "$RUNNER_TEMP/boost.tar.gz" -C "$RUNNER_TEMP"
           cd "$RUNNER_TEMP/boost_1_90_0"
           ./bootstrap.sh --with-libraries=program_options
-          echo 'using gcc : 14 : g++-14 ;' > "$RUNNER_TEMP/boost-user-config.jam"
-          ./b2 -j3 --user-config="$RUNNER_TEMP/boost-user-config.jam" toolset=gcc-14 cxxstd=23 variant=release link=static \
+          echo "using gcc : : $CXX ;" > "$RUNNER_TEMP/boost-user-config.jam"
+          ./b2 -j3 --user-config="$RUNNER_TEMP/boost-user-config.jam" toolset=gcc cxxstd=23 variant=release link=static \
             --prefix="$GITHUB_WORKSPACE/.cache/boost" install
 
       - name: Configure
         run: |
           extra=()
-          if [[ "$RUNNER_OS" == Linux ]]; then
-            extra+=("-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/.cache/boost")
-          elif [[ "$RUNNER_OS" == macOS ]]; then
-            extra+=("-DCMAKE_PREFIX_PATH=$(brew --prefix)" -DCMAKE_OSX_ARCHITECTURES=arm64)
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            extra+=("-DCMAKE_EXE_LINKER_FLAGS=-static")
           else
-            extra+=(-DDARKER_BUNDLE_WINDOWS_RUNTIME=ON)
+            extra+=("-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/.cache/boost"
+              "-DCMAKE_EXE_LINKER_FLAGS=-static-libgcc -static-libstdc++")
           fi
-          if [[ "$RUNNER_OS" != macOS ]]; then
-            extra+=("-DCMAKE_EXE_LINKER_FLAGS=-static-libgcc -static-libstdc++")
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            extra+=(-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OBJC_COMPILER=clang)
           fi
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} \
             -DBUILD_TESTING=ON -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON \
@@ -172,7 +177,7 @@ jobs:
         run: |
           cmake --install build --prefix "$PWD/package/darker" --component Runtime
           if [[ "$RUNNER_OS" == Windows ]]; then
-            # Do not let an installed toolchain supply a DLL missing from the package.
+            # Verify that the executable needs only Windows system DLLs.
             PATH="$(cygpath "$WINDIR")/System32:$(cygpath "$WINDIR")" package/darker/bin/darker.exe --help
             mkdir -p package/darker/share/doc/darker/third_party/toolchain
             cp -R /ucrt64/share/licenses/gcc /ucrt64/share/licenses/winpthreads \

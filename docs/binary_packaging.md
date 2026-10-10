@@ -7,10 +7,11 @@ It builds and tests this matrix once, then publishes those same packages:
 | --- | --- | --- | --- |
 | Linux x86-64 | Ubuntu 24.04 | GCC 14 | Debug, Release |
 | Windows x86-64 | Windows 2025 / MSYS2 UCRT64 | GCC | Debug, Release |
-| macOS Apple Silicon | macOS 15 | Apple Clang | Debug, Release |
+| macOS Apple Silicon | macOS 15 | Homebrew GCC | Debug, Release |
 
-Linux builds Boost 1.90.0 Program_options from a checksum-verified archive;
-macOS and Windows use their package managers' Boost. Third-party engine
+Linux and macOS build Boost 1.90.0 Program_options from a checksum-verified archive;
+Windows uses MSYS2’s static Boost. macOS builds Boost with GCC to match the
+engine’s C++ ABI. Third-party engine
 libraries use the pinned archives in `cmake/dependencies.cmake`.
 
 ## Triggers and cost control
@@ -30,7 +31,7 @@ The release comparison covers the complete pushed commit range, not just its
 last commit, including deletions.
 
 All six jobs must succeed before publishing. Compiler caches are limited to
-500 MB per platform/configuration, and Linux's Boost installation is cached.
+500 MB per platform/configuration, and the Boost installations are cached.
 Packages and test reports are retained as workflow artifacts for seven days.
 Publication reuses these artifacts; there is no second release compilation.
 Obsolete pull-request runs are cancelled; master pushes have distinct groups.
@@ -51,7 +52,7 @@ GitHub's repository settings must permit its workflow token to create releases.
 
 Each archive contains a `darker/` directory with:
 
-- `bin/darker` (or `bin/darker.exe`), plus required non-system Windows DLLs;
+- `bin/darker` (or `bin/darker.exe`);
 - the optional Bash asset-fetch helper and its URL/checksum lists;
 - documentation, dependency notices and source/build references;
 - `BUILD.txt`, recording the commit, platform and configuration.
@@ -70,9 +71,10 @@ On macOS, sha256sum is provided by GNU coreutils.
 
 Linux packages target a modern Ubuntu 24.04-compatible runtime and require the
 system windowing and OpenGL drivers. Boost and GCC's C++ runtimes are linked
-statically in CI. Windows packages bundle non-system DLLs discovered at install
-time. macOS packages target macOS 15 or newer on Apple Silicon, with static
-Boost and the system C++ runtime/frameworks. They are command-line archives,
+statically in CI. Windows packages statically link all non-system libraries.
+The executable is checked with only Windows system directories on PATH.
+macOS packages target macOS 15 or newer on Apple Silicon, with static Boost
+and GCC C++ runtimes, and system frameworks. They are command-line archives,
 not signed/notarised application bundles or installers.
 
 Debug packages include `--screenshot` and `--seconds`. Release packages omit

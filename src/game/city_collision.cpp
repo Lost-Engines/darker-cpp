@@ -26,7 +26,7 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
   auto const &descriptor{bank.city_types()[type - 1]};
   if(descriptor.collision_marker == 255) return {};
   auto const pool{bank.model_pool()};
-  unsigned int const pointer{byte(pool, model + 4) | byte(pool, model + 5) << 8};
+  auto const pointer{static_cast<unsigned int>(byte(pool, model + 4) | byte(pool, model + 5) << 8)};
   if(pointer < 0x8000) throw std::invalid_argument{"City collision pointer precedes its world data"};
   std::size_t cursor{pointer - 0x8000};
   auto const data{bank.world_data()};
