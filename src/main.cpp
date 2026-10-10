@@ -158,7 +158,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("level", boost::program_options::value<int>(), "start at campaign level 1..116 with accumulated setup changes, without assumed combat damage; do not write saves")
     ("skip-intro", "start at game selection, skipping the startup presentation and title")
     ("scale", boost::program_options::value<int>()->default_value(4), "initial window scale: positive integer multiple of 320 x 240")
-    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_fm"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, roland-scc1a, gravis or soundblaster_awe32")
+    ("music", boost::program_options::value<std::string>()->default_value("soundblaster_awe32"), "music arrangement: none, soundblaster_fm, midi, roland-lapc, roland-sc55, roland-scc1a, gravis or soundblaster_awe32")
     ("roland-gm-bank", boost::program_options::value<std::string>(), "load the whole Roland MTGM.MID bank before Darker custom instruments on the same device")
     ("roland-gm-percussion-bank", boost::program_options::value<std::string>(), "supplement unmapped Roland percussion using Roland MTGM.MID on a separate emulated device")
     ("roland-gm-percussion-fallback", "supplement unmapped Roland percussion with General MIDI SoundFont sounds")

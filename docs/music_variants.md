@@ -21,7 +21,8 @@ ROMs. The ambiguous former name `roland` is rejected with guidance to choose
 `roland-lapc`, `roland-sc55` or `roland-scc1a`.
 The existing ROM-directory and percussion-bank switches retain their names.
 
-Sound Blaster FM remains the default, using the original FM instruments and the
+Sound Blaster AWE32 is the default (`--music=soundblaster_awe32`).
+Use `--music=soundblaster_fm` for the original FM instruments through the
 selected `--opl` emulator. `--music=none` needs neither a SoundFont nor Roland
 ROMs. Use `--mute` to disable all sound output.
 

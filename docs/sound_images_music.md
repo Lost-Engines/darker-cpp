@@ -60,4 +60,5 @@ OPL emulation uses the existing pinned Nuked implementation.
 ## Other hardware arrangements
 
 See [music variants](music_variants.md) for the sampled-driver sequencers and
-SoundFont playback. Sound Blaster remains the default native FM path.
+SoundFont playback. AWE32 is the default music mode; `--music=soundblaster_fm`
+selects the native FM path.

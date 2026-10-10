@@ -219,7 +219,8 @@ first, then Darker’s custom instruments, on a single device for comparison.
 
 `--music=roland-scc1a` runs the same arrangement on SCC-1A v1.30 hardware. Supply `cm300_rom1.bin`, `cm300_rom2.bin` and `cm300_waverom1.bin` through `cm300_waverom3.bin` beside the packs, or use `--scc1a-rom-dir`. The complete matching set is checked by SHA-256; SC-55 ROMs cannot substitute for it.
 
-`--music=midi|roland-lapc|roland-sc55|roland-scc1a|gravis|soundblaster_awe32` selects the other music paths. `midi` uses a SoundFont; the others default to hardware emulation with runtime ROMs or original patches (the fetch helper supplies these except the separately supplied SCC-1A set). LAPC-I uses Munt, SC-55 uses Nuked-SC55, AWE32 uses the original synthesis library and EMU8000, and Gravis uses UltraMID and GF1. An explicit `--soundfont` retains the comparison rendition for LAPC-I, GUS and AWE32. See [music variants](docs/music_variants.md) for device selection and optional asset paths.
+Music defaults to `soundblaster_awe32`.
+`--music=soundblaster_fm|midi|roland-lapc|roland-sc55|roland-scc1a|gravis` selects the other music paths. `midi` uses a SoundFont; the others default to hardware emulation with runtime ROMs or original patches (the fetch helper supplies these except the separately supplied SCC-1A set). LAPC-I uses Munt, SC-55 uses Nuked-SC55, AWE32 uses the original synthesis library and EMU8000, and Gravis uses UltraMID and GF1. An explicit `--soundfont` retains the comparison rendition for LAPC-I, GUS and AWE32. See [music variants](docs/music_variants.md) for device selection and optional asset paths.
 
 Number-row 2 selects the Pinner Mimic after its mission-five introduction. M enables missile viewing for subsequent shots; F4 selects the missile-eye view. See [Mimic and cameras](docs/pinner_mimic.md) and [radar coverage](docs/radar_coverage.md).
 
