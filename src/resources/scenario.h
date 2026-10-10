@@ -6,6 +6,7 @@
 #include <optional>
 #include <span>
 #include <vector>
+#include "maths/world_coordinates.h"
 
 namespace darker::resources {
 
@@ -34,7 +35,7 @@ struct scenario_placement {
   bool counted{false};
   std::uint8_t attributes{0};
   std::uint16_t heading{0};
-  std::array<std::uint16_t, 2> position{};
+  maths::map_position position{};
   std::array<std::uint8_t, 6> motion{};
   std::optional<std::uint16_t> script_or_target;
   std::optional<std::size_t> program_offset;

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -14,7 +15,7 @@ struct effect_sound_definition {
 };
 
 struct effect_sound {
-  std::array<uint16_t, 3> position{};
+  maths::world_position position{};
   effect_sound_definition definition{};
   uint16_t deadline{0};
   uint32_t identity{0};

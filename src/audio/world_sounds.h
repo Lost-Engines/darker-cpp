@@ -5,16 +5,17 @@
 #include "audio/voice_allocation.h"
 #include "game/mission_combat.h"
 #include "maths/view_basis.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 
-std::optional<uint16_t> audible_level(std::array<uint16_t, 3> source, std::array<uint16_t, 3> listener,
+std::optional<uint16_t> audible_level(maths::world_position source, maths::world_position listener,
   uint16_t level, uint8_t flags) noexcept;
 uint16_t doppler_factor(game::object_pose const *motion, uint16_t heading, uint16_t pitch) noexcept;
-uint16_t spatial_pitch(uint16_t pitch, std::array<uint16_t, 3> source, game::object_pose const &listener,
+uint16_t spatial_pitch(uint16_t pitch, maths::world_position source, game::object_pose const &listener,
   game::object_pose const *source_motion, game::object_pose const *listener_motion = nullptr) noexcept;
 
-std::array<uint8_t,2> stereo_attenuation(std::array<uint16_t,3> delta, maths::view_basis const &basis, uint16_t level) noexcept;
+std::array<uint8_t,2> stereo_attenuation(maths::world_position delta, maths::view_basis const &basis, uint16_t level) noexcept;
 
 struct object_sound_state {
   uint16_t identity{0};

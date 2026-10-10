@@ -35,8 +35,8 @@ void update_tunnel_portal(player_flight &player, city_map &cells, hangar_state &
     return;
   }
   auto const &position{player.pose().position};
-  if((position[0] >> 8) != ((hangar.return_site & 255) >> 1)) return;
-  auto const difference{static_cast<uint8_t>((position[1] >> 8) - (hangar.return_site >> 8))};
+  if((position.column >> 8) != ((hangar.return_site & 255) >> 1)) return;
+  auto const difference{static_cast<uint8_t>((position.row >> 8) - (hangar.return_site >> 8))};
   bool const returning{(player.tunnel->connection.route & 0x80) != 0};
   if(difference == 0 && returning && player.forward_setting != 96) {
     hangar.returning = hangar_return_phase::approaching;

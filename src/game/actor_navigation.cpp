@@ -3,11 +3,12 @@
 #include <bit>
 #include <functional>
 #include "maths/direction.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
 
-actor_course target_course(object_pose const &actor, std::array<std::uint16_t, 3> const &target) {
+actor_course target_course(object_pose const &actor, maths::world_position const &target) {
   /// 88DC resolves the same position/angle convention used by projectile object guidance
   auto const direction{maths::object_target_direction(actor.position, target)};
   return {.heading{direction.heading}, .pitch{direction.pitch}, .distance{horizontal_distance(actor.position, target)}};
@@ -45,8 +46,8 @@ actor_course actor_object_course(object_pose const &actor, object_pose const &ta
   /// 88B9 offsets close object targets above or below their height to avoid a direct collision course
   auto position{target.position};
   if(horizontal_distance(actor.position, position) < 511) {
-    auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(actor.position[2] - position[2]))};
-    position[2] = static_cast<std::uint16_t>(position[2] + (difference < 0 ? -512 : 512));
+    auto const difference{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(actor.position.height - position.height))};
+    position.height = static_cast<std::uint16_t>(position.height + (difference < 0 ? -512 : 512));
   }
   return target_course(actor, position);
 }
@@ -71,15 +72,15 @@ void reset_actor_clearance(scenario_actor &actor) noexcept {
     auto const value{std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(difference))};
     return static_cast<std::uint8_t>(value < 0 ? -value : value);
   }};
-  auto const column{magnitude((actor.pose.position[0] >> 8) - (actor.parameters.flags_4c & 255))};
-  auto const row{magnitude((actor.pose.position[1] >> 8) - (actor.parameters.flags_4c >> 8))};
+  auto const column{magnitude((actor.pose.position.column >> 8) - (actor.parameters.flags_4c & 255))};
+  auto const row{magnitude((actor.pose.position.row >> 8) - (actor.parameters.flags_4c >> 8))};
   if(static_cast<std::uint8_t>(column + row) >= 3) actor.clearance_floor = 0x076c;
 }
 
 void adjust_actor_clearance(scenario_actor const &actor, actor_course &course, std::uint16_t const nearby_height) noexcept {
   /// 8966–89A2 applies the freshly scanned object clearance and surrounding building height
   auto const height{std::bit_cast<std::int16_t>(nearby_height)};
-  auto const altitude{std::bit_cast<std::int16_t>(actor.pose.position[2])};
+  auto const altitude{std::bit_cast<std::int16_t>(actor.pose.position.height)};
   if(height >= altitude) {
     auto const delta{static_cast<std::uint16_t>(height - altitude)};
     auto const climb{static_cast<std::uint8_t>(-((std::min<int>(delta, 0x07f7) >> 3) + 1))};
@@ -98,20 +99,20 @@ void consider_actor_clearance(scenario_actor &actor, scenario_actor const &neigh
   for(std::size_t axis{0}; axis < 2; ++axis) {
     if(static_cast<std::uint16_t>(neighbour.pose.position[axis] - actor.pose.position[axis] + 1023) >= 2046) return;
   }
-  auto difference{static_cast<std::uint16_t>(neighbour.pose.position[2] - actor.pose.position[2])};
+  auto difference{static_cast<std::uint16_t>(neighbour.pose.position.height - actor.pose.position.height)};
   if(difference == 0) difference = neighbour.index < actor.index ? 65535 : 0;
   if((difference >> 8) < 0xfc) return;
   auto const negative_distance{[](int const difference){
     auto const value{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(difference))};
     return value < 0 ? value : -value;
   }};
-  auto distance{static_cast<std::uint16_t>(negative_distance(neighbour.pose.position[0] - actor.pose.position[0])
-    + negative_distance(neighbour.pose.position[1] - actor.pose.position[1]))};
+  auto distance{static_cast<std::uint16_t>(negative_distance(neighbour.pose.position.column - actor.pose.position.column)
+    + negative_distance(neighbour.pose.position.row - actor.pose.position.row))};
   distance = static_cast<std::uint16_t>(distance + 256);
   if((distance >> 8) == 0) distance = 65535;
   if((distance >> 8) < 252) return;
   distance = static_cast<std::uint16_t>(distance + 1024);
-  auto height{static_cast<std::uint16_t>(distance + neighbour.pose.position[2])};
+  auto height{static_cast<std::uint16_t>(distance + neighbour.pose.position.height)};
   auto pitch{std::bit_cast<std::int16_t>(neighbour.pose.angles.pitch)};
   if(pitch > 0) {
     pitch = std::min<std::int16_t>(pitch, 0x05ff);
@@ -119,7 +120,7 @@ void consider_actor_clearance(scenario_actor &actor, scenario_actor const &neigh
   }
   if(std::bit_cast<std::int16_t>(height) < std::bit_cast<std::int16_t>(actor.clearance_floor)) return;
   actor.clearance_floor = height;
-  actor.parameters.flags_4c = static_cast<std::uint16_t>((neighbour.pose.position[0] >> 8) | (neighbour.pose.position[1] & 0xff00));
+  actor.parameters.flags_4c = static_cast<std::uint16_t>((neighbour.pose.position.column >> 8) | (neighbour.pose.position.row & 0xff00));
   if(neighbour.pose.speed >= actor.parameters.definition->role_data.craft().cruise_speed * 12) {
     auto const value{static_cast<std::uint16_t>(height - pitch)};
     course.climb = static_cast<std::uint8_t>(~(value >> 2));
@@ -131,11 +132,11 @@ std::uint16_t actor_city_clearance(object_pose const &actor, city_map const &cel
   /// 8935/8CDD checks eight surrounding cells, resolving alternate and damaged model headers
   std::int16_t maximum{0x076c};
   for(int row_delta{-1}; row_delta <= 1; ++row_delta) {
-    auto const row{static_cast<std::uint8_t>((actor.position[1] >> 8) + row_delta)};
+    auto const row{static_cast<std::uint8_t>((actor.position.row >> 8) + row_delta)};
     if(row >= 128) continue;
     for(int column_delta{-1}; column_delta <= 1; ++column_delta) {
       if(row_delta == 0 && column_delta == 0) continue;
-      auto const column{static_cast<std::uint8_t>((actor.position[0] >> 8) + column_delta)};
+      auto const column{static_cast<std::uint8_t>((actor.position.column >> 8) + column_delta)};
       if(column >= 128) continue;
       auto const cell{cells[row * 128 + column]};
       if(cell.type == 0) continue;
@@ -171,7 +172,7 @@ actor_manoeuvre choose_actor_manoeuvre(scenario_actor const &actor, actor_course
     } else {
       auto const threshold{static_cast<std::uint8_t>(3 - std::min(255, actor.behaviour.evasion + (awareness >> 5)))};
       if(distance < threshold) {
-        auto const height{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(definition.role_data.craft().cruise_height * 256 - actor.pose.position[2]))};
+        auto const height{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>(definition.role_data.craft().cruise_height * 256 - actor.pose.position.height))};
         result.pitch = static_cast<std::uint16_t>(height >> 1);
         course.heading = actor.pose.angles.heading;
         result.speed = definition.base_speed;

@@ -70,8 +70,8 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
   if(mode == camera_mode::tracking || mode == camera_mode::fixed) {
     result = anchor;
     if(mode == camera_mode::tracking) {
-      auto const direction{maths::direction_from_displacement({static_cast<std::uint16_t>(anchor.position[0] - player.position[0]),
-        static_cast<std::uint16_t>(anchor.position[1] - player.position[1]), static_cast<std::uint16_t>(player.position[2] - anchor.position[2])})};
+      auto const direction{maths::direction_from_displacement({static_cast<std::uint16_t>(anchor.position.column - player.position.column),
+        static_cast<std::uint16_t>(anchor.position.row - player.position.row), static_cast<std::uint16_t>(player.position.height - anchor.position.height)})};
       result.angles = {direction.heading, direction.pitch, 0};
     }
   }
@@ -106,14 +106,14 @@ object_pose flight_camera::view(object_pose const &player, std::uint16_t const f
   auto pitch{result.angles.pitch >> 6};
   auto const heading{result.angles.heading >> 6};
   int const vertical{(word(distance) * maths::original_sine[pitch]) >> 16};
-  auto height{word(result.position[2] + (distance >> 4) - vertical)};
+  auto height{word(result.position.height + (distance >> 4) - vertical)};
   if(height < 82 && vertical != 0 && !landed) {
     auto const index{maths::direction_index(static_cast<std::uint16_t>((vertical + pitch * 2) * 2), distance)};
     pitch = index >> 1;
     result.angles.pitch = static_cast<std::uint16_t>(index * 32);
     height = 82;
   }
-  result.position[2] = static_cast<std::uint16_t>(height);
+  result.position.height = static_cast<std::uint16_t>(height);
   int const horizontal{((distance >> 2) * maths::original_sine[(pitch + 256) % 1024]) >> 16};
   displace_object(result, 0, (horizontal * maths::original_sine[heading]) >> 8);
   displace_object(result, 1, (horizontal * maths::original_sine[(heading + 256) % 1024]) >> 8);

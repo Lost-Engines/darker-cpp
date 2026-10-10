@@ -24,7 +24,7 @@ void check_nightmare(darker::resources::archive_set const &archives) {
   player.pose().angles.heading = 0xc400;
   darker::game::weapon_ammunition ammunition;
   auto groups{darker::game::make_scenario_actors(record,scenario,bank,player,ammunition,0)};
-  if(player.pose().position[2] != 2432-bank.header_at(bank.special_models()[25]).height
+  if(player.pose().position.height != 2432-bank.header_at(bank.special_models()[25]).height
     || player.pose().angles.pitch != 0xf500 || (player.lifecycle.flags & 16))
     throw std::runtime_error{"Nightmare lost its original airborne launch"};
   darker::game::mission_combat combat{std::move(groups[0])};

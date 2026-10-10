@@ -107,11 +107,11 @@ void advance_map_homing_projectile(projectile &record, map_guidance_target const
   auto const height_offset{shift < 16 ? target.height_extent >> shift : 0};
   auto const height{static_cast<std::uint16_t>(target.height - height_offset)};
   auto const &position{record.placement.position};
-  auto const x{static_cast<std::uint16_t>(position[0] - target.position[0])};
-  auto const y{static_cast<std::uint16_t>(position[1] - target.position[1])};
+  auto const x{static_cast<std::uint16_t>(position.column - target.position.column)};
+  auto const y{static_cast<std::uint16_t>(position.row - target.position.row)};
   auto step{frame_step};
   if(!(static_cast<std::uint16_t>(x + 7) < 15 && static_cast<std::uint16_t>(y + 7) < 15)) {
-    auto const direction{maths::direction_from_displacement({x, y, static_cast<std::uint16_t>(height - position[2])})};
+    auto const direction{maths::direction_from_displacement({x, y, static_cast<std::uint16_t>(height - position.height)})};
     auto &angles{record.placement.angles};
     auto const heading_error{signed_word(direction.heading - angles.heading)};
     // JO after doubling rejects +4000h, but accepts -4000h.

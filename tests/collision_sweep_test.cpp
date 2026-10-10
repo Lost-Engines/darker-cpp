@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include "game/collision_sweep.h"
+#include "maths/world_coordinates.h"
 #include "reference/collision_sweep_samples.h"
 
 TEST_CASE("Swept collision boxes match native intersection and impact rounding", "[game][collision]") {
@@ -9,7 +10,7 @@ TEST_CASE("Swept collision boxes match native intersection and impact rounding",
   for(auto const &sample : darker::test_reference::collision_sweep_samples) {
     CAPTURE(sample.minimum, sample.maximum, sample.start, sample.end);
     auto const words{[](std::array<int, 3> const &values){
-      return std::array<std::uint16_t, 3>{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
+      return darker::maths::world_position{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
     }};
     darker::game::collision_box const box{.minimum{words(sample.minimum)}, .maximum{words(sample.maximum)}};
     auto end{words(sample.end)};

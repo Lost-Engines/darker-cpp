@@ -19,10 +19,10 @@ uint16_t approach_word(uint16_t const value, uint16_t const target, uint16_t con
   return static_cast<uint16_t>(below ? std::min(next,desired) : std::max(next,desired));
 }
 
-void approach_position(object_pose &pose, std::array<uint16_t,2> const target, uint16_t const step) noexcept {
+void approach_position(object_pose &pose, maths::map_position const target, uint16_t const step) noexcept {
   /// 7CA4 reduces the major horizontal error and scales the minor error by the remaining ratio
-  std::array<int,2> error{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position[0]-target[0])),
-    std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position[1]-target[1]))};
+  std::array<int,2> error{std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position.column-target.column)),
+    std::bit_cast<int16_t>(static_cast<uint16_t>(pose.position.row-target.row))};
   auto const magnitude{[](int const value){ return value < 0 ? -value : value; }};
   auto const largest{std::max(magnitude(error[0]),magnitude(error[1]))};
   auto const remaining{std::max(largest-static_cast<int>(step),0)};
@@ -58,10 +58,10 @@ bool begin_supply_approach(player_flight &player, city_map const &cells, supply_
   if(!craft || (player.lifecycle.flags & 0x10) || (player.engine_flags & 1)) return false;
   if((craft->vertical_velocity >> 8) != 255 || craft->horizontal_velocity >= 320) return false;
   auto const &pose{craft->pose};
-  if(static_cast<uint16_t>(pose.position[2]-264) >= 760) return false;
+  if(static_cast<uint16_t>(pose.position.height-264) >= 760) return false;
   auto const heading{pose.angles.heading >> 6};
-  auto const x{static_cast<uint16_t>(pose.position[0]-(maths::original_sine[heading] >> 8))};
-  auto const y{static_cast<uint16_t>(pose.position[1]-(maths::original_sine[(heading+256)%1024] >> 8))};
+  auto const x{static_cast<uint16_t>(pose.position.column-(maths::original_sine[heading] >> 8))};
+  auto const y{static_cast<uint16_t>(pose.position.row-(maths::original_sine[(heading+256)%1024] >> 8))};
   if((x | y) & 0x8000) return false;
   if(static_cast<uint8_t>(x+36) < 72 || static_cast<uint8_t>(y+36) < 72) return false;
   if(cells[(y >> 8)*128+(x >> 8)].type != 3) return false;
@@ -86,16 +86,16 @@ void advance_supply_motion(player_flight &player, supply_pad_state &pad, uint16_
       .bank_limit{static_cast<uint16_t>(definition.motion_seeds.bank_limit*64)},
       .turn_response{static_cast<uint16_t>(definition.motion_seeds.turn_response*256)}},0,0,frame_step);
     craft.damage.rotation = {attitude.pitch_rate,attitude.bank_rate};
-    std::array<uint16_t,2> const target{static_cast<uint16_t>(((pad.site & 255) >> 1)*256+(pad.offset & 255)),
+    maths::map_position const target{static_cast<uint16_t>(((pad.site & 255) >> 1)*256+(pad.offset & 255)),
       static_cast<uint16_t>((pad.site & 0xff00)+(pad.offset >> 8))};
     auto const fractional{static_cast<unsigned int>(pad.fraction)+static_cast<uint8_t>(frame_step << 5)};
     auto const step{static_cast<uint16_t>((frame_step >> 3)+(fractional >> 8))};
     pad.fraction = static_cast<uint8_t>(fractional);
     approach_position(pose,target,step);
-    pose.position[2] = approach_word(pose.position[2],328,step);
-    if(pose.position[0] == target[0] && pose.position[1] == target[1] && pose.position[2] == 328) {
-      auto const dx{static_cast<uint16_t>(128-(pose.position[0] & 255))};
-      auto const dy{static_cast<uint16_t>(128-(pose.position[1] & 255))};
+    pose.position.height = approach_word(pose.position.height,328,step);
+    if(pose.position.column == target.column && pose.position.row == target.row && pose.position.height == 328) {
+      auto const dx{static_cast<uint16_t>(128-(pose.position.column & 255))};
+      auto const dy{static_cast<uint16_t>(128-(pose.position.row & 255))};
       auto const desired{static_cast<uint16_t>((dx | dy) ? (maths::direction_index(dx,dy) << 5)^0x8000 : 0)};
       auto const error{std::bit_cast<int16_t>(static_cast<uint16_t>(desired-pose.angles.heading))};
       auto const amount{std::min(error < 0 ? -static_cast<int>(error) : static_cast<int>(error),static_cast<int>(static_cast<uint16_t>(frame_step*7)))};

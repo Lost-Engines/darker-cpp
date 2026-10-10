@@ -5,10 +5,11 @@
 #include <stdexcept>
 #include "game/object_definitions.h"
 #include "game/skimma_weapons.h"
-#include "reference/skimma_selection_samples.h"
+#include "maths/world_coordinates.h"
 #include "reference/recoil_samples.h"
 #include "reference/skimma_firing_samples.h"
 #include "reference/skimma_gun_samples.h"
+#include "reference/skimma_selection_samples.h"
 #include "reference/weapon_samples.h"
 
 TEST_CASE("Skimma automatic reload matches original counters, byte signs and deadline wrapping") {
@@ -31,7 +32,7 @@ TEST_CASE("Skimma automatic reload matches original counters, byte signs and dea
 
 TEST_CASE("Skimma ring timing matches native suppression, spent indicators and radius truncation") {
   for(auto const &sample : darker::test_reference::ring_samples) {
-    for(auto const deadline : std::array<std::uint16_t, 3>{0, 1024, 65500}) {
+    for(auto const deadline : std::array<uint16_t,3>{0, 1024, 65500}) {
       CAPTURE(sample.delta, sample.enabled, sample.spread, deadline);
       auto const display{darker::game::calculate_weapon_ring({.working{7}, .reserve{3}},
         {.reload_deadline{deadline}, .spread{static_cast<std::uint16_t>(sample.spread)}},
@@ -142,7 +143,7 @@ TEST_CASE("Skimma primary gun rays match native recoil and random spread", "[gam
       .angles{static_cast<uint16_t>(sample[3]),static_cast<uint16_t>(sample[4]),0}};
     auto random{static_cast<uint16_t>(sample[6])};
     auto const end{darker::game::skimma_gun_endpoint(player,std::bit_cast<int16_t>(static_cast<uint16_t>(sample[5])),random)};
-    CHECK(end == std::array<uint16_t,3>{static_cast<uint16_t>(sample[7]),static_cast<uint16_t>(sample[8]),static_cast<uint16_t>(sample[9])});
+    CHECK(end == darker::maths::world_position{static_cast<uint16_t>(sample[7]),static_cast<uint16_t>(sample[8]),static_cast<uint16_t>(sample[9])});
     CHECK(random == sample[10]);
   }
 }

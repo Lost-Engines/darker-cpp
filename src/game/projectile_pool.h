@@ -6,6 +6,7 @@
 #include "game/object_definition.h"
 #include "game/object_list.h"
 #include "game/projectile_placement.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -15,7 +16,7 @@ struct projectile {
   projectile *previous{nullptr};
   object_parameters parameters;
   object_pose placement;
-  std::array<std::uint16_t, 3> previous_position{};
+  maths::world_position previous_position{};
   std::array<std::uint16_t, 3> angular_motion{};
   std::uint8_t flags{0};
   std::uint8_t lifecycle{0};

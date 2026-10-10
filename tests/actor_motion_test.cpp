@@ -29,6 +29,6 @@ TEST_CASE("Actor acceleration and displacement match native word and fractional 
     };
     darker::game::advance_actor_speed(pose, static_cast<std::uint8_t>(v[10]), static_cast<std::uint8_t>(v[11]),
       static_cast<std::uint8_t>(v[12]), static_cast<std::uint16_t>(v[13]));
-    CHECK(std::array<int, 7>{pose.position[0], pose.position[1], pose.position[2], pose.fractions[0], pose.fractions[1], pose.fractions[2], pose.speed} == sample.output);
+    CHECK(std::array<int, 7>{pose.position.column, pose.position.row, pose.position.height, pose.fractions.column, pose.fractions.row, pose.fractions.height, pose.speed} == sample.output);
   }
 }

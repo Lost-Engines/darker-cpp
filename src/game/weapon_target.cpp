@@ -4,6 +4,7 @@
 #include "game/city_sweep.h"
 #include "game/object_definitions.h"
 #include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -13,15 +14,15 @@ void weapon_target::clear() noexcept {
   spread = 508;
 }
 
-std::array<uint16_t, 3> target_ray_end(object_pose const &player) noexcept {
+maths::world_position target_ray_end(object_pose const &player) noexcept {
   /// 1E77/6D08 construct the unrolled forward targeting ray with the original truncation points
   auto const heading{player.angles.heading >> 6}, pitch{player.angles.pitch >> 6};
   auto const sine{maths::original_sine[heading]}, cosine{maths::original_sine[(heading + 256) % 1024]};
   auto const pitch_cosine{maths::original_sine[(pitch + 256) % 1024]};
   auto const x{(-(sine * pitch_cosine >> 16)) >> 2};
   auto const y{-((cosine * pitch_cosine >> 16) >> 2)};
-  return {static_cast<uint16_t>(player.position[0] + x),static_cast<uint16_t>(player.position[1] + y),
-    static_cast<uint16_t>((player.position[2] & 0xfffe) + (maths::original_sine[pitch] >> 1)*2)};
+  return {static_cast<uint16_t>(player.position.column + x),static_cast<uint16_t>(player.position.row + y),
+    static_cast<uint16_t>((player.position.height & 0xfffe) + (maths::original_sine[pitch] >> 1)*2)};
 }
 
 uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_actor const> const actors,
@@ -41,16 +42,16 @@ uint16_t acquire_caero_target(object_pose const &player, std::span<scenario_acto
 
 namespace {
 
-void project_target(weapon_target &lock, std::array<uint16_t, 3> const &player,
-  std::array<uint16_t, 3> const &target, uint16_t const extent, maths::view_basis const &basis,
+void project_target(weapon_target &lock, maths::world_position const &player,
+  maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state, bool const skimma) noexcept {
   /// CF94–D056 retain a resolved lock only inside its original view cone and target class
   if(!skimma && !secondary_weapon) { lock.clear(); return; }
   if(lock.token == 0xffff) return;
-  auto const dx{static_cast<uint16_t>(target[0] - player[0])};
-  auto const dy{static_cast<uint16_t>(target[1] - player[1])};
+  auto const dx{static_cast<uint16_t>(target.column - player.column)};
+  auto const dy{static_cast<uint16_t>(target.row - player.row)};
   if(static_cast<uint8_t>((dx >> 8) + 16) >= 32 || static_cast<uint8_t>((dy >> 8) + 16) >= 32) { lock.clear(); return; }
-  auto const height{static_cast<uint16_t>(player[2] - target[2] + (extent >> 2))};
+  auto const height{static_cast<uint16_t>(player.height - target.height + (extent >> 2))};
   auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>(dx * 8))};
   auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>(dy * 8))};
   auto const z{std::bit_cast<int16_t>(height)};
@@ -84,15 +85,15 @@ void project_target(weapon_target &lock, std::array<uint16_t, 3> const &player,
 
 } // namespace
 
-void project_caero_target(weapon_target &lock, std::array<uint16_t,3> const &player,
-  std::array<uint16_t,3> const &target, uint16_t const extent, maths::view_basis const &basis,
+void project_caero_target(weapon_target &lock, maths::world_position const &player,
+  maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const secondary_weapon, uint8_t const cell_type, uint8_t const cell_state) noexcept {
   /// Preserve the Caero target class and marked-building restrictions
   project_target(lock,player,target,extent,basis,secondary_weapon,cell_type,cell_state,false);
 }
 
-void project_skimma_target(weapon_target &lock, std::array<uint16_t,3> const &player,
-  std::array<uint16_t,3> const &target, uint16_t const extent, maths::view_basis const &basis,
+void project_skimma_target(weapon_target &lock, maths::world_position const &player,
+  maths::world_position const &target, uint16_t const extent, maths::view_basis const &basis,
   uint8_t const weapon, bool const enabled, bool const reloading, bool const destructible) noexcept {
   /// CF4A accepts enabled, reloaded weapons and rejects indestructible map targets after projection
   if(!enabled || reloading || weapon >= 3) { lock.clear(); return; }

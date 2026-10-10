@@ -57,7 +57,7 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
         }
         if(slot == 12 && index == 4) {
           for(auto const &actor : actors[0]) {
-            if((actor.pose.position[0] >> 8) != 0x42 || (actor.pose.position[1] >> 8) != 0x51)
+            if((actor.pose.position.column >> 8) != 0x42 || (actor.pose.position.row >> 8) != 0x51)
               throw std::runtime_error{"Embedded escort setup did not anchor subsequent actors to the player"};
           }
         }
@@ -90,7 +90,8 @@ void check_scenario_resources(darker::resources::archive_set const &archives) {
             add(object.counted);
             add(object.attributes);
             add(object.heading);
-            for(auto const value : object.position) add(value);
+            add(object.position.column);
+            add(object.position.row);
             for(auto const value : object.motion) add(value);
             add(object.script_or_target ? *object.script_or_target : 0xffffffff);
             add(static_cast<std::uint32_t>(object.program_offset.value_or(0xffffffff)));

@@ -5,11 +5,12 @@
 #include <vector>
 #include "game/city_map.h"
 #include "game/effects.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 
 struct ambient_context {
-  std::array<uint16_t,2> listener{};
+  maths::map_position listener{};
   uint16_t clock{0};
   uint16_t changes{0};
   uint16_t gate_site{0};

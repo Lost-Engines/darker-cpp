@@ -6,6 +6,7 @@
 #include "game/object_definitions.h"
 #include "game/random.h"
 #include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -39,7 +40,7 @@ std::int8_t kick_skimma_recoil(std::int8_t const current, std::uint8_t const ran
   return std::bit_cast<std::int8_t>(static_cast<std::uint8_t>(current + (current < 0 ? impulse : -impulse)));
 }
 
-std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t const pitch_offset, uint16_t &random_state) noexcept {
+maths::world_position skimma_gun_endpoint(object_pose const &player, int16_t const pitch_offset, uint16_t &random_state) noexcept {
   /// CD84 quarters the sight vector and adds three signed random components before 6D08 constructs the ray
   auto const heading{player.angles.heading >> 6};
   auto const pitch{static_cast<uint16_t>(player.angles.pitch+pitch_offset) >> 6};
@@ -52,8 +53,8 @@ std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t co
   auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>((forward >> 2)+std::bit_cast<int8_t>(static_cast<uint8_t>(random >> 8))))};
   auto const mixed{static_cast<uint16_t>((random & 0xff00) | std::rotr(static_cast<uint8_t>(random),3))};
   auto const z{std::bit_cast<int16_t>(static_cast<uint16_t>((vertical >> 2)+(std::bit_cast<int8_t>(static_cast<uint8_t>(mixed >> 3)) >> 3)))};
-  return {static_cast<uint16_t>(player.position[0]+(x >> 2)),static_cast<uint16_t>(player.position[1]-(y >> 2)),
-    static_cast<uint16_t>((player.position[2] & 0xfffe)-z*2)};
+  return {static_cast<uint16_t>(player.position.column+(x >> 2)),static_cast<uint16_t>(player.position.row-(y >> 2)),
+    static_cast<uint16_t>((player.position.height & 0xfffe)-z*2)};
 }
 
 projectile *fire_skimma_weapon(projectile_pool &pool, skimma_weapon_slot &slot, skimma_fire_request const request) {

@@ -6,6 +6,7 @@
 #include "game/flight_motion.h"
 #include "game/object_definitions.h"
 #include "maths/direction.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -49,8 +50,8 @@ void advance_hangar_departure(player_flight &player, city_map &cells, hangar_sta
   if(hangar.returning == hangar_return_phase::settling || hangar.returning == hangar_return_phase::complete) return;
   auto const centre{site_index(hangar.return_site)};
   auto const &position{player.pose().position};
-  auto const column{static_cast<unsigned int>(position[0] >> 8)};
-  auto const row{static_cast<unsigned int>(position[1] >> 8)};
+  auto const column{static_cast<unsigned int>(position.column >> 8)};
+  auto const row{static_cast<unsigned int>(position.row >> 8)};
   auto const type{column < 128 && row < 128 ? cells[row * 128 + column].type : 255};
   if(type < 17 || type > 24) {
     if(hangar.returning == hangar_return_phase::approaching) return;
@@ -85,10 +86,10 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   auto const centre{site_index(hangar.return_site)};
   if(cells[centre].type != 17) throw std::invalid_argument{"Return capture currently requires a type-17 hangar"};
   auto const &pose{player.pose()};
-  if((pose.position[2] >> 8) >= 9) return false;
+  if((pose.position.height >> 8) >= 9) return false;
   auto const aligned{[](uint16_t const error){ return static_cast<uint8_t>((error >> 8) + 7) < 14; }};
   if(!aligned(pose.angles.roll)) return false;
-  std::array<uint16_t, 3> const target{static_cast<uint16_t>((centre % 128) * 256 + 128),
+  maths::world_position const target{static_cast<uint16_t>((centre % 128) * 256 + 128),
     static_cast<uint16_t>((centre / 128) * 256 + 152), 256};
   auto const distance{horizontal_distance(pose.position, target)};
   if(static_cast<uint16_t>(distance - 0x260) >= 256) return false;
@@ -119,12 +120,12 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
   }};
   if(hangar.returning == hangar_return_phase::approaching) {
     auto const centre{site_index(hangar.return_site)};
-    std::array<uint16_t, 3> target{static_cast<uint16_t>((centre % 128) * 256 + 128),
+    maths::world_position target{static_cast<uint16_t>((centre % 128) * 256 + 128),
       static_cast<uint16_t>((centre / 128) * 256 + (player.tunnel ? 144 : 216)), static_cast<uint16_t>(player.tunnel ? 1640 : 220)};
     auto const distance{horizontal_distance(pose.position, target)};
-    auto const approach{[&](std::array<uint16_t, 3> const &point){
-      bool const close{static_cast<uint16_t>(point[0] - pose.position[0] + 7) < 15
-        && static_cast<uint16_t>(point[1] - pose.position[1] + 7) < 15};
+    auto const approach{[&](maths::world_position const &point){
+      bool const close{static_cast<uint16_t>(point.column - pose.position.column + 7) < 15
+        && static_cast<uint16_t>(point.row - pose.position.row + 7) < 15};
       if(close) return true;
       auto const direction{maths::object_target_direction(pose.position, point)};
       auto const difference{static_cast<uint16_t>(direction.heading - pose.angles.heading)};
@@ -137,7 +138,7 @@ void advance_hangar_return(player_flight &player, hangar_state &hangar, uint16_t
     bool arrived{false};
     if(player.tunnel) arrived = approach(target);
     else if(approach(outer)) {
-      target[2] = static_cast<uint16_t>(std::min<int>(static_cast<int>(distance >> 2) - 40, 41));
+      target.height = static_cast<uint16_t>(std::min<int>(static_cast<int>(distance >> 2) - 40, 41));
       arrived = approach(target);
     }
     if(!arrived) {

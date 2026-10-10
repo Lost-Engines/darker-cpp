@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include "game/tunnel_network.h"
+#include "maths/world_coordinates.h"
 #include "reference/tunnel_network_samples.h"
 
 TEST_CASE("Tunnel route preparation and interpolation match native geometry helpers") {
@@ -24,7 +25,7 @@ TEST_CASE("Tunnel route preparation and interpolation match native geometry help
   for(auto const &sample : darker::test_reference::tunnel_point_samples) {
     CAPTURE(sample);
     auto const type{static_cast<uint8_t>(sample[0])}, route{static_cast<uint8_t>(sample[1])};
-    REQUIRE(network.point(type,route,sample[2],sample[3]) == std::array<uint16_t,3>{sample[5],sample[6],sample[7]});
+    REQUIRE(network.point(type,route,sample[2],sample[3]) == darker::maths::world_position{sample[5],sample[6],sample[7]});
     REQUIRE(network.direction(type,route,sample[4]) == sample[8]);
   }
 }

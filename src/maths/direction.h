@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include "maths/world_coordinates.h"
 
 namespace darker::maths {
 
@@ -12,7 +13,7 @@ struct direction_angles {
 
 std::uint16_t direction_index(std::uint16_t x, std::uint16_t y);
 
-direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const &displacement);
-direction_angles object_target_direction(std::array<std::uint16_t, 3> const &position, std::array<std::uint16_t, 3> const &target);
+direction_angles direction_from_displacement(world_position const &displacement);
+direction_angles object_target_direction(world_position const &position, world_position const &target);
 
 } // namespace darker::maths

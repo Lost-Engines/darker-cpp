@@ -10,6 +10,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 #include "actor_flight_check.h"
+#include "building_combat_check.h"
 #include "camera_target_check.h"
 #include "city_persistence_check.h"
 #include "game/city_collision.h"
@@ -19,9 +20,11 @@
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
 #include "hangar_flight_check.h"
-#include "building_combat_check.h"
+#include "maths/world_coordinates.h"
 #include "mission_combat_check.h"
 #include "music_check.h"
+#include "nightmare_check.h"
+#include "presentation_check.h"
 #include "reference/camera_samples.h"
 #include "reference/city_collision_samples.h"
 #include "reference/city_frame_samples.h"
@@ -37,8 +40,6 @@
 #include "scenario_resource_check.h"
 #include "skimma_combat_check.h"
 #include "text_resource_check.h"
-#include "nightmare_check.h"
-#include "presentation_check.h"
 
 auto main(int const argc, char const *const argv[])->int try {
   /// Decode every original resource and optionally compare independently verified reference bytes
@@ -121,7 +122,7 @@ auto main(int const argc, char const *const argv[])->int try {
       if(sample.slot != slot) continue;
       cells[20 * 128 + 20] = {.type{static_cast<std::uint8_t>(sample.type)}, .state{static_cast<std::uint8_t>(sample.state)}};
       auto const words{[](std::array<int, 3> const &values){
-        return std::array<std::uint16_t, 3>{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
+        return darker::maths::world_position{static_cast<std::uint16_t>(values[0]), static_cast<std::uint16_t>(values[1]), static_cast<std::uint16_t>(values[2])};
       }};
       auto end{words(sample.end)};
       auto const result{darker::game::sweep_city(bank, cells, static_cast<std::uint8_t>(slot == 30 ? 0x20 : 0x60), words(sample.start), end)};
@@ -152,11 +153,11 @@ auto main(int const argc, char const *const argv[])->int try {
       player.advance({}, false, 8, static_cast<std::uint16_t>(input[4]), bank, cells);
       auto const velocity{std::visit([](auto const &state){ return std::array<int, 2>{state.vertical_velocity, state.horizontal_velocity}; }, player.craft)};
       auto const &pose{player.pose()};
-      if(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} != sample.position || velocity != sample.velocity
+      if(std::array<int, 3>{pose.position.column, pose.position.row, pose.position.height} != sample.position || velocity != sample.velocity
         || std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} != sample.angles
         || player.lifecycle.crashing != (sample.outcome[0] == 0x6ef7) || cells[20 * 128 + 20].state != sample.outcome[1]) {
         throw std::runtime_error{std::format("Player flight/collision differs from native reference: craft {}, type {}, height {}, engine {}, tick {}: position ({},{},{}) expected ({},{},{})",
-          input[0], input[1], input[2], input[3], input[4], pose.position[0], pose.position[1], pose.position[2], sample.position[0], sample.position[1], sample.position[2])};
+          input[0], input[1], input[2], input[3], input[4], pose.position.column, pose.position.row, pose.position.height, sample.position[0], sample.position[1], sample.position[2])};
       }
     }
   }

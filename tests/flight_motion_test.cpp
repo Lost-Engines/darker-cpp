@@ -24,7 +24,7 @@ TEST_CASE("Shared flight integration matches native movement and speed trajector
       static_cast<std::uint16_t>(sample.time_h), static_cast<std::uint16_t>(sample.heading), static_cast<std::uint16_t>(sample.pitch));
     darker::game::advance_vertical_flight(pose, vertical, static_cast<std::uint16_t>(sample.target_v), static_cast<std::uint16_t>(sample.time_v));
     darker::game::measure_flight_speed(pose, horizontal, vertical);
-    std::array<int, 9> const actual{pose.position[0], pose.position[1], pose.position[2], pose.fractions[0], pose.fractions[1], pose.fractions[2],
+    std::array<int, 9> const actual{pose.position.column, pose.position.row, pose.position.height, pose.fractions.column, pose.fractions.row, pose.fractions.height,
       horizontal, vertical, pose.speed};
     REQUIRE(actual == sample.after);
   }

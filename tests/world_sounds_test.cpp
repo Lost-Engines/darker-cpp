@@ -10,6 +10,7 @@
 #include "reference/stereo_samples.h"
 #include "reference/voice_allocation_samples.h"
 #include "reference/world_sound_samples.h"
+#include "maths/world_coordinates.h"
 
 TEST_CASE("World sound admission and Doppler match native arithmetic", "[audio]") {
   /// Check wrapping positions, rejected distances and the original directional speed factors
@@ -40,7 +41,7 @@ TEST_CASE("Enemy gun endpoints match native sprite and sound construction", "[au
     REQUIRE(effects.trails.size() == 1);
     REQUIRE(effects.gun_sounds.size() == 1);
     CHECK(effects.trails[0].flags == v[1]);
-    CHECK(effects.trails[0].position == std::array<uint16_t,3>{static_cast<uint16_t>(v[2]),static_cast<uint16_t>(v[3]),static_cast<uint16_t>(v[4])});
+    CHECK(effects.trails[0].position == darker::maths::world_position{static_cast<uint16_t>(v[2]),static_cast<uint16_t>(v[3]),static_cast<uint16_t>(v[4])});
     auto const &sound{effects.gun_sounds[0]};
     CHECK(sound.definition.pitch == v[5]);
     CHECK(sound.definition.level == v[6]);
@@ -125,7 +126,7 @@ TEST_CASE("Aircraft engines follow source admission without restarting moving vo
   REQUIRE(std::ranges::count_if(first, [](auto const &note){ return note.active; }) == 1);
   auto const voice{std::ranges::find_if(first, [](auto const &note){ return note.active; })};
   auto const channel{static_cast<size_t>(voice-first.begin())};
-  combat.actors.front().pose.position[0] = 128;
+  combat.actors.front().pose.position.column = 128;
   auto const moving{mixer.mix({},combat,{},8)};
   CHECK(moving[channel].active);
   CHECK(moving[channel].generation == voice->generation);
@@ -136,7 +137,7 @@ TEST_CASE("Aircraft engines follow source admission without restarting moving vo
     CHECK(std::ranges::none_of(silent, [](auto const &note){ return note.active; }));
   }
   combat.actors.front().flags = 0;
-  combat.actors.front().pose.position[0] = 8192;
+  combat.actors.front().pose.position.column = 8192;
   auto const distant{mixer.mix({},combat,{},24)};
   CHECK(std::ranges::none_of(distant, [](auto const &note){ return note.active; }));
 }

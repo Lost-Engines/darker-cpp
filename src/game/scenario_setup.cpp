@@ -37,8 +37,8 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     height = 2560;
     break;
   case scenario_setup_kind::anchor_escorts:
-    pose.position[0] = static_cast<uint16_t>((pose.position[0] & 0xff00) | 0xc8);
-    pose.position[1] = static_cast<uint16_t>((pose.position[1] & 0xff00) | 0xbb);
+    pose.position.column = static_cast<uint16_t>((pose.position.column & 0xff00) | 0xc8);
+    pose.position.row = static_cast<uint16_t>((pose.position.row & 0xff00) | 0xbb);
     pose.angles.pitch = 0;
     pose.angles.heading = 0x0f20;
     height = 264;
@@ -61,7 +61,7 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
     break;
   default: throw std::invalid_argument{"Actor setup cannot be applied to the player"};
   }
-  pose.position[2] = static_cast<uint16_t>(height-model_height);
+  pose.position.height = static_cast<uint16_t>(height-model_height);
   if(auto *caero{std::get_if<caero_flight_state>(&player.craft)}) {
     caero->energy.boost = energy;
     caero->energy.reserve = energy;
@@ -74,12 +74,12 @@ void apply_actor_scenario_setup(scenario_setup_kind const kind, scenario_actor &
   /// Apply mutations to the most recently allocated actor, retaining fields the native block leaves alone
   switch(kind) {
   case scenario_setup_kind::raise_actor:
-    actor.pose.position[2] = static_cast<uint16_t>(actor.pose.position[2]+256);
+    actor.pose.position.height = static_cast<uint16_t>(actor.pose.position.height+256);
     break;
   case scenario_setup_kind::escort_departure:
-    actor.pose.position[0] = static_cast<uint16_t>((actor.pose.position[0] & 0xff00) | 0x4b);
-    actor.pose.position[1] = static_cast<uint16_t>((actor.pose.position[1] & 0xff00) | 0x46);
-    actor.pose.position[2] = static_cast<uint16_t>(actor.pose.position[2]-2400);
+    actor.pose.position.column = static_cast<uint16_t>((actor.pose.position.column & 0xff00) | 0x4b);
+    actor.pose.position.row = static_cast<uint16_t>((actor.pose.position.row & 0xff00) | 0x46);
+    actor.pose.position.height = static_cast<uint16_t>(actor.pose.position.height-2400);
     actor.pose.speed = 200;
     actor.pose.angles.pitch = 0x0c00;
     actor.expiry = static_cast<uint16_t>(clock+256);

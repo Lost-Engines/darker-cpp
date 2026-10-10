@@ -26,10 +26,10 @@ TEST_CASE("Ground vehicle routes match native movement through turns, branches a
         static_cast<uint16_t>(call * sample.step),37,random)};
       if(event.deadline) deadline = *event.deadline;
       auto const effect{event.effect.value_or(darker::game::vehicle_route_effect{})};
-      std::array<uint64_t,26> const words{pose.position[0],pose.position[1],pose.position[2],
-        pose.fractions[0],pose.fractions[1],pose.fractions[2],pose.angles.heading,pose.angles.pitch,pose.angles.roll,
+      std::array<uint64_t,26> const words{pose.position.column,pose.position.row,pose.position.height,
+        pose.fractions.column,pose.fractions.row,pose.fractions.height,pose.angles.heading,pose.angles.pitch,pose.angles.roll,
         pose.speed,flags,route.origin,route.cursor,route.command,static_cast<uint64_t>((flags & 0x20) != 0),route.effect_progress,event.damage_cell.value_or(65535),route.effect_countdown,deadline,random,
-        effect.position[0],effect.position[1],effect.position[2],effect.recipe,effect.phase,effect.sound_level};
+        effect.position.column,effect.position.row,effect.position.height,effect.recipe,effect.phase,effect.sound_level};
       for(auto const word : words) hash = (hash ^ word) * 0x100000001b3;
     }
     REQUIRE(hash == sample.fingerprint);

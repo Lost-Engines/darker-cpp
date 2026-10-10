@@ -17,6 +17,7 @@
 #include "reference/halon_spawning_samples.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "maths/world_coordinates.h"
 
 void check_skimma_combat(darker::resources::archive_set const &archives) {
   /// Exercise original Skimma combat, Halon objectives, supply exchanges and the final battle
@@ -53,7 +54,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       throw std::runtime_error{"Halon aircraft admission, timer or heading differs from the original"};
     if(active.empty()) continue;
     auto const &actor{active.front()};
-    std::array<uint16_t,15> const actual{actor.pose.position[0],actor.pose.position[1],actor.pose.position[2],
+    std::array<uint16_t,15> const actual{actor.pose.position.column,actor.pose.position.row,actor.pose.position.height,
       actor.pose.angles.heading,actor.pose.angles.pitch,actor.pose.angles.roll,actor.pose.speed,actor.selected_target,actor.target_token,
       actor.current_cell,std::to_underlying(actor.parameters.update_entry),actor.expiry,actor.script.deadline,actor.flags,
       static_cast<uint16_t>(actor.script.continuation == 0xe800)};
@@ -106,8 +107,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        player.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
-          static_cast<uint16_t>(target->pose.position[1]+((cosine*200) >> 15)),target->pose.position[2]};
+        player.pose().position = {static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15)),
+          static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15)),target->pose.position.height};
         player.pose().angles = {heading,0,0};
         player.pose().speed = 496;
       }
@@ -253,8 +254,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{target->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        pilot.pose().position = {static_cast<uint16_t>(target->pose.position[0]+((sine*200) >> 15)),
-          static_cast<uint16_t>(target->pose.position[1]+((cosine*200) >> 15)),target->pose.position[2]};
+        pilot.pose().position = {static_cast<uint16_t>(target->pose.position.column+((sine*200) >> 15)),
+          static_cast<uint16_t>(target->pose.position.row+((cosine*200) >> 15)),target->pose.position.height};
         pilot.pose().angles = {heading,0,0};
         pilot.pose().speed = 496;
       }
@@ -287,7 +288,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     if(!context.progress) for(auto const &actor : combat.actors) {
       std::cerr << "Final actor " << unsigned{actor.index} << " slot " << unsigned{actor.definition_slot}
         << " flags " << unsigned{actor.flags} << " callback " << std::to_underlying(actor.parameters.update_entry)
-        << " position " << actor.pose.position[0] << ',' << actor.pose.position[1] << ',' << actor.pose.position[2]
+        << " position " << actor.pose.position.column << ',' << actor.pose.position.row << ',' << actor.pose.position.height
         << std::endl;
     }
     if(!context.progress || !context.objectives_complete || !combat.reserves.empty())
@@ -361,7 +362,7 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       uint16_t token{0xffff};
       if(building != combat.spawning.sites.end()) {
         auto const aim{darker::game::resolve_map_guidance(*building,city,bank,0x60)};
-        std::array<uint16_t,3> const target{aim.position[0],aim.position[1],aim.height};
+        darker::maths::world_position const target{aim.position.column,aim.position.row,aim.height};
         pilot.pose().position = {target[0],static_cast<uint16_t>(target[1]+32),static_cast<uint16_t>(target[2]+2048)};
         auto const direction{darker::maths::object_target_direction(pilot.pose().position,target)};
         pilot.pose().angles = {direction.heading,direction.pitch,0};
@@ -372,8 +373,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         auto const heading{actor->pose.angles.heading};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        pilot.pose().position = {static_cast<uint16_t>(actor->pose.position[0]+((sine*200) >> 15)),
-          static_cast<uint16_t>(actor->pose.position[1]+((cosine*200) >> 15)),actor->pose.position[2]};
+        pilot.pose().position = {static_cast<uint16_t>(actor->pose.position.column+((sine*200) >> 15)),
+          static_cast<uint16_t>(actor->pose.position.row+((cosine*200) >> 15)),actor->pose.position.height};
         pilot.pose().angles = {heading,0,0};
         primary = actor->parameters.definition->impact_strength < 50;
         secondary = !primary;

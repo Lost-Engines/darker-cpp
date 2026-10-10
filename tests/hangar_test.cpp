@@ -13,7 +13,7 @@ TEST_CASE("Caero hangar placement matches native startup", "[game][hangar]") {
     darker::game::hangar_state hangar{.return_site{static_cast<std::uint16_t>(sample.site)}};
     darker::game::initialise_caero_hangar(player, cells, hangar, static_cast<std::int16_t>(sample.model_height));
     auto const &pose{player.pose()};
-    CHECK(std::array<int, 3>{pose.position[0], pose.position[1], pose.position[2]} == sample.position);
+    CHECK(std::array<int, 3>{pose.position.column, pose.position.row, pose.position.height} == sample.position);
     CHECK(std::array<int, 3>{pose.angles.heading, pose.angles.pitch, pose.angles.roll} == sample.angles);
     CHECK(player.lifecycle.flags == sample.flags);
     CHECK(player.engine_flags == 1);

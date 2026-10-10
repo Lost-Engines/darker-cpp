@@ -56,8 +56,8 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   state.damage.rotation.pitch = pitch_response.rate;
   auto pitch_delta{project_flight_pitch(angles.pitch, middle_bank, pitch_response.angle_delta)};
   auto const tentative_pitch{word(angles.pitch + pitch_delta)};
-  auto const assist_limit{static_cast<std::uint16_t>(std::max(0, (word(state.pose.position[2]) >> 3) - 1024) + 256)};
-  auto desired_pitch{word(0x3800 - state.pose.position[2])};
+  auto const assist_limit{static_cast<std::uint16_t>(std::max(0, (word(state.pose.position.height) >> 3) - 1024) + 256)};
+  auto desired_pitch{word(0x3800 - state.pose.position.height)};
   bool force_assist{tentative_pitch > desired_pitch};
   if(!force_assist) {
     desired_pitch = -4096;
@@ -86,7 +86,7 @@ void advance_skimma_flight(skimma_flight_state &state, skimma_flight_parameters 
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
   auto const vertical_drive{word((word(forward_target) * sine(middle_pitch)) >> 15)};
   auto const lift{high_product(turn.lift_projection, word((word(state.horizontal_velocity) >> 1) + 512))};
-  auto const altitude{state.pose.position[2]};
+  auto const altitude{state.pose.position.height};
   auto const height_term{word(altitude < 256 ? 256 - altitude : altitude - 256)};
   auto const vertical_target{static_cast<std::uint16_t>(vertical_drive + parameters.vertical_bias + lift - (height_term >> 5))};
   advance_vertical_flight(state.pose, state.vertical_velocity, vertical_target, movement_step);

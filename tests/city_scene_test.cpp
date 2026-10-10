@@ -1,8 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include "graphics/city_scene.h"
+#include "maths/world_coordinates.h"
 #include "reference/city_scan_samples.h"
-#include "reference/object_window_samples.h"
 #include "reference/distant_points_samples.h"
+#include "reference/object_window_samples.h"
 
 TEST_CASE("City scans preserve native candidate order and map boundaries", "[graphics][city]") {
   /// Match circular spans, heading halves, full-pitch scans and empty-cell skips
@@ -28,7 +29,7 @@ TEST_CASE("Moving-object visibility matches the native wrapping byte window", "[
   /// Exercise both axes and both native radii before narrower projection arithmetic can alias distant coordinates
   for(auto const &sample : darker::test_reference::object_window_samples) {
     darker::graphics::city_view const view{.column{static_cast<uint16_t>(sample[0])}, .row{static_cast<uint16_t>(sample[1])}, .radius{sample[2]}};
-    std::array<uint16_t,3> const position{static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[4]), 0};
+    darker::maths::world_position const position{static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[4]), 0};
     CAPTURE(sample);
     REQUIRE(darker::graphics::within_object_window(view, position) == static_cast<bool>(sample[5]));
   }

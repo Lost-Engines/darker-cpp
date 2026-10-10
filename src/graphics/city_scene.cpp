@@ -6,6 +6,7 @@
 #include "graphics/particles.h"
 #include "graphics/near_clip.h"
 #include "graphics/tunnel_visibility.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::graphics {
 
@@ -63,20 +64,20 @@ std::optional<city_draw_item> place_city_cell(resources::geometry_bank const &ba
   return item;
 }
 
-bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept {
+bool within_object_window(city_view const &view, maths::world_position const &position) noexcept {
   /// 26EE patches 2F35's byte window before word-sized projection can alias distant objects into nearby space
   auto const width{view.radius * 2 - 1};
-  auto const column{static_cast<uint8_t>((position[0] >> 8) - (view.column >> 8) + view.radius - 1)};
-  auto const row{static_cast<uint8_t>((position[1] >> 8) - (view.row >> 8) + view.radius - 1)};
+  auto const column{static_cast<uint8_t>((position.column >> 8) - (view.column >> 8) + view.radius - 1)};
+  auto const row{static_cast<uint8_t>((position.row >> 8) - (view.row >> 8) + view.radius - 1)};
   return column < width && row < width;
 }
 
 std::optional<city_draw_item> place_scene_object(resources::geometry_bank const &bank, scene_object const &object,
   camera_basis const &basis, camera_position camera, bool const underground) {
   /// 2F35 preserves the object's fractional origin before the same model extent cull as city geometry
-  camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions[0] >> 6));
-  camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions[1] >> 6));
-  auto placement{place_model(basis, camera, {.column{object.pose.position[0]}, .row{object.pose.position[1]}, .height{word(-object.pose.position[2])}})};
+  camera.column = static_cast<std::uint16_t>(camera.column - (object.pose.fractions.column >> 6));
+  camera.row = static_cast<std::uint16_t>(camera.row - (object.pose.fractions.row >> 6));
+  auto placement{place_model(basis, camera, {.column{object.pose.position.column}, .row{object.pose.position.row}, .height{word(-object.pose.position.height)}})};
   auto const header{bank.header_at(object.model_offset)};
   // BC94 patches 2EDC from ADD to SUB for underground moving objects.
   placement.sorting_distance = static_cast<std::uint16_t>(placement.sorting_distance + (underground ? -header.extent : header.extent));
@@ -225,7 +226,7 @@ std::size_t city_renderer::draw(framework::render::indexed_cockpit_framebuffer &
         if(!phase) continue;
         // 2F35 admits effects through the same wrapping coordinate window as moving objects.
         if(!within_object_window(view, emitter.position)) continue;
-        auto const placement{place_model(basis, camera, {.column{emitter.position[0]}, .row{emitter.position[1]}, .height{word(-emitter.position[2])}})};
+        auto const placement{place_model(basis, camera, {.column{emitter.position.column}, .row{emitter.position.row}, .height{word(-emitter.position.height)}})};
         items.push_back({.placement{placement}, .emitter{&emitter}, .phase{*phase}});
       }
     }};

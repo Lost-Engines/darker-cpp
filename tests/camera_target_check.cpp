@@ -30,10 +30,10 @@ void check_camera_targets(darker::resources::archive_set const &archives) {
   cells[20*128+20] = {.type{1}};
   object_pose const approaching{.position{20*256+128,22*256,200}};
   auto const beacon{pick_camera_target(approaching,approaching,extent,0,{},cells,bank,0x20)};
-  if(!beacon || beacon->actor || beacon->anchor.position[0] != 20*256+128 || beacon->anchor.position[1] != 20*256+128)
+  if(!beacon || beacon->actor || beacon->anchor.position.column != 20*256+128 || beacon->anchor.position.row != 20*256+128)
     throw std::runtime_error{"F7 failed to place a camera over a struck beacon"};
   auto const model{bank.header_at(bank.city_model_offset(1,0,0x20))};
-  if(beacon->anchor.position[2] != static_cast<uint16_t>(model.extent*5-model.height))
+  if(beacon->anchor.position.height != static_cast<uint16_t>(model.extent*5-model.height))
     throw std::runtime_error{"F7 building camera height differs from D089/25C3"};
   actors[2].flags = 0x20;
   actors[2].expiry = 0;

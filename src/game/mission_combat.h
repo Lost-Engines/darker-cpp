@@ -10,8 +10,9 @@
 #include "game/effects.h"
 #include "game/player_flight.h"
 #include "game/projectile_pool.h"
-#include "game/weapon_target.h"
 #include "game/skimma_weapons.h"
+#include "game/weapon_target.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -78,7 +79,7 @@ public:
 
   explicit mission_combat(std::vector<scenario_actor> initial);
   void spawn_aircraft(player_flight const &player, city_map const &cells, resources::geometry_bank const &bank, uint16_t clock, uint16_t frame_step);
-  void collide_player(player_flight &player, std::array<uint16_t,3> const &start,
+  void collide_player(player_flight &player, maths::world_position const &start,
     city_map &cells, resources::geometry_bank const &bank, uint16_t clock);
   void collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t damage_mask, uint16_t clock, bool underground = false);
   void activate_reserves(actor_category category, uint8_t count, object_pose const &player, uint16_t clock);
@@ -88,7 +89,7 @@ public:
   std::span<uint8_t const> status_flags(uint8_t player_flags) noexcept;
   void advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
     combat_timing timing, combat_input input = {}, combat_scenario scenario = {},
-    std::optional<std::array<uint16_t,3>> player_start = std::nullopt);
+    std::optional<maths::world_position> player_start = std::nullopt);
 
 private:
   std::array<uint8_t,256> retained_flags{};

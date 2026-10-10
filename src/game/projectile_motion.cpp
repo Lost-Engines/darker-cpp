@@ -26,7 +26,7 @@ void advance_direct_projectile(object_pose &state, object_definition const &defi
 
 bool update_projectile_deadline(projectile &record, std::uint16_t const clock) {
   /// Projectiles share the native object walker's fade and removal deadline rules
-  return advance_object_deadline(record.flags,record.deadline,record.fade,record.placement.position[2],clock);
+  return advance_object_deadline(record.flags,record.deadline,record.fade,record.placement.position.height,clock);
 }
 
 } // namespace darker::game

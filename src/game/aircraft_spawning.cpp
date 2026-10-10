@@ -56,7 +56,7 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
     auto const flags{cells[row*128+column].state};
     if(!(flags & 0xc0) || (flags & 0x20)) continue;
     auto &timer{state.timers[timer_index++]};
-    auto const distance{std::max(static_cast<uint8_t>(magnitude(column - (player.position[0] >> 8)) + magnitude(row - (player.position[1] >> 8))),uint8_t{4})};
+    auto const distance{std::max(static_cast<uint8_t>(magnitude(column - (player.position.column >> 8)) + magnitude(row - (player.position.row >> 8))),uint8_t{4})};
     auto const maximum{static_cast<uint8_t>(distance + (distance >> 1))};
     if((timer >> 8) >= maximum) timer = static_cast<uint16_t>(maximum*256);
     bool const elapsed{timer < frame_step};

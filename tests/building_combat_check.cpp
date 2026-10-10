@@ -15,6 +15,7 @@
 #include "presentation/player.h"
 #include "resources/archive_set.h"
 #include "resources/campaign.h"
+#include "maths/world_coordinates.h"
 
 void check_building_combat(darker::resources::archive_set const &archives) {
   /// Fire Brent Ground into real marked buildings, then follow cell objectives through messages and destination docking
@@ -99,8 +100,8 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         auto const heading{static_cast<uint16_t>(actor_target->pose.angles.heading+(ground_actor ? 0x8000 : 0))};
         auto const sine{darker::maths::original_sine[heading >> 6]};
         auto const cosine{darker::maths::original_sine[((heading >> 6)+256)%1024]};
-        player.pose().position = {static_cast<uint16_t>(actor_target->pose.position[0]+((sine*200) >> 15)),
-          static_cast<uint16_t>(actor_target->pose.position[1]+((cosine*200) >> 15)),static_cast<uint16_t>(actor_target->pose.position[2]+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))};
+        player.pose().position = {static_cast<uint16_t>(actor_target->pose.position.column+((sine*200) >> 15)),
+          static_cast<uint16_t>(actor_target->pose.position.row+((cosine*200) >> 15)),static_cast<uint16_t>(actor_target->pose.position.height+92+(ground_actor ? bank.header_at(actor_target->parameters.model_token).extent : 0))};
         player.pose().angles = {heading,0,0};
         player.pose().speed = 496;
         if(ground_actor && actor_target->category == darker::game::actor_category::ground) {
@@ -116,7 +117,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
         auto const aim{darker::game::resolve_map_guidance(token,cells,bank,0x20)};
         auto const &cell{cells[target->row*128+target->column]};
         bool const office{cell.type >= 86 && cell.type <= 89};
-        std::array<uint16_t,3> const centre{aim.position[0],aim.position[1],static_cast<uint16_t>(aim.height-aim.height_extent/2)};
+        darker::maths::world_position const centre{aim.position.column,aim.position.row,static_cast<uint16_t>(aim.height-aim.height_extent/2)};
         constexpr std::array<int,4> columns{0,200,0,-200}, rows{200,0,-200,0};
         auto const approach{test.stage >= 54 ? (clock/2048)%4 : 0};
         player.pose().position = {static_cast<uint16_t>(centre[0]+columns[approach]),static_cast<uint16_t>(centre[1]+rows[approach]),static_cast<uint16_t>(office ? 348 : aim.height+512)};
@@ -128,7 +129,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           auto const boxes{darker::game::city_collision_boxes(bank,cell.type,cell.state,0x20,target->column,target->row)};
           auto const door{std::ranges::find_if(boxes,[](auto const &box){ return box.category == 0; })};
           if(door == boxes.end()) throw std::runtime_error{"Office target has no vulnerable entrance"};
-          std::array<uint16_t,3> point{};
+          darker::maths::world_position point{};
           for(size_t axis{0}; axis < 3; ++axis) point[axis] = static_cast<uint16_t>((door->minimum[axis]+door->maximum[axis])/2);
           auto const along{door->maximum[0]-door->minimum[0] < door->maximum[1]-door->minimum[1] ? 1 : 0};
           auto const nearer{point[along] > centre[along] ? door->minimum[along] : door->maximum[along]};
@@ -136,7 +137,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           point[2] *= 8;
           player.pose().position = point;
           for(size_t axis{0}; axis < 2; ++axis) player.pose().position[axis] = static_cast<uint16_t>(centre[axis]+static_cast<int>(2+(clock/2048)%5)*(int{point[axis]}-centre[axis]));
-          player.pose().position[2] += 92;
+          player.pose().position.height += 92;
           direction = darker::maths::object_target_direction(player.pose().position,centre);
         }
         player.pose().angles = {direction.heading,office ? uint16_t{0} : direction.pitch,0};
@@ -147,8 +148,8 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       }
       if(!attacking_actor && warehouse && weapon == 4 && static_cast<uint16_t>(clock-combat.diffuser.deadline) < 0xf400) {
         // Leave the defended roof during the gas delay; this fixture controls position rather than navigating an escape route.
-        player.pose().position[0] += 4096;
-        player.pose().position[2] += 4096;
+        player.pose().position.column += 4096;
+        player.pose().position.height += 4096;
       }
       beacon_changes.advance(cells,static_cast<uint16_t>(clock));
       bool const fire_building{target != targets.end() && clock%256 == 0

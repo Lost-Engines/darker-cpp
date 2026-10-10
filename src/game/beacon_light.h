@@ -4,13 +4,14 @@
 #include <cstdint>
 #include <span>
 #include "game/city_map.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
-std::array<uint8_t, 2> beacon_grid_cell(std::array<uint16_t, 2> position) noexcept;
-std::array<uint8_t, 2> beacon_grid_coordinates(std::array<uint16_t, 2> position) noexcept;
+std::array<uint8_t, 2> beacon_grid_cell(maths::map_position position) noexcept;
+std::array<uint8_t, 2> beacon_grid_coordinates(maths::map_position position) noexcept;
 
-std::uint16_t beacon_light(std::span<city_cell const, 128 * 128> cells, std::array<std::uint16_t, 3> position,
-  std::array<std::uint8_t, 2> fractions);
+std::uint16_t beacon_light(std::span<city_cell const, 128 * 128> cells, maths::world_position position,
+  maths::map_fractions fractions);
 
 } // namespace darker::game

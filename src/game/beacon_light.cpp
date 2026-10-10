@@ -1,6 +1,7 @@
 #include "game/beacon_light.h"
 #include <bit>
 #include <stdexcept>
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -26,30 +27,30 @@ std::int16_t signed_word(int const value) {
 
 } // namespace
 
-std::array<uint8_t, 2> beacon_grid_cell(std::array<uint16_t, 2> const position) noexcept {
+std::array<uint8_t, 2> beacon_grid_cell(maths::map_position const position) noexcept {
   /// Share the original nine-cell lookup with charging, coordinates and tower radar sampling
-  return {lookup[position[0] >> 8],lookup[position[1] >> 8]};
+  return {lookup[position.column >> 8],lookup[position.row >> 8]};
 }
 
-std::array<uint8_t, 2> beacon_grid_coordinates(std::array<uint16_t, 2> const position) noexcept {
+std::array<uint8_t, 2> beacon_grid_coordinates(maths::map_position const position) noexcept {
   /// 5C65/573C map both player coordinates to the nearest beacon and blank the pair outside coverage
-  auto const column{lookup[position[0] >> 8]}, row{lookup[position[1] >> 8]};
+  auto const column{lookup[position.column >> 8]}, row{lookup[position.row >> 8]};
   if((column | row) & 128) return {};
   return {static_cast<uint8_t>(column + 1), static_cast<uint8_t>(row + 1)};
 }
 
 std::uint16_t beacon_light(std::span<city_cell const, 128 * 128> const cells,
-  std::array<std::uint16_t, 3> const position, std::array<std::uint8_t, 2> const fractions) {
+  maths::world_position const position, maths::map_fractions const fractions) {
   /// 8450 samples one lattice cell of type 1, then applies its mutable strength to fixed-point distance attenuation
-  if(signed_word(position[2]) >= 0x2d60) return 0;
-  auto const x{lookup[position[0] >> 8]};
-  auto const y{lookup[position[1] >> 8]};
+  if(signed_word(position.height) >= 0x2d60) return 0;
+  auto const x{lookup[position.column >> 8]};
+  auto const y{lookup[position.row >> 8]};
   if(x >= 128 || y >= 128) return 0;
   auto const cell{cells[y * 128 + x]};
   if(cell.type != 1) return 0;
-  auto const dx{signed_word((position[0] - x * 256) * 16 + (fractions[0] >> 4) - 2048)};
-  auto const dy{signed_word((position[1] - y * 256) * 16 + (fractions[1] >> 4) - 2048)};
-  auto const dz{signed_word(position[2] * 2 - 4800)};
+  auto const dx{signed_word((position.column - x * 256) * 16 + (fractions.column >> 4) - 2048)};
+  auto const dy{signed_word((position.row - y * 256) * 16 + (fractions.row >> 4) - 2048)};
+  auto const dz{signed_word(position.height * 2 - 4800)};
   auto const squared{static_cast<std::uint32_t>(dx * dx) + static_cast<std::uint32_t>(dy * dy) + static_cast<std::uint32_t>(dz * dz)};
   auto denominator{static_cast<std::uint16_t>(squared >> 14)};
   if(denominator < 256) denominator = 256;

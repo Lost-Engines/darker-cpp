@@ -6,6 +6,7 @@
 #include <optional>
 #include <span>
 #include "game/city_map.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -36,11 +37,11 @@ struct tunnel_connection {
 struct tunnel_trace {
   tunnel_connection connection{};
   uint16_t progress{0};
-  std::array<uint16_t,3> target{};
+  maths::world_position target{};
 };
 
 struct tunnel_start {
-  std::array<uint16_t,3> position{};
+  maths::world_position position{};
   uint16_t heading{0};
   uint8_t route{0};
 };
@@ -56,14 +57,14 @@ public:
   tunnel_segment segment(uint8_t type, uint8_t route) const;
   tunnel_junction junction(uint8_t type) const;
   tunnel_boundary crossing(uint8_t type, tunnel_connection source) const;
-  std::array<uint16_t,3> point(uint8_t type, uint8_t route, uint16_t cell, uint16_t distance) const;
+  maths::world_position point(uint8_t type, uint8_t route, uint16_t cell, uint16_t distance) const;
   uint8_t direction(uint8_t type, uint8_t route, uint16_t heading) const;
   tunnel_start start(uint8_t type, uint16_t cell, uint16_t encoded_heading) const;
   tunnel_connection connect(city_map const &cells, tunnel_connection source, uint8_t preferred_heading) const;
   std::optional<tunnel_trace> trace(city_map const &cells, tunnel_connection source,
-    std::array<uint16_t,3> position, uint16_t lookahead, uint8_t preferred_heading) const;
+    maths::world_position position, uint16_t lookahead, uint8_t preferred_heading) const;
   std::optional<tunnel_connection> reacquire(city_map const &cells, tunnel_connection source,
-    std::array<uint16_t,3> position, uint8_t preferred_heading) const;
+    maths::world_position position, uint8_t preferred_heading) const;
 };
 
 } // namespace darker::game

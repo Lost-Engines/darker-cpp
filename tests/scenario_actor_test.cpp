@@ -27,15 +27,15 @@ TEST_CASE("Scenario actors match original surface, special and static constructo
       0x400, static_cast<std::int16_t>(v[15]), static_cast<std::uint8_t>(v[16]), static_cast<std::uint8_t>(v[1]), 0)};
     auto const &p{actor.parameters};
     CAPTURE(v);
-    CHECK(std::array<int, 31>{actor.pose.position[0], actor.pose.position[1], actor.pose.position[2],
+    CHECK(std::array<int, 31>{actor.pose.position.column, actor.pose.position.row, actor.pose.position.height,
       actor.pose.angles.heading, actor.pose.speed, actor.flags, actor.attributes, actor.fade,
       std::to_underlying(p.update_entry), actor.target_token, actor.current_cell, p.flags_4c, p.angular_response,
-      p.motion.bank_response, p.motion.bank_limit, p.motion.turn_response, actor.previous_position[0], actor.previous_position[1], actor.previous_position[2],
+      p.motion.bank_response, p.motion.bank_limit, p.motion.turn_response, actor.previous_position.column, actor.previous_position.row, actor.previous_position.height,
       actor.behaviour.attack_control, actor.behaviour.awareness_threshold, actor.behaviour.awareness_decay, actor.behaviour.awareness_rise, actor.behaviour.awareness_strength, actor.behaviour.evasion,
       actor.index, actor.definition_slot, static_cast<int>(actor.route ? actor.route->cursor : actor.script.continuation),
       static_cast<int>(actor.route ? actor.route->cursor : actor.script.checkpoint),
       actor.script.stopped, actor.route ? actor.route->origin : actor.script.deadline} == sample.output);
-    CHECK(actor.pose.fractions == std::array<std::uint8_t, 3>{});
+    CHECK(actor.pose.fractions == darker::maths::position_fractions{});
     CHECK(p.definition == &darker::game::original_object_definitions[v[2]]);
     CHECK(p.model_token == 0x400);
   }

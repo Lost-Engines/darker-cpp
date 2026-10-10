@@ -49,8 +49,8 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
     if(flags & 2) {
       pose.angles.heading = std::rotr(static_cast<uint16_t>(direction),3);
       constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
-      pose.position[0] = static_cast<uint16_t>(pose.position[0] + columns[direction / 2] * 256);
-      pose.position[1] = static_cast<uint16_t>(pose.position[1] + rows[direction / 2] * 256);
+      pose.position.column = static_cast<uint16_t>(pose.position.column + columns[direction / 2] * 256);
+      pose.position.row = static_cast<uint16_t>(pose.position.row + rows[direction / 2] * 256);
     }
   }
   uint16_t along{static_cast<uint16_t>(elapsed << 4)}, across{0x8000};
@@ -94,7 +94,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
       bool const descending{(route.command & 15) == 5};
       if(descending && route.effect_progress == 0) {
         ++route.effect_progress;
-        result.damage_cell = static_cast<uint16_t>((pose.position[0] >> 8) | (pose.position[1] & 0xff00));
+        result.damage_cell = static_cast<uint16_t>((pose.position.column >> 8) | (pose.position.row & 0xff00));
       }
       // 905C folds the route phase, then derives a triangular pitch and a linear height profile.
       uint16_t const half_width{static_cast<uint16_t>(descending ? 0x3100 : 0x3400)};
@@ -117,7 +117,7 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
     {
       if((route.command & 15) == 6 && route.effect_progress == 0) {
         ++route.effect_progress;
-        result.damage_cell = static_cast<uint16_t>((pose.position[0] >> 8) | (pose.position[1] & 0xff00));
+        result.damage_cell = static_cast<uint16_t>((pose.position.column >> 8) | (pose.position.row & 0xff00));
       }
       if(route.effect_progress < along) {
         auto const first{next_random(random_state)};
@@ -131,14 +131,14 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
         a ^= reflection[direction / 2];
         d ^= reflection[direction / 2 + 1];
         if(direction & 2) std::swap(a,d);
-        vehicle_route_effect effect{.position{static_cast<uint16_t>((pose.position[0] & 0xff00) | (d & 255)),
-          static_cast<uint16_t>((pose.position[1] & 0xff00) | (a & 255)),static_cast<uint16_t>(256 + (second >> 8))}};
+        vehicle_route_effect effect{.position{static_cast<uint16_t>((pose.position.column & 0xff00) | (d & 255)),
+          static_cast<uint16_t>((pose.position.row & 0xff00) | (a & 255)),static_cast<uint16_t>(256 + (second >> 8))}};
         bool const burst{route.effect_countdown < 40};
         route.effect_countdown = static_cast<uint8_t>(route.effect_countdown - 40);
         if(burst) {
           route.effect_countdown = static_cast<uint8_t>(first | 0x40);
           effect.recipe = 0x77c5;
-          effect.position[2] = 0xe0;
+          effect.position.height = 0xe0;
         } else {
           effect.phase = static_cast<uint8_t>((first >> 14) + 4);
           effect.sound_level = static_cast<uint16_t>(0xd000 + (first >> 5));
@@ -172,11 +172,11 @@ vehicle_route_result advance_vehicle_route(vehicle_route &route, object_pose &po
   along ^= reflection[direction / 2];
   across ^= reflection[direction / 2 + 1];
   if(direction & 2) std::swap(along,across);
-  pose.position[0] = static_cast<uint16_t>((pose.position[0] & 0xff00) | (across >> 8));
-  pose.position[1] = static_cast<uint16_t>((pose.position[1] & 0xff00) | (along >> 8));
-  pose.fractions[0] = static_cast<uint8_t>(across & 0xf0);
-  pose.fractions[1] = static_cast<uint8_t>(along & 0xf0);
-  pose.position[2] = static_cast<uint16_t>(height - model_height);
+  pose.position.column = static_cast<uint16_t>((pose.position.column & 0xff00) | (across >> 8));
+  pose.position.row = static_cast<uint16_t>((pose.position.row & 0xff00) | (along >> 8));
+  pose.fractions.column = static_cast<uint8_t>(across & 0xf0);
+  pose.fractions.row = static_cast<uint8_t>(along & 0xf0);
+  pose.position.height = static_cast<uint16_t>(height - model_height);
   return result;
 }
 

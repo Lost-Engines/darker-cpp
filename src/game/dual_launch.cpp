@@ -5,11 +5,11 @@ namespace darker::game {
 
 uint16_t dual_launch_separation(object_pose const &detonator, object_pose const &capsule) noexcept {
   /// CBE7 combines wrapped 841C horizontal distance with absolute vertical separation
-  auto const x{static_cast<uint16_t>(detonator.position[0]-capsule.position[0])};
-  auto const y{static_cast<uint16_t>(detonator.position[1]-capsule.position[1])};
-  auto const z{static_cast<uint16_t>(capsule.position[2]-detonator.position[2])};
+  auto const x{static_cast<uint16_t>(detonator.position.column-capsule.position.column)};
+  auto const y{static_cast<uint16_t>(detonator.position.row-capsule.position.row)};
+  auto const z{static_cast<uint16_t>(capsule.position.height-detonator.position.height)};
   auto const horizontal{static_cast<uint16_t>((x ^ (x & 0x8000 ? 0xffff : 0)) + (y & 0x8000 ? -y : y))};
-  auto const vertical{static_cast<uint16_t>(capsule.position[2] < detonator.position[2] ? -z : z)};
+  auto const vertical{static_cast<uint16_t>(capsule.position.height < detonator.position.height ? -z : z)};
   return static_cast<uint16_t>((horizontal >> 1)+(vertical >> 3));
 }
 
@@ -19,8 +19,8 @@ std::optional<uint8_t> dual_launch_impact(object_pose const &origin, object_pose
   for(size_t axis{0}; axis < 2; ++axis) {
     if(static_cast<uint16_t>(victim.position[axis]-origin.position[axis]+radius) >= radius*2) return std::nullopt;
   }
-  auto const z{static_cast<uint16_t>(victim.position[2]-origin.position[2])};
-  auto const height{static_cast<uint16_t>(z ^ (victim.position[2] < origin.position[2] ? 0xffff : 0)) >> 8};
+  auto const z{static_cast<uint16_t>(victim.position.height-origin.position.height)};
+  auto const height{static_cast<uint16_t>(z ^ (victim.position.height < origin.position.height ? 0xffff : 0)) >> 8};
   if(height >= 0x28) return std::nullopt;
   unsigned int distance{static_cast<unsigned int>(height*height)};
   for(size_t axis{0}; axis < 2; ++axis) {

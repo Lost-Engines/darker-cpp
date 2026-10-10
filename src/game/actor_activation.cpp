@@ -33,18 +33,18 @@ void place_air_reserve(scenario_actor &actor, object_pose const &player, std::sp
   uint8_t overlaps{0}, clearance{0};
   for(auto const &other : active) {
     if(other.category != actor_category::air) continue;
-    auto const x{static_cast<uint16_t>(other.pose.position[0] - (actor.pose.position[0] - 255))};
-    auto const y{static_cast<uint16_t>(other.pose.position[1] - (actor.pose.position[1] - 255))};
+    auto const x{static_cast<uint16_t>(other.pose.position.column - (actor.pose.position.column - 255))};
+    auto const y{static_cast<uint16_t>(other.pose.position.row - (actor.pose.position.row - 255))};
     if(x >= 510 || y >= 510) continue;
-    auto const delta{static_cast<uint16_t>(other.pose.position[2] - 512 - actor.pose.position[2])};
-    if(std::bit_cast<int16_t>(static_cast<uint16_t>(other.pose.position[2] - 512)) >= std::bit_cast<int16_t>(actor.pose.position[2])) continue;
+    auto const delta{static_cast<uint16_t>(other.pose.position.height - 512 - actor.pose.position.height)};
+    if(std::bit_cast<int16_t>(static_cast<uint16_t>(other.pose.position.height - 512)) >= std::bit_cast<int16_t>(actor.pose.position.height)) continue;
     auto const high{static_cast<uint8_t>(delta >> 8)};
     if(clearance >= high) clearance = high;
     overlaps = static_cast<uint8_t>(overlaps + (high >= 252));
   }
   if(overlaps) {
-    auto const high{static_cast<uint8_t>((actor.pose.position[2] >> 8) - clearance + 2)};
-    actor.pose.position[2] = static_cast<uint16_t>((high << 8) | (actor.pose.position[2] & 255));
+    auto const high{static_cast<uint8_t>((actor.pose.position.height >> 8) - clearance + 2)};
+    actor.pose.position.height = static_cast<uint16_t>((high << 8) | (actor.pose.position.height & 255));
   }
 }
 

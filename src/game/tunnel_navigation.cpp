@@ -106,11 +106,11 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
     actor.tunnel->route = path->connection.route;
     actor.tunnel->progress = path->progress;
     auto target{path->target};
-    auto const dx{static_cast<uint16_t>(player.position[0] - target[0])};
-    auto const dy{static_cast<uint16_t>(player.position[1] - target[1])};
+    auto const dx{static_cast<uint16_t>(player.position.column - target.column)};
+    auto const dy{static_cast<uint16_t>(player.position.row - target.row)};
     if(static_cast<uint8_t>((dx >> 8) + 1) < 2 && static_cast<uint8_t>((dy >> 8) + 1) < 2) {
       auto const amount{std::max(dx & 255,static_cast<uint16_t>(dy + 256) >> 1)};
-      target[2] = static_cast<uint16_t>(std::min(512,384 + amount));
+      target.height = static_cast<uint16_t>(std::min(512,384 + amount));
     }
     auto const direction{maths::object_target_direction(actor.pose.position,target)};
     heading = direction.heading;
@@ -129,8 +129,8 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
   uint16_t target_speed{static_cast<uint16_t>(actor.awareness.level == 0 ? 284 : 512)};
   for(auto &neighbour : active) {
     if(neighbour.category != actor_category::air || neighbour.index == actor.index) continue;
-    auto const dx{static_cast<uint16_t>(neighbour.pose.position[0] - actor.pose.position[0])};
-    auto const dy{static_cast<uint16_t>(neighbour.pose.position[1] - actor.pose.position[1])};
+    auto const dx{static_cast<uint16_t>(neighbour.pose.position.column - actor.pose.position.column)};
+    auto const dy{static_cast<uint16_t>(neighbour.pose.position.row - actor.pose.position.row)};
     if(static_cast<uint16_t>(dx + 256) >= 512 || static_cast<uint16_t>(dy + 256) >= 512) continue;
     auto const direction{static_cast<uint16_t>((maths::direction_index(dx,dy) << 5) - actor.pose.angles.heading)};
     if(static_cast<uint8_t>((direction >> 8) - 0x6c) >= 0x28) continue;

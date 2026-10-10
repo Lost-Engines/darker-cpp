@@ -22,14 +22,14 @@ void check_actor_flight(darker::resources::archive_set const &archives) {
   for(int frame{0}; frame < 1024; ++frame) {
     if(frame >= 256) {
       player.position = actors.back().pose.position;
-      player.position[0] += 100;
+      player.position.column += 100;
     }
     for(auto &actor : actors) {
       darker::game::advance_surface_actor(actor, player, actors, cells, bank, 0x20, 8);
       auto const &pose{actor.pose};
-      std::array<int, 17> const actual{pose.position[0], pose.position[1], pose.position[2], pose.angles.heading, pose.angles.pitch, pose.angles.roll,
+      std::array<int, 17> const actual{pose.position.column, pose.position.row, pose.position.height, pose.angles.heading, pose.angles.pitch, pose.angles.roll,
         pose.speed, actor.attitude.pitch_rate, actor.attitude.bank_rate, actor.selected_target, actor.parameters.flags_4c,
-        actor.clearance_floor, actor.awareness.level, actor.awareness.cooldown, pose.fractions[0], pose.fractions[1], pose.fractions[2]};
+        actor.clearance_floor, actor.awareness.level, actor.awareness.cooldown, pose.fractions.column, pose.fractions.row, pose.fractions.height};
       auto const &expected{darker::test_reference::actor_flight_samples[sample++]};
       for(size_t field{0}; field < actual.size(); ++field) {
         if(actual[field] != expected[field]) throw std::runtime_error{std::format("Actor flight frame {}, actor {}, field {}: {} != {}", frame, actor.index, field, actual[field], expected[field])};

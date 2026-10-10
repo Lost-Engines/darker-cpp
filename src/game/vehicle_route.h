@@ -5,6 +5,7 @@
 #include <optional>
 #include <span>
 #include "game/object_pose.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -17,7 +18,7 @@ struct vehicle_route {
 };
 
 struct vehicle_route_effect {
-  std::array<uint16_t,3> position{};
+  maths::world_position position{};
   uint16_t recipe{0};
   uint8_t phase{0};
   uint16_t sound_level{0};

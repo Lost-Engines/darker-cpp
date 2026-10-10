@@ -33,9 +33,9 @@ TEST_CASE("Projectile update sequences preserve native deadline, snapshot and ca
     auto const status{darker::game::update_projectile(record, static_cast<std::uint16_t>(sample.clock),
       static_cast<std::uint16_t>(sample.step), resolved)};
     auto const &p{record.placement};
-    std::array<int, 19> const actual{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
+    std::array<int, 19> const actual{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
       record.angular_motion[1], record.angular_motion[2], p.angles.heading, p.angles.pitch, p.angles.roll, p.speed,
-      record.previous_position[0], record.previous_position[1], record.previous_position[2], record.flags, record.fade, record.deadline,
+      record.previous_position.column, record.previous_position.row, record.previous_position.height, record.flags, record.fade, record.deadline,
       status == darker::game::projectile_update_result::expired ? 1 : 0};
     CHECK(actual == sample.result);
   }

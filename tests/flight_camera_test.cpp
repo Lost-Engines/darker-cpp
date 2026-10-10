@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/flight_camera.h"
 #include "game/camera_target.h"
-#include "reference/object_view_samples.h"
+#include "game/flight_camera.h"
 #include "reference/camera_look_samples.h"
 #include "reference/dropped_camera_samples.h"
 #include "reference/flight_camera_samples.h"
 #include "reference/missile_camera_samples.h"
+#include "reference/object_view_samples.h"
 
 TEST_CASE("Player camera position and distance smoothing match native views", "[game][camera]") {
   /// Cover all four attached views, distance settings, fractional positions and ground clamping
@@ -22,7 +22,7 @@ TEST_CASE("Player camera position and distance smoothing match native views", "[
     darker::game::flight_camera camera{.mode{static_cast<darker::game::camera_mode>(v[0])}, .distance_step{static_cast<std::uint8_t>(v[2])}, .distance{static_cast<std::uint16_t>(v[3])}};
     auto const result{camera.view(player, static_cast<std::uint16_t>(v[1]), v[4] != 0)};
     CAPTURE(sample.position, sample.angles, v);
-    CHECK(std::array<int, 9>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
+    CHECK(std::array<int, 9>{result.position.column, result.position.row, result.position.height, result.fractions.column, result.fractions.row,
       result.angles.heading, result.angles.pitch, result.angles.roll, camera.distance} == sample.output);
   }
 }
@@ -56,13 +56,13 @@ TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game]
     camera.drop(static_cast<darker::game::camera_mode>(sample.mode[0]), anchor);
     auto const result{camera.view(player, 1)};
     CAPTURE(sample.anchor, sample.player, sample.mode);
-    CHECK(std::array<int, 8>{result.position[0], result.position[1], result.position[2], result.fractions[0], result.fractions[1],
+    CHECK(std::array<int, 8>{result.position.column, result.position.row, result.position.height, result.fractions.column, result.fractions.row,
       result.angles.heading, result.angles.pitch, result.angles.roll} == sample.output);
     if(sample.mode[0] == 5) {
       // Native 2448 jumps to the same fixed-anchor branch when the selected object disappears.
       camera.mode = darker::game::camera_mode::object;
       auto const fallback{camera.view(player,1,false,darker::game::camera_subject::absent_object)};
-      CHECK(std::array<int,8>{fallback.position[0],fallback.position[1],fallback.position[2],fallback.fractions[0],fallback.fractions[1],
+      CHECK(std::array<int,8>{fallback.position.column,fallback.position.row,fallback.position.height,fallback.fractions.column,fallback.fractions.row,
         fallback.angles.heading,fallback.angles.pitch,fallback.angles.roll} == sample.output);
     }
   }
@@ -84,7 +84,7 @@ TEST_CASE("Missile camera positions match native attached and impact views", "[g
     auto const result{camera.view(shot,static_cast<uint16_t>(v[1]),v[4] != 0,
       v[5] ? darker::game::camera_subject::missile_effect : darker::game::camera_subject::missile)};
     CAPTURE(sample.position,sample.angles,v);
-    CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+    CHECK(std::array<int,9>{result.position.column,result.position.row,result.position.height,result.fractions.column,result.fractions.row,
       result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
   }
 }
@@ -105,7 +105,7 @@ TEST_CASE("Underground following and death views retain the player position", "[
       darker::game::flight_camera camera{.mode{mode},.distance_step{static_cast<uint8_t>(sample.input[2])},
         .distance{static_cast<uint16_t>(sample.input[3])}};
       auto const result{camera.view(player,static_cast<uint16_t>(sample.input[1]),sample.input[4] != 0,darker::game::camera_subject::player,true)};
-      CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+      CHECK(std::array<int,9>{result.position.column,result.position.row,result.position.height,result.fractions.column,result.fractions.row,
         result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
     }
   }
@@ -144,7 +144,7 @@ TEST_CASE("F7 follows live and destroyed objects at the original distances", "[g
     auto const result{camera.view(object,static_cast<uint16_t>(v[0]),false,
       v[3] ? darker::game::camera_subject::object_effect : darker::game::camera_subject::object)};
     CAPTURE(sample.position,sample.angles,v);
-    CHECK(std::array<int,9>{result.position[0],result.position[1],result.position[2],result.fractions[0],result.fractions[1],
+    CHECK(std::array<int,9>{result.position.column,result.position.row,result.position.height,result.fractions.column,result.fractions.row,
       result.angles.heading,result.angles.pitch,result.angles.roll,camera.distance} == sample.output);
   }
 }

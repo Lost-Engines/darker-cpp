@@ -31,7 +31,7 @@ TEST_CASE("Full object-homing trajectories follow native moving, coincident and 
     darker::game::advance_object_homing_projectile(record, sample.scenario == 5 ? record.placement : target,
       static_cast<std::uint16_t>(sample.step));
     auto const &p{record.placement};
-    std::array<int, 12> const actual{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
+    std::array<int, 12> const actual{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
       record.angular_motion[1], record.angular_motion[2], p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     CHECK(actual == sample.result);
   }

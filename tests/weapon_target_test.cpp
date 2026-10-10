@@ -1,7 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/weapon_target.h"
-#include "reference/weapon_target_samples.h"
+#include "maths/world_coordinates.h"
 #include "reference/skimma_target_samples.h"
+#include "reference/weapon_target_samples.h"
 
 TEST_CASE("Caero target retention matches native view-cone and target-kind tests", "[game][weapons]") {
   /// Compare retained and rejected locks including partial screen-coordinate writes
@@ -27,7 +28,7 @@ TEST_CASE("Target acquisition rays match native fixed-point endpoints", "[game][
     CAPTURE(s);
     auto const word{[](int const value){ return static_cast<uint16_t>(value); }};
     darker::game::object_pose const player{.position{word(s[0]),word(s[1]),word(s[2])},.angles{word(s[3]),word(s[4]),0}};
-    CHECK(darker::game::target_ray_end(player) == std::array<uint16_t,3>{word(s[5]),word(s[6]),word(s[7])});
+    CHECK(darker::game::target_ray_end(player) == darker::maths::world_position{word(s[5]),word(s[6]),word(s[7])});
   }
 }
 

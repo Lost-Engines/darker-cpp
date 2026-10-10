@@ -2,6 +2,7 @@
 #include <bit>
 #include "game/effects.h"
 #include "graphics/particles.h"
+#include "maths/world_coordinates.h"
 #include "reference/effect_samples.h"
 
 TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {
@@ -31,7 +32,7 @@ TEST_CASE("Effect movement matches signed native byte arithmetic", "[effects]") 
       .start{static_cast<uint16_t>(v[7])}, .radius{static_cast<uint16_t>(v[2])}, .angle{static_cast<uint16_t>(v[3])},
       .radius_rate{static_cast<int8_t>(v[4])}, .height_rate{static_cast<int8_t>(v[5])}, .angle_rate{static_cast<int8_t>(v[6])}};
     darker::game::advance_emitter(emitter, static_cast<uint16_t>(v[7]), static_cast<uint16_t>(v[8]));
-    CHECK(emitter.position[2] == v[9]);
+    CHECK(emitter.position.height == v[9]);
     CHECK(emitter.height_fraction == v[10]);
     CHECK(emitter.radius == v[11]);
     CHECK(emitter.angle == v[12]);
@@ -61,7 +62,7 @@ TEST_CASE("Effect phases and stationary trails match original records", "[effect
   }
   for(auto const &v : darker::test_reference::effect_trails) {
     auto const emitter{darker::game::make_damage_trail({16000,17000,2000}, static_cast<uint8_t>(v[0]), static_cast<uint16_t>(v[1]), 1000)};
-    CHECK(emitter.position == std::array<uint16_t, 3>{static_cast<uint16_t>(v[2]), static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])});
+    CHECK(emitter.position == darker::maths::world_position{static_cast<uint16_t>(v[2]), static_cast<uint16_t>(v[3]), static_cast<uint16_t>(v[4])});
     CHECK(emitter.flags == v[5]);
   }
 }

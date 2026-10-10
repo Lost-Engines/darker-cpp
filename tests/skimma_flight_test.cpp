@@ -22,8 +22,8 @@ TEST_CASE("Complete Skimma flight updates match native persistent-state traces",
       {.bank_drive{static_cast<std::uint16_t>(input[1])}, .pitch_drive{static_cast<std::uint16_t>(input[2])},
         .forward_setting{static_cast<std::uint16_t>(input[4])}, .brake{input[5] != 0}},
       static_cast<std::uint16_t>(input[0]));
-    std::array<int, 16> const actual{state.pose.position[0], state.pose.position[1], state.pose.position[2],
-      state.pose.fractions[0], state.pose.fractions[1], state.pose.fractions[2],
+    std::array<int, 16> const actual{state.pose.position.column, state.pose.position.row, state.pose.position.height,
+      state.pose.fractions.column, state.pose.fractions.row, state.pose.fractions.height,
       state.pose.angles.heading, state.pose.angles.pitch, state.pose.angles.roll, state.pose.speed,
       state.damage.rotation.pitch, state.damage.rotation.turn, state.horizontal_velocity, state.vertical_velocity,
       state.pitch_assist_rate, state.damage.shield_charge};

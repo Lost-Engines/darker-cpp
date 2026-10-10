@@ -15,10 +15,10 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   auto const elapsed{static_cast<uint16_t>(clock - vehicle.last_shot)};
   auto const delay{static_cast<uint16_t>(((0x2ff ^ difficulty) << 3) - 0x400)};
   if(vehicle.behaviour.attack_control & 128 ? elapsed < 0x300 : elapsed < delay) return nullptr;
-  auto const x{static_cast<uint16_t>(vehicle.pose.position[0] - player.position[0])};
-  auto const y{static_cast<uint16_t>(vehicle.pose.position[1] - player.position[1])};
+  auto const x{static_cast<uint16_t>(vehicle.pose.position.column - player.position.column)};
+  auto const y{static_cast<uint16_t>(vehicle.pose.position.row - player.position.row)};
   auto const distance{static_cast<uint16_t>((x ^ ((x & 0x8000) ? 0xffff : 0)) + ((y & 0x8000) ? -y : y))};
-  if(distance >= (0x200 + difficulty)*4 || player.position[2] >= static_cast<uint16_t>(distance*8)) return nullptr;
+  if(distance >= (0x200 + difficulty)*4 || player.position.height >= static_cast<uint16_t>(distance*8)) return nullptr;
   constexpr std::array<uint16_t,5> reflection{0xffff,0xffff,0,0,0xffff};
   auto lateral{static_cast<uint16_t>(x ^ reflection.at(direction/2))};
   auto longitudinal{static_cast<uint16_t>(y ^ reflection.at(direction/2+1))};
@@ -27,7 +27,7 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   auto const angle{static_cast<uint8_t>(maths::direction_index(lateral,longitudinal) >> 3)};
   if(static_cast<uint8_t>(angle ^ ((angle & 128) ? 255 : 0)) >= 14) return nullptr;
   constexpr std::array<int,4> columns{0,-1,0,1}, rows{-1,0,1,0};
-  auto column{static_cast<uint8_t>(vehicle.pose.position[0] >> 8)}, row{static_cast<uint8_t>(vehicle.pose.position[1] >> 8)};
+  auto column{static_cast<uint8_t>(vehicle.pose.position.column >> 8)}, row{static_cast<uint8_t>(vehicle.pose.position.row >> 8)};
   for(unsigned int cell{0}; cell < 2; ++cell) {
     column = static_cast<uint8_t>(column - columns.at(direction/2));
     row = static_cast<uint8_t>(row - rows.at(direction/2));

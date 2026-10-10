@@ -2,12 +2,13 @@
 
 #include <array>
 #include <cstdint>
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
 struct collision_box {
-  std::array<std::uint16_t, 3> minimum{};                                    // column, row and height in the collision routine's units
-  std::array<std::uint16_t, 3> maximum{};
+  maths::world_position minimum{};                                    // column, row and height in the collision routine's units
+  maths::world_position maximum{};
   std::uint8_t category{0};
 };
 

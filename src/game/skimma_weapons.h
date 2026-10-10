@@ -6,6 +6,7 @@
 #include <span>
 #include "game/object_pose.h"
 #include "game/projectile_pool.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -51,7 +52,7 @@ struct weapon_ring_display {
   std::uint8_t remaining{0};
 };
 
-std::array<uint16_t,3> skimma_gun_endpoint(object_pose const &player, int16_t pitch_offset, uint16_t &random_state) noexcept;
+maths::world_position skimma_gun_endpoint(object_pose const &player, int16_t pitch_offset, uint16_t &random_state) noexcept;
 
 bool select_skimma_weapon(std::span<skimma_weapon_slot> weapons, uint8_t &selected, weapon_ring_state &ring,
   uint8_t selection, uint16_t available, uint16_t clock);

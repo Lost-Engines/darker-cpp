@@ -39,7 +39,7 @@ caero_instruments measure_caero_instruments(game::caero_flight_state const &stat
     if(lights != 3) impact = 67;
     lights = impact >= 36 && (clock & 128) ? 0 : 3;
   }
-  auto const altitude{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>((std::bit_cast<std::int16_t>(state.pose.position[2]) >> 2) + 224))};
+  auto const altitude{std::bit_cast<std::int16_t>(static_cast<std::uint16_t>((std::bit_cast<std::int16_t>(state.pose.position.height) >> 2) + 224))};
   return {
     .altitude{static_cast<std::uint8_t>(std::min(8, std::max(0, static_cast<int>(altitude)) >> 8))},
     .impact{static_cast<std::uint8_t>(impact >> 2)}, .damage_lights{static_cast<std::uint8_t>(lights)},

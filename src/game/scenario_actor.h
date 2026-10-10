@@ -12,6 +12,7 @@
 #include "game/object_pose.h"
 #include "game/tunnel_network.h"
 #include "game/vehicle_route.h"
+#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 #include "resources/scenario.h"
 
@@ -48,7 +49,7 @@ struct scenario_actor {
   mission_script script{};
   std::optional<vehicle_route> route{};
   std::optional<tunnel_actor_state> tunnel{};
-  std::array<std::uint16_t, 3> previous_position{};
+  maths::world_position previous_position{};
   actor_behaviour behaviour{}; // native bytes 50–55
   std::uint16_t selected_target{0};
   std::uint16_t target_token{0};

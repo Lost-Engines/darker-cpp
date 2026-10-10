@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include "game/city_map.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -13,6 +14,6 @@ struct radar_coverage {
   bool contains(uint8_t column, uint8_t row) const noexcept;
 };
 
-radar_coverage make_radar_coverage(city_map const &cells, std::array<uint16_t,2> player, bool underground = false);
+radar_coverage make_radar_coverage(city_map const &cells, maths::map_position player, bool underground = false);
 
 } // namespace darker::game

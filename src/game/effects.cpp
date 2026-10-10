@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include "game/effect_tables.h"
 #include "game/random.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -25,7 +26,7 @@ void advance_emitter(particle_emitter &emitter, uint16_t const clock, uint16_t c
   int const delta{emitter.height_rate * ticks};
   unsigned int const fraction{static_cast<unsigned int>(emitter.height_fraction) + static_cast<uint8_t>(delta * 32)};
   emitter.height_fraction = static_cast<uint8_t>(fraction);
-  emitter.position[2] = static_cast<uint16_t>(emitter.position[2] + (delta >> 3) + (fraction >> 8));
+  emitter.position.height = static_cast<uint16_t>(emitter.position.height + (delta >> 3) + (fraction >> 8));
   emitter.radius = static_cast<uint16_t>(emitter.radius + emitter.radius_rate * ticks);
   emitter.angle = static_cast<uint16_t>(emitter.angle + emitter.angle_rate * ticks);
 }
@@ -40,13 +41,13 @@ std::optional<uint8_t> damage_trail_severity(uint16_t const damage, uint8_t cons
   return static_cast<uint8_t>(level < 160 ? 0 : std::min(level - 160, 63));
 }
 
-particle_emitter make_damage_trail(std::array<uint16_t, 3> position, uint8_t const severity, uint16_t const random, uint16_t const clock) noexcept {
+particle_emitter make_damage_trail(maths::world_position position, uint8_t const severity, uint16_t const random, uint16_t const clock) noexcept {
   /// 676E jitters the saved position using one original random word, then leaves the sprite stationary
-  position[1] = static_cast<uint16_t>(position[1] + (std::bit_cast<int16_t>(random) >> 11));
+  position.row = static_cast<uint16_t>(position.row + (std::bit_cast<int16_t>(random) >> 11));
   auto const shifted{static_cast<uint16_t>(random << 5)};
   auto const dx{std::bit_cast<int16_t>(shifted) >> 11};
-  position[0] = static_cast<uint16_t>(position[0] + dx);
-  position[2] = static_cast<uint16_t>(position[2] + std::bit_cast<int8_t>(static_cast<uint8_t>(random * 4)));
+  position.column = static_cast<uint16_t>(position.column + dx);
+  position.height = static_cast<uint16_t>(position.height + std::bit_cast<int8_t>(static_cast<uint8_t>(random * 4)));
   return {.position{position}, .start{clock}, .flags{static_cast<uint8_t>(0x88 + (severity >> 3))}};
 }
 
@@ -63,7 +64,7 @@ void effect_system::append_sound(std::vector<effect_sound> &pool, sound_slots &s
   pool.push_back(sound);
 }
 
-void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const position, uint16_t const clock) {
+void effect_system::spawn(uint16_t const recipe, maths::world_position const position, uint16_t const clock) {
   /// 6820 expands the executable recipe into independently delayed, moving emitter records
   auto const found{std::ranges::find(original_effect_recipes, recipe, &effect_recipe::address)};
   if(found == original_effect_recipes.end()) throw std::invalid_argument{"Unknown effect recipe"};
@@ -82,7 +83,7 @@ void effect_system::spawn(uint16_t const recipe, std::array<uint16_t, 3> const p
   }
 }
 
-void effect_system::spark(std::array<uint16_t,3> const position, uint8_t const phase, uint16_t const sound_level, uint16_t const clock) {
+void effect_system::spark(maths::world_position const position, uint8_t const phase, uint16_t const sound_level, uint16_t const clock) {
   /// 6742 emits a stationary sprite plus a short patch-22 sound, also used by the Wrecker's cutting effects
   if(trails.size() == 20) trails.erase(trails.begin());
   trails.push_back({.position{position},.start{clock},.flags{phase}});
@@ -90,13 +91,13 @@ void effect_system::spark(std::array<uint16_t,3> const position, uint8_t const p
     .deadline{static_cast<uint16_t>(clock + 256)}});
 }
 
-void effect_system::gun_impact(std::array<uint16_t, 3> position, bool const hit, uint16_t const clock) {
+void effect_system::gun_impact(maths::world_position position, bool const hit, uint16_t const clock) {
   /// 6730/6742 create a short endpoint sprite and an independently timed patch-22 sound
-  position[2] &= 0xfff8;
+  position.height &= 0xfff8;
   spark(position,static_cast<uint8_t>(hit ? 3 : 6),static_cast<uint16_t>(hit ? 0xde30 : 0xce30),clock);
 }
 
-void effect_system::trail(std::array<uint16_t, 3> const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {
+void effect_system::trail(maths::world_position const position, uint8_t const severity, uint16_t &random, uint16_t const clock) {
   /// Advance the shared random sequence only when a trail is emitted
   if(trails.size() == 20) trails.erase(trails.begin());
   trails.push_back(make_damage_trail(position, severity, next_random(random), clock));

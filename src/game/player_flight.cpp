@@ -40,7 +40,7 @@ void player_flight::command(flight_command const command) noexcept {
       break;
     case flight_command::altitude_hold:
       altitude_hold = !altitude_hold;
-      desired_height = pose().position[2];
+      desired_height = pose().position.height;
       break;
     case flight_command::boost:
       if(caero) activate_caero_boost(*caero);

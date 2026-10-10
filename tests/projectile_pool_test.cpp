@@ -4,14 +4,15 @@
 #include <cstdint>
 #include "game/object_definitions.h"
 #include "game/projectile_pool.h"
+#include "maths/world_coordinates.h"
 #include "reference/placement_samples.h"
 
 TEST_CASE("Assembled projectile creation matches native placement and constructor fields") {
   for(auto const &sample : darker::test_reference::placement_samples) {
     CAPTURE(sample.strength, sample.heading, sample.pitch, sample.roll, sample.edge);
     darker::game::launch_emitter const emitter{
-      .position{sample.edge ? std::array<std::uint16_t, 3>{0, 65535, 0} : std::array<std::uint16_t, 3>{1000, 2000, 3000}},
-      .fractions{sample.edge ? std::array<std::uint8_t, 3>{255, 1, 128} : std::array<std::uint8_t, 3>{0, 127, 255}},
+      .position{sample.edge ? darker::maths::world_position{0, 65535, 0} : darker::maths::world_position{1000, 2000, 3000}},
+      .fractions{sample.edge ? darker::maths::position_fractions{255, 1, 128} : darker::maths::position_fractions{0, 127, 255}},
       .angles{static_cast<std::uint16_t>(sample.heading), static_cast<std::uint16_t>(sample.pitch), static_cast<std::uint16_t>(sample.roll)},
       .speed{0x9876}, .side_flags{static_cast<std::uint8_t>(sample.edge ? 0x80 : 0)}, .definition_strength{static_cast<std::uint8_t>(sample.strength)},
     };
@@ -25,7 +26,7 @@ TEST_CASE("Assembled projectile creation matches native placement and constructo
     auto const *record{pool.launch(request)};
     REQUIRE(record == previous);
     auto const &p{record->placement};
-    std::array<int, 10> const placement{p.position[0], p.position[1], p.position[2], p.fractions[0], p.fractions[1], p.fractions[2],
+    std::array<int, 10> const placement{p.position.column, p.position.row, p.position.height, p.fractions.column, p.fractions.row, p.fractions.height,
       p.angles.heading, p.angles.pitch, p.angles.roll, p.speed};
     auto const &parameters{record->parameters};
     std::array<int, 15> const metadata{parameters.model_token, std::to_underlying(parameters.update_entry), parameters.flags_4c, parameters.angular_response,

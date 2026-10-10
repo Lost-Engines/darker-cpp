@@ -11,6 +11,7 @@
 #include "game/object_pose.h"
 #include "graphics/camera.h"
 #include "graphics/model_lighting.h"
+#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::graphics {
@@ -62,7 +63,7 @@ struct city_view {
   bool unrestricted_visibility{false}; // Debug cameras can leave the connected tunnel cells
 };
 
-bool within_object_window(city_view const &view, std::array<uint16_t,3> const &position) noexcept;
+bool within_object_window(city_view const &view, maths::world_position const &position) noexcept;
 
 struct particle_scene {
   game::effect_system const &effects;

@@ -1,6 +1,7 @@
 #include "game/collision_sweep.h"
 #include <algorithm>
 #include <bit>
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -22,8 +23,8 @@ int signed_word(std::uint16_t const value) noexcept {
 
 } // namespace
 
-bool sweep_collision_box(collision_box const &box, std::array<std::uint16_t, 3> const &start,
-  std::array<std::uint16_t, 3> &end) noexcept {
+bool sweep_collision_box(collision_box const &box, maths::world_position const &start,
+  maths::world_position &end) noexcept {
   /// Reproduce the native projected box tests and 662B's quantised impact placement for local swept segments
   fraction entry{0, 1};
   fraction exit{1, 1};

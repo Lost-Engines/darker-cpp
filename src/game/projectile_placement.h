@@ -2,14 +2,15 @@
 
 #include <array>
 #include <cstdint>
-#include "maths/view_basis.h"
 #include "game/object_pose.h"
+#include "maths/view_basis.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
 struct launch_emitter {
-  std::array<std::uint16_t, 3> position{};
-  std::array<std::uint8_t, 3> fractions{};
+  maths::world_position position{};
+  maths::position_fractions fractions{};
   // Heading, pitch, roll, in native wrapping angle units.
   maths::attitude_angles angles{};
   std::uint16_t speed{0};

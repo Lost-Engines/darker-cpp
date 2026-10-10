@@ -1,21 +1,22 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include "game/aircraft_combat.h"
-#include "game/object_definitions.h"
 #include "game/mission_combat.h"
+#include "game/object_definitions.h"
+#include "maths/world_coordinates.h"
+#include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_combat_samples.h"
 #include "reference/aircraft_fire_samples.h"
-#include "reference/aircraft_bomb_samples.h"
 
 TEST_CASE("Aircraft hit volumes match native extent sweeps", "[combat]") {
   /// Check both hit admission and native impact rounding at full altitude scale
   for(auto const &v : darker::test_reference::aircraft_sweeps) {
     CAPTURE(v);
     darker::game::object_pose const target{.position{static_cast<uint16_t>(v[0]), static_cast<uint16_t>(v[1]), static_cast<uint16_t>(v[2])}};
-    std::array<uint16_t, 3> const start{static_cast<uint16_t>(v[5]), static_cast<uint16_t>(v[6]), static_cast<uint16_t>(v[7])};
-    std::array<uint16_t, 3> end{static_cast<uint16_t>(v[8]), static_cast<uint16_t>(v[9]), static_cast<uint16_t>(v[10])};
+    darker::maths::world_position const start{static_cast<uint16_t>(v[5]), static_cast<uint16_t>(v[6]), static_cast<uint16_t>(v[7])};
+    darker::maths::world_position end{static_cast<uint16_t>(v[8]), static_cast<uint16_t>(v[9]), static_cast<uint16_t>(v[10])};
     CHECK(darker::game::sweep_aircraft(target, v[3], v[4], start, end) == (v[11] != 0));
-    CHECK(end == std::array<uint16_t, 3>{static_cast<uint16_t>(v[12]), static_cast<uint16_t>(v[13]), static_cast<uint16_t>(v[14])});
+    CHECK(end == darker::maths::world_position{static_cast<uint16_t>(v[12]), static_cast<uint16_t>(v[13]), static_cast<uint16_t>(v[14])});
   }
 }
 
@@ -29,8 +30,8 @@ TEST_CASE("Falling aircraft match the original destruction callback", "[combat]"
     actor.pose.angles = {static_cast<uint16_t>(v[5]), static_cast<uint16_t>(v[6]), static_cast<uint16_t>(v[7])};
     actor.pose.speed = static_cast<uint16_t>(v[8]);
     darker::game::advance_falling_aircraft(actor, v[9]);
-    std::array<int, 12> const actual{actor.pose.position[0], actor.pose.position[1], actor.pose.position[2], actor.attitude.pitch_rate, actor.attitude.bank_rate,
-      actor.pose.angles.heading, actor.pose.angles.pitch, actor.pose.angles.roll, actor.pose.speed, actor.pose.fractions[0], actor.pose.fractions[1], actor.pose.fractions[2]};
+    std::array<int, 12> const actual{actor.pose.position.column, actor.pose.position.row, actor.pose.position.height, actor.attitude.pitch_rate, actor.attitude.bank_rate,
+      actor.pose.angles.heading, actor.pose.angles.pitch, actor.pose.angles.roll, actor.pose.speed, actor.pose.fractions.column, actor.pose.fractions.row, actor.pose.fractions.height};
     for(size_t i{0}; i < actual.size(); ++i) CHECK(actual[i] == v[i + 10]);
   }
 }

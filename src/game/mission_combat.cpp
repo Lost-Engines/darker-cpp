@@ -18,6 +18,7 @@
 #include "game/skimma_weapons.h"
 #include "game/tunnel_navigation.h"
 #include "game/vehicle_combat.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -37,7 +38,7 @@ void damage_world_cell(uint8_t const column, uint8_t const row, uint16_t const h
     {static_cast<uint16_t>(column*256 + type.column_fraction), static_cast<uint16_t>(row*256 + type.row_fraction),height},clock);
 }
 
-void impact_projectile_world(city_collision_result const &contact, std::array<uint16_t,3> const impact, object_definition const &definition,
+void impact_projectile_world(city_collision_result const &contact, maths::world_position const impact, object_definition const &definition,
   city_map &cells, resources::geometry_bank const &bank, effect_system &effects, uint16_t const clock, uint16_t const terrain_recipe, uint8_t &counter, uint8_t const damage_mask) {
   /// CDB9 distinguishes marked player targets, hostile bombing and universal category-two breakable components
   if(contact.contact != city_contact::building) { effects.spawn(terrain_recipe,impact,clock); return; }
@@ -48,7 +49,7 @@ void impact_projectile_world(city_collision_result const &contact, std::array<ui
   auto const found{std::ranges::find_if(original_object_definitions,[&](auto const &original){ return &original == &definition; })};
   auto const slot{static_cast<size_t>(found-original_object_definitions.begin())};
   if(projectile_damages_building(slot,contact.category,cell.state,linked)) {
-    damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,counter);
+    damage_world_cell(contact.column,contact.row,impact.height,cells,bank,effects,clock,counter);
   } else effects.spawn(0x7386,impact,clock);
 }
 
@@ -85,7 +86,7 @@ void mission_combat::spawn_aircraft(player_flight const &player, city_map const 
   if(!player.tunnel) advance_aircraft_spawning(spawning,actors,free_actors,cells,bank,player.pose(),clock,frame_step,random_state);
 }
 
-void mission_combat::collide_player(player_flight &player, std::array<uint16_t,3> const &start,
+void mission_combat::collide_player(player_flight &player, maths::world_position const &start,
   city_map &cells, resources::geometry_bank const &bank, uint16_t const clock) {
   /// 6F0F scans the player before other collision owners; 6ED4 damages the victim before the player
   player_contact = {};
@@ -94,7 +95,7 @@ void mission_combat::collide_player(player_flight &player, std::array<uint16_t,3
   auto const contact{sweep_city(bank,cells,player.world_damage_mask(),start,end,12,10)};
   auto *victim{sweep_actor_groups(actors,bank,start,end,12,actor_collision_groups)};
   if(!victim && contact.contact == city_contact::none) return;
-  end[2] &= 0xfff8;
+  end.height &= 0xfff8;
   player.pose().position = end;
   if(!victim) {
     player_contact = contact;
@@ -139,7 +140,7 @@ void mission_combat::collide_aircraft(city_map const &cells, resources::geometry
     auto const contact{sweep_city(bank,cells,damage_mask,owner->previous_position,end,12,10)};
     auto *victim{sweep_actor_groups(actors,bank,owner->previous_position,end,12,aircraft_collision_group,index)};
     if(victim) {
-      end[2] &= 0xfff8;
+      end.height &= 0xfff8;
       owner->pose.position = end;
       auto const victim_index{victim->index};
       auto const first{hit_actor(*owner,0x40,clock,random_state,underground)};
@@ -222,7 +223,7 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
   sweep_city(bank,cells,player.world_damage_mask(),player.pose().position,end,0,10);
   auto *victim{sweep_actor_groups(actors,bank,player.pose().position,end,0,aircraft_collision_group)};
   auto impact{end};
-  impact[2] &= 0xfff8;
+  impact.height &= 0xfff8;
   bool const hit{victim != nullptr};
   if(victim) {
     auto const reaction{hit_actor(*victim,0x32,clock,random_state)};
@@ -242,7 +243,7 @@ void mission_combat::fire_skimma_primary(player_flight const &player, city_map c
 
 void mission_combat::advance(player_flight &player, city_map &cells, resources::geometry_bank const &bank,
   combat_timing const timing, combat_input const input, combat_scenario const scenario,
-  std::optional<std::array<uint16_t,3>> const player_start) {
+  std::optional<maths::world_position> const player_start) {
   /// Follow actor scripts and motion, player firing, projectile movement and collision/removal phases
   auto const [elapsed_ticks, frame_step, changes]{timing};
   auto const [trigger_pressed, secondary_pressed, secondary_held, trigger_released]{input};
@@ -260,7 +261,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   auto const damage_mask{player.world_damage_mask()};
   auto const player_extent{bank.header_at(bank.special_models()[player_definition]).extent};
   std::erase_if(actors, [&](auto &actor){
-    if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position[2],clock)) return false;
+    if(!advance_object_deadline(actor.flags,actor.expiry,actor.fade,actor.pose.position.height,clock)) return false;
     release_target(static_cast<uint16_t>(0xd986 + actor.index*112));
     completed_objectives += actor.attributes & 1;
     adjust_objectives(static_cast<uint8_t>(-(actor.attributes & 1)));
@@ -285,7 +286,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         // Script callbacks may insert into actors, so retain the executing record independently of vector storage.
         auto actor{*find_actor()};
         mission_context context{.program{routes},.object_flags{status_flags(player.lifecycle.flags)},.cells{cells},.clock{elapsed_ticks},.time_multiplier{script_multiplier}, .object_counter{static_cast<uint8_t>(completed_objectives)},
-          .current_cell{static_cast<uint16_t>((actor.pose.position[0] >> 8) | (actor.pose.position[1] & 0xff00))},
+          .current_cell{static_cast<uint16_t>((actor.pose.position.column >> 8) | (actor.pose.position.row & 0xff00))},
           .set_target{[&](uint16_t const target, bool const flag_02){
             actor.target_token = target;
             actor.flags = static_cast<uint8_t>((actor.flags & 0xfd) | (flag_02 ? 2 : 0));
@@ -444,7 +445,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       } else {
         auto const aim{resolve_map_guidance(target.token,cells,bank,damage_mask)};
         auto const cell{cells[(target.token >> 8)*128+(target.token & 127)]};
-        std::array<uint16_t,3> const position{aim.position[0],aim.position[1],aim.height};
+        maths::world_position const position{aim.position.column,aim.position.row,aim.height};
         if(caero) project_caero_target(target,pose.position,position,aim.height_extent,targeting_basis,secondary_weapon,cell.type,cell.state);
         else {
           auto const model{bank.city_model_offset(cell.type,cell.state,damage_mask)};
@@ -465,7 +466,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     auto const contact{sweep_city(bank, cells, damage_mask, shot->previous_position, end, 2, 10)};
     auto *victim{sweep_actor_groups(actors,bank,shot->previous_position,end,2,actor_collision_groups)};
     auto impact{end};
-    impact[2] &= 0xfff8;
+    impact.height &= 0xfff8;
     if(!victim && contact.contact == city_contact::none) continue;
     shot->placement.position = impact;
     auto const strength{shot->parameters.definition == &original_object_definitions[8]
@@ -489,11 +490,11 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       auto const &cell{cells[contact.row*128 + contact.column]};
       auto const result{diffuser.hit(shot->parameters.definition == &original_object_definitions[4],contact.category,cell.state,
         static_cast<uint16_t>(contact.row*256 + contact.column),clock)};
-      if(result == diffuser_impact::destroyed) damage_world_cell(contact.column,contact.row,impact[2],cells,bank,effects,clock,world_damage_counter);
+      if(result == diffuser_impact::destroyed) damage_world_cell(contact.column,contact.row,impact.height,cells,bank,effects,clock,world_damage_counter);
       else if(result == diffuser_impact::gas) {
         auto const &type{bank.city_types()[cell.type - 1]};
         effects.spawn(0x75d4,{static_cast<uint16_t>(contact.column*256 + type.column_fraction),
-          static_cast<uint16_t>(contact.row*256 + type.row_fraction),impact[2]},clock);
+          static_cast<uint16_t>(contact.row*256 + type.row_fraction),impact.height},clock);
       } else effects.spawn(0x75a3,impact,clock);
     }
     else if(!victim) impact_projectile_world(contact,impact,*shot->parameters.definition,cells,bank,effects,clock,player.tunnel ? 0x7386 : 0x721c,world_damage_counter,damage_mask);
@@ -508,7 +509,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     auto candidate{end};
     bool const hit{!(player.lifecycle.flags & 0x20) && sweep_aircraft(player.pose(),player_extent,2,shot->previous_position,candidate)};
     if(!hit && contact.contact == city_contact::none) continue;
-    end[2] &= 0xfff8;
+    end.height &= 0xfff8;
     shot->placement.position = end;
     if(hit) {
       // 6E95 halves definition strength and derives the angular kick from that amount.

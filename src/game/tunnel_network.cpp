@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "maths/direction.h"
 #include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {
@@ -120,7 +121,7 @@ tunnel_boundary tunnel_network::crossing(uint8_t const type, tunnel_connection c
     .height{static_cast<uint8_t>(source.route & 0x80 ? edge.heights >> 4 : edge.heights & 15)}};
 }
 
-std::array<uint16_t,3> tunnel_network::point(uint8_t const type, uint8_t const route, uint16_t const cell, uint16_t const distance) const {
+maths::world_position tunnel_network::point(uint8_t const type, uint8_t const route, uint16_t const cell, uint16_t const distance) const {
   /// D31F interpolates the route with signed division and wrapped word coordinates
   auto const edge{segment(type,route)};
   if(edge.length == 0) throw std::invalid_argument{"Cannot interpolate a zero-length tunnel segment"};
@@ -206,7 +207,7 @@ tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connecti
 }
 
 std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_connection source,
-  std::array<uint16_t,3> const position, uint16_t const lookahead, uint8_t const preferred_heading) const {
+  maths::world_position const position, uint16_t const lookahead, uint8_t const preferred_heading) const {
   /// D284 projects onto the current edge, corrects crossings and samples a target through successive connected edges
   if(source.route & 0x40) return std::nullopt;
   auto const type_at{[&](uint16_t const cell){
@@ -224,8 +225,8 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
     auto const from{boundary(reverse ? edge.second : edge.first)}, to{boundary(reverse ? edge.first : edge.second)};
     auto const x{static_cast<uint16_t>((source.cell & 255)*256 + from[0]*8)};
     auto const y{static_cast<uint16_t>((source.cell >> 8)*256 + from[1]*8)};
-    auto const dx{std::bit_cast<int16_t>(static_cast<uint16_t>(position[0] - x))};
-    auto const dy{std::bit_cast<int16_t>(static_cast<uint16_t>(position[1] - y))};
+    auto const dx{std::bit_cast<int16_t>(static_cast<uint16_t>(position.column - x))};
+    auto const dy{std::bit_cast<int16_t>(static_cast<uint16_t>(position.row - y))};
     progress = (dx*(to[0] - from[0])*8 + dy*(to[1] - from[1])*8) / (edge.length*2);
     if(progress >= 0) {
       if(progress > edge.length*2) progress = edge.length*2;
@@ -245,9 +246,9 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
 }
 
 std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells, tunnel_connection const source,
-  std::array<uint16_t,3> const position, uint8_t const preferred_heading) const {
+  maths::world_position const position, uint8_t const preferred_heading) const {
   /// D39C searches the current cell and two axial neighbours for a sufficiently close route after free flight
-  uint16_t const cell{static_cast<uint16_t>((position[0] >> 8) | (position[1] & 0xff00))};
+  uint16_t const cell{static_cast<uint16_t>((position.column >> 8) | (position.row & 0xff00))};
   uint16_t best{64};
   uint8_t route{0};
   auto const search{[&](int const x_offset, int const y_offset){
@@ -258,8 +259,8 @@ std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells
     for(uint8_t i{0}; i < 3; ++i) {
       auto const edge{segment(type,i)};
       if(edge.first == 0) continue;
-      auto const score{proximity(edge,static_cast<uint16_t>((position[0] & 255) + x_offset*256),
-        static_cast<uint16_t>((position[1] & 255) + y_offset*256),static_cast<uint8_t>(position[2] >> 6))};
+      auto const score{proximity(edge,static_cast<uint16_t>((position.column & 255) + x_offset*256),
+        static_cast<uint16_t>((position.row & 255) + y_offset*256),static_cast<uint8_t>(position.height >> 6))};
       if(score < best) { best = score; route = i; }
     }
   }};
@@ -268,8 +269,8 @@ std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells
     if(cell == source.cell || ((route ^ source.route) & 31) == 0) return std::nullopt;
     return tunnel_connection{cell,route};
   }
-  int const x_step{(position[0] & 255) < 128 ? -1 : 1};
-  int const y_step{(position[1] & 255) < 128 ? -1 : 1};
+  int const x_step{(position.column & 255) < 128 ? -1 : 1};
+  int const y_step{(position.row & 255) < 128 ? -1 : 1};
   search(x_step,0);
   auto const horizontal{best};
   search(0,y_step);

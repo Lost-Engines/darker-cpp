@@ -26,9 +26,9 @@ object_pose place_projectile(launch_emitter const &emitter) {
     int x{((emitter.side_flags & 0x80) != 0 ? -6 : 6) ^ masks[quadrant]};
     int y{36 ^ masks[quadrant + 1]};
     if((quadrant & 1) != 0) { int const old_x{x}; x = y; y = old_x; }
-    result.position[0] = static_cast<std::uint16_t>(emitter.position[0] + x);
-    result.position[1] = static_cast<std::uint16_t>(emitter.position[1] + ~y);
-    result.position[2] = static_cast<std::uint16_t>(emitter.position[2] + 160);
+    result.position.column = static_cast<std::uint16_t>(emitter.position.column + x);
+    result.position.row = static_cast<std::uint16_t>(emitter.position.row + ~y);
+    result.position.height = static_cast<std::uint16_t>(emitter.position.height + 160);
     result.angles.heading = static_cast<std::uint16_t>(emitter.angles.heading + 0x8000);
     result.angles.pitch = 0x0abe;
     return result;

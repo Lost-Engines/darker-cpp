@@ -44,16 +44,16 @@ std::vector<collision_box> city_collision_boxes(resources::geometry_bank const &
     }
     int const upper_height{lower_height + ((opcode & 7) << 8) + byte(data, cursor++)};
     result.push_back({
-      .minimum{{
+      .minimum{
         static_cast<std::uint16_t>(column_origin + signed_byte(data, cursor) - expansion),
         static_cast<std::uint16_t>(row_origin + signed_byte(data, cursor + 2) - expansion),
         static_cast<std::uint16_t>(lower_height - expansion),
-      }},
-      .maximum{{
+      },
+      .maximum{
         static_cast<std::uint16_t>(column_origin + signed_byte(data, cursor + 1) + 1 + expansion),
         static_cast<std::uint16_t>(row_origin + signed_byte(data, cursor + 3) + 1 + expansion),
         static_cast<std::uint16_t>(upper_height + expansion),
-      }},
+      },
       .category{static_cast<std::uint8_t>(opcode >> 3)},
     });
     cursor += 4;

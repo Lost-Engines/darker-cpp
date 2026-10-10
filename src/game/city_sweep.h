@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <span>
 #include "game/city_map.h"
+#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::game {
@@ -18,7 +19,7 @@ struct city_collision_result {
 };
 
 city_collision_result sweep_city(resources::geometry_bank const &bank, std::span<city_cell const, 128 * 128> cells,
-  std::uint8_t damage_mask, std::array<std::uint16_t, 3> const &start, std::array<std::uint16_t, 3> &end,
+  std::uint8_t damage_mask, maths::world_position const &start, maths::world_position &end,
   std::uint16_t expansion = 12, std::int16_t terrain_height = 10);
 
 } // namespace darker::game

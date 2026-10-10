@@ -5,12 +5,13 @@
 #include "game/angular_motion.h"
 #include "game/city_map.h"
 #include "game/projectile_pool.h"
+#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::game {
 
 struct map_guidance_target {
-  std::array<std::uint16_t, 2> position{};
+  maths::map_position position{};
   std::uint16_t height{0};
   std::uint16_t height_extent{0};
 };

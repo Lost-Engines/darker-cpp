@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <bit>
 #include "maths/direction_table.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::maths {
 namespace {
@@ -38,11 +39,11 @@ std::uint16_t direction_index(std::uint16_t x, std::uint16_t y) {
   return first_quadrant(x, y);
 }
 
-direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const &displacement) {
+direction_angles direction_from_displacement(world_position const &displacement) {
   /// 925C uses a maximum-axis pitch approximation and scales altitude down by eight
-  auto const x{displacement[0]};
-  auto const y{displacement[1]};
-  auto const z{static_cast<std::uint16_t>(std::bit_cast<std::int16_t>(displacement[2]) >> 3)};
+  auto const x{displacement.column};
+  auto const y{displacement.row};
+  auto const z{static_cast<std::uint16_t>(std::bit_cast<std::int16_t>(displacement.height) >> 3)};
   auto const horizontal{std::max(negative(x) ? negate(x) : x, negative(y) ? negate(y) : y)};
   return {
     .heading{static_cast<std::uint16_t>(direction_index(x, y) << 5)},
@@ -50,11 +51,11 @@ direction_angles direction_from_displacement(std::array<std::uint16_t, 3> const 
   };
 }
 
-direction_angles object_target_direction(std::array<std::uint16_t, 3> const &position,
-  std::array<std::uint16_t, 3> const &target) {
+direction_angles object_target_direction(world_position const &position,
+  world_position const &target) {
   /// 9250/CCD7 subtract positions and reverse the direction routine's heading
-  auto result{direction_from_displacement({static_cast<std::uint16_t>(target[0] - position[0]),
-    static_cast<std::uint16_t>(target[1] - position[1]), static_cast<std::uint16_t>(target[2] - position[2])})};
+  auto result{direction_from_displacement({static_cast<std::uint16_t>(target.column - position.column),
+    static_cast<std::uint16_t>(target.row - position.row), static_cast<std::uint16_t>(target.height - position.height)})};
   result.heading = static_cast<std::uint16_t>(result.heading + 0x8000);
   return result;
 }

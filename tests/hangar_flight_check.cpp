@@ -10,6 +10,7 @@
 #include "reference/hangar_return_samples.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
+#include "maths/world_coordinates.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ std::array<int, 27> launch_state(darker::game::player_flight const &player, dark
   /// Observe the same persistent fields as the original executable launch trace
   auto const &state{std::get<darker::game::caero_flight_state>(player.craft)};
   auto const &pose{state.pose};
-  return {pose.position[0], pose.position[1], pose.position[2], pose.fractions[0], pose.fractions[1], pose.fractions[2],
+  return {pose.position.column, pose.position.row, pose.position.height, pose.fractions.column, pose.fractions.row, pose.fractions.height,
     pose.angles.heading, pose.angles.pitch, pose.angles.roll, pose.speed, state.horizontal_velocity, state.vertical_velocity,
     state.active_boost, state.energy.buffer, state.energy.reserve, state.energy.boost, state.startup_energy,
     state.forward_bias, state.pitch_assist_rate, state.damage.damage, state.repair_phase, state.damage.rotation.pitch,
@@ -47,7 +48,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     collision.collide_player(probe,{1000,2000,100},empty_city,bank,8);
     if(probe.lifecycle.crashing == noclip || (collision.player_contact.contact == darker::game::city_contact::none) != noclip)
       throw std::runtime_error{"Noclip did not control campaign terrain collision"};
-    if(noclip && probe.pose().position != std::array<uint16_t,3>{1100,2020,0})
+    if(noclip && probe.pose().position != darker::maths::world_position{1100,2020,0})
       throw std::runtime_error{"Noclip still clipped the player position to terrain"};
   }
   {
@@ -75,7 +76,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
         underground.command(darker::game::flight_command::boost);
       }
     }
-    if(surface.pose().position == std::array<uint16_t,3>{40000,40000,1536})
+    if(surface.pose().position == darker::maths::world_position{40000,40000,1536})
       throw std::runtime_error{"Noclip did not move beyond beacon coverage"};
   }
   // B938 freezes the callback, retaining velocity for release while clearing the measured speed.
@@ -168,8 +169,8 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     darker::game::advance_hangar_departure(player, cells, hangar, 8);
     auto const &pose{player.pose()};
     auto const &rotation{std::get<darker::game::caero_flight_state>(player.craft).damage.rotation};
-    std::array<int, 15> const actual{sample[0], pose.position[0], pose.position[1], pose.position[2],
-      pose.fractions[0], pose.fractions[1], pose.fractions[2], rotation.pitch, rotation.turn,
+    std::array<int, 15> const actual{sample[0], pose.position.column, pose.position.row, pose.position.height,
+      pose.fractions.column, pose.fractions.row, pose.fractions.height, rotation.pitch, rotation.turn,
       pose.angles.heading, pose.angles.pitch, pose.angles.roll, pose.speed, hangar.extension, static_cast<int>(hangar.returning)};
     for(size_t field{0}; field < actual.size(); ++field) {
       if(actual[field] != sample[field]) throw std::runtime_error{"Hangar return tick " + std::to_string(sample[0]) + ", field " + std::to_string(field)

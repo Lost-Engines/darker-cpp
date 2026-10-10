@@ -15,8 +15,8 @@ TEST_CASE("Straight projectile integration matches native speed smoothing and fr
     darker::game::object_definition const definition{.base_speed{static_cast<std::uint8_t>(sample.base)}};
     auto const angles{state.angles};
     darker::game::advance_direct_projectile(state, definition, static_cast<std::uint16_t>(sample.step));
-    std::array<int, 7> const actual{state.position[0], state.position[1], state.position[2],
-      state.fractions[0], state.fractions[1], state.fractions[2], state.speed};
+    std::array<int, 7> const actual{state.position.column, state.position.row, state.position.height,
+      state.fractions.column, state.fractions.row, state.fractions.height, state.speed};
     CHECK(actual == sample.result);
     CHECK(state.angles == angles);
   }
@@ -29,7 +29,7 @@ TEST_CASE("Projectile deadline and fade update matches native signed clocks and 
     record.flags = static_cast<std::uint8_t>(sample.flags);
     record.fade = 123;
     record.deadline = static_cast<std::uint16_t>(65000 + sample.delta);
-    record.placement.position[2] = static_cast<std::uint16_t>(sample.altitude);
+    record.placement.position.height = static_cast<std::uint16_t>(sample.altitude);
     CHECK(darker::game::update_projectile_deadline(record, 65000) == static_cast<bool>(sample.expired));
     CHECK(record.flags == sample.next_flags);
     CHECK(record.deadline == sample.deadline);

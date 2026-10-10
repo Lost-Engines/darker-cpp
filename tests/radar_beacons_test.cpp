@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "game/radar_coverage.h"
 #include "graphics/radar_beacons.h"
+#include "maths/world_coordinates.h"
 #include "reference/radar_beacon_samples.h"
 #include "reference/radar_noise_samples.h"
 
@@ -18,12 +19,12 @@ TEST_CASE("Radio coverage and energy tower pixels match native radar frames", "[
     for(size_t y{0}; y < 4; ++y) {
       for(size_t x{0}; x < 4; ++x) cells[(13 + y*36)*128 + 13 + x*36] = {.type{12},.state{static_cast<uint8_t>(sample[3] & (1u << (y*4+x)) ? 32 : 0)}};
     }
-    std::array<uint16_t,2> const position{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1])};
+    darker::maths::map_position const position{static_cast<uint16_t>(sample[0]),static_cast<uint16_t>(sample[1])};
     auto const coverage{darker::game::make_radar_coverage(cells,position,sample[5] != 0)};
     CHECK(coverage.mask == sample[6]);
     for(size_t i{0}; i < 8; ++i) CHECK(coverage.contains(static_cast<uint8_t>(sample[7+i*2]),static_cast<uint8_t>(sample[8+i*2])) == (sample[23+i] != 0));
     framework::render::indexed_cockpit_framebuffer actual{}, expected{};
-    darker::graphics::draw_radar_beacons(actual,cells,{position[0],position[1]},static_cast<uint16_t>(sample[2]),coverage);
+    darker::graphics::draw_radar_beacons(actual,cells,{position.column,position.row},static_cast<uint16_t>(sample[2]),coverage);
     for(size_t i{0}; i < sample[31]; ++i) expected.pixels[sample[33+i*3]*320 + sample[32+i*3]] = static_cast<uint8_t>(sample[34+i*3]);
     CHECK(actual.pixels == expected.pixels);
   }

@@ -5,15 +5,16 @@
 #include "game/object_definitions.h"
 #include "game/object_impact.h"
 #include "game/skimma_weapons.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
 bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t const expansion,
-  std::array<uint16_t, 3> const &start, std::array<uint16_t, 3> &end) noexcept {
+  maths::world_position const &start, maths::world_position &end) noexcept {
   /// 6D7B/60C8 use a model-extent cube with altitude divided by eight, independently of model orientation
   auto const radius{static_cast<uint16_t>((extent >> 2) + expansion)};
   auto centre{target.position};
-  centre[2] = static_cast<uint16_t>(std::bit_cast<int16_t>(centre[2]) >> 3);
+  centre.height = static_cast<uint16_t>(std::bit_cast<int16_t>(centre.height) >> 3);
   collision_box box;
   for(size_t axis{0}; axis < 3; ++axis) {
     box.minimum[axis] = static_cast<uint16_t>(centre[axis] - radius);
@@ -22,15 +23,15 @@ bool sweep_aircraft(object_pose const &target, uint16_t const extent, uint16_t c
   auto previous{start};
   auto next{end};
   previous[2] = static_cast<uint16_t>(std::bit_cast<int16_t>(previous[2]) >> 3);
-  next[2] = static_cast<uint16_t>(std::bit_cast<int16_t>(next[2]) >> 3);
+  next.height = static_cast<uint16_t>(std::bit_cast<int16_t>(next.height) >> 3);
   if(!sweep_collision_box(box, previous, next)) return false;
   end = next;
-  end[2] = static_cast<uint16_t>(next[2] << 3);
+  end.height = static_cast<uint16_t>(next.height << 3);
   return true;
 }
 
 scenario_actor *sweep_actor_groups(std::span<scenario_actor> const actors, resources::geometry_bank const &bank,
-  std::array<uint16_t,3> const &start, std::array<uint16_t,3> const &end, uint16_t const expansion,
+  maths::world_position const &start, maths::world_position const &end, uint16_t const expansion,
   std::span<actor_category const> const categories, std::optional<uint8_t> const excluded) {
   /// 6D60 retains the last intersecting object in list order without shortening the city-clipped sweep
   scenario_actor *result{nullptr};

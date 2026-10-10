@@ -3,6 +3,7 @@
 #include <cmath>
 #include "audio/ambient_sounds.h"
 #include "audio/world_sounds.h"
+#include "maths/world_coordinates.h"
 #include "reference/ambient_sound_samples.h"
 
 TEST_CASE("Ambient callbacks and retained-voice timing match original fixed records", "[audio][ambient]") {
@@ -22,7 +23,7 @@ TEST_CASE("Ambient callbacks and retained-voice timing match original fixed reco
     CHECK(source.sound.deadline == v[14]);
     CHECK(source.sound.definition.flags == v[15]);
     CHECK(source.sound.definition.pitch == v[16]);
-    CHECK(source.sound.position == std::array<uint16_t,3>{static_cast<uint16_t>(v[17]),static_cast<uint16_t>(v[18]),static_cast<uint16_t>(v[19])});
+    CHECK(source.sound.position == darker::maths::world_position{static_cast<uint16_t>(v[17]),static_cast<uint16_t>(v[18]),static_cast<uint16_t>(v[19])});
     CHECK(source.sound.definition.level == v[20]);
   }
 }

@@ -6,19 +6,20 @@
 #include "game/object_definitions.h"
 #include "maths/direction.h"
 #include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 
-std::optional<uint16_t> audible_level(std::array<uint16_t, 3> const source, std::array<uint16_t, 3> const listener,
+std::optional<uint16_t> audible_level(maths::world_position const source, maths::world_position const listener,
   uint16_t const level, uint8_t const flags) noexcept {
   /// 3488 rejects distant sources before subtracting the original squared-distance attenuation
   if(flags & 2) return level;
-  std::array<int32_t, 3> delta{};
+  maths::world_coordinates<int32_t> delta{};
   for(size_t axis{0}; axis < 3; ++axis) delta[axis] = std::bit_cast<int16_t>(static_cast<uint16_t>(source[axis] - listener[axis]));
-  auto const x{static_cast<uint32_t>(delta[0] * delta[0])};
-  auto const y{static_cast<uint32_t>(delta[1] * delta[1])};
+  auto const x{static_cast<uint32_t>(delta.column * delta.column)};
+  auto const y{static_cast<uint32_t>(delta.row * delta.row)};
   if(x >= 0x1000000 || y >= 0x1000000) return std::nullopt;
-  auto const z{static_cast<uint64_t>(delta[2] * delta[2]) * 4};
+  auto const z{static_cast<uint64_t>(delta.height * delta.height) * 4};
   if(z >= 0x100000000ULL) return std::nullopt;
   auto const distance{(x >> 8) + (y >> 8) + (z >> 16)};
   if(distance >= 0x4000 || distance * 4 >= level) return std::nullopt;
@@ -34,12 +35,12 @@ uint16_t doppler_factor(game::object_pose const *const motion, uint16_t const he
   return static_cast<uint16_t>(0x39d0 - ((speed * product) >> 16));
 }
 
-uint16_t spatial_pitch(uint16_t const pitch, std::array<uint16_t, 3> const source, game::object_pose const &listener,
+uint16_t spatial_pitch(uint16_t const pitch, maths::world_position const source, game::object_pose const &listener,
   game::object_pose const *const source_motion, game::object_pose const *const listener_motion) noexcept {
   /// 39BA scales both horizontal differences by eight before 925C, then divides listener/source velocity factors
-  auto const x{static_cast<uint16_t>((source[0] - listener.position[0]) * 8)};
-  auto const y{static_cast<uint16_t>((source[1] - listener.position[1]) * 8)};
-  auto const z{static_cast<uint16_t>(source[2] - listener.position[2])};
+  auto const x{static_cast<uint16_t>((source.column - listener.position.column) * 8)};
+  auto const y{static_cast<uint16_t>((source.row - listener.position.row) * 8)};
+  auto const z{static_cast<uint16_t>(source.height - listener.position.height)};
   auto const magnitude{[](uint16_t const value){ return value & 0x8000 ? static_cast<uint16_t>(-value) : value; }};
   auto const heading{static_cast<uint16_t>(maths::direction_index(x, y) << 5)};
   auto const elevation{static_cast<uint16_t>(maths::direction_index(z, std::max(magnitude(x), magnitude(y))) << 5)};
@@ -47,11 +48,11 @@ uint16_t spatial_pitch(uint16_t const pitch, std::array<uint16_t, 3> const sourc
     / doppler_factor(source_motion, heading, elevation));
 }
 
-std::array<uint8_t,2> stereo_attenuation(std::array<uint16_t,3> const delta, maths::view_basis const &basis, uint16_t const level) noexcept {
+std::array<uint8_t,2> stereo_attenuation(maths::world_position const delta, maths::view_basis const &basis, uint16_t const level) noexcept {
   /// 3A2A transforms source bearing, shapes two sine-table gains and converts them to OPL carrier attenuation
-  auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>(delta[0]*8))};
-  auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>(delta[1]*8))};
-  auto const z{std::bit_cast<int16_t>(delta[2])};
+  auto const x{std::bit_cast<int16_t>(static_cast<uint16_t>(delta.column*8))};
+  auto const y{std::bit_cast<int16_t>(static_cast<uint16_t>(delta.row*8))};
+  auto const z{std::bit_cast<int16_t>(delta.height)};
   auto const depth{static_cast<uint16_t>(((x*basis[1].depth) >> 16)+((z*basis[2].depth) >> 16)-((y*basis[0].depth) >> 16))};
   auto const side{static_cast<uint16_t>(((y*basis[0].horizontal) >> 16)-((x*basis[1].horizontal) >> 16)-((z*basis[2].horizontal) >> 16))};
   auto const phase{maths::direction_index(depth,side) >> 2};
@@ -116,8 +117,8 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     candidates.push_back({identity, {.pitch{pitch}, .level{*level},
       .generation{static_cast<uint16_t>((identity >> 32) == 4 ? sound.identity : sound.generation)},.patch{definition.patch}, .active{true}}});
     if(definition.flags & 1) candidates.back().note.attenuation = stereo_attenuation({
-      static_cast<uint16_t>(sound.position[0]-listener.position[0]),static_cast<uint16_t>(sound.position[1]-listener.position[1]),
-      static_cast<uint16_t>(sound.position[2]-listener.position[2])},basis,*level);
+      static_cast<uint16_t>(sound.position.column-listener.position.column),static_cast<uint16_t>(sound.position.row-listener.position.row),
+      static_cast<uint16_t>(sound.position.height-listener.position.height)},basis,*level);
   }};
   auto const append_actors{[&](game::actor_category const category){
     for(auto const &actor : combat.actors) {

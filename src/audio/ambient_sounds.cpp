@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include "game/beacon_light.h"
 #include "game/radar_coverage.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 namespace {
@@ -15,10 +16,10 @@ bool reached(uint16_t const clock, uint16_t const deadline) noexcept {
 bool region(ambient_source &source, ambient_context const &context, uint8_t const x, uint8_t const y,
   std::array<uint16_t,4> const sites) {
   /// 36E2 selects one proxy emitter from listener quadrants, retaining each low coordinate byte
-  auto const site{sites[((context.listener[0] >> 8) >= x ? 2 : 0) + ((context.listener[1] >> 8) < y ? 1 : 0)]};
+  auto const site{sites[((context.listener.column >> 8) >= x ? 2 : 0) + ((context.listener.row >> 8) < y ? 1 : 0)]};
   if(site & 0x8000) return false;
-  source.sound.position[0] = static_cast<uint16_t>((source.sound.position[0] & 255)+(site & 255)*256);
-  source.sound.position[1] = static_cast<uint16_t>((source.sound.position[1] & 255)+(site & 0xff00));
+  source.sound.position.column = static_cast<uint16_t>((source.sound.position.column & 255)+(site & 255)*256);
+  source.sound.position.row = static_cast<uint16_t>((source.sound.position.row & 255)+(site & 0xff00));
   return true;
 }
 
@@ -32,8 +33,8 @@ bool callback(ambient_source &source, ambient_context const &context, game::city
     }
   }};
   auto const position{[&](uint8_t const column, uint8_t const row){
-    sound.position[0] = static_cast<uint16_t>((sound.position[0] & 255)+column*256);
-    sound.position[1] = static_cast<uint16_t>((sound.position[1] & 255)+row*256);
+    sound.position.column = static_cast<uint16_t>((sound.position.column & 255)+column*256);
+    sound.position.row = static_cast<uint16_t>((sound.position.row & 255)+row*256);
   }};
   switch(source.callback) {
   case 0x3685: {
@@ -83,7 +84,7 @@ bool callback(ambient_source &source, ambient_context const &context, game::city
 
 std::array<ambient_source,10> make_ambient_sources(uint16_t const clock) {
   /// Original records 37A6/37BA/380A–3896 retain their stored durations, flags and fixed positions
-  struct record { uint16_t pitch; uint8_t duration, flags; std::array<uint16_t,3> position; uint16_t level, callback; uint8_t patch; };
+  struct record { uint16_t pitch; uint8_t duration, flags; maths::world_position position; uint16_t level, callback; uint8_t patch; };
   constexpr std::array<record,10> records{{
     {13856,7,1,{128,128,1664},47104,0x3685,30},
     {866,0,41,{128,128,2400},0,0x372f,0},

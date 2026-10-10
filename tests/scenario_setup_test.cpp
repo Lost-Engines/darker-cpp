@@ -34,8 +34,8 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
       actual[21] = ammunition.working;
       actual[22] = ammunition.reserve;
       // Player caches are derived from pose in C++; the original explicitly refreshes these fields.
-      actual[12] = result.position[0]; actual[13] = result.position[1]; actual[14] = result.position[2];
-      actual[15] = actual[16] = (result.position[0] >> 8) | (result.position[1] & 0xff00);
+      actual[12] = result.position.column; actual[13] = result.position.row; actual[14] = result.position.height;
+      actual[15] = actual[16] = (result.position.column >> 8) | (result.position.row & 0xff00);
     } else {
       darker::game::scenario_actor actor;
       actor.pose = pose;

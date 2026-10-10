@@ -1,4 +1,5 @@
 #include "game/radar_coverage.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -10,7 +11,7 @@ bool radar_coverage::contains(uint8_t const column, uint8_t const row) const noe
   return (mask & (1u << (x + y*4))) != 0;
 }
 
-radar_coverage make_radar_coverage(city_map const &cells, std::array<uint16_t,2> const player, bool const underground) {
+radar_coverage make_radar_coverage(city_map const &cells, maths::map_position const player, bool const underground) {
   /// 3AFD and 5A75 use radio-grid state bytes, independently of the cell's model type
   radar_coverage result;
   for(size_t axis{0}; axis < 2; ++axis) {

@@ -6,6 +6,7 @@
 #include <span>
 #include <vector>
 #include "game/effect_sound.h"
+#include "maths/world_coordinates.h"
 
 namespace darker::game {
 
@@ -28,7 +29,7 @@ struct effect_recipe {
 };
 
 struct particle_emitter {
-  std::array<uint16_t, 3> position{};
+  maths::world_position position{};
   uint8_t height_fraction{0};
   uint16_t start{0};
   uint16_t radius{0};
@@ -43,7 +44,7 @@ struct particle_emitter {
 std::optional<uint8_t> particle_phase(particle_emitter const &emitter, uint16_t clock) noexcept;
 void advance_emitter(particle_emitter &emitter, uint16_t clock, uint16_t step) noexcept;
 std::optional<uint8_t> damage_trail_severity(uint16_t damage, uint8_t flags, uint16_t changes) noexcept;
-particle_emitter make_damage_trail(std::array<uint16_t, 3> position, uint8_t severity, uint16_t random, uint16_t clock) noexcept;
+particle_emitter make_damage_trail(maths::world_position position, uint8_t severity, uint16_t random, uint16_t clock) noexcept;
 
 class effect_system {
 private:
@@ -75,10 +76,10 @@ public:
     retire(gun_sounds,gun_slots,17);
   }
 
-  void spark(std::array<uint16_t,3> position, uint8_t phase, uint16_t sound_level, uint16_t clock);
-  void gun_impact(std::array<uint16_t, 3> position, bool hit, uint16_t clock);
-  void spawn(uint16_t recipe, std::array<uint16_t, 3> position, uint16_t clock);
-  void trail(std::array<uint16_t, 3> position, uint8_t severity, uint16_t &random, uint16_t clock);
+  void spark(maths::world_position position, uint8_t phase, uint16_t sound_level, uint16_t clock);
+  void gun_impact(maths::world_position position, bool hit, uint16_t clock);
+  void spawn(uint16_t recipe, maths::world_position position, uint16_t clock);
+  void trail(maths::world_position position, uint8_t severity, uint16_t &random, uint16_t clock);
   void advance(uint16_t clock, uint16_t step);
 };
 

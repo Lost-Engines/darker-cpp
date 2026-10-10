@@ -66,7 +66,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
 
   angular_response pitch_response{};
   if(input.altitude_hold) {
-    auto const height_error{word((word(parameters.height_reference) >> 2) + parameters.desired_height - state.pose.position[2])};
+    auto const height_error{word((word(parameters.height_reference) >> 2) + parameters.desired_height - state.pose.position.height)};
     auto const desired_pitch{word(std::clamp<int>(height_error, -512, 512) * 8)};
     pitch_response = calculate_angular_response(static_cast<std::uint16_t>(desired_pitch - angles.pitch), state.damage.rotation.pitch, parameters.angular_response, frame_step);
   } else {
@@ -106,7 +106,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   if(demand > 65535) throw std::domain_error{"Caero forward demand exceeds the original quotient"};
   auto const forward_target{static_cast<std::uint16_t>(demand + state.forward_bias)};
   advance_horizontal_flight(state.pose, state.horizontal_velocity, forward_target, accounting_step, middle_heading, middle_pitch);
-  auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? std::uint16_t{0x1800} : beacon_light(cells, state.pose.position, {state.pose.fractions[0], state.pose.fractions[1]})) : std::uint16_t{0}};
+  auto const incoming{input.engine_flags == 1 ? (input.unlimited_power ? std::uint16_t{0x1800} : beacon_light(cells, state.pose.position, {state.pose.fractions.column, state.pose.fractions.row})) : std::uint16_t{0}};
   measure_flight_speed(state.pose, state.horizontal_velocity, state.vertical_velocity);
   state.forward_bias = static_cast<std::uint16_t>((state.pose.speed + (input.brake ? 0 : incoming >> 1)) >> 3);
   charge_caero_energy(state.energy, incoming, input.engine_flags, accounting_step, input.boost_cheat);
@@ -128,7 +128,7 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
       else lift = static_cast<std::int16_t>(std::max(0, lift - word(-vertical_drive)));
     }
   }
-  auto const altitude{state.pose.position[2]};
+  auto const altitude{state.pose.position.height};
   auto const height_term{word(altitude < 256 ? 256 - altitude : altitude - 256)};
   auto const vertical_target{static_cast<std::uint16_t>(vertical_drive + parameters.vertical_bias + (lift >> 1) - (height_term >> 5))};
   advance_vertical_flight(state.pose, state.vertical_velocity, vertical_target, accounting_step);

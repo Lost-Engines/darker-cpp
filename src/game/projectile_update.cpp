@@ -12,7 +12,7 @@ projectile_update_result update_projectile(projectile &record, std::uint16_t con
   /// 79E5–7A2D handle expiry before saving the old position and invoking a motion callback
   auto remaining{static_cast<uint16_t>(record.deadline - clock)};
   bool const altitude_expiry{(record.flags & 0x60) && remaining >= 256 && !(remaining & 0x8000)
-    && std::bit_cast<int8_t>(static_cast<uint8_t>(record.placement.position[2] >> 8)) >= 0x50};
+    && std::bit_cast<int8_t>(static_cast<uint8_t>(record.placement.position.height >> 8)) >= 0x50};
   if(update_projectile_deadline(record, clock)) return projectile_update_result::expired;
   if(!record.parameters.definition) throw std::invalid_argument{"projectile update requires an object definition"};
   if(altitude_expiry) remaining = static_cast<uint16_t>(remaining - 255);
