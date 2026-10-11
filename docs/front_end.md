@@ -23,7 +23,7 @@ Space, Enter or a click dismisses the startup/title and advances the briefing.
 Select a slot using 1–4, arrows and Enter, or the mouse; N selects Nightmare. Empty slots ask for a
 pilot name. The run menu supports Enter to run, S to select another slot, E to
 erase the slot, and Escape to confirm quitting. Confirmation uses up/down and
-Enter, or clicking Yes/No. Escape during flight returns to the run menu; Enter
+Enter, or clicking Yes/No. Escape during flight toggles the flashing quit prompt; Q confirms and returns to the run menu. Flight continues while the prompt is shown. Enter
 after docking is no longer required: a completed docking saves progress and
 opens the next supported briefing automatically. Enter after a Caero crash opens the original
 Kismet committal presentation; Enter, Space, Escape or its back button then

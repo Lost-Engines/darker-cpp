@@ -46,6 +46,8 @@ uint8_t compass_phase(uint16_t heading) noexcept;
 std::array<pixel_position, 5> compass_points(uint8_t phase);
 void update_compass(framework::render::indexed_cockpit_framebuffer &target, uint8_t previous, uint8_t current);
 std::optional<radar_pixel> project_radar_contact(world_position const &player, uint16_t heading, radar_contact contact, radar_scale scale = radar_scale::normal);
+std::optional<pixel_position> project_missile_warning(world_position const &player, uint16_t heading,
+  radar_contact contact, int centre_y = 92);
 void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,
   world_position const &player, uint16_t heading, std::span<radar_contact const> contacts);
 

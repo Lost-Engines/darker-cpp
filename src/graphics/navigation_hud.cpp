@@ -17,6 +17,24 @@ int16_t signed_word(int const value) noexcept {
   return std::bit_cast<int16_t>(static_cast<uint16_t>(value));
 }
 
+std::optional<pixel_position> contact_offset(world_position const &player, uint16_t const heading,
+  radar_contact const contact, int const window_radius, int const multiplier) {
+  /// 5AC9–5B55 use a byte-sized square admission window before rotating doubled coordinates.
+  if(contact.hidden || !contact.covered) return std::nullopt;
+  auto const relative_x{static_cast<uint16_t>(contact.position.x - player.x + window_radius * 256)};
+  auto const relative_y{static_cast<uint16_t>(contact.position.y - player.y + window_radius * 256)};
+  if((relative_x >> 8) >= 2 * window_radius || (relative_y >> 8) >= 2 * window_radius) return std::nullopt;
+  auto const x{signed_word((relative_x - window_radius * 256) * 2)};
+  auto const y{signed_word((relative_y - window_radius * 256) * 2)};
+  unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
+  int const sine{maths::original_sine[angle]};
+  int const cosine{maths::phase_cosine(angle)};
+  return pixel_position{
+    signed_word(signed_word(((x * cosine) >> 16) - ((y * sine) >> 16)) * multiplier) >> 8,
+    signed_word(signed_word(((x * sine) >> 16) + ((y * cosine) >> 16)) * multiplier) >> 8
+  };
+}
+
 } // anonymous namespace
 
 uint8_t compass_phase(uint16_t const heading) noexcept {
@@ -59,7 +77,6 @@ void update_compass(framework::render::indexed_cockpit_framebuffer &target, uint
 std::optional<radar_pixel> project_radar_contact(world_position const &player, uint16_t const heading, radar_contact const contact, radar_scale const scale) {
   /// 5AC9–5B55 retain byte-window rejection, signed high products and word truncation
   int constexpr contact_window_radius_cells{21};
-  int constexpr contact_window_width_cells{2 * contact_window_radius_cells};
   int constexpr enlarged_scale{3};
   int constexpr enlarged_radius_squared{3965};
   pixel_position constexpr enlarged_centre{73, 105};
@@ -67,19 +84,10 @@ std::optional<radar_pixel> project_radar_contact(world_position const &player, u
   int constexpr group_b_centre_colour{242};
   if(contact.group != radar_group::a && contact.group != radar_group::b && contact.group != radar_group::underground) throw std::invalid_argument{"unknown radar contact group"};
   if(scale != radar_scale::normal && scale != radar_scale::enlarged) throw std::invalid_argument{"unknown radar scale"};
-  if(contact.hidden || !contact.covered) return std::nullopt;
-  auto const relative_x{static_cast<uint16_t>(contact.position.x - player.x + contact_window_radius_cells * 256)};
-  auto const relative_y{static_cast<uint16_t>(contact.position.y - player.y + contact_window_radius_cells * 256)};
-  if((relative_x >> 8) >= contact_window_width_cells || (relative_y >> 8) >= contact_window_width_cells) return std::nullopt;
-  auto const x{signed_word((relative_x - contact_window_radius_cells * 256) * 2)};
-  auto const y{signed_word((relative_y - contact_window_radius_cells * 256) * 2)};
-  unsigned int const angle{static_cast<unsigned int>(heading >> 6)};
-  int const sine{maths::original_sine[angle]};
-  int const cosine{maths::phase_cosine(angle)};
-  int const multiplier{scale == radar_scale::enlarged ? enlarged_scale : 1};
-  int const pixel_y{signed_word(signed_word(((x * sine) >> 16) + ((y * cosine) >> 16)) * multiplier) >> 8};
-  int const pixel_x{signed_word(signed_word(((x * cosine) >> 16) - ((y * sine) >> 16)) * multiplier) >> 8};
-  pixel_position const offset{pixel_x, pixel_y};
+  auto const projected{contact_offset(player, heading, contact, contact_window_radius_cells,
+    scale == radar_scale::enlarged ? enlarged_scale : 1)};
+  if(!projected) return std::nullopt;
+  auto const &offset{*projected};
   int const radius_squared{offset.dot(offset)};
   if(scale == radar_scale::enlarged) {
     if(radius_squared >= enlarged_radius_squared) return std::nullopt;
@@ -95,6 +103,18 @@ std::optional<radar_pixel> project_radar_contact(world_position const &player, u
     .position{radar_layout::centre + offset},
     .colour{static_cast<uint8_t>(base_colour - (radius_squared >> radar_layout::brightness_distance_shift))},
   };
+}
+
+std::optional<pixel_position> project_missile_warning(world_position const &player, uint16_t const heading,
+  radar_contact const contact, int const centre_y) {
+  /// 5A75/5B76 magnify the hostile-projectile radar eightfold inside the Caero attitude surround.
+  int constexpr warning_window_radius_cells{7};
+  int constexpr warning_scale{8};
+  int constexpr warning_radius_squared{0x0c30};
+  auto const offset{contact_offset(player, heading, contact, warning_window_radius_cells, warning_scale)};
+  if(!offset || offset->dot(*offset) > warning_radius_squared) return std::nullopt;
+  // The six-pixel sprite is anchored three pixels above and left of the sight centre.
+  return pixel_position{157, centre_y - 3} + *offset;
 }
 
 void draw_radar_contacts(framework::render::indexed_cockpit_framebuffer &target,

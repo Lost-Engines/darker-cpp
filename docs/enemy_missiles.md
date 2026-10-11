@@ -32,7 +32,7 @@ and firing settings, launches a missile through the runtime and checks homing,
 This controlled case is not a complete mission flight.
 
 Current runtime target resolution connects enemy aircraft missiles aimed at the
-player and buildings. Attacks on other scenario objects, missile-warning HUD,
+player and buildings. Attacks on other scenario objects,
 all global collision ordering and shared effect/random scheduling remain separate
 work. Ground-vehicle firing is still unconnected. Existing player projectile
 weapons beyond Pinner Direct retain their own integration backlog.
@@ -58,3 +58,24 @@ cooldown wrapping, exhausted allocation and forced pitch; allocation itself is
 intercepted and retains its existing independent verification. The controlled
 mission-twenty combat script now runs with warehouse spawning enabled. Mission
 twenty is connected; actor-to-actor missile dispatch remains outstanding.
+
+## Incoming-missile HUD
+
+Native `5CE0/5E6A` draws the hostile-projectile overlay in the Caero cockpit and
+forward F4 view. `5A75/5AC9/5B76` uses player-relative horizontal positions and
+heading, rather than perspective projection or missile lock state. Admission uses
+a seven-cell half-open square followed by a squared-radius limit of `0x0c30`
+after eightfold radar magnification. Hidden projectiles and contacts outside
+radio coverage are suppressed; underground coverage is complete. All visible
+hostile projectiles qualify, including shots aimed at buildings.
+
+`5B92` supplies the existing six-pixel navigation sprite and height-coloured
+centre, relative to camera height. The marker moves within the central attitude
+surround, so missiles behind the player appear below its centre. External and
+missile-follow cameras omit this overlay, as does the Skimma HUD. The four
+cockpit pursuit lamps are a separate aircraft-aim indication.
+
+`generate_missile_warning_reference.py` executes the original projection for
+512 cases spanning heading, fractional coordinates, wrapping, range boundaries,
+hidden flags and coverage gates. These complement the existing native sprite-mask
+and height-colour comparisons.

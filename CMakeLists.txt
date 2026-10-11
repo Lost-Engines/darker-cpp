@@ -369,6 +369,7 @@ add_library(darker_presentation STATIC
   src/presentation/player.cpp
   src/presentation/player.h
   src/presentation/front_end.cpp
+  src/presentation/quit_confirmation.h
   src/presentation/front_end.h
 )
 target_include_directories(darker_presentation PUBLIC src)

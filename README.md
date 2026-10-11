@@ -200,7 +200,7 @@ Use `--level` to select a mission with its assigned craft. Controls:
 - **F5 / F6:** drop a tracking / fixed camera; **comma / period:** following-camera distance.
 - **Tab:** hold to look around; steering controls the camera while held.
 - **F9:** Gouraud shading; **Insert / keypad 0:** hold enlarged Caero radar.
-- **Escape:** return to the Caero run menu and release the mouse; close in Skimma development starts.
+- **Escape:** toggle the flashing quit confirmation during flight. Press **Q** to return to the run menu, or **Escape** again to cancel. Flight continues while the prompt is visible.
 
 The old W/A/S/D, R/F and drag-to-look inspection controls have been removed. Mouse capture requests raw motion where GLFW supports it; the original steering filter consumes wrapping relative counters. Caero altitude, damage, boost cells, recharge and incoming-power displays now follow live state, as do compass/grid coordinates and Skimma engine-output strips. The Caero primary icon follows Pinner Direct selection.
 

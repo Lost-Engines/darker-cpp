@@ -56,6 +56,8 @@
 #include "platform/audio_output.h"
 #include "platform/framebuffer_presenter.h"
 #include "presentation/front_end.h"
+#include "presentation/menu_text.h"
+#include "presentation/quit_confirmation.h"
 #include "render/framebuffer.h"
 #include "resources/archive_set.h"
 #include "resources/geometry_bank.h"
@@ -101,6 +103,7 @@ struct flight_host {
   uint8_t engine_indicator{0};
   bool gouraud{true};
   session_exit exit_requested{session_exit::none};
+  darker::presentation::quit_confirmation quit_prompt;
   uint16_t clock{0};
   uint16_t shield_deadline{0};
   bool mouse_started{false};
@@ -535,6 +538,17 @@ auto main(int const argc, char const *const argv[])->int {
     bool const sights_visible{!watched && (cockpit_visible || host.camera.visible_mode() == darker::game::camera_mode::fullscreen)};
     int const sight_y{cockpit_visible ? (caero ? 92 : 90) : 120};
     if(sights_visible && caero) {
+      for(auto *shot{combat->hostile_projectiles.objects().head()}; shot; shot = shot->next) {
+        auto const warning{darker::graphics::project_missile_warning(
+          {pose.position.column, pose.position.row}, pose.angles.heading, {
+            .position{shot->placement.position.column, shot->placement.position.row},
+            .group{darker::graphics::radar_group::a},
+            .hidden{(shot->flags & 8) != 0},
+            .covered{coverage.contains(static_cast<uint8_t>(shot->placement.position.column >> 8), static_cast<uint8_t>(shot->placement.position.row >> 8))}
+          }, sight_y)};
+        if(warning) darker::graphics::draw_navigation_contact(cache, display, *warning,
+          static_cast<uint8_t>(shot->placement.position.height >> 8), static_cast<uint8_t>(camera.position.height >> 8));
+      }
       auto const attitude{darker::graphics::calculate_attitude(view.angles.pitch >> 6, view.angles.roll >> 6, static_cast<int8_t>(view.angles.pitch >> 8), false, sight_y)};
       darker::graphics::draw_screen_line(display, attitude.first, attitude.last, attitude.colour);
       darker::graphics::draw_attitude_surround(display, combat->weapon_ready ? 0x0019 : 0xff19, sight_y);
@@ -591,6 +605,14 @@ auto main(int const argc, char const *const argv[])->int {
             .edge{18}
           });
       }
+    }
+    if(host.quit_prompt.visible(clock)) {
+      auto const &prompt{darker::presentation::original_menu_text.at(static_cast<unsigned int>(language)).flight_quit};
+      darker::graphics::draw_text(display, font, darker::resources::font_face::compact,
+        std::as_bytes(std::span{prompt.text}), {prompt.x, 120}, {
+          .ink{22},
+          .edge{95}
+        });
     }
     framework::render::expand_palette(display, game_palette.colours, output);
     return count;
@@ -748,8 +770,11 @@ auto main(int const argc, char const *const argv[])->int {
     }
     if(key == GLFW_KEY_F9 && action == GLFW_PRESS) host.gouraud = !host.gouraud;
     if(key == GLFW_KEY_ESCAPE) {
-      if(host.front) host.exit_requested = session_exit::menu;
-      else glfwSetWindowShouldClose(window, GLFW_TRUE);
+      if(action == GLFW_PRESS) host.quit_prompt.toggle(host.clock);
+      return;
+    }
+    if(key == GLFW_KEY_Q && action == GLFW_PRESS && host.quit_prompt.active) {
+      host.exit_requested = session_exit::menu;
       return;
     }
     if(action == GLFW_PRESS && (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER) && host.hangar.returning == darker::game::hangar_return_phase::complete) {
@@ -1009,6 +1034,7 @@ auto main(int const argc, char const *const argv[])->int {
       host.mouse_started = false;
       host.shield_deadline = 0;
       host.clock = 0;
+      host.quit_prompt = {};
       host.exit_requested = session_exit::none;
       game_clock = {};
       std::cout << (front ? (completed_mission ? (debug_session ? "Continuing the debug campaign without saving." : "Mission saved; continuing the campaign.") : died         ? "Showing the Kismet committal sequence." : aborted        ? "Showing the mission-aborted sequence." : previous_level ? "Starting the previous playable level without saving." : "Returned to the run menu.") : "Restarted the airborne checkpoint.") << std::endl;
@@ -1212,6 +1238,7 @@ auto main(int const argc, char const *const argv[])->int {
           messages.fill(std::nullopt);
           game_clock = {};
           host.clock = 0;
+          host.quit_prompt = {};
           host.primary_held = false;
           host.secondary_held = false;
           // poll the cursor-capture warp before establishing the flight mouse origin; asset loading is not flight time

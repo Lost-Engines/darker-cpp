@@ -4,6 +4,7 @@
 #include "graphics/bitmap_hud.h"
 #include "graphics/navigation_hud.h"
 #include "reference/navigation_samples.h"
+#include "reference/missile_warning_samples.h"
 
 TEST_CASE("Every compass phase matches original-code pixel captures") {
   for(uint8_t phase{0}; phase < 136; ++phase) {
@@ -220,5 +221,23 @@ TEST_CASE("Underground radar shares the grey contact ramp for every actor group"
     CHECK(actual->position.y == sample.pixel->position.y);
     auto const original_base{sample.group == darker::graphics::radar_group::a ? 249 : 242};
     CHECK(actual->colour == sample.pixel->colour - original_base + 22);
+  }
+}
+
+TEST_CASE("Incoming missile HUD projection matches native heading, range and coverage gates") {
+  for(auto const &sample : darker::test_reference::missile_warning_samples) {
+    CAPTURE(sample);
+    auto const actual{darker::graphics::project_missile_warning(
+      {static_cast<uint16_t>(sample[0]), static_cast<uint16_t>(sample[1])}, static_cast<uint16_t>(sample[2]), {
+        .position{static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[4])},
+        .group{darker::graphics::radar_group::a},
+        .hidden{sample[5] != 0},
+        .covered{sample[6] != 0}
+      }, static_cast<int>(sample[7]))};
+    REQUIRE(actual.has_value() == (sample[8] != 0));
+    if(actual) {
+      CHECK(actual->x == static_cast<int>(sample[9]));
+      CHECK(actual->y == static_cast<int>(sample[10]));
+    }
   }
 }

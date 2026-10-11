@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include "game/game_clock.h"
+#include "presentation/quit_confirmation.h"
 #include "reference/game_clock_samples.h"
 
 TEST_CASE("Game clock accumulation and frame snapshots match native timer sequences", "[game][clock]") {
@@ -39,4 +40,23 @@ TEST_CASE("Coalesced game clock interrupts retain wrapping and saturation across
     CHECK(batched.pending_changes == individual.pending_changes);
     CHECK(darker::game::consume_game_frame(batched) == darker::game::consume_game_frame(individual));
   }
+}
+
+TEST_CASE("Flight quit confirmation flashes across clock wrapping and Escape cancels it", "[game][clock]") {
+  darker::presentation::quit_confirmation prompt;
+  CHECK_FALSE(prompt.active);
+  CHECK_FALSE(prompt.visible(0));
+  prompt.toggle(65530);
+  CHECK(prompt.active);
+  CHECK(prompt.visible(65530));
+  CHECK(prompt.visible(163));
+  CHECK_FALSE(prompt.visible(164));
+  CHECK_FALSE(prompt.visible(249));
+  CHECK(prompt.visible(250));
+  prompt.toggle(251);
+  CHECK_FALSE(prompt.active);
+  CHECK_FALSE(prompt.visible(251));
+  prompt.toggle(400);
+  CHECK(prompt.visible(400));
+  CHECK_FALSE(prompt.visible(570));
 }
