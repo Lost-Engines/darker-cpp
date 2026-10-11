@@ -182,8 +182,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("sc55-rom-dir", boost::program_options::value<std::string>(), "SC-55 v1.21 ROM directory (default: game directory)")
     ("mt32-rom-dir", boost::program_options::value<std::string>(), "Roland ROM directory (default: game directory for --music=roland-lapc)")
     ("soundfont", boost::program_options::value<std::string>(), "SoundFont (.sf2) for sampled arrangements; otherwise search working directory and system fonts")
-    ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked")
-    ("craft", boost::program_options::value<std::string>()->default_value("caero"), "caero, skimma or upgraded; selects the corresponding city");
+    ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked");
 #ifndef NDEBUG
   options.add_options()
     ("seconds", boost::program_options::value<double>()->default_value(0.0), "developer use: close after this many seconds; zero disables the time limit")
@@ -237,11 +236,8 @@ auto main(int const argc, char const *const argv[])->int {
   }
   if(arguments.contains("level") && (arguments["level"].as<int>() < 1 || arguments["level"].as<int>() > 116)) return startup_failure("--level must be between 1 and 116");
   bool debug_session{arguments.contains("level")};
-  auto const name{arguments["craft"].as<std::string>()};
-  if(name != "caero" && name != "skimma" && name != "upgraded") return startup_failure("unknown --craft");
-  auto type{name == "caero" ? darker::graphics::craft::caero : name == "skimma" ? darker::graphics::craft::skimma : darker::graphics::craft::upgraded_skimma};
-  if(debug_session && name != "caero") return startup_failure("--level selects its own craft; omit --craft");
-  bool caero{type == darker::graphics::craft::caero};
+  auto type{darker::graphics::craft::caero};
+  bool caero{true};
 
 #ifndef NDEBUG
   auto const seconds{arguments["seconds"].as<double>()};
@@ -286,26 +282,7 @@ auto main(int const argc, char const *const argv[])->int {
   bool const noclip{arguments.contains("noclip")};
   bool const boost_cheat{arguments.contains("cheat-brooke")};
   bool const damage_cheat{arguments.contains("cheat-life")};
-  if(caero) {
-    darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);
-  } else {
-    host.player.craft = darker::game::skimma_flight_state{
-      .pose{
-        .position{
-          .column{12672},
-          .row{14976},
-          .height{1536}
-        },
-        .speed{500}
-      },
-      .damage{
-        .shield_charge{0xbfff}
-      },
-      .horizontal_velocity{500},
-    };
-    host.player.upgraded = type == darker::graphics::craft::upgraded_skimma;
-    host.player.engine_flags = 0;
-  }
+  darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);
   host.player.noclip = noclip;
   host.player.boost_cheat = boost_cheat;
   host.player.damage_cheat = damage_cheat;
@@ -326,18 +303,16 @@ auto main(int const argc, char const *const argv[])->int {
   auto const previous_save{std::filesystem::exists(save_path) ? save_path : std::filesystem::path{"darker-cpp.sav"}};
   darker::resources::save_file saves;
   try {
-    if(caero && std::filesystem::exists(previous_save)) saves = darker::resources::decode_save(darker::resources::read_binary_file(previous_save, darker::resources::save_file_size));
+    if(std::filesystem::exists(previous_save)) saves = darker::resources::decode_save(darker::resources::read_binary_file(previous_save, darker::resources::save_file_size));
   } catch(std::runtime_error const &error) {
     return startup_failure(error.what());
   } catch(std::invalid_argument const &error) {
     return startup_failure(error.what());
   }
-  if(caero) {
-    front = std::make_unique<darker::presentation::front_end>(archives, font, campaign, saves, arguments.contains("skip-intro"), language);
-    if(arguments.contains("cheat-level-x")) front->enable_level_skip();
-    if(debug_session) front->start_level(static_cast<uint8_t>(arguments["level"].as<int>()));
-    host.front = front.get();
-  }
+  front = std::make_unique<darker::presentation::front_end>(archives, font, campaign, saves, arguments.contains("skip-intro"), language);
+  if(arguments.contains("cheat-level-x")) front->enable_level_skip();
+  if(debug_session) front->start_level(static_cast<uint8_t>(arguments["level"].as<int>()));
+  host.front = front.get();
   darker::game::mission_script initial_script{
     .continuation{*mission.player_program - mission.shared.offset},
     .checkpoint{*mission.player_program - mission.shared.offset},

@@ -14,7 +14,7 @@ The startup path is currently restricted to type-17 return sites: all nine Delph
 PYTHONPATH=/tmp/darker-python python3 tools/generate_hangar_reference.py ..
 ```
 
-The connected campaign now includes briefing artwork, active aircraft, combat, the external death camera and the original committal/menu retry path. Skimma campaign entries use their authored starts; explicit `--craft` starts remain separate free-flight checkpoints.
+The connected campaign now includes briefing artwork, active aircraft, combat, the external death camera and the original committal/menu retry path. Skimma campaign entries use their authored starts.
 
 ## Retail and demo charging
 

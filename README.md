@@ -136,8 +136,8 @@ scenario setup lists is retained; ordinary objective targets remain intact.
 For debugging, entry at level 101 or later also unlocks the upgraded Skimma’s
 third missile, as though its first pad service had finished. This convenience
 also applies to Shift+X; ordinary campaign progression and X retain the original unlock.
-It bypasses startup menus and does not write saves. The level selects its own craft;
-do not combine it with `--craft`. Presentation-only levels play their interlude and continue.
+It bypasses startup menus and does not write saves. The level selects its own craft.
+Presentation-only levels play their interlude and continue.
 
 By default, the window uses the largest integer multiple of the 320×240 display that fits in the primary monitor's work area, allowing for its title bar and borders. On Wayland, where GLFW cannot report the usable work area, we ask the compositor for a maximised size, then restore and fit the floating window before drawing. Very small windows use proportional downscaling. The window remains resizable.
 
@@ -164,8 +164,7 @@ Allow a boost cell to charge, then press **Enter** once to launch. Follow each
 briefing for objectives and the required return destination. Cockpit instruments,
 Nayas messages, shields and radar reflect the corresponding craft and world.
 See [hangar launch](docs/hangar_launch.md) and [first mission](docs/first_mission.md)
-for the launch and combat checks. Explicit `--craft` starts remain development
-free-flight checkpoints.
+for the launch and combat checks.
 
 **F1–F6** select cockpit, following and dropped views. **F7 / backtick** selects
 a pointed object or building camera; comma/period change the following distance.
@@ -186,7 +185,7 @@ For tunnel inspection, for example: `./build/darker --level=17 --cheat-lyndon --
 These switches can be combined and remain enabled across deaths and level changes; they are not written to saves.
 
 
-Use `--craft skimma` or `--craft upgraded` for the other craft. Controls:
+Use `--level` to select a mission with its assigned craft. Controls:
 
 - **Space / Enter:** advance briefing pages.
 - **1:** select Pinner Direct; **Space / left mouse:** fire on each press.
