@@ -105,7 +105,7 @@ bool begin_hangar_return(player_flight &player, city_map &cells, hangar_state &h
   int constexpr capture_distance_range{256};
   if(!objectives_complete || player_actions_blocked(player.lifecycle.flags) || hangar.returning != hangar_return_phase::none) return false;
   auto const centre{site_index(hangar.return_site)};
-  if(cells[centre].type != entrance_model_type) throw std::invalid_argument{"Return capture currently requires a type-17 hangar"};
+  if(cells[centre].type != entrance_model_type) return false;
   auto const &pose{player.pose()};
   if((pose.position.height >> 8) >= capture_height_limit_cells) return false;
   auto const aligned{[](uint16_t const error){

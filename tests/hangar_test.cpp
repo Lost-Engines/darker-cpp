@@ -52,3 +52,18 @@ TEST_CASE("Caero gate extension and departure match native updates", "[game][han
     for(auto const index : {centre - 128, centre, centre + 128}) CHECK(cells[index].state == (sample.flags & 16 ? 0 : 128));
   }
 }
+
+TEST_CASE("Non-hangar return sites reject docking without changing flight state", "[game][hangar]") {
+  darker::game::city_map cells{};
+  darker::game::player_flight player;
+  darker::game::hangar_state hangar{
+    .return_site{0x1010}
+  };
+  for(uint8_t const type : std::array<uint8_t, 4>{0, 16, 25, 86}) {
+    cells[16 * 128 + 8].type = type;
+    CHECK_FALSE(darker::game::begin_hangar_return(player, cells, hangar, true));
+    CHECK(hangar.returning == darker::game::hangar_return_phase::none);
+    CHECK(player.lifecycle.flags == 0);
+    CHECK(cells[16 * 128 + 8].state == 0);
+  }
+}

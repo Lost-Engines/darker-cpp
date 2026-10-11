@@ -1320,8 +1320,11 @@ auto main(int const argc, char const *const argv[])->int {
         }
         if(host.player.tunnel) darker::game::update_tunnel_portal(host.player, cells, host.hangar, step);
         else if(caero) {
-          darker::game::begin_hangar_return(host.player, cells, host.hangar, context.objectives_complete);
-          darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+          // Nightmare has an entry position, not a campaign return hangar.
+          if(!front->nightmare_selected()) {
+            darker::game::begin_hangar_return(host.player, cells, host.hangar, context.objectives_complete);
+            darker::game::advance_hangar_departure(host.player, cells, host.hangar, step);
+          }
         } else if(world_mode == world_kind::halon && darker::game::begin_supply_approach(host.player, cells, host.player.supply)) {
           host.hangar.return_site = host.player.supply.site;
           host.hangar.next_return_site = host.player.supply.site;
