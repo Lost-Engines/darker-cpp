@@ -213,6 +213,7 @@ void front_end::key(front_key const input) {
   }
   if(current == screen::outcome) {
     if((input == front_key::back || input == front_key::accept) && (scene->input_policy & 4)) current = screen::run;
+    else if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::run;
     return;
   }
   if(current == screen::briefing) {

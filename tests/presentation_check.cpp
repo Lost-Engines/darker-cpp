@@ -481,6 +481,22 @@ void check_presentations(darker::resources::archive_set const &archives) {
     if(!std::equal(previous.begin(), previous.begin() + 6596, after.begin()) || after[6597] != previous[6597]) {
       throw std::runtime_error{"Nightmare changed a campaign record or the other trailer byte"};
     }
+    if(outcome == 4) {
+      // Victory offers only the forward arrow; both clicking it and accepting must leave the scene.
+      for(bool const mouse : {true, false}) {
+        challenge.finish_nightmare(37, 4);
+        challenge.advance(60000);
+        if(mouse) challenge.click(310, 230);
+        else challenge.key(front_key::accept);
+        challenge.key(front_key::select);
+        challenge.key(front_key::one);
+        if(challenge.nightmare_selected() || challenge.selected_pilot().stage != 41) {
+          throw std::runtime_error{"Nightmare victory advance failed to return to a usable game menu"};
+        }
+        challenge.key(front_key::select);
+        challenge.key(front_key::nightmare);
+      }
+    }
     challenge.save_requested = false;
     challenge.finish_nightmare(9, 255);
     if(challenge.save_requested || challenge_save.trailer[0] != std::byte{37}) {
