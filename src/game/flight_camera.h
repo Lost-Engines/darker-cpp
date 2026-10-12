@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include "game/flight_controls.h"
 #include "game/object_pose.h"
 #include "game/time.h"
@@ -19,6 +20,11 @@ struct flight_camera {
   uint16_t look_pitch{0};
   bool looking{false};
   object_pose anchor{};
+  std::optional<clock_tick> selection_deadline{};
+
+  void begin_selection(clock_tick clock) noexcept;
+  bool update_selection(clock_tick clock, bool look_held) noexcept;
+  bool sights_visible() const noexcept;
 
   void drop(camera_mode selected, object_pose const &player) noexcept;
 

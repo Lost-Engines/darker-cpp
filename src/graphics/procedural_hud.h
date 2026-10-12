@@ -17,6 +17,8 @@ void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &targe
 void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffer &target,
   uint16_t clock, bool enabled, bool following);
 
+void draw_camera_selection_marker(framework::render::indexed_cockpit_framebuffer &target, int centre_y);
+
 struct attitude_line {
   pixel_position first;
   pixel_position last;

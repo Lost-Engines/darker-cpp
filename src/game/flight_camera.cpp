@@ -17,6 +17,29 @@ int16_t word(int const value) noexcept {
 
 } // anonymous namespace
 
+void flight_camera::begin_selection(clock_tick const clock) noexcept {
+  // 5D3D: one second of green picking feedback, even when the ray misses.
+  game_duration constexpr selection_duration{512};
+  selection_deadline = static_cast<clock_tick>(clock + selection_duration);
+}
+
+bool flight_camera::update_selection(clock_tick const clock, bool const look_held) noexcept {
+  // 5D08 only extends an already-live marker while the look control is held.
+  if(!selection_deadline) return false;
+  if(std::bit_cast<int16_t>(static_cast<clock_tick>(clock - *selection_deadline)) >= 0) {
+    selection_deadline.reset();
+    return false;
+  }
+  if(look_held) begin_selection(clock);
+  return true;
+}
+
+bool flight_camera::sights_visible() const noexcept {
+  // 5CF5 suppresses full-screen sights until both look offsets return to zero.
+  return visible_mode() == camera_mode::cockpit ||
+    (visible_mode() == camera_mode::fullscreen && look_heading == 0 && look_pitch == 0);
+}
+
 void flight_camera::drop(camera_mode const selected, object_pose const &player) noexcept {
   /// 260D drops the camera at the craft's whole-word position and clears the look offsets
   mode = selected;

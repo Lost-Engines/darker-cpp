@@ -86,3 +86,16 @@ TEST_CASE("Caero fixed outlines reproduce the original paired-path bytecode") {
   darker::graphics::draw_attitude_surround(frame, 0);
   REQUIRE(checksum(frame) == darker::test_reference::attitude_surround_checksum);
 }
+
+TEST_CASE("Camera picking cross retains its green shading and transparent surroundings") {
+  framework::render::indexed_cockpit_framebuffer frame{};
+  frame.pixels.fill(42);
+  darker::graphics::draw_camera_selection_marker(frame, 120);
+  std::array<uint8_t, 7> constexpr shades{188, 189, 190, 190, 190, 189, 188};
+  for(int offset{-3}; offset <= 3; ++offset) {
+    CHECK(frame.pixels[(120 + offset) * 320 + 160] == shades[offset + 3]);
+  }
+  CHECK(frame.pixels[120 * 320 + 157] == 188);
+  CHECK(frame.pixels[120 * 320 + 163] == 188);
+  CHECK(std::ranges::count(frame.pixels, 42) == 320 * 240 - 13);
+}

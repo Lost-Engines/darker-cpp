@@ -67,6 +67,12 @@ void draw_missile_camera_indicator(framework::render::indexed_cockpit_framebuffe
   }
 }
 
+void draw_camera_selection_marker(framework::render::indexed_cockpit_framebuffer &target, int const centre_y) {
+  // 5D1C: the paired paths at 6009 form a shaded, seven-pixel green cross.
+  std::array<uint8_t, 7> constexpr outline{6, 6, 2, 0xfd, 0xfd, 1, 0x82};
+  draw_outline(target, outline, {160, centre_y - 3}, {160, centre_y + 3}, 1, -1, 0xbc);
+}
+
 attitude_line calculate_attitude(uint16_t const pitch_index, uint16_t const roll_index,
   int8_t const pitch_high, bool const alternate_colour, int const centre_y) {
   /// 5E6F scales signed table words with high-word products before constructing the endpoints

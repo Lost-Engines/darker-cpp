@@ -36,7 +36,7 @@ six modes, distance changes, banked flight and Tab look/recentring on Caero and
 Skimma. These are reconstruction checks, not a claim of complete campaign
 camera coverage.
 
-[Missile-follow modes](pinner_mimic.md) now use the native live/impact distance tables. F7/backtick object selection is connected; further camera-transition comparisons
+[Missile-follow modes](pinner_mimic.md) now use the native live/impact distance tables. F7/backtick object selection and its green aiming cross are connected; further camera-transition comparisons
 remain useful. Explosion/death cameras are connected,
 including the underground exception below. Actor and projectile drawing now
 consumes the native lifecycle fade byte at object +6F: the renderer advances BP
@@ -117,7 +117,17 @@ table is shared with ordinary following views; after flag 08h is set it uses
 can be reused, as at `7AA2`. With no selected record, mode 6 reuses the stored
 fixed anchor while retaining its own look-recentring behaviour. Selecting a building places a fixed camera at its
 model origin, at `D089`'s height plus four model extents, facing the previously
-watched object or player. Empty terrain alone does not select a camera.
+watched object or player. Empty terrain alone does not select a camera. An unsuccessful pick leaves the
+current viewpoint unchanged. The player can itself be selected when the ray
+intersects its collision volume, so returning to a player-following view is a
+valid result of a pick.
+
+`5D08–5D43` displays a seven-pixel green cross at the view centre for 512 timer
+ticks after an in-range picking attempt, including misses. Holding Tab while
+the marker is still visible extends this timeout; Tab alone does not start it.
+The marker is aiming feedback, not a separate camera mode. `5CF5–5CFC` also
+suppresses the ordinary F4 flight sights whenever either look offset is nonzero,
+including the recentering interval after Tab is released.
 
 512 native comparisons cover the F7 ray and asymmetric range arithmetic, and
 512 more cover live/destroyed object camera positions and distance smoothing.

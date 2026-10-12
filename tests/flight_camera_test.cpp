@@ -166,3 +166,32 @@ TEST_CASE("F7 follows live and destroyed objects at the original distances", "[g
       result.angles.heading, result.angles.pitch, result.angles.roll, camera.distance} == sample.output);
   }
 }
+
+TEST_CASE("Full-screen flight sights hide during looking and recentering", "[game][camera]") {
+  darker::game::flight_camera camera;
+  camera.mode = darker::game::camera_mode::fullscreen;
+  CHECK(camera.sights_visible());
+  camera.look_heading = 1;
+  CHECK_FALSE(camera.sights_visible());
+  camera.look_heading = 0;
+  camera.look_pitch = 1;
+  CHECK_FALSE(camera.sights_visible());
+  camera.look_pitch = 0;
+  CHECK(camera.sights_visible());
+  camera.mode = darker::game::camera_mode::fixed;
+  CHECK_FALSE(camera.sights_visible());
+}
+
+TEST_CASE("Camera selection feedback expires and extends across timer wrap", "[game][camera]") {
+  darker::game::flight_camera camera;
+  CHECK_FALSE(camera.update_selection(0, true));
+  camera.begin_selection(65500);
+  CHECK(camera.update_selection(100, false));
+  CHECK(camera.update_selection(475, false));
+  CHECK_FALSE(camera.update_selection(476, true));
+  CHECK_FALSE(camera.update_selection(65500, true));
+  camera.begin_selection(1000);
+  CHECK(camera.update_selection(1500, true));
+  CHECK(camera.update_selection(2011, false));
+  CHECK_FALSE(camera.update_selection(2012, false));
+}
