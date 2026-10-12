@@ -167,7 +167,6 @@ auto main(int const argc, char const *const argv[])->int {
     ("language", boost::program_options::value<std::string>()->default_value("english"), "original text language: english, french or german")
     ("mute", "disable PCM sound output")
     ("no-mouse", "ignore all mouse input and hide the pointer; retain keyboard controls")
-    ("noclip", "disable player collisions and tunnel guidance; provide unlimited flight power")
     ("cheat-lyndon", "enable Z to freeze or release player motion while the world continues")
     ("cheat-brooke", "enable the original accelerated Caero boost recharge cheat")
     ("cheat-life", "enable the original impact-damage cheat; scenery crashes remain lethal")
@@ -189,6 +188,7 @@ auto main(int const argc, char const *const argv[])->int {
     ("opl", boost::program_options::value<std::string>()->default_value("dosbox"), "FM synthesis: dosbox (default, 44100 Hz) or nuked");
 #ifndef NDEBUG
   options.add_options()
+    ("noclip", "developer use: disable player collisions and tunnel guidance; provide unlimited flight power")
     ("seconds", boost::program_options::value<double>()->default_value(0.0), "developer use: close after this many seconds; zero disables the time limit")
     ("screenshot", boost::program_options::value<std::string>(), "developer use: save a screenshot of the initial scene as a PPM image, then exit without opening a window");
 #endif // NDEBUG
@@ -294,7 +294,11 @@ auto main(int const argc, char const *const argv[])->int {
   flight_host host;
   host.freeze_enabled = arguments.contains("cheat-lyndon");
   host.mouse_enabled = !arguments.contains("no-mouse");
+#ifndef NDEBUG
   bool const noclip{arguments.contains("noclip")};
+#else
+  constexpr bool noclip{false};
+#endif // NDEBUG
   bool const boost_cheat{arguments.contains("cheat-brooke")};
   bool const damage_cheat{arguments.contains("cheat-life")};
   darker::game::initialise_caero_hangar(host.player, cells, host.hangar, bank.header_at(bank.special_models()[25]).height);

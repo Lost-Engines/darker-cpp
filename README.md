@@ -127,7 +127,7 @@ For keyboard-only debugging, `--no-mouse` disables movement, buttons and menu
 hover/click input, hides the pointer and leaves the mouse uncaptured. Arrow keys,
 keyboard firing and menu navigation remain available.
 
-`--noclip` skips player collisions with terrain, buildings and solid actors.
+In Debug and RelWithDebInfo builds, `--noclip` skips player collisions with terrain, buildings and solid actors.
 In tunnels it uses free Caero flight instead of route guidance or automatic portal
 landing, and draws nearby tunnel cells without requiring a connected route
 to the camera. Caero flight power and boosts stay replenished, with a constant beacon
