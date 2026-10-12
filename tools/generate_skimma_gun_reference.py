@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Capture Skimma primary-gun spread and ray endpoints before native city clipping."""
 import argparse
 import hashlib

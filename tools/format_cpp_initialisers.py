@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Put designated C++ initialisers on separate lines without changing tokens."""
 from pathlib import Path
 import re

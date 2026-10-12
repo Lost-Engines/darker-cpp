@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Capture complete native Skimma secondary status, reload and firing dispatch."""
 import argparse
 import hashlib

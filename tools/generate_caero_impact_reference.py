@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Capture Caero Weapon beacon-dependent strength from native CF21."""
 import argparse,sys,struct,hashlib,random
 from pathlib import Path

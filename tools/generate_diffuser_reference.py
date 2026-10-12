@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Probe full Diffuser firing dispatch and its shared building-hit state."""
 import argparse,sys,struct,random,hashlib
 from pathlib import Path
