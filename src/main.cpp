@@ -112,15 +112,19 @@ struct flight_host {
   bool single_step{false};
   bool freeze_enabled{false};
   bool mouse_enabled{true};
+  bool focused{true};
+  bool mouse_captured{false};
   int resume_key{GLFW_KEY_UNKNOWN};
 
   bool key_down(GLFWwindow &window, int const key) const {
     /// A resume key remains consumed through repeats and held-key polling until its release
-    return !paused && key != resume_key && glfwGetKey(&window, key) == GLFW_PRESS;
+    return focused && !paused && key != resume_key && glfwGetKey(&window, key) == GLFW_PRESS;
   }
 
-  int cursor_mode(bool const captured) const noexcept {
+  int cursor_mode(bool const captured) noexcept {
     /// Keyboard-only debugging hides the pointer without grabbing it from the desktop
+    mouse_captured = captured;
+    if(!focused) return GLFW_CURSOR_NORMAL;
     return mouse_enabled ? (captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL) : GLFW_CURSOR_HIDDEN;
   }
 
@@ -129,7 +133,7 @@ struct flight_host {
 
   darker::game::flight_controls_input input(GLFWwindow &window) {
     /// Supply wrapping relative mouse counters and held steering keys to the original control filter
-    if(paused) return {
+    if(paused || !focused) return {
       .mouse_x{player.controls.bank.previous_mouse},
       .mouse_y{player.controls.pitch.previous_mouse}
     };
@@ -703,16 +707,27 @@ auto main(int const argc, char const *const argv[])->int {
   }
   glfwMakeContextCurrent(window.get());
   glfwSwapInterval(1);
+  host.focused = glfwGetWindowAttrib(window.get(), GLFW_FOCUSED) == GLFW_TRUE;
   glfwSetInputMode(window.get(), GLFW_CURSOR, host.cursor_mode(!caero));
   if(host.mouse_enabled && glfwRawMouseMotionSupported()) glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
   glfwSetWindowUserPointer(window.get(), &host);
+  glfwSetWindowFocusCallback(window.get(), [](GLFWwindow *const window, int const focused){
+    auto &host{*static_cast<flight_host*>(glfwGetWindowUserPointer(window))};
+    host.focused = focused == GLFW_TRUE;
+    glfwSetInputMode(window, GLFW_CURSOR, host.cursor_mode(host.mouse_captured));
+    // Capture changes can warp the cursor: establish a fresh origin before steering resumes.
+    host.mouse_started = false;
+    host.player.controls.bank.previous_mouse = 0;
+    host.player.controls.pitch.previous_mouse = 0;
+  });
+
   glfwSetKeyCallback(window.get(), [](GLFWwindow *const window, int const key, int, int const action, int const modifiers){
     auto &host{*static_cast<flight_host*>(glfwGetWindowUserPointer(window))};
     if(action == GLFW_RELEASE) {
       if(key == host.resume_key) host.resume_key = GLFW_KEY_UNKNOWN;
       return;
     }
-    if(key == host.resume_key) return;
+    if(!host.focused || key == host.resume_key) return;
     if(host.front && host.front->active()) {
       using darker::presentation::front_key;
       if(action != GLFW_PRESS && key != GLFW_KEY_BACKSPACE) return;
@@ -914,7 +929,7 @@ auto main(int const argc, char const *const argv[])->int {
   });
   glfwSetCursorPosCallback(window.get(), [](GLFWwindow *const window, double const x, double const y){
     auto &host{*static_cast<flight_host*>(glfwGetWindowUserPointer(window))};
-    if(!host.mouse_enabled || !host.front || !host.front->active()) return;
+    if(!host.focused || !host.mouse_enabled || !host.front || !host.front->active()) return;
     int width{0}, height{0};
     glfwGetWindowSize(window, &width, &height);
     auto const viewport{framework::render::fit_viewport(width, height, framework::render::display_layout::width, framework::render::display_layout::height)};
@@ -922,7 +937,7 @@ auto main(int const argc, char const *const argv[])->int {
   });
   glfwSetMouseButtonCallback(window.get(), [](GLFWwindow *window, int button, int action, int){
     auto &host{*static_cast<flight_host*>(glfwGetWindowUserPointer(window))};
-    if(!host.mouse_enabled || !host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+    if(!host.focused || !host.mouse_enabled || !host.front || !host.front->active() || button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
     int width{0}, height{0};
     double x{0}, y{0};
     glfwGetWindowSize(window, &width, &height);
@@ -1282,9 +1297,9 @@ auto main(int const argc, char const *const argv[])->int {
     auto const previous_cells{caero_state ? caero_state->energy.boost >> 13 : 0};
     darker::game::city_collision_result contact;
     std::optional<darker::maths::world_position> player_start;
-    bool const primary_held{host.key_down(*window, GLFW_KEY_SPACE) || (host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)};
+    bool const primary_held{host.key_down(*window, GLFW_KEY_SPACE) || (host.focused && host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)};
     bool const secondary_held{host.key_down(*window, GLFW_KEY_LEFT_ALT) || host.key_down(*window, GLFW_KEY_RIGHT_ALT)
-      || (host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)};
+      || (host.focused && host.mouse_enabled && !host.paused && glfwGetMouseButton(window.get(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)};
     bool const was_crashing{host.player.lifecycle.crashing};
     if(step != 0) {
       if(front) combat->spawn_aircraft(host.player, cells, bank, game_clock.frame_ticks, step);
