@@ -220,7 +220,7 @@ void mission_combat::activate_reserves(actor_category const category, uint8_t co
   });
   }};
   auto const before{counted()};
-  activate_scenario_reserves(actors, reserves, category, count, player, clock);
+  activate_scenario_reserves(actors, reserves, category, count, player, clock, reserve_mode);
   outstanding_objectives = static_cast<uint8_t>(outstanding_objectives + counted() - before);
 }
 

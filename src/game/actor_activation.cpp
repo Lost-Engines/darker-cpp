@@ -29,20 +29,22 @@ bool retire_distant_actor(scenario_actor &actor, object_pose const &player, cloc
   return true;
 }
 
-void place_air_reserve(scenario_actor &actor, object_pose const &player, std::span<scenario_actor const> const active) {
+void place_air_reserve(scenario_actor &actor, object_pose const &player, std::span<scenario_actor const> const active, air_reserve_mode const mode) {
   /// C39E moves nearby reinforcements outside the player radius, then scans the active air list through C313
   auto const difference{[&](size_t const axis){
     return std::bit_cast<int8_t>(static_cast<uint8_t>((player.position[axis] >> 8) - (actor.pose.position[axis] >> 8)));
   }};
   vec2<int> const separation{difference(0), difference(1)};
-  if(separation.length_sq() < reserve_distance_squared) {
+  if(mode == air_reserve_mode::campaign && separation.length_sq() < reserve_distance_squared) {
     size_t const axis{separation.x * separation.x < separation.y * separation.y ? 1u : 0u};
     auto const cell{static_cast<uint8_t>((player.position[axis] >> 8) + (difference(axis) < 0 ? reserve_distance_cells : -reserve_distance_cells))};
     actor.pose.position[axis] = static_cast<uint16_t>((cell << 8) | (actor.pose.position[axis] & 255));
   }
   uint8_t overlaps{0}, clearance{0};
+  // C3E2 retains authored Nightmare positions and checks ground actors instead.
+  auto const obstacle_category{mode == air_reserve_mode::nightmare ? actor_category::ground : actor_category::air};
   for(auto const &other : active) {
-    if(other.category != actor_category::air) continue;
+    if(other.category != obstacle_category) continue;
     auto const x{static_cast<uint16_t>(other.pose.position.column - (actor.pose.position.column - separation_half_width))};
     auto const y{static_cast<uint16_t>(other.pose.position.row - (actor.pose.position.row - separation_half_width))};
     if(x >= separation_width || y >= separation_width) continue;
@@ -60,7 +62,7 @@ void place_air_reserve(scenario_actor &actor, object_pose const &player, std::sp
 }
 
 void activate_scenario_reserves(std::vector<scenario_actor> &active, std::vector<scenario_actor> &reserves,
-  actor_category const category, uint8_t const count, object_pose const &player, clock_tick const clock) {
+  actor_category const category, uint8_t const count, object_pose const &player, clock_tick const clock, air_reserve_mode const mode) {
   /// C33E pops each category's reserve head and prepends to its active list, reversing a multi-object admission
   unsigned int const requested{count ? count : 256u};
   if(std::ranges::count_if(reserves, [&](auto const &actor){
@@ -76,7 +78,17 @@ void activate_scenario_reserves(std::vector<scenario_actor> &active, std::vector
     reserves.erase(next);
     if(actor.route) actor.route->origin = static_cast<uint16_t>(clock - 4096);
     else actor.script.deadline = clock;
-    if(category == actor_category::air && !actor.tunnel) place_air_reserve(actor, player, active);
+    if(category == actor_category::air && !actor.tunnel) {
+      if(mode == air_reserve_mode::nightmare) {
+        // C350/C35A choose C3E2 for Nightmare: fade in where the wave was authored.
+        uint8_t constexpr appearing_flag{0x40};
+        game_duration constexpr arrival_fade_ticks{256};
+        actor.fade = 0;
+        actor.flags = appearing_flag;
+        actor.expiry = static_cast<clock_tick>(clock + arrival_fade_ticks);
+      }
+      place_air_reserve(actor, player, active, mode);
+    }
     auto const head{std::ranges::find_if(active, [&](auto const &other){
       return other.category >= category;
     })};

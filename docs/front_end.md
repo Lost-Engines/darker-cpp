@@ -198,6 +198,15 @@ Briefing and mission opcodes 36/37 set difficulty and score checkpoints. Opcode
 38 toggles the independent scripted altitude-hold bit; it consumes a height
 word only when enabling it, and does not cancel the player's manual hold bit.
 
+Nightmare air reserves use the separate native `C3E2` admission path selected
+at `C35A` when the menu selection is four. They retain their authored horizontal
+positions, start with fade zero and flags `40h`, and fade in over 256 ticks.
+Their clearance scan checks the ground-object list, not other aircraft. Applying
+campaign `C39E` relocation here collapses distinct wave positions onto the same
+36-cell boundary and can make fresh aircraft collide immediately. The first
+five-aircraft wave now has a live 512-tick regression check in addition to the
+controlled full-script test.
+
 The integration check runs the entire original challenge with live actor and
 beacon updates and controlled removal of counted objectives: outcome 4 at tick
 162456, 15 reserve activations, 50 removals, 24 score checkpoints and final score

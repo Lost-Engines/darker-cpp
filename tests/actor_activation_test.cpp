@@ -83,3 +83,49 @@ TEST_CASE("Warehouse preparation matches native cell variants and platform param
     }
   }
 }
+
+TEST_CASE("Nightmare reserves keep their authored formation and fade in", "[actors][nightmare]") {
+  using namespace darker::game;
+  object_pose player;
+  player.position = {11392, 17024, 2400};
+  std::vector<scenario_actor> reserves(5);
+  std::array<darker::maths::world_position, 5> const positions{{
+    {14976, 17024, 2880}, {14976, 18048, 2880}, {15488, 17536, 2880},
+    {14464, 17536, 2880}, {14976, 17536, 2880}
+  }};
+  for(unsigned int i{0}; i < reserves.size(); ++i) {
+    reserves[i].index = static_cast<actor_index>(i + 1);
+    reserves[i].pose.position = positions[i];
+    reserves[i].parameters.update_entry = object_update::surface_actor;
+  }
+  std::vector<scenario_actor> active;
+  activate_scenario_reserves(active, reserves, actor_category::air, 5, player, 65500, air_reserve_mode::nightmare);
+  CHECK(reserves.empty());
+  REQUIRE(active.size() == 5);
+  for(auto const &actor : active) {
+    CHECK(actor.pose.position.column == positions[actor.index - 1].column);
+    CHECK(actor.pose.position.row == positions[actor.index - 1].row);
+    CHECK(actor.pose.position.height == positions[actor.index - 1].height);
+    CHECK(actor.parameters.update_entry == object_update::surface_actor);
+    CHECK(actor.flags == 0x40);
+    CHECK(actor.fade == 0);
+    CHECK(actor.expiry == 220);
+    CHECK(actor.script.deadline == 65500);
+  }
+}
+
+TEST_CASE("Nightmare arrival clearance checks ground actors rather than other aircraft", "[actors][nightmare]") {
+  using namespace darker::game;
+  scenario_actor arriving;
+  arriving.pose.position = {12000, 13000, 3000};
+  std::array<scenario_actor, 1> neighbours{arriving};
+  object_pose player;
+  player.position = arriving.pose.position;
+  place_air_reserve(arriving, player, neighbours, air_reserve_mode::nightmare);
+  CHECK(arriving.pose.position.height == 3000);
+  neighbours[0].category = actor_category::ground;
+  place_air_reserve(arriving, player, neighbours, air_reserve_mode::nightmare);
+  CHECK(arriving.pose.position.column == 12000);
+  CHECK(arriving.pose.position.row == 13000);
+  CHECK(arriving.pose.position.height == 3512);
+}

@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include "game/aircraft_combat.h"
+#include "game/actor_activation.h"
 #include "game/aircraft_spawning.h"
 #include "game/caero_weapons.h"
 #include "game/effects.h"
@@ -73,6 +74,7 @@ public:
   void collide_player(player_flight &player, maths::world_position const &start,
     city_map &cells, resources::geometry_bank const &bank, clock_tick clock);
   void collide_aircraft(city_map const &cells, resources::geometry_bank const &bank, uint8_t damage_mask, clock_tick clock, bool underground = false);
+  air_reserve_mode reserve_mode{air_reserve_mode::campaign};
   void activate_reserves(actor_category category, uint8_t count, object_pose const &player, clock_tick clock);
   void adjust_objectives(uint8_t operand) noexcept;
   void update_difficulty(campaign_clock clock) noexcept;

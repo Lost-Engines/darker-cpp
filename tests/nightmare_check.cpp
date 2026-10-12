@@ -33,9 +33,35 @@ void check_nightmare(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"Nightmare lost its original airborne launch"};
   }
   darker::game::mission_combat combat{std::move(groups.active)};
+  combat.reserve_mode = darker::game::air_reserve_mode::nightmare;
   combat.reserves = std::move(groups.reserves);
   combat.free_actors = std::move(groups.free);
   combat.difficulty = briefing.difficulty.value_or(0);
+  {
+    // Reproduce the first five-craft reinforcement wave with actual models.
+    // Campaign relocation used to put two of these at the same XYZ position,
+    // causing fatal mutual collisions on their first update.
+    darker::game::mission_combat arrival{{}};
+    arrival.reserve_mode = darker::game::air_reserve_mode::nightmare;
+    arrival.reserves = combat.reserves;
+    arrival.activate_reserves(darker::game::actor_category::air, 5, player.pose(), 0);
+    for(uint32_t clock{8}; clock <= 512; clock += 8) {
+      arrival.advance(player, cells, bank, {
+        .elapsed_ticks{clock},
+        .frame_step{8},
+        .changes{static_cast<uint16_t>(clock ^ (clock - 8))}
+      }, {}, {
+        .routes{scenario.bytes(record.shared)},
+        .time_multiplier{record.time_multiplier}
+      });
+      if(arrival.actors.size() != 5) throw std::runtime_error{"Nightmare arrival lost a fresh aircraft"};
+      for(auto const &actor : arrival.actors) {
+        if(actor.flags & 0x28 || actor.parameters.update_entry == darker::game::object_update::falling_aircraft) {
+          throw std::runtime_error{"Nightmare reinforcement arrived already crashing"};
+        }
+      }
+    }
+  }
   darker::game::beacon_changes beacons;
   darker::game::mission_script script{
     .continuation{*record.player_program - record.shared.offset}

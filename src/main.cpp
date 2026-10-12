@@ -335,6 +335,7 @@ auto main(int const argc, char const *const argv[])->int {
   auto initial_actors{caero ? darker::game::make_scenario_group(mission.groups[0], bank, 1, darker::resources::world_kind::delphi, mission.shared.offset)
     : std::vector<darker::game::scenario_actor>{}};
   auto combat{std::make_unique<darker::game::mission_combat>(initial_actors)};
+  combat->reserve_mode = front->nightmare_selected() ? darker::game::air_reserve_mode::nightmare : darker::game::air_reserve_mode::campaign;
   if(caero) combat->reserves = darker::game::make_scenario_group(mission.groups[1], bank, static_cast<uint8_t>(1 + mission.groups[0].objects.size()), darker::resources::world_kind::delphi, mission.shared.offset);
   auto const activate_reserves{[&](uint8_t const opcode, uint8_t const count){
     combat->activate_reserves(static_cast<darker::game::actor_category>(opcode - 9),
@@ -1021,6 +1022,7 @@ auto main(int const argc, char const *const argv[])->int {
       if(audio_device) audio.publish({});
       cells = initial_cells;
       combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+      combat->reserve_mode = front->nightmare_selected() ? darker::game::air_reserve_mode::nightmare : darker::game::air_reserve_mode::campaign;
       host.combat = combat.get();
       host.primary_held = false;
       host.secondary_held = false;
@@ -1162,6 +1164,7 @@ auto main(int const argc, char const *const argv[])->int {
           initial_cells = cells;
           auto const spawning{combat->spawning};
           combat = std::make_unique<darker::game::mission_combat>(initial_actors);
+          combat->reserve_mode = front->nightmare_selected() ? darker::game::air_reserve_mode::nightmare : darker::game::air_reserve_mode::campaign;
           combat->spawning = spawning;
           combat->spawning.enabled = true;
           if(world_mode == world_kind::delphi) darker::game::prepare_delphi_aircraft_sites(combat->spawning, cells);
