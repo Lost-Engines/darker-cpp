@@ -255,7 +255,18 @@ auto main(int const argc, char const *const argv[])->int {
   try {
     loaded_archives.emplace(data_directory);
   } catch(std::runtime_error const &error) {
-    return startup_failure(error.what());
+    return startup_failure(std::string{error.what()} +
+      "\n\nDarker requires the original game files (DARKER.00 through DARKER.04)."
+      "\nIf you already have the game, specify its installation directory:"
+#ifdef _WIN32
+      "\n  darker.exe --data-dir \"C:\\Games\\Darker\""
+      "\nOtherwise, run scripts\\fetch-assets.bat from the downloaded package"
+#else
+      "\n  ./darker --data-dir \"/path/to/Darker\""
+      "\nOtherwise, run bash scripts/fetch-assets.sh from the downloaded package"
+#endif
+      "\nto attempt to download the files, then start Darker again."
+      "\nIf the download fails, you will need to supply a complete original game installation.");
   }
   auto const &archives{*loaded_archives};
   unsigned int const slot{caero ? 16u : type == darker::graphics::craft::skimma ? 17u : 18u};
