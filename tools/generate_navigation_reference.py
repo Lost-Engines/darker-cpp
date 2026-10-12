@@ -60,13 +60,13 @@ def main():
         bearing = asset['descriptor'] == 0x5227
         state = index + 1 if bearing else asset['source_state']
         lines.append(f'  {{.bearing{{{str(bearing).lower()}}}, .index{{{index}}}, .state{{{state}}}, .checksum{{0x{checksum:016x}ULL}}}},')
-    lines += ['}};', '', 'struct ring_sample {', '  std::uint8_t weapon;', '  std::uint8_t radius;',
+    lines += ['}};', '', 'struct navigation_ring_sample {', '  std::uint8_t weapon;', '  std::uint8_t radius;',
               '  std::uint8_t remaining;', '  std::uint64_t checksum;', '};', '']
     procedural_path = args.workspace / 'analysis/interface/dynamic/procedural.json'
     procedural = json.loads(procedural_path.read_text())
     rings = procedural['verification']['ring_cases']
     lines += ['// Ring trace SHA-256: ' + hashlib.sha256(procedural_path.read_bytes()).hexdigest(),
-              f'inline std::array<ring_sample, {len(rings)}> constexpr rings{{{{']
+              f'inline std::array<navigation_ring_sample, {len(rings)}> constexpr rings{{{{']
     for sample in rings:
         screen = bytearray(cache)
         for blit in sample['blits']:

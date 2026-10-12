@@ -1604,7 +1604,7 @@ inline std::array<skimma_sample, 19> constexpr skimma{{
   },
 }};
 
-struct ring_sample {
+struct navigation_ring_sample {
   std::uint8_t weapon;
   std::uint8_t radius;
   std::uint8_t remaining;
@@ -1612,7 +1612,7 @@ struct ring_sample {
 };
 
 // Ring trace SHA-256: c7cd2a5f42f6dd54a818ae08329a82b834d92cae736a9549c44e3520575417df
-inline std::array<ring_sample, 140> constexpr rings{{
+inline std::array<navigation_ring_sample, 140> constexpr rings{{
   {
     .weapon{0},
     .radius{15},
