@@ -39,6 +39,20 @@ cmake --build build --parallel
 ./build/darker --data-dir ../darker
 ```
 
+For optimised playtesting with debug symbols, assertions and developer options:
+
+```sh
+cmake -S . -B build-relwithdebinfo -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-relwithdebinfo --parallel
+./build-relwithdebinfo/darker
+```
+
+RelWithDebInfo deliberately keeps `NDEBUG` undefined in project code, retaining
+assertions and developer options such as screenshot capture. Release omits those
+options; Debug remains unoptimised for stepping through the code. With a
+multi-configuration generator, build with `--config RelWithDebInfo` and look for
+the executable in that configuration's subdirectory.
+
 The default Linux installation is `~/.local/share/darker/` (or
 `$XDG_DATA_HOME/darker/` when set). Game packs, `DARKER.SAV`, optional Roland ROMs,
 manual, map and optional `soundfont.sf2` live together in that directory.

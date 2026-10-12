@@ -28,6 +28,13 @@ function(configure_first_party target)
   target_include_directories(${target} PUBLIC "${PROJECT_SOURCE_DIR}")
   target_link_libraries(${target} PUBLIC Boost::headers)
   set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
+  # Optimised developer playtesting: retain assertions and #ifndef NDEBUG tools.
+  # Override CMake's default -DNDEBUG after configuration flags, without changing Release.
+  if(MSVC)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:RelWithDebInfo>:/UNDEBUG>)
+  else()
+    target_compile_options(${target} PRIVATE $<$<CONFIG:RelWithDebInfo>:-UNDEBUG>)
+  endif()
   if(DARKER_IPO AND darker_ipo_supported)
     set_target_properties(${target} PROPERTIES
       INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
