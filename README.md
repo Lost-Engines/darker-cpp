@@ -86,11 +86,11 @@ This fetches the five retail game packs, CM-32L ROM pair, five SC-55 v1.21 ROMs,
 and city reference map directly into the destination directory. The Bash helper defaults to the same per-user game directory. Pass a directory
 argument to fetch into a different installation.
 
-Downloads run in six phases: missing manuals and map first, game packs second,
-then missing CM-32L ROMs, SC-55 ROMs, the AWE32 ROM and Gravis patches. If `DARKER.00` exists, the game phase is skipped.
-Otherwise all five packs are downloaded directly into the destination, replacing
-any packs already there, then checked against SHA-256. Download or checksum
-failures produce warnings; files are left in place and later phases continue.
+The helpers check every game pack against its SHA-256 checksum on each run,
+downloading only missing or mismatched files. SC-55, AWE32 and Gravis assets
+are checked and repaired in the same way. Each download gets up to three retries.
+Downloads overwrite the affected file in place; failures produce warnings.
+Rerun the script to retry incomplete downloads.
 A missing manual or map can be supplied separately. Missing Roland ROMs disable
 Roland emulation only; other sound engines remain available.
 The known retail SHA-256 values are listed in

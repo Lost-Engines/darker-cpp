@@ -4,7 +4,7 @@ rem Usage: fetch-assets.bat [destination]
 if "%~1"=="--help" goto help
 if not "%~2"=="" goto help
 set "script_dir=%~dp0"
-set "replace="
+set "manifest="
 rem Default to the package directory, beside darker.exe.
 set "destination=%~dp0.."
 if not "%~1"=="" set "destination=%~1"
@@ -20,19 +20,15 @@ for /f "usebackq delims=" %%U in ("%script_dir%manual_urls.txt") do (
   call :fetch
 )
 
-rem 2. DARKER.00 indicates an existing installation; otherwise replace all packs.
-if exist DARKER.00 (
-  echo DARKER.00 exists; skipping game downloads.
-) else (
-  set "replace=1"
-  set "warning=Please supply a full game installation."
-  for /f "usebackq delims=" %%U in ("%script_dir%game_urls.txt") do (
-    set "url=%%U"
-    call :fetch
-  )
-  set "replace="
-  call :check darker-retail-packs.sha256
+rem 2. Keep valid game packs; replace missing or damaged ones.
+set "manifest=darker-retail-packs.sha256"
+set "warning=Rerun this script to retry, or supply a full game installation."
+for /f "usebackq delims=" %%U in ("%script_dir%game_urls.txt") do (
+  set "url=%%U"
+  call :fetch
 )
+call :check darker-retail-packs.sha256
+set "manifest="
 
 rem 3. Fetch missing Roland ROMs.
 set "warning=Roland emulation will not be available; other sound engines will work."
@@ -42,6 +38,7 @@ for /f "usebackq delims=" %%U in ("%script_dir%roland_rom_urls.txt") do (
 )
 
 rem 4. Fetch missing SC-55 v1.21 ROMs.
+set "manifest=sc55-v121.sha256"
 set "warning=SC-55 emulation needs all five ROMs; other music options remain available."
 for /f "usebackq delims=" %%U in ("%script_dir%sc55_rom_urls.txt") do (
   set "url=%%U"
@@ -50,6 +47,7 @@ for /f "usebackq delims=" %%U in ("%script_dir%sc55_rom_urls.txt") do (
 call :check sc55-v121.sha256
 
 rem 5. Fetch the AWE32 sample ROM.
+set "manifest=awe32.sha256"
 set "warning=AWE32 ROM unavailable; other music options remain available."
 for /f "usebackq delims=" %%U in ("%script_dir%awe32_rom_urls.txt") do (
   set "url=%%U"
@@ -58,6 +56,7 @@ for /f "usebackq delims=" %%U in ("%script_dir%awe32_rom_urls.txt") do (
 call :check awe32.sha256
 
 rem 6. UltraMID and its Gravis preload patch sets.
+set "manifest=gravis.sha256"
 if not exist ULTRASND\MIDI mkdir ULTRASND\MIDI
 if not exist ULTRASND\MIDI (
   popd
@@ -77,10 +76,27 @@ exit /b 0
 rem Keep URLs in a variable: passing them through CALL would expand percent escapes.
 for %%F in ("%url%") do set "file=%folder%%%~nxF"
 if "%file%"=="ULTRASND\MIDI\ULTRAMID.EXE" set "file=ULTRASND\ULTRAMID.EXE"
-if not defined replace if exist "%file%" exit /b 0
+if not defined manifest if exist "%file%" exit /b 0
+if defined manifest (
+  call :matches_checksum
+  if defined matched (
+    echo %file%: OK
+    exit /b 0
+  )
+)
 echo Fetching %file%
-curl.exe --fail --location --output "%file%" "%url%"
+curl.exe --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "%file%" "%url%"
 if errorlevel 1 echo Warning: %file% is unavailable. %warning%
+exit /b 0
+
+:matches_checksum
+rem Manifest paths use forward slashes, including on Windows.
+set "matched="
+for /f "usebackq tokens=1,*" %%H in ("%script_dir%%manifest%") do if /I "%%I"=="%file:\=/%" (
+  for /f "delims=" %%D in ('certutil.exe -hashfile "%file%" SHA256 2^>nul') do (
+    if /I "%%D"=="%%H" set "matched=1"
+  )
+)
 exit /b 0
 
 :check

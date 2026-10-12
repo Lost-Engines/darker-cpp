@@ -12,33 +12,38 @@ destination=${1:-$data_home/darker}
 mkdir -p -- "$destination" || exit 1
 cd -- "$destination" || exit 1
 
+# Check this file against its entry in a shared checksum manifest.
+matches_checksum() {
+  grep -F "  $file" "$script_dir/$1" | sha256sum --check --status 2>/dev/null
+}
+
 # 1. Fetch missing manuals and map.
 while read -r url; do
   [ -z "$url" ] && continue
   file=$(basename "$url")
   if [ ! -e "$file" ]; then
     echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
+    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Please find a copy of the manual or map yourself."
     fi
   fi
 done < "$script_dir/manual_urls.txt"
 
-# 2. DARKER.00 indicates an existing installation; otherwise replace all packs.
-if [ -e DARKER.00 ]; then
-  echo 'DARKER.00 exists; skipping game downloads.'
-else
-  while read -r url; do
-    [ -z "$url" ] && continue
-    file=$(basename "$url")
-    echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
-      echo "Warning: $file could not be downloaded. Please supply a full game installation."
-    fi
-  done < "$script_dir/game_urls.txt"
-  if ! sha256sum --check "$script_dir/darker-retail-packs.sha256"; then
-    echo 'Warning: game packs do not match the known retail version. Files have been left in place.'
+# 2. Keep valid game packs; replace missing or damaged ones.
+while read -r url; do
+  [ -z "$url" ] && continue
+  file=$(basename "$url")
+  if matches_checksum darker-retail-packs.sha256; then
+    echo "$file: OK"
+    continue
   fi
+  echo "Fetching $file"
+  if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    echo "Warning: $file could not be downloaded. Please supply a full game installation."
+  fi
+done < "$script_dir/game_urls.txt"
+if ! sha256sum --check "$script_dir/darker-retail-packs.sha256"; then
+  echo 'Warning: game packs are missing or do not match the known retail version. Rerun this script to retry, or supply a full game installation.'
 fi
 
 # 3. Fetch missing Roland ROMs. Other sound engines do not need these.
@@ -47,7 +52,7 @@ while read -r url; do
   file=$(basename "$url")
   if [ ! -e "$file" ]; then
     echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
+    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Roland emulation will not be available; other sound engines will work."
     fi
   fi
@@ -56,9 +61,9 @@ done < "$script_dir/roland_rom_urls.txt"
 while read -r url; do
   [ -z "$url" ] && continue
   file=$(basename "$url")
-  if [ ! -e "$file" ]; then
+  if ! matches_checksum sc55-v121.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
+    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. SC-55 emulation needs all five ROMs; other music options remain available."
     fi
   fi
@@ -70,9 +75,9 @@ fi
 while read -r url; do
   [ -z "$url" ] && continue
   file=$(basename "$url")
-  if [ ! -e "$file" ]; then
+  if ! matches_checksum awe32.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
+    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: AWE32 ROM unavailable; other music options remain available."
     fi
   fi
@@ -87,9 +92,9 @@ while read -r url; do
   name=$(basename "$url")
   file="ULTRASND/MIDI/$name"
   if [ "$name" = ULTRAMID.EXE ]; then file="ULTRASND/$name"; fi
-  if [ ! -e "$file" ]; then
+  if ! matches_checksum gravis.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --output "$file" "$url"; then
+    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Please supply the original Gravis patch set; other music options still work."
     fi
   fi
