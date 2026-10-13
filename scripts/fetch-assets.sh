@@ -23,7 +23,7 @@ while read -r url; do
   file=$(basename "$url")
   if [ ! -e "$file" ]; then
     echo "Fetching $file"
-    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Please find a copy of the manual or map yourself."
     fi
   fi
@@ -38,7 +38,7 @@ while read -r url; do
     continue
   fi
   echo "Fetching $file"
-  if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+  if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
     echo "Warning: $file could not be downloaded. Please supply a full game installation."
   fi
 done < "$script_dir/game_urls.txt"
@@ -52,7 +52,7 @@ while read -r url; do
   file=$(basename "$url")
   if [ ! -e "$file" ]; then
     echo "Fetching $file"
-    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Roland emulation will not be available; other sound engines will work."
     fi
   fi
@@ -63,7 +63,7 @@ while read -r url; do
   file=$(basename "$url")
   if ! matches_checksum sc55-v121.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. SC-55 emulation needs all five ROMs; other music options remain available."
     fi
   fi
@@ -77,7 +77,7 @@ while read -r url; do
   file=$(basename "$url")
   if ! matches_checksum awe32.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: AWE32 ROM unavailable; other music options remain available."
     fi
   fi
@@ -94,7 +94,7 @@ while read -r url; do
   if [ "$name" = ULTRAMID.EXE ]; then file="ULTRASND/$name"; fi
   if ! matches_checksum gravis.sha256; then
     echo "Fetching $file"
-    if ! curl --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
+    if ! curl --user-agent "Lost Engines Darker CPP" --fail --location --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 30 --output "$file" "$url"; then
       echo "Warning: $file is unavailable. Please supply the original Gravis patch set; other music options still work."
     fi
   fi
