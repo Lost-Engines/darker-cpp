@@ -49,7 +49,7 @@ Notes:
 ### 1.1 Language scope
 
 - House style targets modern C++.
-- Baseline language expectation is C++23.
+- Baseline language expectation is C++26.
 - Adopt C++26 features proactively when toolchain and project constraints permit.
 
 ### 1.2 In-scope file types (`.cpp`, `.h`)
@@ -1076,7 +1076,7 @@ public:
 
 ### 15.5 Modern C++ feature preference
 
-- Prefer the most modern C++ feature set available to the target toolchain (C++23 baseline, C++26 adoption when viable).
+- Prefer the most modern C++ feature set available to the target toolchain (C++26 baseline).
 - Prefer modern constructs over legacy equivalents when readability and maintainability improve.
 
 ## 16. Lambdas and Callables

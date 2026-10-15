@@ -22,5 +22,5 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp"
   "#include <stdexcept>\n#include <utility>\n#include \"audio/gf1/compatibility.h\"\nnamespace darker::audio::gf1_detail {\n${gf1_source}\n#include \"audio/gf1/implementation.h\"\n")
 add_library(gf1_backend STATIC "${CMAKE_CURRENT_BINARY_DIR}/gf1.cpp")
 target_include_directories(gf1_backend PRIVATE src)
-target_compile_features(gf1_backend PRIVATE cxx_std_23)
+target_compile_features(gf1_backend PRIVATE cxx_std_26)
 target_compile_options(gf1_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O2>)

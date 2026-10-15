@@ -1,6 +1,6 @@
 # Cockpit background and masked instruments
 
-`darker` reads source sheets 00/15–18 from the original packs. It implements the background transfers and the main masked instrument updater in portable C++23. Rendering remains indexed until the existing host adapter expands the palette to RGBA.
+`darker` reads source sheets 00/15–18 from the original packs. It implements the background transfers and the main masked instrument updater in portable C++26. Rendering remains indexed until the existing host adapter expands the palette to RGBA.
 
 ## Implemented paths
 

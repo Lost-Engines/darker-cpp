@@ -1,6 +1,6 @@
 # Darker
 
-A faithful C++23 reconstruction of the engine of the 1995 DOS game Darker by Psygnosis, using the original game's resources, building and running natively on modern platforms.
+A faithful C++26 reconstruction of the engine of the 1995 DOS game Darker by Psygnosis, using the original game's resources, building and running natively on modern platforms.
 
 Read about the reverse engineering effort at https://lostengines.com/darker and browse a 3D map viewer, model viewer, and more.
 
@@ -27,7 +27,7 @@ It is highly recommended to read the manual, and you will need to refer to the m
 
 ## Building the source code
 
-Requires CMake 3.28+, a C++23 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
+Requires CMake 3.30+, a C++26 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
 GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, Unicorn, DOSBox DBOPL/GF1 and DOSBox-X EMU8000 are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 

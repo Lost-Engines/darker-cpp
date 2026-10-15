@@ -1,6 +1,6 @@
 # Original resource loading
 
-`darker_resources` is a platform-independent C++23 library. `archive_set` reads `DARKER.00` through `DARKER.04` from an explicitly supplied directory and returns an owned `std::vector<std::byte>` for an archive/slot ID. It neither executes the DOS binary nor reads the analysis exports at runtime.
+`darker_resources` is a platform-independent C++26 library. `archive_set` reads `DARKER.00` through `DARKER.04` from an explicitly supplied directory and returns an owned `std::vector<std::byte>` for an archive/slot ID. It neither executes the DOS binary nor reads the analysis exports at runtime.
 
 ## Directory and edition
 

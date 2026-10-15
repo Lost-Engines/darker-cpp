@@ -43,6 +43,6 @@ target_include_directories(sc55_backend SYSTEM PUBLIC
   "${nuked_sc55_SOURCE_DIR}/src/backend"
   "${CMAKE_CURRENT_BINARY_DIR}/sc55"
 )
-target_compile_features(sc55_backend PRIVATE cxx_std_23)
+target_compile_features(sc55_backend PRIVATE cxx_std_26)
 # Real-time processor emulation must remain optimised in Debug builds too.
 target_compile_options(sc55_backend PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-O2>)
