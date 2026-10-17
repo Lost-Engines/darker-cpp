@@ -45,6 +45,13 @@ function(configure_first_party target)
   target_compile_options(${target} PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall;-Wextra;-Wpedantic;-Wconversion>
   )
+  if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+      AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16
+      AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17)
+    # GCC PR125151: C++26 Debug emits strong stdexcept copy constructors on MinGW.
+    # Use the runtime exception definitions until that compiler bug is fixed.
+    target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:__cpp_lib_constexpr_exceptions=0>)
+  endif()
 endfunction()
 
 if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
