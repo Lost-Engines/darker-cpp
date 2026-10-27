@@ -2,6 +2,8 @@
 
 A faithful C++26 reconstruction of the engine of the 1995 DOS game Darker by Psygnosis, using the original game's resources, building and running natively on modern platforms.
 
+For higher resolutions, longer views and in-game options, see [Darker Redux](https://github.com/Lost-Engines/darker-redux), our enhanced version of this reconstruction.
+
 Read about the reverse engineering effort at https://lostengines.com/darker and browse a 3D map viewer, model viewer, and more.
 
 ## Getting Started & Data files
