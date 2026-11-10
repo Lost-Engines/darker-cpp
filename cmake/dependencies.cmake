@@ -5,10 +5,11 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build GLFW examples")
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build GLFW tests")
 set(GLFW_INSTALL OFF CACHE BOOL "Install GLFW")
 
-# GLFW 3.4, miniaudio 0.11.23 and Catch2 3.8.1; immutable archives with verified hashes
+# GLFW follows upstream master; audio and test archives have verified hashes
 FetchContent_Declare(glfw
-  URL https://codeload.github.com/glfw/glfw/tar.gz/a74efa0d5628b74adc0426af4c5710e287fa7c2c
-  URL_HASH SHA256=7e85e39ade1efdda00734d323a0230b5c938074e9fb2ddbe453bdbb281064d2c
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG master
+  GIT_SHALLOW TRUE
 )
 FetchContent_Declare(miniaudio
   URL https://codeload.github.com/mackron/miniaudio/tar.gz/f40cf03f80cdb7e741d43e53b7e706e8c1394bcf

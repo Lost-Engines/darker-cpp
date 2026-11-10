@@ -31,7 +31,7 @@ It is highly recommended to read the manual, and you will need to refer to the m
 
 Requires CMake 3.30+, a C++26 compiler, Boost 1.85+ with Program_options, and OpenGL/window-system development packages. GLFW builds X11 and Wayland support by default on Linux; disable an unwanted backend with `-DGLFW_BUILD_WAYLAND=OFF` or `-DGLFW_BUILD_X11=OFF`.
 
-GLFW, miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, Unicorn, DOSBox DBOPL/GF1 and DOSBox-X EMU8000 are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
+GLFW follows upstream `master`. Miniaudio, TinySoundFont, Munt, Nuked-SC55, Nuked OPL3, Unicorn, DOSBox DBOPL/GF1 and DOSBox-X EMU8000 are fetched from pinned GitHub archives with SHA-256 verification. Test builds also fetch Catch2. Boost and system platform libraries are discovered locally.
 
 From this directory:
 
