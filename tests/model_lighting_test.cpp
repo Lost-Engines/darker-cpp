@@ -31,7 +31,9 @@ TEST_CASE("Every generated distance shade matches the original table", "[graphic
 }
 
 TEST_CASE("Distant point colours retain the native cross-row shade lookup", "[graphics][lighting]") {
-  using namespace darker::graphics;
+  using darker::graphics::distance_shading;
+  using darker::graphics::model_colours;
+  using darker::graphics::model_path;
   for(unsigned int const count : {28u, 60u}) {
     distance_shading const lighting{count};
     for(unsigned int row{0}; row < count; ++row) {

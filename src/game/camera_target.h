@@ -2,10 +2,10 @@
 
 #include <optional>
 #include <span>
+#include "maths/world_coordinates.h"
 #include "game/city_map.h"
 #include "game/object_pose.h"
 #include "game/scenario_actor.h"
-#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::game {

@@ -2,9 +2,9 @@
 #include <array>
 #include <cstdint>
 #include <utility>
+#include "maths/world_coordinates.h"
 #include "game/object_definitions.h"
 #include "game/projectile_pool.h"
-#include "maths/world_coordinates.h"
 #include "reference/placement_samples.h"
 
 TEST_CASE("Assembled projectile creation matches native placement and constructor fields") {
@@ -103,7 +103,7 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
   CHECK(pool.objects().tail() == allocated.front());
   CHECK(pool.objects().free_head() == nullptr);
   auto *current{pool.objects().head()};
-  for(size_t i{allocated.size()}; i-- >0;) {
+  for(size_t i{allocated.size()}; i-- > 0;) {
     REQUIRE(current == allocated[i]);
     current = current->next;
   }

@@ -4,8 +4,9 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
-#include "game/aircraft_combat.h"
+#include "maths/world_coordinates.h"
 #include "game/actor_activation.h"
+#include "game/aircraft_combat.h"
 #include "game/aircraft_spawning.h"
 #include "game/caero_weapons.h"
 #include "game/effects.h"
@@ -14,7 +15,6 @@
 #include "game/skimma_weapons.h"
 #include "game/time.h"
 #include "game/weapon_target.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

@@ -137,7 +137,7 @@ void draw_flat_polygon(framework::render::indexed_surface target, std::span<scre
     return a.y < b.y;
   })};
   if(rightmost->x < 0 || lowest->y < 0 || leftmost->x > right || top->y >= bottom) return;
-  if(top->y == lowest->y) return; // no scanlines, including subpixel distant faces
+  if(top->y == lowest->y) return;                                              // no scanlines, including subpixel distant faces
   auto const index{static_cast<size_t>(top - vertices.begin())};
   auto const next{vertices[index + 1 == vertices.size() ? 0 : index + 1]};
   auto const previous{vertices[index == 0 ? vertices.size() - 1 : index - 1]};

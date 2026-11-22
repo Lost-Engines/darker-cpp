@@ -1,8 +1,8 @@
 #include "graphics/radar_beacons.h"
 #include <bit>
+#include "maths/angle.h"
 #include "game/beacon_light.h"
 #include "game/random.h"
-#include "maths/angle.h"
 
 namespace darker::graphics {
 

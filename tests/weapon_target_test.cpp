@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include "game/weapon_target.h"
 #include "maths/world_coordinates.h"
+#include "game/weapon_target.h"
 #include "reference/skimma_target_samples.h"
 #include "reference/weapon_target_samples.h"
 

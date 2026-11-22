@@ -1,12 +1,12 @@
 #include "game/caero_weapons.h"
-#include "game/weapon_selection.h"
 #include <algorithm>
 #include <stdexcept>
+#include "maths/world_coordinates.h"
 #include "game/beacon_light.h"
 #include "game/object_definitions.h"
-#include "maths/world_coordinates.h"
-#include "game/target_reference.h"
 #include "game/player_flags.h"
+#include "game/target_reference.h"
+#include "game/weapon_selection.h"
 
 namespace darker::game {
 

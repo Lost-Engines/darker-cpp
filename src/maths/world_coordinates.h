@@ -10,8 +10,8 @@ namespace darker::maths {
 struct world_format {
   using position_component = uint16_t;
   using fraction_component = uint8_t;
-  static unsigned int constexpr cell_fraction_bits{8};                        // low position byte locates the point within a map cell
-  static unsigned int constexpr fraction_bits{8};                             // additional sub-position byte retained by movement
+  static unsigned int constexpr cell_fraction_bits{8};                         // low position byte locates the point within a map cell
+  static unsigned int constexpr fraction_bits{8};                              // additional sub-position byte retained by movement
   static int constexpr units_per_cell{1 << cell_fraction_bits};
 };
 

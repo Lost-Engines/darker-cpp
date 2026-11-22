@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
+#include "maths/world_coordinates.h"
 #include "game/radar_coverage.h"
 #include "graphics/radar_beacons.h"
-#include "maths/world_coordinates.h"
 #include "reference/radar_beacon_samples.h"
 #include "reference/radar_noise_samples.h"
 

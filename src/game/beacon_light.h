@@ -3,8 +3,8 @@
 #include <array>
 #include <cstdint>
 #include <span>
-#include "game/city_map.h"
 #include "maths/world_coordinates.h"
+#include "game/city_map.h"
 
 namespace darker::game {
 

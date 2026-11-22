@@ -346,7 +346,7 @@ void front_end::advance(uint32_t const elapsed_ticks) {
   /// Menu pauses do not consume the flight clock; animation continues only in active presentation scenes
   if(current == screen::title || current == screen::credits) {
     auto const limit{current == screen::title ? uint32_t{5024} : uint32_t{128}};
-    title_ticks = static_cast<uint32_t>(std::min(uint64_t{limit}, uint64_t{title_ticks}+ elapsed_ticks));
+    title_ticks = static_cast<uint32_t>(std::min(uint64_t{limit}, uint64_t{title_ticks} + elapsed_ticks));
     if(current == screen::title && title_ticks == limit) {
       current = screen::credits;
       title_ticks = 0;
@@ -496,7 +496,7 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
         .runtime_number{challenge_score}
       };
       for(auto const value : {labels.score, labels.best_score}) {
-        std::string const bytes{std::string{value}+ '\0'};
+        std::string const bytes{std::string{value} + '\0'};
         auto const page{graphics::lay_out_text(std::as_bytes(std::span{bytes}), font, resources::font_face::interface, cursor)};
         for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame, font, resources::font_face::interface, glyph.code, glyph.position, {
           .ink{colour},
@@ -506,10 +506,10 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
         cursor.runtime_number = std::to_integer<uint8_t>(save.trailer[0]);
       }
     } else {
-      text(std::string{labels.game}+ std::to_string(slot + 1), 112, y, colour);
+      text(std::string{labels.game} + std::to_string(slot + 1), 112, y, colour);
       auto const &pilot{save.pilots[slot]};
       if(pilot.stage) {
-        text(std::string{labels.level}+ std::to_string(pilot.stage), 162, y, colour);
+        text(std::string{labels.level} + std::to_string(pilot.stage), 162, y, colour);
         centred(pilot.display_name(), y + 11, colour);
       } else centred(labels.new_game, y + 10, colour);
     }

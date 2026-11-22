@@ -14,9 +14,9 @@ struct skimma_flight_rules {
 };
 
 struct caero_flight_rules {
-  static uint16_t constexpr startup_energy_limit{0x5000};                     // high byte 80 yields five complete pips when doubled and masked
+  static uint16_t constexpr startup_energy_limit{0x5000};                      // high byte 80 yields five complete pips when doubled and masked
   static unsigned int constexpr startup_charge_rate{7};
-  static uint16_t constexpr active_boost_duration{0x3800};                    // native drive-accounting units, not milliseconds
+  static uint16_t constexpr active_boost_duration{0x3800};                     // native drive-accounting units, not milliseconds
 };
 
 } // namespace darker::game

@@ -3,9 +3,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include "maths/view_basis.h"
 #include "graphics/flat_polygon.h"
 #include "graphics/near_clip.h"
-#include "maths/view_basis.h"
 
 namespace darker::graphics {
 

@@ -2,11 +2,11 @@
 
 #include <array>
 #include <cstdint>
+#include "maths/world_coordinates.h"
 #include "game/angular_motion.h"
 #include "game/city_map.h"
 #include "game/projectile_pool.h"
 #include "game/time.h"
-#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::game {

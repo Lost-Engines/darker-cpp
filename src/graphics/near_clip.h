@@ -8,7 +8,7 @@
 namespace darker::graphics {
 
 struct camera_vertex {
-  render_geometry::accumulator horizontal{0};                                                       // signed 24-bit values, with eight fractional bits
+  render_geometry::accumulator horizontal{0};                                  // signed 24-bit values, with eight fractional bits
   render_geometry::accumulator vertical{0};
   render_geometry::accumulator depth{0};
 };

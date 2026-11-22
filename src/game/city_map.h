@@ -11,7 +11,7 @@ namespace darker::game {
 struct city_cell {
   static uint8_t constexpr permitted_target{0x40};                             // objective eligibility; independent of the model's damage/variant bits
   uint8_t type{0};
-  uint8_t state{0};                                                             // model-specific packed variants/damage flags, or beacon light level
+  uint8_t state{0};                                                            // model-specific packed variants/damage flags, or beacon light level
 };
 
 inline maths::map_coordinates<int> constexpr city_map_size{
@@ -29,7 +29,7 @@ constexpr unsigned int city_cell_index(unsigned int column, unsigned int row) no
 
 struct packed_cell_reference {
   static unsigned int constexpr row_shift{8};
-  static unsigned int constexpr column_mask{0x7f};                            // native token encoding; independent of map allocation dimensions
+  static unsigned int constexpr column_mask{0x7f};                             // native token encoding; independent of map allocation dimensions
   uint16_t value;
 
   constexpr unsigned int column() const noexcept {

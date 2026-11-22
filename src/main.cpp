@@ -18,6 +18,11 @@
 #include <boost/program_options.hpp>
 #include <boost/scope/scope_exit.hpp>
 #include <GLFW/glfw3.h>
+#include "maths/direction.h"
+#include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
+#include "platform/audio_output.h"
+#include "platform/framebuffer_presenter.h"
 #include "audio/ambient_sounds.h"
 #include "audio/flight_sounds.h"
 #include "audio/fm_stream.h"
@@ -50,11 +55,6 @@
 #include "graphics/procedural_hud.h"
 #include "graphics/radar_beacons.h"
 #include "graphics/sky_ground.h"
-#include "maths/direction.h"
-#include "maths/sine_table.h"
-#include "maths/world_coordinates.h"
-#include "platform/audio_output.h"
-#include "platform/framebuffer_presenter.h"
 #include "presentation/front_end.h"
 #include "presentation/menu_text.h"
 #include "presentation/quit_confirmation.h"
@@ -301,7 +301,7 @@ auto main(int const argc, char const *const argv[])->int {
 #ifndef NDEBUG
   bool const noclip{arguments.contains("noclip")};
 #else
-  constexpr bool noclip{false};
+  bool constexpr noclip{false};
 #endif // NDEBUG
   bool const boost_cheat{arguments.contains("cheat-brooke")};
   bool const damage_cheat{arguments.contains("cheat-life")};
@@ -962,19 +962,16 @@ auto main(int const argc, char const *const argv[])->int {
       else if(music_variant == darker::audio::music_variant::gus && !arguments.contains("soundfont")) {
         auto const directory{arguments.contains("gus-dir") ? std::filesystem::path{arguments["gus-dir"].as<std::string>()} : data_directory / "ULTRASND"};
         audio.configure_gus_music(directory, std::move(songs), gus_ram);
-      }
-      else if(music_variant == darker::audio::music_variant::awe32 && !arguments.contains("soundfont")) {
+      } else if(music_variant == darker::audio::music_variant::awe32 && !arguments.contains("soundfont")) {
         auto const rom{arguments.contains("awe32-rom") ? std::filesystem::path{arguments["awe32-rom"].as<std::string>()} : data_directory / "awe32.raw"};
         audio.configure_awe32_music(rom, archives.load({0, 37}), std::move(songs));
-      }
-      else if(music_name == "roland-sc55" || music_name == "roland-scc1a") {
+      } else if(music_name == "roland-sc55" || music_name == "roland-scc1a") {
         bool const scc1a{music_name == "roland-scc1a"};
         auto const option{scc1a ? "scc1a-rom-dir" : "sc55-rom-dir"};
         auto const rom_directory{arguments.contains(option) ? std::filesystem::path{arguments[option].as<std::string>()} : data_directory};
         audio.configure_sc55_music(rom_directory, std::move(songs), scc1a ? darker::audio::sound_canvas_model::scc1a : darker::audio::sound_canvas_model::sc55);
         std::cout << "Music: " << (scc1a ? "SCC-1A v1.30" : "SC-55 v1.21") << " hardware emulation, original SCC-1/General MIDI arrangement" << std::endl;
-      }
-      else if(music_variant == darker::audio::music_variant::lapc1 && (!arguments.contains("soundfont") || percussion_fallback)) {
+      } else if(music_variant == darker::audio::music_variant::lapc1 && (!arguments.contains("soundfont") || percussion_fallback)) {
         auto const rom_directory{arguments.contains("mt32-rom-dir") ? std::filesystem::path{arguments["mt32-rom-dir"].as<std::string>()} : data_directory};
         auto const percussion_font{percussion_fallback ? find_soundfont() : std::filesystem::path{}};
         if(percussion_fallback && percussion_font.empty()) return startup_failure("Roland percussion fallback needs a SoundFont: supply --soundfont=path/to/bank.sf2");

@@ -1,5 +1,4 @@
 #include "game/projectile_pool.h"
-
 #include "game/native_object_layout.h"
 
 namespace darker::game {

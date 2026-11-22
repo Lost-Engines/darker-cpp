@@ -3,11 +3,11 @@
 #include <array>
 #include <cstdint>
 #include <span>
-#include "game/object_pose.h"
-#include "game/target_reference.h"
-#include "game/scenario_actor.h"
 #include "maths/view_basis.h"
 #include "maths/world_coordinates.h"
+#include "game/object_pose.h"
+#include "game/scenario_actor.h"
+#include "game/target_reference.h"
 
 namespace darker::game {
 

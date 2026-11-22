@@ -20,9 +20,15 @@ public:
   object_list(object_list const &) = delete;
   object_list &operator=(object_list const &) = delete;
 
-  Record *head() const noexcept { return roots.head; }
-  Record *tail() const noexcept { return roots.tail; }
-  Record *free_head() const noexcept { return roots.free; }
+  Record *head() const noexcept {
+    return roots.head;
+  }
+  Record *tail() const noexcept {
+    return roots.tail;
+  }
+  Record *free_head() const noexcept {
+    return roots.free;
+  }
 
   void add_free_record(Record &record) noexcept {
     /// Attach an unused record from the owning pool without clearing its retained payload

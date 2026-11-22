@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-#include "game/city_collision.h"
 #include "maths/world_coordinates.h"
+#include "game/city_collision.h"
 
 namespace {
 

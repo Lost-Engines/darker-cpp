@@ -2,10 +2,10 @@
 #include <array>
 #include <bit>
 #include <utility>
-#include "game/city_map.h"
-#include "game/object_definitions.h"
 #include "maths/direction.h"
+#include "game/city_map.h"
 #include "game/native_object_layout.h"
+#include "game/object_definitions.h"
 
 namespace darker::game {
 

@@ -3,13 +3,13 @@
 #include <bit>
 #include <ranges>
 #include <stdexcept>
+#include "maths/angle.h"
+#include "maths/world_coordinates.h"
 #include "game/beacon_light.h"
 #include "graphics/near_clip.h"
 #include "graphics/particles.h"
 #include "graphics/screen_layout.h"
 #include "graphics/tunnel_visibility.h"
-#include "maths/angle.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::graphics {
 

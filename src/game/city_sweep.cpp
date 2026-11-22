@@ -1,10 +1,10 @@
 #include "game/city_sweep.h"
 #include <algorithm>
 #include <bit>
+#include "maths/world_coordinates.h"
 #include "game/city_collision.h"
 #include "game/collision_cells.h"
 #include "game/collision_sweep.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 namespace {

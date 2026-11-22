@@ -2,14 +2,14 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "vectorstorm/vector/vector2.h"
+#include "maths/angle.h"
+#include "maths/direction.h"
 #include "game/actor_motion.h"
 #include "game/city_map.h"
 #include "game/object_definitions.h"
-#include "game/player_flight.h"
-#include "maths/direction.h"
-#include "maths/angle.h"
-#include "vectorstorm/vector/vector2.h"
 #include "game/player_flags.h"
+#include "game/player_flight.h"
 
 namespace darker::game {
 namespace {

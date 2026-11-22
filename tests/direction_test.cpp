@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include <cstdint>
+#include "maths/direction.h"
 #include "game/object_definitions.h"
 #include "game/projectile_steering.h"
-#include "maths/direction.h"
 #include "reference/direction_samples.h"
 
 TEST_CASE("Object target direction matches native quadrants, axes and signed word boundaries") {

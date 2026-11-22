@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "maths/angle.h"
 #include "graphics/particle_tables.h"
 #include "graphics/screen_layout.h"
-#include "maths/angle.h"
 
 namespace darker::graphics {
 

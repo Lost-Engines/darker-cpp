@@ -3,9 +3,9 @@
 #include <bit>
 #include <cstdint>
 #include <stdexcept>
+#include "maths/world_coordinates.h"
 #include "game/object_definitions.h"
 #include "game/skimma_weapons.h"
-#include "maths/world_coordinates.h"
 #include "reference/recoil_samples.h"
 #include "reference/skimma_firing_samples.h"
 #include "reference/skimma_gun_samples.h"

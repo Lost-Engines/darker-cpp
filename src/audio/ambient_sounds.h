@@ -2,11 +2,11 @@
 
 #include <array>
 #include <cstdint>
-#include "resources/world_profile.h"
 #include <vector>
+#include "maths/world_coordinates.h"
 #include "game/city_map.h"
 #include "game/effects.h"
-#include "maths/world_coordinates.h"
+#include "resources/world_profile.h"
 
 namespace darker::audio {
 

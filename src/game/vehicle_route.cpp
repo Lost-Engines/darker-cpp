@@ -3,8 +3,8 @@
 #include <bit>
 #include <stdexcept>
 #include <utility>
-#include "game/random.h"
 #include "maths/sine_table.h"
+#include "game/random.h"
 
 namespace darker::game {
 namespace {

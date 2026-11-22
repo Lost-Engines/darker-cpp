@@ -85,7 +85,13 @@ TEST_CASE("Warehouse preparation matches native cell variants and platform param
 }
 
 TEST_CASE("Nightmare reserves keep their authored formation and fade in", "[actors][nightmare]") {
-  using namespace darker::game;
+  using darker::game::activate_scenario_reserves;
+  using darker::game::actor_category;
+  using darker::game::actor_index;
+  using darker::game::air_reserve_mode;
+  using darker::game::object_pose;
+  using darker::game::object_update;
+  using darker::game::scenario_actor;
   object_pose player;
   player.position = {11392, 17024, 2400};
   std::vector<scenario_actor> reserves(5);
@@ -115,7 +121,11 @@ TEST_CASE("Nightmare reserves keep their authored formation and fade in", "[acto
 }
 
 TEST_CASE("Nightmare arrival clearance checks ground actors rather than other aircraft", "[actors][nightmare]") {
-  using namespace darker::game;
+  using darker::game::actor_category;
+  using darker::game::air_reserve_mode;
+  using darker::game::object_pose;
+  using darker::game::place_air_reserve;
+  using darker::game::scenario_actor;
   scenario_actor arriving;
   arriving.pose.position = {12000, 13000, 3000};
   std::array<scenario_actor, 1> neighbours{arriving};

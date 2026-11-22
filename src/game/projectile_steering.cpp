@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "maths/direction.h"
 #include "game/city_map.h"
 #include "game/projectile_motion.h"
-#include "maths/direction.h"
 
 namespace darker::game {
 namespace {
@@ -87,7 +87,7 @@ void advance_chargeable_projectile(projectile &record, object_pose const &target
   auto const step{steer_homing_projectile(record, angles.heading, angles.pitch, frame_step)};
   record.inherited_roll = record.placement.angles.roll;
   auto const triple{static_cast<uint16_t>(remaining * 3)};
-  record.placement.angles.roll = static_cast<uint16_t>((uint32_t{triple}* triple) >> 8);
+  record.placement.angles.roll = static_cast<uint16_t>((uint32_t{triple} * triple) >> 8);
   advance_direct_projectile(record.placement, *record.parameters.definition, step, remaining);
 }
 

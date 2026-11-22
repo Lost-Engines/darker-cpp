@@ -1,7 +1,7 @@
 #include "graphics/font.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 

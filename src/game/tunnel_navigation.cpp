@@ -5,9 +5,9 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <utility>
+#include "maths/direction.h"
 #include "game/angular_motion.h"
 #include "game/flight_motion.h"
-#include "maths/direction.h"
 
 namespace darker::game {
 

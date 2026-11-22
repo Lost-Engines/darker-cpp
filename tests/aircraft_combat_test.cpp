@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
+#include "maths/world_coordinates.h"
 #include "game/aircraft_combat.h"
 #include "game/mission_combat.h"
 #include "game/object_definitions.h"
-#include "maths/world_coordinates.h"
 #include "reference/aircraft_bomb_samples.h"
 #include "reference/aircraft_combat_samples.h"
 #include "reference/aircraft_fire_samples.h"

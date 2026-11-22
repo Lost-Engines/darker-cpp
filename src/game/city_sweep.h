@@ -3,9 +3,9 @@
 #include <array>
 #include <cstdint>
 #include <span>
+#include "maths/world_coordinates.h"
 #include "game/city_map.h"
 #include "game/collision_box.h"
-#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 
 namespace darker::game {

@@ -5,10 +5,10 @@
 #include <optional>
 #include <span>
 #include <vector>
+#include "vectorstorm/vector/vector3.h"
+#include "maths/world_coordinates.h"
 #include "game/effect_sound.h"
 #include "game/time.h"
-#include "maths/world_coordinates.h"
-#include "vectorstorm/vector/vector3.h"
 
 namespace darker::game {
 
@@ -44,9 +44,15 @@ public:
   constexpr emitter_animation() noexcept = default;
   explicit constexpr emitter_animation(uint8_t native) noexcept : value{native} {}
 
-  constexpr unsigned int lifetime_ticks() const noexcept { return (value & lifetime_mask) * ticks_per_phase; }
-  constexpr particle_animation_mode mode() const noexcept { return value & fire_flag ? particle_animation_mode::fire : particle_animation_mode::smoke; }
-  constexpr uint8_t encoded() const noexcept { return value; }
+  constexpr unsigned int lifetime_ticks() const noexcept {
+    return (value & lifetime_mask) * ticks_per_phase;
+  }
+  constexpr particle_animation_mode mode() const noexcept {
+    return value & fire_flag ? particle_animation_mode::fire : particle_animation_mode::smoke;
+  }
+  constexpr uint8_t encoded() const noexcept {
+    return value;
+  }
 
 private:
   uint8_t value{0};
@@ -85,8 +91,12 @@ private:
 public:
   std::vector<particle_emitter> emitters;
   std::vector<particle_emitter> trails;
-  std::span<effect_sound const> sounds() const noexcept { return effect_sounds.records(); }
-  std::span<effect_sound const> gun_sounds() const noexcept { return impact_sounds.records(); }
+  std::span<effect_sound const> sounds() const noexcept {
+    return effect_sounds.records();
+  }
+  std::span<effect_sound const> gun_sounds() const noexcept {
+    return impact_sounds.records();
+  }
 
   template<typename Visitor> void submit_sounds(Visitor const &visit) {
     /// Keep recipe sounds before impact sounds in native source-admission order

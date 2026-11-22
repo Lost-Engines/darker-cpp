@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "maths/world_coordinates.h"
 #include "game/effect_tables.h"
 #include "game/random.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

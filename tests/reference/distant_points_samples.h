@@ -5,7 +5,7 @@
 #include <array>
 
 namespace darker::test_reference {
-inline constexpr std::array<std::array<int,7>,512> distant_points_samples{{
+inline std::array<std::array<int,7>,512> constexpr distant_points_samples{{
   {1, 2, 513, 168, 0, 160, 84},
   {1, 2, 513, 240, 1, 160, 121},
   {1, 2, 513, 168, 2, 160, 85},
@@ -519,4 +519,4 @@ inline constexpr std::array<std::array<int,7>,512> distant_points_samples{{
   {-6120, 17032, 10625, 168, 254, -1, -1},
   {-11490, 25726, 18886, 240, 255, -1, -1},
 }};
-}
+} // namespace darker::test_reference

@@ -1,7 +1,7 @@
 #include "game/flight_attitude.h"
 #include <bit>
-#include "game/angular_motion.h"
 #include "maths/angle.h"
+#include "game/angular_motion.h"
 
 namespace darker::game {
 namespace {

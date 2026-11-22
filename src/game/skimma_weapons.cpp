@@ -1,15 +1,15 @@
 #include "game/skimma_weapons.h"
-#include "game/weapon_selection.h"
 #include <algorithm>
 #include <array>
 #include <bit>
 #include <stdexcept>
-#include "game/object_definitions.h"
-#include "game/random.h"
 #include "maths/angle.h"
 #include "maths/world_coordinates.h"
-#include "game/target_reference.h"
+#include "game/object_definitions.h"
 #include "game/player_flags.h"
+#include "game/random.h"
+#include "game/target_reference.h"
+#include "game/weapon_selection.h"
 
 namespace darker::game {
 namespace {

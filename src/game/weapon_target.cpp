@@ -1,13 +1,13 @@
 #include "game/weapon_target.h"
 #include <bit>
-#include "game/aircraft_combat.h"
-#include "game/city_sweep.h"
-#include "game/object_definitions.h"
+#include "vectorstorm/vector/vector2.h"
 #include "maths/angle.h"
 #include "maths/world_coordinates.h"
-#include "vectorstorm/vector/vector2.h"
+#include "game/aircraft_combat.h"
+#include "game/city_sweep.h"
 #include "game/native_object_layout.h"
 #include "game/object_catalogue.h"
+#include "game/object_definitions.h"
 #include "game/target_reference.h"
 
 namespace darker::game {

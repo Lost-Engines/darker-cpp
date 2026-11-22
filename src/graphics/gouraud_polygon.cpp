@@ -168,7 +168,7 @@ void draw_gouraud_polygon(framework::render::indexed_surface target,
     return a.position.y < b.position.y;
   })};
   if(rightmost->position.x < 0 || lowest->position.y < 0 || leftmost->position.x > right || top->position.y >= bottom) return;
-  if(top->position.y == lowest->position.y) return; // no scanlines, including subpixel distant faces
+  if(top->position.y == lowest->position.y) return;                            // no scanlines, including subpixel distant faces
   auto const index{static_cast<size_t>(top - vertices.begin())};
   auto const &next{vertices[index + 1 == vertices.size() ? 0 : index + 1]}, &previous{vertices[index == 0 ? vertices.size() - 1 : index - 1]};
   if(back_facing(top->position, next.position, previous.position)) return;

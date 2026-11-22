@@ -3,11 +3,11 @@
 #include <cstdlib>
 #include <functional>
 #include <stdexcept>
-#include "game/city_map.h"
+#include "vectorstorm/vector/vector2.h"
 #include "maths/direction.h"
 #include "maths/sine_table.h"
 #include "maths/world_coordinates.h"
-#include "vectorstorm/vector/vector2.h"
+#include "game/city_map.h"
 
 namespace darker::game {
 namespace {

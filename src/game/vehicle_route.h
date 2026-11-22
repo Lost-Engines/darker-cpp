@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include "maths/world_coordinates.h"
 #include "game/object_pose.h"
 #include "game/time.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

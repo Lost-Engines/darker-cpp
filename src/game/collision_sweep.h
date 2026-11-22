@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstdint>
-#include "game/collision_box.h"
 #include "maths/world_coordinates.h"
+#include "game/collision_box.h"
 
 namespace darker::game {
 

@@ -1,3 +1,5 @@
+#pragma once
+
 // included inside the upstream core namespace, after its register definitions
 struct device_state {
   GFGus registers{};

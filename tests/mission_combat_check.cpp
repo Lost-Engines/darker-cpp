@@ -5,6 +5,8 @@
 #include <optional>
 #include <stdexcept>
 #include <utility>
+#include "maths/sine_table.h"
+#include "maths/world_coordinates.h"
 #include "game/actor_activation.h"
 #include "game/beacon_changes.h"
 #include "game/hangar.h"
@@ -18,8 +20,6 @@
 #include "game/tunnel_portal.h"
 #include "graphics/city_scene.h"
 #include "graphics/formatted_text.h"
-#include "maths/sine_table.h"
-#include "maths/world_coordinates.h"
 #include "presentation/player.h"
 #include "reference/actor_admission_samples.h"
 #include "reference/actor_sweep_samples.h"

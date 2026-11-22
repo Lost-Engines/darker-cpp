@@ -1,10 +1,10 @@
 #include "game/camera_target.h"
 #include <bit>
+#include "maths/view_basis.h"
+#include "maths/world_coordinates.h"
 #include "game/aircraft_combat.h"
 #include "game/city_sweep.h"
 #include "game/projectile_steering.h"
-#include "maths/view_basis.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

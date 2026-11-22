@@ -3,11 +3,11 @@
 #include <bit>
 #include <cstddef>
 #include <stdexcept>
+#include "maths/angle.h"
 #include "graphics/bitmap_hud.h"
 #include "graphics/cockpit_tables.h"
 #include "graphics/procedural_hud.h"
 #include "graphics/screen_layout.h"
-#include "maths/angle.h"
 
 namespace darker::graphics {
 namespace {

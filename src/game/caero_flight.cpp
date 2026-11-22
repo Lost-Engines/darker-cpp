@@ -2,12 +2,12 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "maths/angle.h"
 #include "game/angular_motion.h"
-#include "game/flight_rules.h"
 #include "game/beacon_light.h"
 #include "game/flight_attitude.h"
 #include "game/flight_motion.h"
-#include "maths/angle.h"
+#include "game/flight_rules.h"
 
 namespace darker::game {
 namespace {
