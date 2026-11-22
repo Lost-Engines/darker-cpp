@@ -4,9 +4,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include "maths/world_coordinates.h"
 #include "game/hangar.h"
 #include "game/mission_combat.h"
-#include "maths/world_coordinates.h"
 #include "reference/hangar_flight_samples.h"
 #include "reference/hangar_return_samples.h"
 #include "resources/archive_set.h"
@@ -178,7 +178,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     if(csv.is_open()) {
       csv << tick;
       for(auto const value : actual) csv << ',' << value;
-      csv << '\n';                                                              // trace rows are buffered rather than flushed per field
+      csv << '\n';                                                             // trace rows are buffered rather than flushed per field
     }
     for(size_t field{0}; field < actual.size(); ++field) {
       if(actual[field] != expected[field] && first_mismatch.empty()) {

@@ -1,10 +1,10 @@
 #include "game/skimma_flight.h"
 #include <algorithm>
 #include <bit>
+#include "maths/angle.h"
 #include "game/angular_motion.h"
 #include "game/flight_attitude.h"
 #include "game/flight_motion.h"
-#include "maths/angle.h"
 
 namespace darker::game {
 namespace {

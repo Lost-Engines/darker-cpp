@@ -3,8 +3,8 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
-#include "graphics/screen_layout.h"
 #include "maths/angle.h"
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 

@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstdint>
-#include "game/time.h"
 #include "maths/view_basis.h"
+#include "game/time.h"
 
 namespace darker::game {
 

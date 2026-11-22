@@ -2,8 +2,8 @@
 #include <array>
 #include <cstddef>
 #include <vector>
-#include "game/city_sweep.h"
 #include "maths/world_coordinates.h"
+#include "game/city_sweep.h"
 
 TEST_CASE("Terrain sweeps preserve original half-height clipping and eighth-height contact quantisation", "[game][collision]") {
   /// No building geometry participates in these terrain-only contacts

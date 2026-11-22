@@ -7,7 +7,7 @@ namespace darker::graphics {
 
 // Raster interpolation precision is independent of retained camera-space fractions.
 struct raster_arithmetic {
-  using division_quotient = int16_t;                                          // native IDIV result, shared by clipping coordinates and shades
+  using division_quotient = int16_t;                                           // native IDIV result, shared by clipping coordinates and shades
   using palette_accumulator = uint16_t;
   using palette_difference = int16_t;
   static unsigned int constexpr edge_fraction_bits{8};

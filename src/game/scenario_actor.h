@@ -3,9 +3,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include "resources/world_profile.h"
 #include <optional>
 #include <vector>
+#include "maths/world_coordinates.h"
 #include "game/actor_awareness.h"
 #include "game/actor_motion.h"
 #include "game/mission_script.h"
@@ -13,9 +13,9 @@
 #include "game/object_pose.h"
 #include "game/tunnel_network.h"
 #include "game/vehicle_route.h"
-#include "maths/world_coordinates.h"
 #include "resources/geometry_bank.h"
 #include "resources/scenario.h"
+#include "resources/world_profile.h"
 
 namespace darker::game {
 

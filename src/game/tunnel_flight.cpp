@@ -2,11 +2,11 @@
 #include <algorithm>
 #include <bit>
 #include <cstdlib>
+#include "maths/angle.h"
+#include "maths/direction.h"
 #include "game/angular_motion.h"
 #include "game/city_map.h"
 #include "game/flight_motion.h"
-#include "maths/direction.h"
-#include "maths/angle.h"
 
 namespace darker::game {
 namespace {

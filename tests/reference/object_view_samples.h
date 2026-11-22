@@ -6,7 +6,7 @@
 
 namespace darker::test_reference {
 struct object_camera_ray_sample { std::array<int,3> position, angles, target, end; std::array<int,1> accepted; };
-inline constexpr std::array<object_camera_ray_sample,512> object_camera_rays{{
+inline std::array<object_camera_ray_sample,512> constexpr object_camera_rays{{
   {{60922, 11287, 26731}, {23576, 50612, 11078}, {63041, 33458, 54220}, {60476, 11653, 59826}, {0}},
   {{16499, 23141, 6034}, {2648, 63423, 34643}, {25128, 5135, 45416}, {15500, 19256, 64982}, {0}},
   {{31292, 64739, 27486}, {1201, 15161, 10572}, {65519, 11737, 18897}, {31236, 64266, 60030}, {0}},
@@ -521,7 +521,7 @@ inline constexpr std::array<object_camera_ray_sample,512> object_camera_rays{{
   {{32559, 49407, 44013}, {62827, 35932, 25175}, {6797, 38739, 55640}, {31538, 53184, 34310}, {0}},
 }};
 struct object_camera_view_sample { std::array<int,3> position; std::array<int,2> fractions; std::array<int,3> angles; std::array<int,4> input; std::array<int,9> output; };
-inline constexpr std::array<object_camera_view_sample,512> object_camera_views{{
+inline std::array<object_camera_view_sample,512> constexpr object_camera_views{{
   {{60922, 11287, 2155}, {91, 190}, {23576, 50612, 11078}, {69, 4, 4205, 0}, {60954, 11261, 4807, 111, 106, 23552, 50624, 11072, 4757}},
   {{16499, 23141, 1938}, {181, 160}, {2648, 63423, 34643}, {66, 4, 32768, 1}, {16612, 23581, 3149, 181, 80, 2624, 63424, 34624, 7424}},
   {{31292, 64739, 2910}, {107, 71}, {1201, 15161, 10572}, {48, 4, 32768, 0}, {31324, 65010, 82, 58, 232, 1216, 8896, 10560, 6656}},

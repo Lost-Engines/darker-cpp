@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
-#include "game/tunnel_network.h"
 #include "maths/world_coordinates.h"
+#include "game/tunnel_network.h"
 #include "reference/tunnel_network_samples.h"
 
 TEST_CASE("Tunnel route preparation and interpolation match native geometry helpers") {

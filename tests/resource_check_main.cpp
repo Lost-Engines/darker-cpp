@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <boost/program_options.hpp>
+#include "maths/world_coordinates.h"
 #include "actor_flight_check.h"
 #include "building_combat_check.h"
 #include "camera_target_check.h"
@@ -21,7 +22,6 @@
 #include "graphics/city_scene.h"
 #include "graphics/model_renderer.h"
 #include "hangar_flight_check.h"
-#include "maths/world_coordinates.h"
 #include "mission_combat_check.h"
 #include "music_check.h"
 #include "nightmare_check.h"

@@ -1,13 +1,13 @@
-#include "game/native_object_layout.h"
 #include "audio/world_sounds.h"
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
 #include <vector>
-#include "game/object_definitions.h"
-#include "maths/direction.h"
 #include "maths/angle.h"
+#include "maths/direction.h"
 #include "maths/world_coordinates.h"
+#include "game/native_object_layout.h"
+#include "game/object_definitions.h"
 
 namespace darker::audio {
 
@@ -73,7 +73,7 @@ std::array<uint8_t, 2> stereo_attenuation(maths::world_position const delta, mat
     auto const sum{static_cast<uint16_t>(sine + harmonic + (harmonic >> 2))};
     return static_cast<uint16_t>((sum * 2) ^ (sum & 0x8000 ? 65535 : 0));
   }};
-  auto const amplitude{std::min(65535u, unsigned{level}+ (level >> 4)) >> 4};
+  auto const amplitude{std::min(65535u, unsigned{level} + (level >> 4)) >> 4};
   auto const left{gain(maths::original_sine[256 + ((-phase) & 511)])};
   auto const right{gain(maths::original_sine[phase])};
   return {static_cast<uint8_t>(63 ^ ((left * amplitude) >> 22)), static_cast<uint8_t>(63 ^ ((right * amplitude) >> 22))};
@@ -114,7 +114,7 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
   }
   case 0x3969:
     if(state.flags & 0x20) {
-      result.level = static_cast<uint16_t>((uint32_t{result.level}* (state.fade * 257u)) >> 16);
+      result.level = static_cast<uint16_t>((uint32_t{result.level} * (state.fade * 257u)) >> 16);
       result.active = result.level != 0;
     } else result.active = !(state.flags & 8);
     break;

@@ -1,9 +1,9 @@
 #include "audio/ambient_sounds.h"
 #include <bit>
 #include <stdexcept>
+#include "maths/world_coordinates.h"
 #include "game/beacon_light.h"
 #include "game/radar_coverage.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 namespace {

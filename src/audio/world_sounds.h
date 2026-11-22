@@ -1,11 +1,11 @@
 #pragma once
 
 #include <optional>
+#include "maths/view_basis.h"
+#include "maths/world_coordinates.h"
 #include "audio/fm_stream.h"
 #include "audio/voice_allocation.h"
 #include "game/mission_combat.h"
-#include "maths/view_basis.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::audio {
 

@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <bit>
+#include "maths/world_coordinates.h"
 #include "game/player_flight.h"
 #include "game/supply_pad.h"
-#include "maths/world_coordinates.h"
 #include "reference/skimma_start_samples.h"
 #include "reference/supply_entry_samples.h"
 #include "reference/supply_motion_samples.h"

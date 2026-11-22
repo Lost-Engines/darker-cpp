@@ -3,8 +3,8 @@
 #include <cstdint>
 #include "graphics/bitmap_hud.h"
 #include "graphics/navigation_hud.h"
-#include "reference/navigation_samples.h"
 #include "reference/missile_warning_samples.h"
+#include "reference/navigation_samples.h"
 
 TEST_CASE("Every compass phase matches original-code pixel captures") {
   for(uint8_t phase{0}; phase < 136; ++phase) {

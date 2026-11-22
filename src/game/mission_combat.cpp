@@ -1,29 +1,29 @@
 #include "game/mission_combat.h"
-#include "game/player_flags.h"
-#include "game/weapon_selection.h"
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
 #include <utility>
+#include "maths/world_coordinates.h"
 #include "game/actor_activation.h"
 #include "game/actor_update.h"
 #include "game/building_impact.h"
 #include "game/caero_weapons.h"
 #include "game/dual_launch.h"
 #include "game/effect_tables.h"
+#include "game/native_object_layout.h"
+#include "game/object_catalogue.h"
 #include "game/object_deadline.h"
 #include "game/object_definitions.h"
 #include "game/objective_counter.h"
+#include "game/player_flags.h"
 #include "game/projectile_motion.h"
 #include "game/projectile_update.h"
 #include "game/random.h"
 #include "game/skimma_weapons.h"
+#include "game/target_reference.h"
 #include "game/tunnel_navigation.h"
 #include "game/vehicle_combat.h"
-#include "maths/world_coordinates.h"
-#include "game/native_object_layout.h"
-#include "game/object_catalogue.h"
-#include "game/target_reference.h"
+#include "game/weapon_selection.h"
 
 namespace darker::game {
 namespace {
@@ -587,8 +587,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         adjust_objectives(static_cast<uint8_t>(-(victim->attributes & 1)));
         actors.erase(actors.begin() + (victim - actors.data()));
       }
-    }
-    else if(!victim && contact.contact == city_contact::building
+    } else if(!victim && contact.contact == city_contact::building
       && (shot->parameters.definition == &original_object_definitions[3] || shot->parameters.definition == &original_object_definitions[4])) {
       auto const &cell{cells[city_cell_index(contact.column, contact.row)]};
       auto const result{diffuser.hit(shot->parameters.definition == &original_object_definitions[4], contact.category, cell.state,
@@ -599,8 +598,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         effects.spawn(0x75d4, {static_cast<uint16_t>(contact.column * 256 + type.column_fraction),
           static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact.height}, clock);
       } else effects.spawn(0x75a3, impact, clock);
-    }
-    else if(!victim) impact_projectile_world(contact, impact, *shot->parameters.definition, cells, bank, effects, clock, player.tunnel ? 0x7386 : 0x721c, world_damage_counter, damage_mask);
+    } else if(!victim) impact_projectile_world(contact, impact, *shot->parameters.definition, cells, bank, effects, clock, player.tunnel ? 0x7386 : 0x721c, world_damage_counter, damage_mask);
     shot->flags |= 0x28;
     shot->parameters.update_entry = object_update::effect_only;
     shot->deadline = static_cast<uint16_t>(clock + 256);

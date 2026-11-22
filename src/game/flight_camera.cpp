@@ -3,9 +3,9 @@
 #include <array>
 #include <bit>
 #include <stdexcept>
-#include "game/angular_motion.h"
-#include "maths/direction.h"
 #include "maths/angle.h"
+#include "maths/direction.h"
+#include "game/angular_motion.h"
 
 namespace darker::game {
 namespace {

@@ -2,11 +2,11 @@
 #include <algorithm>
 #include <bit>
 #include <stdexcept>
+#include "maths/direction.h"
+#include "maths/world_coordinates.h"
 #include "game/actor_motion.h"
 #include "game/flight_motion.h"
 #include "game/object_definitions.h"
-#include "maths/direction.h"
-#include "maths/world_coordinates.h"
 #include "game/player_flags.h"
 
 namespace darker::game {

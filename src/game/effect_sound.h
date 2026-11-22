@@ -6,8 +6,8 @@
 #include <span>
 #include <utility>
 #include <vector>
-#include "game/time.h"
 #include "maths/world_coordinates.h"
+#include "game/time.h"
 
 namespace darker::game {
 
@@ -36,7 +36,9 @@ public:
 
   explicit effect_sound_pool(uint32_t first_identity) noexcept;
   void append(effect_sound sound);
-  std::span<effect_sound const> records() const noexcept { return active; }
+  std::span<effect_sound const> records() const noexcept {
+    return active;
+  }
 
   template<typename Predicate> void retire(Predicate const &expired) {
     /// Recycle in newest-first order, preserving the native free-list allocation sequence

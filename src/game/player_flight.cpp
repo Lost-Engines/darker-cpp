@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <utility>
 #include "game/city_map.h"
-#include "game/object_definitions.h"
 #include "game/object_catalogue.h"
+#include "game/object_definitions.h"
 #include "game/player_flags.h"
 
 namespace darker::game {

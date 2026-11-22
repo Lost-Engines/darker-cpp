@@ -30,8 +30,7 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
       if(op == 128) {
         x = origin;
         ++y;
-      }
-      else if(op > 128) x += op & 127;
+      } else if(op > 128) x += op & 127;
       else {
         if(static_cast<size_t>(op + 1) > end - p || x + op >= 1024 || y >= 256) throw std::invalid_argument{"Animation literal exceeds bounds"};
         for(unsigned int i{0}; i <= op; ++i) frame.push_back({static_cast<uint16_t>(x++), static_cast<uint16_t>(y), byte()});

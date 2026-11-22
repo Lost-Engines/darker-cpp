@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include <cstdint>
-#include "game/collision_sweep.h"
 #include "maths/world_coordinates.h"
+#include "game/collision_sweep.h"
 #include "reference/collision_sweep_samples.h"
 
 TEST_CASE("Swept collision boxes match native intersection and impact rounding", "[game][collision]") {

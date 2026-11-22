@@ -3,12 +3,12 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include "maths/world_coordinates.h"
 #include "game/caero_energy.h"
 #include "game/city_map.h"
 #include "game/collision_box.h"
 #include "game/projectile_pool.h"
 #include "game/time.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

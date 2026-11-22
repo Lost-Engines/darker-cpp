@@ -4,12 +4,12 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include "maths/world_coordinates.h"
 #include "game/actor_navigation.h"
 #include "game/object_impact.h"
 #include "game/projectile_pool.h"
 #include "game/scenario_actor.h"
 #include "game/time.h"
-#include "maths/world_coordinates.h"
 
 namespace darker::game {
 

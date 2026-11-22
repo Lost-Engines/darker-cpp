@@ -11,7 +11,7 @@ struct collision_sweep_format {
   static unsigned int constexpr cell_fraction_mask{(1u << cell_fraction_bits) - 1};
   static unsigned int constexpr slope_fraction_bits{16};
   static unsigned int constexpr error_mask{(1u << slope_fraction_bits) - 1};
-  static unsigned int constexpr crossing_bias{128};                           // native fractional crossing bias, not a collision radius
+  static unsigned int constexpr crossing_bias{128};                            // native fractional crossing bias, not a collision radius
 };
 
 // collision-stream encoding is independent of the runtime sweep arithmetic

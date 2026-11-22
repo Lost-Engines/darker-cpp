@@ -9,13 +9,13 @@ namespace darker::graphics {
 using camera_angles = maths::attitude_angles;
 
 struct camera_position {
-  render_geometry::coordinate_bits column{0};                                                          // 1/1024 cell, matching the patched origin subtractors
+  render_geometry::coordinate_bits column{0};                                  // 1/1024 cell, matching the patched origin subtractors
   render_geometry::coordinate_bits row{0};
   render_geometry::coordinate altitude{0};
 };
 
 struct model_origin {
-  maths::world_format::position_component column{0};                                                          // 1/256 cell, including the type record's fractional placement
+  maths::world_format::position_component column{0};                           // 1/256 cell, including the type record's fractional placement
   maths::world_format::position_component row{0};
   int16_t height{0};                                                           // selected header height minus the type's vertical placement
 };

@@ -4,9 +4,9 @@
 #include <format>
 #include <stdexcept>
 #include <utility>
+#include "maths/sine_table.h"
 #include "graphics/screen_layout.h"
 #include "graphics/screen_primitives.h"
-#include "maths/sine_table.h"
 
 namespace darker::graphics {
 namespace {

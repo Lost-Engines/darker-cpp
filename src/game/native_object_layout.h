@@ -11,7 +11,7 @@ struct native_object_layout {
   static token constexpr player_projectiles{0xd1a6};
   static token constexpr hostile_projectiles{0xd6e6};
   static token constexpr actors{0xd986};
-  static token constexpr player{actors};                                     // actor zero is the player
+  static token constexpr player{actors};                                       // actor zero is the player
   static token constexpr no_target{0xffff};
 
   static constexpr token actor(unsigned int index) noexcept {

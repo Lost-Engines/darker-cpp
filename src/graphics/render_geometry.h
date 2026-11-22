@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
-#include "graphics/screen_layout.h"
 #include "maths/world_coordinates.h"
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 
@@ -16,14 +16,14 @@ struct render_geometry {
   using fraction = uint8_t;
   using accumulator = int32_t;
   using accumulator_bits = std::make_unsigned_t<accumulator>;
-  using screen_coordinate = int16_t;                                        // raster coordinates need not widen with camera coordinates
+  using screen_coordinate = int16_t;                                           // raster coordinates need not widen with camera coordinates
   using screen_coordinate_bits = std::make_unsigned_t<screen_coordinate>;
-  using sorting_distance = uint16_t;                                        // painter ordering has its own unsigned range
+  using sorting_distance = uint16_t;                                           // painter ordering has its own unsigned range
 
   static unsigned int constexpr whole_bits{std::numeric_limits<coordinate_bits>::digits};
   static unsigned int constexpr fraction_bits{std::numeric_limits<fraction>::digits};
   static unsigned int constexpr accumulator_width{std::numeric_limits<accumulator_bits>::digits};
-  static unsigned int constexpr product_whole_shift{16};                     // native transform product scale, independent of coordinate storage width
+  static unsigned int constexpr product_whole_shift{16};                       // native transform product scale, independent of coordinate storage width
   static unsigned int constexpr product_fraction_shift{product_whole_shift - fraction_bits};
   static unsigned int constexpr retained_bits{whole_bits + fraction_bits};
   static unsigned int constexpr discarded_bits{accumulator_width - retained_bits};
@@ -43,7 +43,7 @@ struct render_geometry {
   static screen_coordinate constexpr intersection_max{16382};
 
   static_assert(retained_bits < accumulator_width);
-  static_assert(focal_length == fraction_scale);                              // native IDIV consumes the fixed-point numerator directly
+  static_assert(focal_length == fraction_scale);                               // native IDIV consumes the fixed-point numerator directly
   static_assert(product_whole_shift >= fraction_bits);
   static_assert((accumulator{1} << near_projection_shift) == near_depth);
   static_assert((1 << (maths::world_format::fraction_bits - camera_fraction_shift)) == world_to_camera_scale);
@@ -68,7 +68,7 @@ struct scene_limits {
   static unsigned int constexpr surface_radius_cells{15};
   static unsigned int constexpr tunnel_radius_cells{8};
   static unsigned int constexpr minimum_scan_radius_cells{2};
-  static unsigned int constexpr maximum_scan_radius_cells{32};                  // scanner bound, not a guarantee that projection can represent the entire radius
+  static unsigned int constexpr maximum_scan_radius_cells{32};                 // scanner bound, not a guarantee that projection can represent the entire radius
   static unsigned int constexpr distance_shade_tables{60};
   static unsigned int constexpr maximum_distance_shade_tables{255};
   static unsigned int constexpr distance_shade_shift{8};                       // whole depth units per fog-table entry; independent of projection fractions

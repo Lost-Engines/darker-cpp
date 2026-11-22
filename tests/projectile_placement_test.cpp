@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <array>
 #include <cstdint>
-#include "game/projectile_placement.h"
 #include "maths/world_coordinates.h"
+#include "game/projectile_placement.h"
 #include "reference/placement_samples.h"
 
 TEST_CASE("Projectile placement matches both native launch paths including fractional carries") {

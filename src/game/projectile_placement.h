@@ -2,9 +2,9 @@
 
 #include <array>
 #include <cstdint>
-#include "game/object_pose.h"
 #include "maths/view_basis.h"
 #include "maths/world_coordinates.h"
+#include "game/object_pose.h"
 
 namespace darker::game {
 

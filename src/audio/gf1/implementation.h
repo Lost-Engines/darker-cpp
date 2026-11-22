@@ -1,3 +1,5 @@
+#pragma once
+
 // included after the fetched GF1 core; only this adapter sees its internal types
 auto DmaChannel::Read(Bitu count, void *target)->Bitu {
   context->dma_reader({static_cast<std::byte*>(target), count});

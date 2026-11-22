@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <bit>
+#include "maths/world_coordinates.h"
 #include "game/effects.h"
 #include "graphics/particles.h"
-#include "maths/world_coordinates.h"
 #include "reference/effect_samples.h"
 
 TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {

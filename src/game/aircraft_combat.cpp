@@ -1,12 +1,12 @@
 #include "game/aircraft_combat.h"
 #include <bit>
+#include "maths/world_coordinates.h"
 #include "game/angular_motion.h"
 #include "game/collision_sweep.h"
+#include "game/native_object_layout.h"
 #include "game/object_definitions.h"
 #include "game/object_impact.h"
 #include "game/skimma_weapons.h"
-#include "maths/world_coordinates.h"
-#include "game/native_object_layout.h"
 #include "game/target_reference.h"
 
 namespace darker::game {

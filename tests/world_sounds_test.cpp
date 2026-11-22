@@ -2,10 +2,10 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <algorithm>
 #include <cmath>
+#include "maths/world_coordinates.h"
 #include "audio/flight_sounds.h"
 #include "audio/world_sounds.h"
 #include "game/object_definitions.h"
-#include "maths/world_coordinates.h"
 #include "reference/object_sound_samples.h"
 #include "reference/sound_pool_samples.h"
 #include "reference/stereo_samples.h"

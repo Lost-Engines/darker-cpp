@@ -4,8 +4,8 @@
 #include <vector>
 #include "game/city_persistence.h"
 #include "game/scenario_world.h"
-#include "resources/campaign.h"
 #include "reference/city_persistence_samples.h"
+#include "resources/campaign.h"
 
 void check_city_persistence(darker::resources::archive_set const &archives) {
   /// Compare complete streams and every restored cell through native-generated fingerprints
@@ -47,30 +47,34 @@ void check_city_persistence(darker::resources::archive_set const &archives) {
       darker::game::apply_scenario_cells(cells,record);
       if(stage == 80) break;
       if(stage == 69 || stage == 74) {
-        for(auto const cell : record.cell_lists[1].cells) cells[cell.row*128+cell.column].state |= 0x20;
+        for(auto const cell : record.cell_lists[1].cells) cells[cell.row * 128 + cell.column].state |= 0x20;
       }
       darker::game::commit_beacon_queue(cells,scenario.bytes(record.beacon_sequence));
       darker::game::pack_city_state(cells,bank.city_types(),packed);
     }
     for(auto const [column,row] : std::array<std::array<unsigned int,2>,3>{{{25,79},{24,80},{24,82}}}) {
-      if((cells[row*128+column].state & 0x60) != 0x60)
+      if((cells[row * 128 + column].state & 0x60) != 0x60) {
         throw std::runtime_error{"Mission 74 tank damage/target flags did not persist into mission 80"};
+      }
     }
     auto const &mission69{campaign.scenario(69).records()[4]};
     for(auto const cell : mission69.cell_lists[1].cells) {
-      if(!(cells[cell.row*128+cell.column].state & 0x20))
+      if(!(cells[cell.row * 128 + cell.column].state & 0x20)) {
         throw std::runtime_error{"Mission 69 house damage did not persist into mission 80"};
+      }
     }
     for(auto const [column,row] : std::array<std::array<unsigned int,2>,4>{{{54,63},{63,63},{63,72},{54,72}}}) {
-      if(cells[row*128+column].type != 1 || cells[row*128+column].state != 0)
+      if(cells[row * 128 + column].type != 1 || cells[row * 128 + column].state != 0) {
         throw std::runtime_error{"Mission 69 beacon blackout did not persist into mission 80"};
+      }
     }
     auto fresh{darker::game::make_city_map(map,true)};
     darker::game::apply_scenario_cells(fresh,campaign.scenario(80).records()[7]);
-    if(!(fresh[75*128+16].state & 0x40) || (fresh[79*128+25].state & 0x40)
-      || (fresh[80*128+24].state & 0x40) || (fresh[82*128+24].state & 0x40)
-      || fresh[72*128+63].state != 255)
+    if(!(fresh[75 * 128 + 16].state & 0x40) || (fresh[79 * 128 + 25].state & 0x40)
+      || (fresh[80 * 128 + 24].state & 0x40) || (fresh[82 * 128 + 24].state & 0x40)
+      || fresh[72 * 128 + 63].state != 255) {
       throw std::runtime_error{"Fresh mission 80 unexpectedly inherited earlier campaign changes"};
+    }
   }
   std::cout << "Both persistent city streams and complete restored maps match native BB90/BBC6/BBFC." << std::endl;
 }

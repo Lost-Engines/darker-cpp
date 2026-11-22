@@ -1,9 +1,9 @@
 #include "graphics/bitmap_hud.h"
 #include <array>
 #include <stdexcept>
+#include "maths/sine_table.h"
 #include "graphics/blit.h"
 #include "graphics/cockpit_tables.h"
-#include "maths/sine_table.h"
 
 namespace darker::graphics {
 

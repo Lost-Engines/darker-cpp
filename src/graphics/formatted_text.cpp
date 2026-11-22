@@ -1,8 +1,8 @@
 #include "graphics/formatted_text.h"
-#include "graphics/screen_layout.h"
 #include <array>
 #include <bit>
 #include <stdexcept>
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 namespace {

@@ -13,7 +13,7 @@ struct angle_format {
   static unsigned int constexpr sine_phase_count{1024};
   static unsigned int constexpr quarter_phase{sine_phase_count / 4};
   static unsigned int constexpr phase_shift{6};
-  static unsigned int constexpr view_bias{15};                               // native renderer bias; deliberately not round-to-nearest
+  static unsigned int constexpr view_bias{15};                                 // native renderer bias; deliberately not round-to-nearest
 };
 
 static_assert(original_sine.size() == angle_format::sine_phase_count);

@@ -1,12 +1,12 @@
 #include "graphics/procedural_hud.h"
-#include "graphics/screen_layout.h"
 #include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <span>
 #include <stdexcept>
-#include "graphics/cockpit_tables.h"
 #include "maths/angle.h"
+#include "graphics/cockpit_tables.h"
+#include "graphics/screen_layout.h"
 
 namespace darker::graphics {
 namespace {

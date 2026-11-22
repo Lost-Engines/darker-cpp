@@ -1,8 +1,8 @@
 #include "game/scenario_actor.h"
 #include <algorithm>
 #include <stdexcept>
-#include "game/object_definitions.h"
 #include "game/native_object_layout.h"
+#include "game/object_definitions.h"
 
 namespace darker::game {
 
