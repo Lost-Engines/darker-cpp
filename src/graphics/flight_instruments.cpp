@@ -80,8 +80,9 @@ skimma_instruments measure_skimma_instruments(uint16_t const height, uint16_t co
     shield_deadline = clock;
   } else if(remaining >> 8) {
     auto const high{remaining >> 8};
-    if(high <= 2) result.shield_startup = high == 1 ? 1 : 0;
-    else {
+    if(high <= 2) {
+      result.shield_startup = high == 1 ? 1 : 0;
+    } else {
       auto const phase{static_cast<uint16_t>(remaining - 768) >> 2};
       result.shield_startup = static_cast<uint8_t>(first_shield_sweep_state + ((shield_sweep_states * static_cast<uint8_t>(~phase)) >> 8));
     }

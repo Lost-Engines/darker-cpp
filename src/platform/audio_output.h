@@ -5,7 +5,7 @@
 
 namespace framework::platform {
 
-using pcm_callback = void (*)(void*, std::span<float>) noexcept;
+using pcm_callback = void ( *)(void *, std::span<float>) noexcept;
 
 class audio_output {
 private:
@@ -18,8 +18,8 @@ public:
 
   audio_output(pcm_callback callback, void *userdata);
   ~audio_output();
-  audio_output(audio_output const&) = delete;
-  audio_output &operator=(audio_output const&) = delete;
+  audio_output(audio_output const &) = delete;
+  audio_output &operator=(audio_output const &) = delete;
   audio_output(audio_output &&) = delete;
   audio_output &operator=(audio_output &&) = delete;
 };

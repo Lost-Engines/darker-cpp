@@ -29,7 +29,8 @@ TEST_CASE("Ground vehicle routes match native movement through turns, branches a
       }
     };
     uint8_t flags{0};
-    uint16_t random{17}, deadline{0};
+    uint16_t random{17};
+    uint16_t deadline{0};
     uint64_t hash{0xcbf29ce484222325};
     for(unsigned int call{0}; call < sample.calls; ++call) {
       REQUIRE_FALSE(flags & 0x20);

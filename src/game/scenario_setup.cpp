@@ -31,7 +31,8 @@ void apply_player_scenario_setup(scenario_setup_kind const kind, player_flight &
   int16_t const model_height, weapon_ammunition &second_weapon) {
   /// C79D sets energy and boost before C7C8 applies the model-dependent height and approach angles
   auto &pose{player.pose()};
-  uint16_t height{0}, energy{0};
+  uint16_t height{0};
+  uint16_t energy{0};
   bool boost{false};
   switch(kind) {
   case scenario_setup_kind::halon_approach:

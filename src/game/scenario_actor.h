@@ -21,7 +21,11 @@ namespace darker::game {
 
 using actor_index = uint8_t;
 
-enum class actor_category { air, ground, stationary };
+enum class actor_category {
+  air,
+  ground,
+  stationary
+};
 
 struct tunnel_actor_state {
   uint8_t route{0};

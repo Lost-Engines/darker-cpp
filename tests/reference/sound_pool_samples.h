@@ -4,7 +4,7 @@
 // Image SHA-256: 7599201a01aa24b7e6ad1ae4295d493821cde7c3a43b247c464522626c0380a4
 #include <array>
 namespace darker::test_reference {
-inline std::array<std::array<unsigned int,19>,512> constexpr sound_pool_samples{{
+inline std::array<std::array<unsigned int, 19>, 512> constexpr sound_pool_samples{{
   {1, 0, 1, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {1, 0, 2, 17, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {1, 0, 3, 17, 18, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

@@ -161,7 +161,8 @@ void check_building_combat(darker::resources::archive_set const &archives) {
           .row{aim.position.row},
           .height{static_cast<uint16_t>(aim.height - aim.height_extent / 2)}
         };
-        std::array<int, 4> constexpr columns{0, 200, 0, -200}, rows{200, 0, -200, 0};
+        std::array<int, 4> constexpr columns{0, 200, 0, -200};
+        std::array<int, 4> constexpr rows{200, 0, -200, 0};
         auto const approach{test.stage >= 54 ? (clock / 2048) % 4 : 0};
         player.pose().position = {
           .column{static_cast<uint16_t>(centre[0] + columns[approach])},
@@ -238,7 +239,7 @@ void check_building_combat(darker::resources::archive_set const &archives) {
       context.messages.clear();
       darker::game::advance_mission_script(script, context);
       for(auto const &event : context.messages) {
-        std::string const text{reinterpret_cast<char const*>(event.text.data() + event.offset), event.length};
+        std::string const text{reinterpret_cast<char const *>(event.text.data() + event.offset), event.length};
         message |= text == test.message;
       }
       if(script.stopped && message && context.objectives_complete) break;

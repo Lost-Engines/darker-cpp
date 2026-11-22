@@ -14,7 +14,13 @@
 
 namespace darker::game {
 
-enum class flight_command { engine, altitude_hold, boost, speed_low, speed_high };
+enum class flight_command {
+  engine,
+  altitude_hold,
+  boost,
+  speed_low,
+  speed_high
+};
 
 struct player_flight {
   std::variant<caero_flight_state, skimma_flight_state> craft{};

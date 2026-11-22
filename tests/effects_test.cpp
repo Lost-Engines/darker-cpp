@@ -14,10 +14,12 @@ TEST_CASE("Effect ring projection retains native sprite order", "[effects]") {
       .angle{static_cast<uint16_t>(v[1])},
       .sampling{static_cast<uint16_t>(v[2])}
     };
-    auto const term{[](int64_t const value){ return darker::graphics::projection_term{
+    auto const term{[](int64_t const value){
+      return darker::graphics::projection_term{
       .whole{static_cast<uint16_t>(value >> 8)},
       .fraction{static_cast<uint8_t>(value)}
-    }; }};
+    };
+    }};
     darker::graphics::model_placement const centre{
       .horizontal{term(v[3])},
       .vertical{term(v[4])},

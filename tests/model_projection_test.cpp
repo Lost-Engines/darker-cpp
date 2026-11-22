@@ -30,9 +30,13 @@ TEST_CASE("Stateful model projection matches native component updates and fracti
     darker::graphics::model_projection projection{parameters};
     for(auto const &step : sample.steps) {
       CAPTURE(step.operation, step.axis, step.value);
-      if(step.operation == 0) projection.set_component(step.axis, static_cast<int16_t>(step.value));
-      else if(step.operation == 1) projection.zero_component(step.axis);
-      else projection.negate_component(step.axis);
+      if(step.operation == 0) {
+        projection.set_component(step.axis, static_cast<int16_t>(step.value));
+      } else if(step.operation == 1) {
+        projection.zero_component(step.axis);
+      } else {
+        projection.negate_component(step.axis);
+      }
       auto const actual{projection.project()};
       REQUIRE(actual.screen.x == step.x);
       REQUIRE(actual.screen.y == step.y);

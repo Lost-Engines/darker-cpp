@@ -3,7 +3,7 @@
 // Native 3A2A; image SHA-256: 7599201a01aa24b7e6ad1ae4295d493821cde7c3a43b247c464522626c0380a4
 #include <array>
 namespace darker::test_reference {
-inline std::array<std::array<int,12>,512> constexpr stereo_samples{{
+inline std::array<std::array<int, 12>, 512> constexpr stereo_samples{{
   {-3816, -935, -1467, 14131, 19630, 4444, 7193, -19520, -2819, 31874, 31, 39},
   {-2947, 3573, -3670, 2164, -32394, 12008, -26932, 21884, -30917, 47203, 56, 15},
   {-1964, -2391, -1702, -4251, -5442, 15978, -18057, -13585, 24568, 20219, 43, 58},

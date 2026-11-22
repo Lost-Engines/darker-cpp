@@ -6,7 +6,10 @@
 
 namespace darker::audio {
 
-enum class fm_backend { nuked, dosbox };
+enum class fm_backend {
+  nuked,
+  dosbox
+};
 
 class fm_synth {
 private:

@@ -130,9 +130,11 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     };
     frozen.toggle_freeze();
     auto const before{frozen.pose()};
-    for(unsigned int tick{0}; tick < 100; ++tick) frozen.advance_motion({
-      .right{true}
-    }, false, 8, bank, cells);
+    for(unsigned int tick{0}; tick < 100; ++tick) {
+      frozen.advance_motion({
+        .right{true}
+      }, false, 8, bank, cells);
+    }
     if(!frozen.frozen || frozen.pose().position != before.position || frozen.pose().angles != before.angles || frozen.pose().speed != 0) {
       throw std::runtime_error{"Lyndon freeze allowed player motion"};
     }
@@ -178,7 +180,7 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
     if(csv.is_open()) {
       csv << tick;
       for(auto const value : actual) csv << ',' << value;
-      csv << '\n';                                                              // trace rows are buffered rather than flushed per field
+      csv << '\n';                                                             // trace rows are buffered rather than flushed per field
     }
     for(size_t field{0}; field < actual.size(); ++field) {
       if(actual[field] != expected[field] && first_mismatch.empty()) {
@@ -236,8 +238,10 @@ void check_hangar_flight(darker::resources::archive_set const &archives, std::fi
       pose.fractions.column, pose.fractions.row, pose.fractions.height, rotation.pitch, rotation.turn,
       pose.angles.heading, pose.angles.pitch, pose.angles.roll, pose.speed, hangar.extension, static_cast<int>(hangar.returning)};
     for(size_t field{0}; field < actual.size(); ++field) {
-      if(actual[field] != sample[field]) throw std::runtime_error{"Hangar return tick " + std::to_string(sample[0]) + ", field " + std::to_string(field)
-        + ": " + std::to_string(actual[field]) + " != " + std::to_string(sample[field])};
+      if(actual[field] != sample[field]) {
+        throw std::runtime_error{"Hangar return tick " + std::to_string(sample[0]) + ", field " + std::to_string(field)
+          + ": " + std::to_string(actual[field]) + " != " + std::to_string(sample[field])};
+      }
     }
   }
   std::cout << "684 automatic hangar return frames match original execution." << std::endl;

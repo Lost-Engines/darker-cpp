@@ -11,7 +11,7 @@ struct particle_point {
   render_geometry::screen_coordinate x{0};
   render_geometry::screen_coordinate y{0};
   render_geometry::coordinate depth{0};
-  bool operator==(particle_point const&) const = default;
+  bool operator==(particle_point const &) const = default;
 };
 
 std::vector<particle_point> project_emitter(game::particle_emitter const &emitter, model_placement centre,

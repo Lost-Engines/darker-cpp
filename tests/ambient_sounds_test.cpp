@@ -106,9 +106,11 @@ TEST_CASE("Overlapping ambient sources render finite PCM through the live sound 
       return std::isfinite(sample);
     }));
     for(auto const sample : pcm) peak = std::max(peak, std::abs(sample));
-    if(clock >= 3500) CHECK(std::ranges::none_of(voices, [](auto const &note){
-      return note.active;
-    }));
+    if(clock >= 3500) {
+      CHECK(std::ranges::none_of(voices, [](auto const &note){
+        return note.active;
+      }));
+    }
   }
   CHECK(peak > 0.01f);
   CHECK(peak < 1.0f);

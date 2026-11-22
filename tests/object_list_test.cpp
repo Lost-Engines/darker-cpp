@@ -17,7 +17,7 @@ TEST_CASE("Object allocation, tail reuse, unlinking and recycling match native l
   for(auto const &sample : darker::test_reference::object_list_samples) {
     CAPTURE(sample.active, sample.operation, sample.target);
     std::array<record, 6> records;
-    auto const pointer{[&](int const index)->record *{
+    auto const pointer{[&](int const index)->record* {
       return index == 0 ? nullptr : &records[static_cast<size_t>(index - 1)];
     }};
     auto const index{[&](record const *value){
@@ -37,18 +37,18 @@ TEST_CASE("Object allocation, tail reuse, unlinking and recycling match native l
     }};
     record *result{nullptr};
     switch(sample.operation) {
-      case 0:
-        result = list.allocate();
-        break;
-      case 1:
-        result = list.allocate_or_reuse();
-        break;
-      case 2:
-        result = list.unlink(*pointer(sample.target));
-        break;
-      case 3:
-        result = list.recycle(*pointer(sample.target));
-        break;
+    case 0:
+      result = list.allocate();
+      break;
+    case 1:
+      result = list.allocate_or_reuse();
+      break;
+    case 2:
+      result = list.unlink(*pointer(sample.target));
+      break;
+    case 3:
+      result = list.recycle(*pointer(sample.target));
+      break;
     }
     std::array<int, 16> actual{index(result), index(list.head()), index(list.tail()), index(list.free_head())};
     for(size_t i{0}; i < records.size(); ++i) {

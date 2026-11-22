@@ -51,10 +51,10 @@ struct skimma_armament {
     .spread{untracked_spread},
     .target_spread{untracked_spread}
   };
-  uint8_t selection{};
-  uint8_t reserves{};
-  int8_t recoil{};
-  int16_t aim_offset{};
+  uint8_t selection{0};
+  uint8_t reserves{0};
+  int8_t recoil{0};
+  int16_t aim_offset{0};
   uint16_t dual_launch_pitch{614};
 
   bool select(bool upgraded, uint8_t requested, uint16_t available, clock_tick clock);

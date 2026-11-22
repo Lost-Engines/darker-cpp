@@ -52,7 +52,8 @@ TEST_CASE("Tab look and recentering follow original camera controls", "[game][ca
 TEST_CASE("Dropped cameras retain original anchors and tracking angles", "[game][camera]") {
   /// Drop at the craft's whole-word position, then move the craft before viewing it
   for(auto const &sample : darker::test_reference::dropped_camera_samples) {
-    darker::game::object_pose anchor, player;
+    darker::game::object_pose anchor;
+    darker::game::object_pose player;
     anchor.angles.heading = static_cast<uint16_t>(sample.angles[0]);
     anchor.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
     anchor.angles.roll = static_cast<uint16_t>(sample.angles[2]);
@@ -128,7 +129,8 @@ TEST_CASE("Underground following and death views retain the player position", "[
 
 TEST_CASE("F7 rays and range rejection match native camera selection", "[game][camera]") {
   for(auto const &sample : darker::test_reference::object_camera_rays) {
-    darker::game::object_pose camera, target;
+    darker::game::object_pose camera;
+    darker::game::object_pose target;
     camera.angles.heading = static_cast<uint16_t>(sample.angles[0]);
     camera.angles.pitch = static_cast<uint16_t>(sample.angles[1]);
     camera.angles.roll = static_cast<uint16_t>(sample.angles[2]);

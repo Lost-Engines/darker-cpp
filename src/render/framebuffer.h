@@ -12,9 +12,9 @@ struct rgba_pixel : vec4<uint8_t> {
   constexpr rgba_pixel(uint8_t red = 0, uint8_t green = 0, uint8_t blue = 0, uint8_t alpha = 255) noexcept
     : vec4<uint8_t>{red, green, blue, alpha} {
   }
-  explicit constexpr rgba_pixel(rgba_pixel const&) = default;
+  explicit constexpr rgba_pixel(rgba_pixel const &) = default;
   constexpr rgba_pixel(rgba_pixel &&) = default;
-  constexpr rgba_pixel &operator=(rgba_pixel const&) = default;
+  constexpr rgba_pixel &operator=(rgba_pixel const &) = default;
   constexpr rgba_pixel &operator=(rgba_pixel &&) = default;
 };
 

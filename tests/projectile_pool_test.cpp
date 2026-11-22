@@ -117,7 +117,8 @@ TEST_CASE("Projectile pool preserves native allocation order and does not evict 
 
 TEST_CASE("Hostile projectile pool has six independent native slots") {
   /// 1D47 follows the twelve player records with six records at D6E6, ending before the player craft at D986
-  darker::game::projectile_pool hostile{darker::game::projectile_list::hostile}, player;
+  darker::game::projectile_pool hostile{darker::game::projectile_list::hostile};
+  darker::game::projectile_pool player;
   darker::game::launch_emitter const emitter{
     .definition_strength{40}
   };

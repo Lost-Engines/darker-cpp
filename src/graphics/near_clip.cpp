@@ -101,10 +101,12 @@ size_t clip_near_shaded_polygon(std::span<camera_vertex const> const vertices, s
   }};
   for(size_t i{0}; i < vertices.size(); ++i) {
     auto const j{(i + 1) % vertices.size()};
-    bool const current_inside{vertices[i].depth >= render_geometry::near_depth_fixed}, next_inside{vertices[j].depth >= render_geometry::near_depth_fixed};
+    bool const current_inside{vertices[i].depth >= render_geometry::near_depth_fixed};
+    bool const next_inside{vertices[j].depth >= render_geometry::near_depth_fixed};
     if(current_inside) emit(project_vertex(vertices[i], origin), shades[i]);
     if(current_inside == next_inside) continue;
-    auto const inside{current_inside ? i : j}, outside{current_inside ? j : i};
+    auto const inside{current_inside ? i : j};
+    auto const outside{current_inside ? j : i};
     auto const depth{vertices[inside].depth >> render_geometry::fraction_bits};
     auto const divisor{static_cast<uint16_t>(2 * (depth - (vertices[outside].depth >> render_geometry::fraction_bits)))};
     auto const numerator{static_cast<uint32_t>(depth - render_geometry::near_depth) * 65536};

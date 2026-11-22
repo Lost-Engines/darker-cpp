@@ -49,7 +49,9 @@ void visit_tunnel_cells(std::span<game::city_cell const, game::city_map_cell_cou
   auto const examine{[&](uint16_t const address, int const first, int const second, int const third, bool const diagonal){
     if(!occupied(address)) return;
     // reads precede clearing the destination, just as the native state-bit instructions do
-    bool const a{visible(offset(address, first))}, b{visible(offset(address, second))}, c{visible(offset(address, third))};
+    bool const a{visible(offset(address, first))};
+    bool const b{visible(offset(address, second))};
+    bool const c{visible(offset(address, third))};
     visibility[address / 2] = 0;
     if(diagonal ? ((a || b) && c) : ((a && b) || c)) accept(address);
   }};

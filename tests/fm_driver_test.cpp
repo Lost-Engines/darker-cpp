@@ -26,7 +26,8 @@ TEST_CASE("FM PCM matches the original-register sound auditions", "[audio]") {
   /// Compare one second of unmodified PCM against the independently exported native-register WAVs
   struct audition {
     uint8_t patch;
-    uint16_t pitch, level;
+    uint16_t pitch;
+    uint16_t level;
     uint64_t hash;
   };
   std::array<audition, 2> const auditions{{{7, 408, 0xc4ff, 0xfa0c479fa69e0684}, {2, 686, 0xb000, 0x1043f88f475dc408}}};
@@ -85,12 +86,14 @@ TEST_CASE("DOSBox message synthesis matches the reference core and preserves cal
 
   for(unsigned int const rate : {32000u, 48000u, 96000u}) {
     CAPTURE(rate);
-    darker::audio::fm_synth whole{rate, darker::audio::fm_backend::dosbox}, split{rate, darker::audio::fm_backend::dosbox};
+    darker::audio::fm_synth whole{rate, darker::audio::fm_backend::dosbox};
+    darker::audio::fm_synth split{rate, darker::audio::fm_backend::dosbox};
     darker::audio::fm_driver notes;
     auto const program{notes.program(0, 31, 13056, 0xc000, true)};
     whole.write(program);
     split.write(program);
-    std::vector<float> expected(rate * 2), actual(rate * 2);
+    std::vector<float> expected(rate * 2);
+    std::vector<float> actual(rate * 2);
     whole.render(expected);
     size_t cursor{0};
     while(cursor < actual.size()) {

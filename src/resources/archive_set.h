@@ -11,7 +11,7 @@ namespace darker::resources {
 struct resource_id {
   unsigned int archive;
   unsigned int slot;
-  bool operator==(resource_id const&) const = default;
+  bool operator==(resource_id const &) const = default;
 };
 
 struct directory_entry {

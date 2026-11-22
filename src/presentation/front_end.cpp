@@ -28,7 +28,12 @@ void load_image(resources::archive_set const &archives, resources::resource_id c
 } // anonymous namespace
 
 front_end::front_end(resources::archive_set const &archives, resources::font_resource const &font, resources::campaign_resources &campaign, resources::save_file &save, bool const skip_intro, resources::scenario_language const language)
-  : archives{archives}, font{font}, campaign{campaign}, introduction{archives.load({4, 15})}, language{language}, save{save} {
+  : archives{archives},
+    font{font},
+    campaign{campaign},
+    introduction{archives.load({4, 15})},
+    language{language},
+    save{save} {
   /// Startup 9CBD selects record one before the 00/14 title and 00/21 game-selection background
   load_image(archives, {0, 21}, menu_background, menu_palette, 320, 240, 0, 0);
   // 03F4/DF1D copy the lower palette; AFB1 supplies separate gains and DAC offsets for shaded panels
@@ -59,14 +64,19 @@ front_end::front_end(resources::archive_set const &archives, resources::font_res
     .y{96},
     .colour{0x7d00}
   })};
-  for(auto const &glyph : credit_page.glyphs) graphics::draw_glyph(credits_background, font, resources::font_face::interface, glyph.code, glyph.position, {
-    .ink{125},
-    .edge{0}
-  });
+  for(auto const &glyph : credit_page.glyphs) {
+    graphics::draw_glyph(credits_background, font, resources::font_face::interface, glyph.code, glyph.position, {
+      .ink{125},
+      .edge{0}
+    });
+  }
 
   selection_prompt = original_menu_text.at(static_cast<size_t>(language)).select;
-  if(skip_intro) current = screen::games;
-  else scene = std::make_unique<player>(archives, font, introduction, 1, 0, false, language);
+  if(skip_intro) {
+    current = screen::games;
+  } else {
+    scene = std::make_unique<player>(archives, font, introduction, 1, 0, false, language);
+  }
 }
 
 bool front_end::active() const noexcept {
@@ -171,10 +181,12 @@ void front_end::begin_briefing(bool const continued_mission) {
     return;
   }
   retained_music = music_group();
-  if(nightmare_selected()) { challenge_pilot = {
+  if(nightmare_selected()) {
+    challenge_pilot = {
     .stage{1}
   };
-  challenge_score = 0; }
+    challenge_score = 0;
+  }
   scene = std::make_unique<player>(archives, font, selected_scenario(), selected_record(), 0, continued_mission, language);
   current = screen::briefing;
   if(scene->finished() && scene->input_policy == 0) finish_briefing();
@@ -212,8 +224,9 @@ void front_end::key(front_key const input) {
     return;
   }
   if(current == screen::outcome) {
-    if((input == front_key::back || input == front_key::accept) && (scene->input_policy & 4)) current = screen::run;
-    else if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::run;
+    if((input == front_key::back || input == front_key::accept) && (scene->input_policy & 4)) {
+      current = screen::run;
+    } else if(input == front_key::accept && (scene->input_policy & 1) && !scene->continue_page()) current = screen::run;
     return;
   }
   if(current == screen::briefing) {
@@ -259,12 +272,16 @@ void front_end::key(front_key const input) {
       return;
     }
     if(input == front_key::up || input == front_key::down) confirmation = !confirmation;
-    if(input == front_key::back) current = previous;
-    else if(input == front_key::accept) {
+    if(input == front_key::back) {
+      current = previous;
+    } else if(input == front_key::accept) {
       if(confirmation && current == screen::quit) quit_requested = true;
       if(confirmation && current == screen::erase) {
-        if(nightmare_selected()) save.trailer[0] = std::byte{0};
-        else save.pilots[selected] = {};
+        if(nightmare_selected()) {
+          save.trailer[0] = std::byte{0};
+        } else {
+          save.pilots[selected] = {};
+        }
         save_requested = true;
         unsupported_stage = false;
       }
@@ -498,10 +515,12 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
       for(auto const value : {labels.score, labels.best_score}) {
         std::string const bytes{std::string{value} + '\0'};
         auto const page{graphics::lay_out_text(std::as_bytes(std::span{bytes}), font, resources::font_face::interface, cursor)};
-        for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame, font, resources::font_face::interface, glyph.code, glyph.position, {
-          .ink{colour},
-          .edge{0}
-        });
+        for(auto const &glyph : page.glyphs) {
+          graphics::draw_glyph(frame, font, resources::font_face::interface, glyph.code, glyph.position, {
+            .ink{colour},
+            .edge{0}
+          });
+        }
         cursor = page.cursor;
         cursor.runtime_number = std::to_integer<uint8_t>(save.trailer[0]);
       }
@@ -511,7 +530,9 @@ void front_end::draw(framework::render::cockpit_framebuffer &output) const {
       if(pilot.stage) {
         text(std::string{labels.level} + std::to_string(pilot.stage), 162, y, colour);
         centred(pilot.display_name(), y + 11, colour);
-      } else centred(labels.new_game, y + 10, colour);
+      } else {
+        centred(labels.new_game, y + 10, colour);
+      }
     }
   }};
   if(current == screen::games) {

@@ -3,7 +3,12 @@
 #include <cstdint>
 
 namespace darker::test_reference {
-struct music_sample { unsigned int resource, ticks, writes; uint64_t fingerprint; };
+struct music_sample {
+  unsigned int resource;
+  unsigned int ticks;
+  unsigned int writes;
+  uint64_t fingerprint;
+};
 inline auto constexpr music_samples = std::to_array<music_sample>({
   {38, 16384, 28347, 0xd042892c472efa6eULL},
   {43, 16384, 26881, 0xebe4c670c9833d6eULL},
@@ -12,7 +17,13 @@ inline auto constexpr music_samples = std::to_array<music_sample>({
   {58, 16384, 42224, 0x9669cc6e8292e555ULL},
   {63, 16384, 25688, 0xf4bc3d50e6d416e3ULL},
 });
-struct music_transition_sample { unsigned int source, target; bool pause; unsigned int writes; uint64_t fingerprint; };
+struct music_transition_sample {
+  unsigned int source;
+  unsigned int target;
+  bool pause;
+  unsigned int writes;
+  uint64_t fingerprint;
+};
 inline auto constexpr music_transition_samples = std::to_array<music_transition_sample>({
   {0, 1, false, 2276, 0x19ad23e8a5878131ULL},
   {0, 1, true, 1909, 0xdefff5f91b10e314ULL},

@@ -81,8 +81,9 @@ bool skimma_armament::select(bool const upgraded, uint8_t const requested, uint1
   auto const weapons{std::span{slots}.first(upgraded ? upgraded_slot_count : ordinary_slot_count)};
   if(requested == 0 || requested > weapons.size() || !(available & (1u << (requested - 1)))) return false;
   auto const index{static_cast<uint8_t>(requested - 1)};
-  if(index == selection) weapons[index].flags = static_cast<uint8_t>(~weapons[index].flags & 1);
-  else {
+  if(index == selection) {
+    weapons[index].flags = static_cast<uint8_t>(~weapons[index].flags & 1);
+  } else {
     selection = index;
     ring.spread = untracked_spread;
     ring.reload_deadline = static_cast<uint16_t>(clock + reload_delay);

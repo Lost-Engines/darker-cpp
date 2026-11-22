@@ -202,13 +202,15 @@ TEST_CASE("Skimma secondary firing matches native status, reload and ammunition 
     CAPTURE(sample);
     darker::game::skimma_armament armament;
     auto &weapons{armament.slots};
-    for(size_t i{0}; i < 3; ++i) weapons[i] = {
-      .ammunition{
-        .working{static_cast<uint8_t>(sample[5 + i])},
-        .reserve{static_cast<uint8_t>(sample[8 + i])}
-      },
-      .flags{static_cast<uint8_t>(sample[2 + i])}
-    };
+    for(size_t i{0}; i < 3; ++i) {
+      weapons[i] = {
+        .ammunition{
+          .working{static_cast<uint8_t>(sample[5 + i])},
+          .reserve{static_cast<uint8_t>(sample[8 + i])}
+        },
+        .flags{static_cast<uint8_t>(sample[2 + i])}
+      };
+    }
     auto &ring{armament.ring};
     ring = {
       .reload_deadline{static_cast<uint16_t>(sample[12])},
@@ -224,10 +226,12 @@ TEST_CASE("Skimma secondary firing matches native status, reload and ammunition 
       .definition_strength{40}
     };
     if(!sample[15]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
-        .definition{darker::game::original_object_definitions[0]},
-        .emitter{emitter}
-      }));
+      for(size_t i{0}; i < pool.capacity; ++i) {
+        REQUIRE(pool.launch({
+          .definition{darker::game::original_object_definitions[0]},
+          .emitter{emitter}
+        }));
+      }
     }
     auto *shot{darker::game::fire_skimma_weapon(pool, weapons[selected], {
       .emitter{emitter},

@@ -32,9 +32,11 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     if(pilot.supply.phase != darker::game::supply_phase::docked) {
       throw std::runtime_error{"Skimma left the supply pad without pitch input"};
     }
-    for(unsigned int frame{0}; frame < 2; ++frame) pilot.advance_motion({
-      .down{true}
-    }, false, 8, bank, city);
+    for(unsigned int frame{0}; frame < 2; ++frame) {
+      pilot.advance_motion({
+        .down{true}
+      }, false, 8, bank, city);
+    }
     if(pilot.supply.phase != darker::game::supply_phase::flight || (pilot.lifecycle.flags & 0x10)
       || std::get<darker::game::skimma_flight_state>(pilot.craft).vertical_velocity != 200) {
       throw std::runtime_error{"Down-arrow input failed to release the Skimma from its supply pad"};
@@ -57,7 +59,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
         .height{0}
       }
     };
-    std::vector<darker::game::scenario_actor> active, free;
+    std::vector<darker::game::scenario_actor> active;
+    std::vector<darker::game::scenario_actor> free;
     if(v[4]) {
       free.emplace_back();
       free.back().script.checkpoint = 0xe800;
@@ -171,8 +174,10 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
           .routes{scenario.bytes(record.shared)},
           .time_multiplier{record.time_multiplier}
         });
-      if(weapon >= 0) darker::game::update_weapon_ring(combat.skimma.slots[weapon].ammunition, combat.skimma.ring,
-        static_cast<uint16_t>(clock), combat.skimma.slots[weapon].flags, 8);
+      if(weapon >= 0) {
+        darker::game::update_weapon_ring(combat.skimma.slots[weapon].ammunition, combat.skimma.ring,
+          static_cast<uint16_t>(clock), combat.skimma.slots[weapon].flags, 8);
+      }
       shots += combat.player_fired;
       effects |= !combat.effects.gun_sounds().empty();
       darker::game::recharge_skimma_shield(craft.damage, 8);
@@ -528,7 +533,8 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
     bool returned{false};
     uint16_t previous_target{0xffff};
     for(uint32_t clock{8}; clock < 400000 && !context.progress; clock += 8) {
-      bool primary{false}, secondary{false};
+      bool primary{false};
+      bool secondary{false};
       auto const building{std::ranges::find_if(combat.spawning.sites, [&](uint16_t const site){
         return !(city[(site >> 8) * 128 + (site & 127)].state & 0x20);
       })};
@@ -632,9 +638,11 @@ void check_skimma_combat(darker::resources::archive_set const &archives) {
       darker::game::advance_mission_script(script, context);
     }
     if(available != (pilot.upgraded ? 7 : 3)) throw std::runtime_error{"Supply completion did not restore the craft weapon mask"};
-    if(!context.progress || !returned) throw std::runtime_error{"Halon objective check incomplete: stage=" + std::to_string(stage)
-      + ", buildings=" + std::to_string(combat.world_damage_counter) + ", removals=" + std::to_string(combat.completed_objectives)
-      + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", shots=" + std::to_string(shots)};
+    if(!context.progress || !returned) {
+      throw std::runtime_error{"Halon objective check incomplete: stage=" + std::to_string(stage)
+        + ", buildings=" + std::to_string(combat.world_damage_counter) + ", removals=" + std::to_string(combat.completed_objectives)
+        + ", remaining=" + std::to_string(combat.remaining_objectives()) + ", shots=" + std::to_string(shots)};
+    }
     std::cout << "Halon stage " << unsigned{stage} << ": " << unsigned{combat.world_damage_counter} << " sites, "
       << combat.completed_objectives << " counted aircraft, " << shots << " controlled shots and supply return complete." << std::endl;
   }

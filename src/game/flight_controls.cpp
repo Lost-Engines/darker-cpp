@@ -53,8 +53,11 @@ uint16_t steering_axis_state::mouse(uint16_t const position, uint16_t const sens
   auto const coefficient{static_cast<uint16_t>((filter_step_origin - step) * 2)};
   int const old{word(previous)};
   auto const product{static_cast<uint32_t>(coefficient) * static_cast<uint16_t>(old < 0 ? -old : old)};
-  if(old < 0) target = static_cast<uint16_t>(target - ((product + negative_rounding_bias) >> 8));
-  else target = static_cast<uint16_t>(target + (product >> 8));
+  if(old < 0) {
+    target = static_cast<uint16_t>(target - ((product + negative_rounding_bias) >> 8));
+  } else {
+    target = static_cast<uint16_t>(target + (product >> 8));
+  }
   mouse_target = target;
   return filtered_drive(previous, target, step);
 }

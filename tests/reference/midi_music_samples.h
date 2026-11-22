@@ -2,7 +2,13 @@
 #include <array>
 #include <cstdint>
 namespace darker::test_reference {
-struct midi_music_sample { unsigned int variant, group, ticks, events; uint64_t fingerprint; };
+struct midi_music_sample {
+  unsigned int variant;
+  unsigned int group;
+  unsigned int ticks;
+  unsigned int events;
+  uint64_t fingerprint;
+};
 inline auto constexpr midi_music_samples = std::to_array<midi_music_sample>({
   {1, 0, 16384, 20185, 0xeb655e69432bea32ULL},
   {1, 1, 16384, 16596, 0xf99b952ff28abd80ULL},

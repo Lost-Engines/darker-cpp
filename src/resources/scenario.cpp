@@ -12,7 +12,10 @@ private:
   size_t end;
 
 public:
-  reader(std::span<std::byte const> const source, size_t const start, size_t const limit) : data{source}, cursor{start}, end{limit} {
+  reader(std::span<std::byte const> const source, size_t const start, size_t const limit)
+    : data{source},
+      cursor{start},
+      end{limit} {
     /// Keep every setup read inside its record's shared section
     if(start > limit || limit > data.size()) throw std::invalid_argument{"Scenario range exceeds its resource"};
   }

@@ -13,7 +13,8 @@ namespace darker::resources {
 struct pilot_record {
   uint8_t stage{0};
   std::array<char, 29> name{};
-  uint16_t weapons{0}, return_site{0};
+  uint16_t weapons{0};
+  uint16_t return_site{0};
   std::array<std::byte, 953> delphi{};
   std::array<std::byte, 468> halon{};
   std::array<std::byte, 194> reserved{};

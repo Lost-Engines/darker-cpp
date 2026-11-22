@@ -125,10 +125,14 @@ void advance_caero_flight(caero_flight_state &state, caero_flight_parameters con
   auto const absolute_projection{word(turn.lift_projection < 0 ? -turn.lift_projection : turn.lift_projection)};
   auto lift{high_product(absolute_projection, word(incoming))};
   if(lift >= 0) {
-    if(input.brake) lift = std::min<int16_t>(lift, 255);
-    else if(word(-vertical_drive) >= 0) {
-      if(input.altitude_hold) lift = std::min<int16_t>(lift, 255);
-      else lift = static_cast<int16_t>(std::max(0, lift - word(-vertical_drive)));
+    if(input.brake) {
+      lift = std::min<int16_t>(lift, 255);
+    } else if(word(-vertical_drive) >= 0) {
+      if(input.altitude_hold) {
+        lift = std::min<int16_t>(lift, 255);
+      } else {
+        lift = static_cast<int16_t>(std::max(0, lift - word(-vertical_drive)));
+      }
     }
   }
   auto const altitude{state.pose.position.height};

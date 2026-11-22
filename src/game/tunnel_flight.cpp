@@ -45,7 +45,8 @@ route_response response(uint16_t const drive, uint16_t const route_error) noexce
     error = word(-error);
   }
   if(static_cast<uint16_t>(error) >= 0x2800) error = 0x2800;
-  uint16_t resistance{0}, gain{320};
+  uint16_t resistance{0};
+  uint16_t gain{320};
   if(error > demand) {
     demand >>= 3;
     error = word(error - demand);
@@ -157,7 +158,11 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
       }
     }
   }
-  uint16_t final_heading{0}, final_pitch{0}, middle_heading{0}, middle_pitch{0}, target_resistance{3200};
+  uint16_t final_heading{0};
+  uint16_t final_pitch{0};
+  uint16_t middle_heading{0};
+  uint16_t middle_pitch{0};
+  uint16_t target_resistance{3200};
   if(path) {
     state.connection = path->connection;
     state.progress = path->progress;
@@ -176,7 +181,8 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
     final_pitch = static_cast<uint16_t>(angles.pitch + tilt.angle_delta);
     middle_heading = static_cast<uint16_t>(final_heading - (word(turn.angle_delta) >> 1));
     middle_pitch = static_cast<uint16_t>(final_pitch - (word(tilt.angle_delta) >> 1));
-    auto const first{heading.resistance}, second{static_cast<uint16_t>(pitch.resistance >> 1)};
+    auto const first{heading.resistance};
+    auto const second{static_cast<uint16_t>(pitch.resistance >> 1)};
     target_resistance = static_cast<uint16_t>(std::max(first, second) + (word(std::min(first, second)) >> 3));
     if((target_resistance >> 8) >= 10) target_resistance = 3200;
   } else {
@@ -184,7 +190,9 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
     if((state.off_route_time >> 8) >= 3) {
       state.off_route_time = static_cast<uint16_t>((state.off_route_time & 255) | 0x300);
       state.connection.route |= 0x5f;
-    } else state.connection.route |= 0x40;
+    } else {
+      state.connection.route |= 0x40;
+    }
     auto const tilt{calculate_angular_response(static_cast<uint16_t>(state.filtered_pitch - angles.pitch), craft.damage.rotation.pitch,
       static_cast<uint16_t>(352 - (pose.speed >> 2)), frame_step)};
     craft.damage.rotation.pitch = tilt.rate;
@@ -206,7 +214,9 @@ void advance_tunnel_motion(caero_flight_state &craft, tunnel_flight_state &state
   if(craft.energy.boost < cost) {
     target_speed = static_cast<uint16_t>((static_cast<uint32_t>(craft.energy.boost) * 65536 / cost * target_speed) >> 16);
     craft.energy.boost = 0;
-  } else craft.energy.boost -= cost;
+  } else {
+    craft.energy.boost -= cost;
+  }
   target_speed = target_speed < (state.resistance >> 8) ? 0 : static_cast<uint16_t>(target_speed - (state.resistance >> 8));
   auto const time{static_cast<uint16_t>((frame_step & 255) * 257)};
   auto vertical{word((word(target_speed * 2) * maths::angle_sine(middle_pitch)) >> 16)};

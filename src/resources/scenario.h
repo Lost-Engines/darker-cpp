@@ -15,8 +15,16 @@ struct resource_range {
   size_t size{0};
 };
 
-enum class scenario_language { english, french, german };
-enum class placement_form { moving, compact_special, absolute_static };
+enum class scenario_language {
+  english,
+  french,
+  german
+};
+enum class placement_form {
+  moving,
+  compact_special,
+  absolute_static
+};
 
 struct scenario_cell {
   uint8_t column{0};
@@ -29,12 +37,12 @@ struct scenario_cell_list {
 };
 
 struct actor_behaviour {
-  uint8_t attack_control{};                                                    // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
-  uint8_t awareness_threshold{};
-  uint8_t awareness_decay{};
-  uint8_t awareness_rise{};
-  uint8_t awareness_strength{};
-  uint8_t evasion{};
+  uint8_t attack_control{0};                                                   // aircraft engagement thresholds; vehicles alternate firing intervals with its high bit
+  uint8_t awareness_threshold{0};
+  uint8_t awareness_decay{0};
+  uint8_t awareness_rise{0};
+  uint8_t awareness_strength{0};
+  uint8_t evasion{0};
 };
 
 struct scenario_placement {

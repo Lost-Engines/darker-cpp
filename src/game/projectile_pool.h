@@ -13,9 +13,9 @@
 namespace darker::game {
 
 struct projectile_angular_rates {
-  uint16_t reserved{};                                                         // native word retained when a pool record is reused
-  uint16_t pitch{};
-  uint16_t turn{};                                                             // heading response for direct homing, bank response for map homing
+  uint16_t reserved{0};                                                        // native word retained when a pool record is reused
+  uint16_t pitch{0};
+  uint16_t turn{0};                                                            // heading response for direct homing, bank response for map homing
 };
 
 struct projectile {
@@ -44,15 +44,18 @@ struct projectile_launch {
   uint16_t target_token{0xffff};
 };
 
-enum class projectile_list { player, hostile };
+enum class projectile_list {
+  player,
+  hostile
+};
 
 class projectile_pool {
 public:
   static unsigned int constexpr capacity{projectile_limits::player_capacity};
 
   explicit projectile_pool(projectile_list category = projectile_list::player);
-  projectile_pool(projectile_pool const&) = delete;
-  projectile_pool &operator=(projectile_pool const&) = delete;
+  projectile_pool(projectile_pool const &) = delete;
+  projectile_pool &operator=(projectile_pool const &) = delete;
   projectile_pool(projectile_pool &&) = delete;
   projectile_pool &operator=(projectile_pool &&) = delete;
 

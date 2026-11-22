@@ -22,7 +22,10 @@ public:
   size_t const stride;
 
   basic_indexed_surface(std::span<Byte> storage, int columns, int rows, size_t row_stride)
-    : pixels{storage}, width{columns}, height{rows}, stride{row_stride} {
+    : pixels{storage},
+      width{columns},
+      height{rows},
+      stride{row_stride} {
     /// Validate without multiplying untrusted dimensions; the final row needs no trailing padding
     if(width < 0 || height < 0 || stride < static_cast<size_t>(width)
       || (height != 0 && (pixels.size() < static_cast<size_t>(width)
@@ -33,13 +36,19 @@ public:
 
   template<unsigned int rows, unsigned int columns>
   basic_indexed_surface(basic_indexed_framebuffer<rows, columns> &frame) noexcept
-    : pixels{frame.pixels}, width{columns}, height{rows}, stride{columns} {
+    : pixels{frame.pixels},
+      width{columns},
+      height{rows},
+      stride{columns} {
     /// Borrow a fixed framebuffer without copying its pixels
   }
 
   template<unsigned int rows, unsigned int columns>
   basic_indexed_surface(basic_indexed_framebuffer<rows, columns> const &frame) noexcept requires std::is_const_v<Byte>
-    : pixels{frame.pixels}, width{columns}, height{rows}, stride{columns} {
+    : pixels{frame.pixels},
+      width{columns},
+      height{rows},
+      stride{columns} {
     /// Read-only borrowing retains the framebuffer's constness
   }
 
@@ -48,7 +57,10 @@ public:
 
   template<class Other>
   basic_indexed_surface(basic_indexed_surface<Other> const &source) noexcept requires (std::is_const_v<Byte> && std::is_same_v<Other, uint8_t>)
-    : pixels{source.pixels}, width{source.width}, height{source.height}, stride{source.stride} {
+    : pixels{source.pixels},
+      width{source.width},
+      height{source.height},
+      stride{source.stride} {
     /// A writable view can be passed to readers without granting write access
   }
 

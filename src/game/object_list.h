@@ -43,8 +43,11 @@ public:
     roots.free = record->next;
     record->next = roots.head;
     record->previous = nullptr;
-    if(roots.head) roots.head->previous = record;
-    else roots.tail = record;
+    if(roots.head) {
+      roots.head->previous = record;
+    } else {
+      roots.tail = record;
+    }
     roots.head = record;
     return record;
   }
@@ -52,10 +55,16 @@ public:
   Record *unlink(Record &record) {
     /// 7AB4 repairs active neighbours and returns the next record without recycling
     auto *next{record.next};
-    if(record.previous) record.previous->next = next;
-    else roots.head = next;
-    if(next) next->previous = record.previous;
-    else roots.tail = record.previous;
+    if(record.previous) {
+      record.previous->next = next;
+    } else {
+      roots.head = next;
+    }
+    if(next) {
+      next->previous = record.previous;
+    } else {
+      roots.tail = record.previous;
+    }
     return next;
   }
 

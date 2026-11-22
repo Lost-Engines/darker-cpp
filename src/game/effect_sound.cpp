@@ -11,8 +11,9 @@ void effect_sound_pool::append(effect_sound sound) {
   /// 1CBF takes a free record or recycles the oldest active record, preserving its physical identity
   active.reserve(capacity);                                                    // allocate before mutating slot bookkeeping; subsequent insertion cannot allocate
   uint8_t slot;
-  if(free_count != 0) slot = free_slots[--free_count];
-  else {
+  if(free_count != 0) {
+    slot = free_slots[--free_count];
+  } else {
     slot = static_cast<uint8_t>(active.front().identity - first_identity);
     active.erase(active.begin());
   }

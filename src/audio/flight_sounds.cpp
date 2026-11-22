@@ -17,66 +17,68 @@ void flight_sounds::trigger(flight_sound const effect, uint16_t const clock) noe
   /// Supply original player-effect records in logical slots for the world voice allocator
   uint8_t channel{0};
   uint8_t patch{0};
-  uint16_t pitch{0}, level{0}, duration{0};
+  uint16_t pitch{0};
+  uint16_t level{0};
+  uint16_t duration{0};
   switch(effect) {
-    case flight_sound::boost:
-      channel = 1;
-      patch = 2;
-      pitch = 686;
-      level = 0xb000;
-      duration = 1056;
-      break;
-    case flight_sound::charged:
-      channel = 2;
-      patch = 32;
-      pitch = 1372;
-      level = 0xee00;
-      duration = 640;
-      break;
-    case flight_sound::caero_switch:
-      channel = 3;
-      patch = 4;
-      pitch = 6928;
-      level = 0xce00;
-      duration = 112;
-      break;
-    case flight_sound::skimma_switch:
-      channel = 3;
-      patch = 37;
-      pitch = 3464;
-      level = 0xe000;
-      duration = 112;
-      break;
-    case flight_sound::message:
-      channel = 6;
-      patch = 31;
-      pitch = 13056;
-      level = 0xc000;
-      duration = 160;
-      break;
-    case flight_sound::skimma_message:
-      channel = 6;
-      patch = 38;
-      pitch = 3464;
-      level = 0xd800;
-      duration = 112;
-      break;
-    case flight_sound::shield_start:
-      channel = 4;
-      patch = 36;
-      pitch = 0x302;
-      level = 0xcc00;
-      duration = 4080;
-      shield_ready = false;
-      break;
-    case flight_sound::shield_ready:
-      channel = 4;
-      patch = 36;
-      pitch = 0x362;
-      level = 0xcc00;
-      duration = 288;
-      shield_ready = true;
-      break;
+  case flight_sound::boost:
+    channel = 1;
+    patch = 2;
+    pitch = 686;
+    level = 0xb000;
+    duration = 1056;
+    break;
+  case flight_sound::charged:
+    channel = 2;
+    patch = 32;
+    pitch = 1372;
+    level = 0xee00;
+    duration = 640;
+    break;
+  case flight_sound::caero_switch:
+    channel = 3;
+    patch = 4;
+    pitch = 6928;
+    level = 0xce00;
+    duration = 112;
+    break;
+  case flight_sound::skimma_switch:
+    channel = 3;
+    patch = 37;
+    pitch = 3464;
+    level = 0xe000;
+    duration = 112;
+    break;
+  case flight_sound::message:
+    channel = 6;
+    patch = 31;
+    pitch = 13056;
+    level = 0xc000;
+    duration = 160;
+    break;
+  case flight_sound::skimma_message:
+    channel = 6;
+    patch = 38;
+    pitch = 3464;
+    level = 0xd800;
+    duration = 112;
+    break;
+  case flight_sound::shield_start:
+    channel = 4;
+    patch = 36;
+    pitch = 0x302;
+    level = 0xcc00;
+    duration = 4080;
+    shield_ready = false;
+    break;
+  case flight_sound::shield_ready:
+    channel = 4;
+    patch = 36;
+    pitch = 0x362;
+    level = 0xcc00;
+    duration = 288;
+    shield_ready = true;
+    break;
   }
   voices[channel] = {
     .pitch{pitch},
@@ -111,8 +113,9 @@ fm_frame flight_sounds::advance(game::player_flight const &player, uint16_t cons
     .active{!player.lifecycle.crashing && (!caero || player.engine_flags == 1)}
   };
   if(!caero) {
-    if(player.engine_flags != 1) voices[4].active = false;
-    else if(ready && !shield_ready) trigger(flight_sound::shield_ready, clock);
+    if(player.engine_flags != 1) {
+      voices[4].active = false;
+    } else if(ready && !shield_ready) trigger(flight_sound::shield_ready, clock);
   }
   auto const charge_pitch{chargeable_sound_pitch(weapon_charge, clock)};
   if(charge_pitch && !voices[5].active) ++voices[5].generation;

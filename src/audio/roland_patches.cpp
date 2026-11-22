@@ -70,7 +70,7 @@ auto load_roland_setup(std::filesystem::path const &path)->sysex_messages {
   if(size > 1024 * 1024) throw std::invalid_argument{"Roland setup bank is too large"};
   std::vector<std::byte> bytes(static_cast<size_t>(size));
   std::ifstream input{path, std::ios::binary};
-  if(!input.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()))) {
+  if(!input.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()))) {
     throw std::runtime_error{"Cannot read Roland setup bank: " + path.string()};
   }
   return roland_setup_messages(bytes);

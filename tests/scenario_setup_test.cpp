@@ -9,7 +9,8 @@ TEST_CASE("Embedded scenario setup matches original player and actor mutations",
   /// Compare all translated fields and retained placement caches with the original seven programs
   for(auto const &sample : darker::test_reference::scenario_setup_samples) {
     CAPTURE(sample);
-    auto const input{std::span{sample}.subspan(3, 23)}, output{std::span{sample}.subspan(26, 23)};
+    auto const input{std::span{sample}.subspan(3, 23)};
+    auto const output{std::span{sample}.subspan(26, 23)};
     auto const word{[](int const value){
       return static_cast<uint16_t>(value);
     }};

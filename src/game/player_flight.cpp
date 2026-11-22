@@ -27,14 +27,14 @@ uint8_t player_flight::world_damage_mask() const noexcept {
 
 object_pose &player_flight::pose() noexcept {
   /// Both craft callbacks expose the same position and attitude to collision and camera consumers
-  return std::visit([](auto &state)->object_pose &{
+  return std::visit([](auto &state)->object_pose & {
     return state.pose;
   }, craft);
 }
 
 object_pose const &player_flight::pose() const noexcept {
   /// Rendering borrows the current pose without altering simulation state
-  return std::visit([](auto const &state)->object_pose const &{
+  return std::visit([](auto const &state)->object_pose const & {
     return state.pose;
   }, craft);
 }
@@ -44,27 +44,28 @@ void player_flight::command(flight_command const command) noexcept {
   if(has_player_flag(lifecycle.flags, player_flag::dead)) return;
   auto *caero{std::get_if<caero_flight_state>(&craft)};
   switch(command) {
-    case flight_command::engine:
-      engine_flags ^= 1;
-      if(auto *skimma{std::get_if<skimma_flight_state>(&craft)}) {
-        if(has_player_flag(lifecycle.flags, player_flag::ground_protection)) engine_flags &= 0xfe;
-        skimma->damage.shield_enabled = (engine_flags & 1) != 0;
-      }
-      break;
-    case flight_command::altitude_hold:
-      altitude_hold = !altitude_hold;
-      desired_height = pose().position.height;
-      break;
-    case flight_command::boost:
-      if(caero) activate_caero_boost(*caero);
-      else if(upgraded) forward_setting = skimma_flight_rules::upgraded_boost_drive;
-      break;
-    case flight_command::speed_low:
-      if(!caero) forward_setting = skimma_flight_rules::low_drive;
-      break;
-    case flight_command::speed_high:
-      if(!caero) forward_setting = skimma_flight_rules::high_drive;
-      break;
+  case flight_command::engine:
+    engine_flags ^= 1;
+    if(auto *skimma{std::get_if<skimma_flight_state>(&craft)}) {
+      if(has_player_flag(lifecycle.flags, player_flag::ground_protection)) engine_flags &= 0xfe;
+      skimma->damage.shield_enabled = (engine_flags & 1) != 0;
+    }
+    break;
+  case flight_command::altitude_hold:
+    altitude_hold = !altitude_hold;
+    desired_height = pose().position.height;
+    break;
+  case flight_command::boost:
+    if(caero) {
+      activate_caero_boost(*caero);
+    } else if(upgraded) forward_setting = skimma_flight_rules::upgraded_boost_drive;
+    break;
+  case flight_command::speed_low:
+    if(!caero) forward_setting = skimma_flight_rules::low_drive;
+    break;
+  case flight_command::speed_high:
+    if(!caero) forward_setting = skimma_flight_rules::high_drive;
+    break;
   }
 }
 

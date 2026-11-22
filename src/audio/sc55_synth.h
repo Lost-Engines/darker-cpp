@@ -5,7 +5,10 @@
 
 namespace darker::audio {
 
-enum class sound_canvas_model { sc55, scc1a };
+enum class sound_canvas_model {
+  sc55,
+  scc1a
+};
 
 class sc55_synth final : public midi_synth {
 private:

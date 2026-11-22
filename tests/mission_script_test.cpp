@@ -181,7 +181,8 @@ TEST_CASE("Supply script state and ammunition match the original scheduler", "[g
     CAPTURE(s.input);
     std::array<std::byte, 15> program;
     for(size_t i{0}; i < program.size(); ++i) program[i] = static_cast<std::byte>(s.program[i]);
-    auto mask{static_cast<uint16_t>(s.input[1])}, shield{static_cast<uint16_t>(s.input[2])};
+    auto mask{static_cast<uint16_t>(s.input[1])};
+    auto shield{static_cast<uint16_t>(s.input[2])};
     darker::game::weapon_ammunition ammunition{static_cast<uint8_t>(s.input[4]), static_cast<uint8_t>(s.input[5])};
     darker::game::mission_script script;
     darker::game::mission_context context{

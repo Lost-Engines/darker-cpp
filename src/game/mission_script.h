@@ -19,7 +19,11 @@ struct mission_script {
   bool stopped{false};
 };
 
-enum class message_alignment { centre, left, right };
+enum class message_alignment {
+  centre,
+  left,
+  right
+};
 
 struct mission_message {
   size_t offset{0};
@@ -59,7 +63,7 @@ struct mission_context {
   std::function<bool()> retire_distant_actor{};
   std::function<void(uint8_t)> set_aircraft_spawning{};
   std::function<uint16_t()> register_owner{};
-  std::function<void(mission_script&)> exchange_context{};
+  std::function<void(mission_script &)> exchange_context{};
   std::function<bool(uint8_t)> adjust_objectives{};
   std::function<size_t(std::span<std::byte const>)> replace_world_objectives{};
   std::function<void(uint8_t)> set_tunnel_oscillation{};

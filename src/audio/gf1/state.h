@@ -5,8 +5,8 @@ struct device_state {
   GFGus registers{};
   Bit8u ram[1024 * 1024]{};
   size_t ram_size{sizeof(ram)};
-  GUSChannels *channels[32]{};
-  GUSChannels *selected{};
+  GUSChannels *channels[32]{nullptr};
+  GUSChannels *selected{nullptr};
   Bit8u adlib{};
   Bit32s amplification{512};
   Bit16u volumes[4096]{};
@@ -19,13 +19,13 @@ struct device_state {
   struct event {
     void (*callback)(Bitu){
   };
-    double due{};
+    double due{0.0};
     Bitu argument{};
   } events[2];
-  double time{};
-  unsigned int irq{};
+  double time{0.0};
+  unsigned int irq{0};
 };
-static thread_local device_state *context{};
+static thread_local device_state *context{nullptr};
 #define myGUS (context->registers)
 #define GUSRam (context->ram)
 #define guschan (context->channels)

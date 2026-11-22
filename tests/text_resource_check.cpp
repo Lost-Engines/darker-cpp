@@ -53,7 +53,8 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   std::cout << "All 300 glyphs, two German out-of-directory glyphs and space advances match native coverage and two-colour patterns at all four alignments." << std::endl;
   // the wide-font lookup for German level 76 leaves the resource. It must remain drawable at every alignment
   for(unsigned int phase{0}; phase < 4; ++phase) {
-    framework::render::indexed_cockpit_framebuffer actual{}, expected{};
+    framework::render::indexed_cockpit_framebuffer actual{};
+    framework::render::indexed_cockpit_framebuffer expected{};
     auto const position{darker::graphics::pixel_position{static_cast<int16_t>(8 + phase), 9}};
     auto const advance{darker::graphics::draw_glyph(actual, fonts, darker::resources::font_face::wide, 153, position, {
       .ink{2},
@@ -72,15 +73,17 @@ void check_text_resources(darker::resources::archive_set const &archives) {
   try {
     darker::resources::font_resource const invalid{std::move(truncated)};
   }
-  catch(std::invalid_argument const&) {
+  catch(std::invalid_argument const &) {
     rejected = true;
   }
   if(!rejected) throw std::runtime_error{"Truncated font was accepted"};
   std::array<std::vector<std::byte>, 16> resources;
-  for(unsigned int slot{0}; slot < resources.size(); ++slot) resources[slot] = archives.load({
-    .archive{4},
-    .slot{slot}
-  });
+  for(unsigned int slot{0}; slot < resources.size(); ++slot) {
+    resources[slot] = archives.load({
+      .archive{4},
+      .slot{slot}
+    });
+  }
   std::array<std::span<uint8_t const>, 6> const extra{
     darker::test_reference::text_extra_0, darker::test_reference::text_extra_1, darker::test_reference::text_extra_2,
     darker::test_reference::text_extra_3, darker::test_reference::text_extra_4, darker::test_reference::text_extra_5,

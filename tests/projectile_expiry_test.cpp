@@ -39,7 +39,7 @@ TEST_CASE("Projectile expiry repairs native references and counters before list 
       .target_spread{17}
     };
     auto const *next{darker::game::expire_projectile(pool, *record, references, objectives, ring)};
-    auto const id{[](darker::game::projectile const *const p)->int{
+    auto const id{[](darker::game::projectile const *const p)->int {
       return p ? p->native_id : 0;
     }};
     auto const &list{pool.objects()};

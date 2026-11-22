@@ -3,7 +3,14 @@
 #include <cstdint>
 
 namespace darker::test_reference {
-struct city_persistence_sample { unsigned int bank, map, stage, bytes; uint64_t packed, restored; };
+struct city_persistence_sample {
+  unsigned int bank;
+  unsigned int map;
+  unsigned int stage;
+  unsigned int bytes;
+  uint64_t packed;
+  uint64_t restored;
+};
 inline auto constexpr city_persistence_samples = std::to_array<city_persistence_sample>({
   {30, 68, 1, 953, 0x3336d79c8a2035afULL, 0xb960beee52c97998ULL},
   {30, 68, 2, 953, 0x3336d79c8a2035afULL, 0x71390e6db32714d4ULL},

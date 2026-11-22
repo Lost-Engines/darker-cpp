@@ -39,8 +39,10 @@ void check_presentations(darker::resources::archive_set const &archives) {
       });
     uint64_t fingerprint{0xcbf29ce484222325};
     for(auto const pixel : caption_frame.pixels) fingerprint = (fingerprint ^ pixel) * 0x100000001b3;
-    if(fingerprint != sample.fingerprint) throw std::runtime_error{"Counted message pixels differ from B20E: face="
-      + std::to_string(sample.face) + ", x=" + std::to_string(sample.x) + ", width=" + std::to_string(sample.width)};
+    if(fingerprint != sample.fingerprint) {
+      throw std::runtime_error{"Counted message pixels differ from B20E: face="
+        + std::to_string(sample.face) + ", x=" + std::to_string(sample.x) + ", width=" + std::to_string(sample.width)};
+    }
   }
   darker::resources::campaign_resources campaign{archives};
   // C2BC uses the previous outcome in these 18 original campaign records
@@ -213,25 +215,31 @@ void check_presentations(darker::resources::archive_set const &archives) {
       .margin{8},
       .line_step{11}
     })};
-  for(auto const &glyph : page.glyphs) darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, glyph.code, glyph.position, {
-    .ink{255},
-    .edge{254}
-  });
-  for(auto const x : {287, 305}) darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, x == 287 ? 60 : 62, {x, 226}, {
-    .ink{255},
-    .edge{254}
-  });
+  for(auto const &glyph : page.glyphs) {
+    darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, glyph.code, glyph.position, {
+      .ink{255},
+      .edge{254}
+    });
+  }
+  for(auto const x : {287, 305}) {
+    darker::graphics::draw_glyph(expected, font, darker::resources::font_face::wide, x == 287 ? 60 : 62, {x, 226}, {
+      .ink{255},
+      .edge{254}
+    });
+  }
   framework::render::cockpit_framebuffer expected_rgb{};
   framework::render::expand_palette(expected, palette.palette.colours, expected_rgb);
   if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_rgb.pixels}))) throw std::runtime_error{"Quotation lost inherited spacing or original advance glyphs"};
   for(auto const pointer : {std::array{283, 230}, std::array{284, 225}, std::array{301, 239}, std::array{302, 225}, std::array{310, 224}}) {
     auto hovered{expected};
     auto const glyph{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 60 : 62) : 0};
-    if(glyph) darker::graphics::draw_glyph(hovered, font, darker::resources::font_face::wide, static_cast<uint8_t>(glyph),
-      {glyph == 60 ? 287 : 305, 226}, {
-        .ink{253},
-        .edge{252}
-      });
+    if(glyph) {
+      darker::graphics::draw_glyph(hovered, font, darker::resources::font_face::wide, static_cast<uint8_t>(glyph),
+        {glyph == 60 ? 287 : 305, 226}, {
+          .ink{253},
+          .edge{252}
+        });
+    }
     framework::render::expand_palette(hovered, palette.palette.colours, expected_rgb);
     quotation.draw(frame, pointer);
     if(!std::ranges::equal(std::as_bytes(std::span{frame.pixels}), std::as_bytes(std::span{expected_rgb.pixels}))) {
@@ -379,8 +387,11 @@ void check_presentations(darker::resources::archive_set const &archives) {
       auto const committed{darker::resources::encode_save(history)};
       auto restored{darker::resources::decode_save(committed)};
       darker::presentation::front_end retry{archives, font, campaign, restored, true};
-      if(aborted) retry.show_abort(7);
-      else retry.show_death(7);
+      if(aborted) {
+        retry.show_abort(7);
+      } else {
+        retry.show_death(7);
+      }
       retry.advance(60000);
       retry.key(darker::presentation::front_key::accept);
       retry.key(darker::presentation::front_key::accept);
@@ -486,8 +497,11 @@ void check_presentations(darker::resources::archive_set const &archives) {
       for(bool const mouse : {true, false}) {
         challenge.finish_nightmare(37, 4);
         challenge.advance(60000);
-        if(mouse) challenge.click(310, 230);
-        else challenge.key(front_key::accept);
+        if(mouse) {
+          challenge.click(310, 230);
+        } else {
+          challenge.key(front_key::accept);
+        }
         challenge.key(front_key::select);
         challenge.key(front_key::one);
         if(challenge.nightmare_selected() || challenge.selected_pilot().stage != 41) {

@@ -30,12 +30,18 @@ struct fm_stream::implementation {
   std::array<std::vector<std::byte>, 6> songs;
   std::atomic<int> requested{-1};
   int playing{-1};
-  uint64_t phase{0}, period;
+  uint64_t phase{0};
+  uint64_t period;
   fm_sink sink;
 
-  explicit implementation(unsigned int const sample_rate, fm_backend const backend) : synth{sample_rate, backend}, right{sample_rate, backend}, sample_rate{sample_rate}, sampled_sink{[this](midi_message const message){
-    sampled_synth->send(message);
-  }}, period{static_cast<uint64_t>(sample_rate) * 23860},
+  explicit implementation(unsigned int const sample_rate, fm_backend const backend)
+    : synth{sample_rate, backend},
+      right{sample_rate, backend},
+      sample_rate{sample_rate},
+      sampled_sink{[this](midi_message const message){
+        sampled_synth->send(message);
+      }},
+      period{static_cast<uint64_t>(sample_rate) * 23860},
     sink{[this](fm_write const command){
       synth.write(command);
       right.write(command);
@@ -56,7 +62,8 @@ struct fm_stream::implementation {
           note.generation != previous[channel].generation)};
         std::array<uint8_t, 9> constexpr carriers{0x43, 0x44, 0x45, 0x4b, 0x4c, 0x4d, 0x53, 0x54, 0x55};
         for(size_t i{0}; i < program.count; ++i) {
-          auto left_command{program.writes[i]}, right_command{left_command};
+          auto left_command{program.writes[i]};
+          auto right_command{left_command};
           // the final write sets level; earlier carrier writes may deliberately release the note
           if(i + 1 == program.count && left_command.address == carriers[channel]) {
             if(note.attenuation[0] != 255) left_command.value = note.attenuation[0];
@@ -224,8 +231,11 @@ void fm_stream::render(std::span<float> const stereo) noexcept {
       state->phase += frames * implementation::pit_frequency;
       if(state->phase >= state->period) {
         state->phase -= state->period;
-        if(state->music) state->music->advance(state->sink);
-        else state->sampled_music->advance(state->sampled_sink);
+        if(state->music) {
+          state->music->advance(state->sink);
+        } else {
+          state->sampled_music->advance(state->sampled_sink);
+        }
       }
     }
   } else {

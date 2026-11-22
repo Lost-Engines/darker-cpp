@@ -63,8 +63,11 @@ void start_edge(edge_walker &edge, std::span<screen_vertex const> const points, 
   auto a{points[edge.index]};
   screen_vertex b{};
   do {
-    if(edge.direction > 0) edge.index = edge.index + 1 == points.size() ? 0 : edge.index + 1;
-    else edge.index = edge.index == 0 ? points.size() - 1 : edge.index - 1;
+    if(edge.direction > 0) {
+      edge.index = edge.index + 1 == points.size() ? 0 : edge.index + 1;
+    } else {
+      edge.index = edge.index == 0 ? points.size() - 1 : edge.index - 1;
+    }
     b = points[edge.index];
     if(b.y > y) break;
     a = b;
@@ -150,7 +153,8 @@ void draw_flat_polygon(framework::render::indexed_surface target, std::span<scre
     rasterise(target, vertices, colour, right);
     return;
   }
-  polygon_buffer first{}, second{};
+  polygon_buffer first{};
+  polygon_buffer second{};
   auto points{vertices};
   auto *output{&first};
   for(auto const plane : viewport_clip_planes(viewport)) {

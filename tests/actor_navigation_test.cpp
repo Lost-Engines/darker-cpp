@@ -246,10 +246,12 @@ TEST_CASE("Actor city clearance matches eight-cell scanning and linked model sta
     for(int n{0}; n < 9; ++n) {
       auto const column{static_cast<uint8_t>(v[0] + n % 3 - 1)};
       auto const row{static_cast<uint8_t>(v[1] + n / 3 - 1)};
-      if(column < 128 && row < 128) cells[row * 128 + column] = {
-        .type{static_cast<uint8_t>(v[16 + n * 2])},
-        .state{static_cast<uint8_t>(v[17 + n * 2])},
-      };
+      if(column < 128 && row < 128) {
+        cells[row * 128 + column] = {
+          .type{static_cast<uint8_t>(v[16 + n * 2])},
+          .state{static_cast<uint8_t>(v[17 + n * 2])},
+        };
+      }
     }
     darker::game::object_pose pose{
       .position{

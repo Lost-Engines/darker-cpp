@@ -15,10 +15,14 @@ namespace darker::audio {
 struct sc55_synth::implementation {
   RomsetInfo roms;
   Emulator synth;
-  unsigned int rate{0}, native_rate{0};
+  unsigned int rate{0};
+  unsigned int native_rate{0};
   uint64_t phase{0};
-  AudioFrame<float> previous{}, current{}, received{};
-  bool ready{false}, primed{false};
+  AudioFrame<float> previous{};
+  AudioFrame<float> current{};
+  AudioFrame<float> received{};
+  bool ready{false};
+  bool primed{false};
 
   auto sample() noexcept->AudioFrame<float> {
     ready = false;
@@ -59,7 +63,7 @@ sc55_synth::sc55_synth(std::filesystem::path const &rom_directory, unsigned int 
   state->synth.GetPCM().enable_oversampling = true;
   state->native_rate = PCM_GetOutputFrequency(state->synth.GetPCM());
   state->synth.SetSampleCallback([](void *context, AudioFrame<int32_t> const &frame){
-    auto &target{*static_cast<implementation*>(context)};
+    auto &target{*static_cast<implementation *>(context)};
     Normalize(frame, target.received);
     target.ready = true;
   }, state.get());

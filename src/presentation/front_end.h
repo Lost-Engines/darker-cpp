@@ -8,11 +8,39 @@
 
 namespace darker::presentation {
 
-enum class front_key { accept, back, up, down, erase_character, select, erase, quit, one, two, three, four, nightmare, yes };
+enum class front_key {
+  accept,
+  back,
+  up,
+  down,
+  erase_character,
+  select,
+  erase,
+  quit,
+  one,
+  two,
+  three,
+  four,
+  nightmare,
+  yes
+};
 
 class front_end {
 private:
-  enum class screen { introduction, title, credits, games, name, hidden_command, run, erase, quit, briefing, outcome, flight };
+  enum class screen {
+    introduction,
+    title,
+    credits,
+    games,
+    name,
+    hidden_command,
+    run,
+    erase,
+    quit,
+    briefing,
+    outcome,
+    flight
+  };
   resources::archive_set const &archives;
   resources::font_resource const &font;
   resources::campaign_resources &campaign;
@@ -21,8 +49,11 @@ private:
   std::unique_ptr<player> scene;
   screen current{screen::introduction};
   screen previous{screen::games};
-  framework::render::indexed_cockpit_framebuffer menu_background{}, title_background{}, credits_background{};
-  graphics::palette_state menu_palette, title_palette;
+  framework::render::indexed_cockpit_framebuffer menu_background{};
+  framework::render::indexed_cockpit_framebuffer title_background{};
+  framework::render::indexed_cockpit_framebuffer credits_background{};
+  graphics::palette_state menu_palette;
+  graphics::palette_state title_palette;
   resources::save_file &save;
   resources::pilot_record challenge_pilot{
     .stage{1}

@@ -21,10 +21,12 @@ TEST_CASE("Caero Pinner and Brent firing matches original guards, targets and re
       .definition_strength{40}
     };
     if(!sample[3]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
-        .definition{darker::game::original_object_definitions[0]},
-        .emitter{emitter}
-      }));
+      for(size_t i{0}; i < pool.capacity; ++i) {
+        REQUIRE(pool.launch({
+          .definition{darker::game::original_object_definitions[0]},
+          .emitter{emitter}
+        }));
+      }
     }
     darker::game::caero_energy_state energy{
       .reserve{static_cast<uint16_t>(sample[0])}
@@ -66,10 +68,12 @@ TEST_CASE("Chargeable charging and release match the native firing handler", "[g
       .definition_strength{40}
     };
     if(!sample[3]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
-        .definition{darker::game::original_object_definitions[0]},
-        .emitter{emitter}
-      }));
+      for(size_t i{0}; i < pool.capacity; ++i) {
+        REQUIRE(pool.launch({
+          .definition{darker::game::original_object_definitions[0]},
+          .emitter{emitter}
+        }));
+      }
     }
     darker::game::caero_energy_state energy{
       .reserve{static_cast<uint16_t>(sample[0])}
@@ -139,10 +143,12 @@ TEST_CASE("Diffuser firing matches native alternating selections and failure res
       .definition_strength{40}
     };
     if(!sample[4]) {
-      for(size_t i{0}; i < pool.capacity; ++i) REQUIRE(pool.launch({
-        .definition{darker::game::original_object_definitions[0]},
-        .emitter{emitter}
-      }));
+      for(size_t i{0}; i < pool.capacity; ++i) {
+        REQUIRE(pool.launch({
+          .definition{darker::game::original_object_definitions[0]},
+          .emitter{emitter}
+        }));
+      }
     }
     darker::game::caero_energy_state energy{
       .reserve{static_cast<uint16_t>(sample[2])}
@@ -171,7 +177,7 @@ TEST_CASE("Diffuser building impacts match native gas target and wrapped detonat
     CAPTURE(sample);
     darker::game::diffuser_state state{static_cast<uint16_t>(sample[4]), static_cast<uint16_t>(sample[6]), static_cast<uint16_t>(sample[7])};
     auto const result{state.hit(sample[0] != 0, static_cast<darker::game::collision_category>(sample[1]), static_cast<uint8_t>(sample[2]), static_cast<uint16_t>(sample[3]), static_cast<uint16_t>(sample[5]))};
-    auto const expected{sample[8] == 0x67ea   ? darker::game::diffuser_impact::gas
+    auto const expected{sample[8] == 0x67ea ? darker::game::diffuser_impact::gas
       : sample[8] == 0x67bf ? darker::game::diffuser_impact::destroyed : darker::game::diffuser_impact::rejected};
     CHECK(result == expected);
     CHECK(state.cell == sample[9]);

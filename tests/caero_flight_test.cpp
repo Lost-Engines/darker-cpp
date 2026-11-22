@@ -107,7 +107,8 @@ TEST_CASE("Complete Caero flight updates match native persistent-state traces", 
 TEST_CASE("Caero hangar charging pauses with the engine off and resumes without losing charge", "[game][flight][hangar]") {
   /// Retail startup keeps accumulated energy and pips while the engine is disabled
   darker::game::city_map const cells{};
-  darker::game::caero_flight_state running{}, switched{};
+  darker::game::caero_flight_state running{};
+  darker::game::caero_flight_state switched{};
   for(int tick{0}; tick < 64; ++tick) {
     darker::game::advance_caero_flight(running, {}, {
       .engine_flags{1}

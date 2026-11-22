@@ -28,8 +28,10 @@ projectile *fire_vehicle_missile(projectile_pool &pool, scenario_actor &vehicle,
   if(std::bit_cast<int16_t>(longitudinal) <= 0) return nullptr;
   auto const angle{static_cast<uint8_t>(maths::direction_index(lateral, longitudinal) >> 3)};
   if(static_cast<uint8_t>(angle ^ ((angle & 128) ? 255 : 0)) >= 14) return nullptr;
-  std::array<int, 4> constexpr columns{0, -1, 0, 1}, rows{-1, 0, 1, 0};
-  auto column{static_cast<uint8_t>(vehicle.pose.position.column >> 8)}, row{static_cast<uint8_t>(vehicle.pose.position.row >> 8)};
+  std::array<int, 4> constexpr columns{0, -1, 0, 1};
+  std::array<int, 4> constexpr rows{-1, 0, 1, 0};
+  auto column{static_cast<uint8_t>(vehicle.pose.position.column >> 8)};
+  auto row{static_cast<uint8_t>(vehicle.pose.position.row >> 8)};
   for(unsigned int cell{0}; cell < 2; ++cell) {
     column = static_cast<uint8_t>(column - columns.at(direction / 2));
     row = static_cast<uint8_t>(row - rows.at(direction / 2));

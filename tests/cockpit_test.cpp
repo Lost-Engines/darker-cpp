@@ -107,7 +107,8 @@ TEST_CASE("Engine alternate state redraws a strip even when count is unchanged")
 
 TEST_CASE("Caero frame-edge overlays match native blit selection", "[graphics][cockpit]") {
   /// Coordinate-varying source pixels detect incorrect masks and viewport sampling offsets
-  framework::render::indexed_cockpit_framebuffer cache{}, target{};
+  framework::render::indexed_cockpit_framebuffer cache{};
+  framework::render::indexed_cockpit_framebuffer target{};
   for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>(i * 37 + 11);
   target.pixels.fill(99);
   darker::graphics::draw_caero_frame_edges(cache, target);
@@ -125,7 +126,8 @@ TEST_CASE("Radar grid readout follows the native beacon lookup and paired invali
 
 TEST_CASE("Skimma cockpit edges and moving shield pulse match native blits", "[graphics][cockpit]") {
   /// Compare entire indexed surfaces, including pixels that must remain unlit during startup
-  framework::render::indexed_cockpit_framebuffer cache{}, target{};
+  framework::render::indexed_cockpit_framebuffer cache{};
+  framework::render::indexed_cockpit_framebuffer target{};
   for(size_t i{0}; i < cache.pixels.size(); ++i) cache.pixels[i] = static_cast<uint8_t>(i * 37 + 11);
   auto const fingerprint{[](auto const &pixels){
     uint64_t result{0xcbf29ce484222325};

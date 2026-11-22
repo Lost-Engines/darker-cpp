@@ -23,7 +23,7 @@ std::vector<std::byte> read_binary_file(std::filesystem::path const &path, size_
   }
   std::vector<std::byte> result(static_cast<size_t>(end));
   stream.seekg(0);
-  if(!stream.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(result.size()))) {
+  if(!stream.read(reinterpret_cast<char *>(result.data()), static_cast<std::streamsize>(result.size()))) {
     throw std::runtime_error{std::format("cannot read complete file: {}", path.string())};
   }
   return result;

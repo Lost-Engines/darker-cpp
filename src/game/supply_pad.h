@@ -7,7 +7,11 @@
 namespace darker::game {
 
 struct player_flight;
-enum class supply_phase { flight, approach, docked };
+enum class supply_phase {
+  flight,
+  approach,
+  docked
+};
 
 struct supply_pad_state {
   supply_phase phase{supply_phase::flight};

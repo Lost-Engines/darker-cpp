@@ -20,7 +20,8 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
   }};
   while(p < data.size()) {
     auto const origin{word()};
-    unsigned int x{origin}, y{byte()};
+    unsigned int x{origin};
+    unsigned int y{byte()};
     auto const length{word()};
     if(length == 0 || length > data.size() - p) throw std::invalid_argument{"Invalid animation frame length"};
     auto const end{p + length};
@@ -30,8 +31,9 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
       if(op == 128) {
         x = origin;
         ++y;
-      } else if(op > 128) x += op & 127;
-      else {
+      } else if(op > 128) {
+        x += op & 127;
+      } else {
         if(static_cast<size_t>(op + 1) > end - p || x + op >= 1024 || y >= 256) throw std::invalid_argument{"Animation literal exceeds bounds"};
         for(unsigned int i{0}; i <= op; ++i) frame.push_back({static_cast<uint16_t>(x++), static_cast<uint16_t>(y), byte()});
       }
@@ -43,9 +45,15 @@ std::vector<animation_frame> decode_animation(std::span<std::byte const> const d
 }
 
 player::player(resources::archive_set const &archives, resources::font_resource const &font,
-  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects, bool const continued_mission, resources::scenario_language const language) : archives{archives}, font{font},
-  program{scenario.bytes(scenario.records()[record].shared)}, text{scenario.language(record, language)},
-  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset}, interval{scenario.records()[record].time_multiplier}, object_counter{completed_objects}, continued_mission{continued_mission} {
+  resources::scenario_resource const &scenario, size_t const record, uint8_t const completed_objects, bool const continued_mission, resources::scenario_language const language)
+  : archives{archives},
+    font{font},
+  program{scenario.bytes(scenario.records()[record].shared)},
+    text{scenario.language(record, language)},
+  cursor{scenario.records()[record].entry_offset - scenario.records()[record].shared.offset},
+    interval{scenario.records()[record].time_multiplier},
+    object_counter{completed_objects},
+    continued_mission{continued_mission} {
   /// Keep the original record's shared program and language cursors separate
   if(interval == 0) throw std::invalid_argument{"Presentation interval is zero"};
   execute();
@@ -102,8 +110,10 @@ void player::execute() {
     switch(op) {
     case 0x0c:
     case 0x0d:
-    case 0x0e: {
-      auto const duration{byte()}, delay{byte()};
+    case 0x0e:
+      {
+      auto const duration{byte()};
+      auto const delay{byte()};
       if(text_cursor >= text.size()) throw std::invalid_argument{"Presentation caption exceeds its language section"};
       auto const width{std::to_integer<uint8_t>(text[text_cursor++])};
       if(!width) break;
@@ -140,7 +150,8 @@ void player::execute() {
     case 0x23:
       stopped = true;
       break;
-    case 0x28: {
+    case 0x28:
+      {
       auto const heading{byte()};
       auto const site{word()};
       entry = landing_entry{site, heading};
@@ -164,7 +175,8 @@ void player::execute() {
       }
       text_cursor += 2;
       break;
-    case 0x30: {
+    case 0x30:
+      {
       auto const range{byte()};
       auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
       weapon_toggles ^= std::rotl(mask, range >> 4);
@@ -185,7 +197,8 @@ void player::execute() {
         image_x = word();
       }
       break;
-    case 0x3b: {
+    case 0x3b:
+      {
       // BFE4 clears text on every page; C007 skips the image load when the low six type bits match
       page.glyphs.clear();
       auto const selection{byte()};
@@ -216,7 +229,8 @@ void player::execute() {
         });
       text_cursor += page.consumed;
       break;
-    case 0x3f: {
+    case 0x3f:
+      {
       auto const displacement{std::bit_cast<int16_t>(word())};
       next = cursor + displacement;
       break;
@@ -234,14 +248,18 @@ void player::execute() {
       image({3, static_cast<uint8_t>(47 + byte())}, image_width, image_height, image_x, image_y);
       break;
     case 0x44:
-    case 0x45: {
+    case 0x45:
+      {
       auto const id{byte()};
       auto frames{decode_animation(archives.load({static_cast<unsigned int>(id >> 6), static_cast<unsigned int>(id & 63)}))};
       auto &destination{animations[op - 0x44]};
       auto &count{animation_counts[op - 0x44]};
       for(auto &frame : frames) {
-        if(count == destination.size()) destination.push_back(std::move(frame));
-        else destination[count] = std::move(frame);
+        if(count == destination.size()) {
+          destination.push_back(std::move(frame));
+        } else {
+          destination[count] = std::move(frame);
+        }
         ++count;
       }
       break;
@@ -250,12 +268,14 @@ void player::execute() {
     case 0x47:
       animation_counts.fill(0);
       break;                                                                   // DADA resets append descriptors, retaining existing frame-table entries
-    case 0x48: {
+    case 0x48:
+      {
       auto const first{byte()};
       pairs[selected] = {first, byte()};
       break;
     }
-    case 0x49: {
+    case 0x49:
+      {
       auto const frame{byte()};
       pairs[selected] = {frame, frame};
       break;
@@ -266,7 +286,8 @@ void player::execute() {
     case 0x4b:
       pairs[selected] = {};
       break;
-    case 0x4c: {
+    case 0x4c:
+      {
       auto const duration{byte()};
       repeat_delay = !repeat_delay;
       if(repeat_delay) {
@@ -328,11 +349,13 @@ void player::draw(framework::render::cockpit_framebuffer &output, std::array<int
       if(pixel.x < framework::render::display_layout::width && y < framework::render::display_layout::height) frame.pixels[y * framework::render::display_layout::width + pixel.x] = pixel.colour;
     }
   }
-  for(auto const &glyph : page.glyphs) graphics::draw_glyph(frame, font, face, glyph.code, glyph.position,
-    {
-      .ink{static_cast<uint8_t>(glyph.colour >> 8)},
-      .edge{static_cast<uint8_t>(glyph.colour)}
-    });
+  for(auto const &glyph : page.glyphs) {
+    graphics::draw_glyph(frame, font, face, glyph.code, glyph.position,
+      {
+        .ink{static_cast<uint8_t>(glyph.colour >> 8)},
+        .edge{static_cast<uint8_t>(glyph.colour)}
+      });
+  }
   // D8E6 places the three independent counted-message slots at row E5 for film subtitles
   for(size_t const channel : {1u, 0u, 2u}) {
     auto const &caption{captions[channel]};
@@ -345,16 +368,20 @@ void player::draw(framework::render::cockpit_framebuffer &output, std::array<int
   }
   // DA75 selects a hover bit below row 225, split at columns 284 and 302; DA48 selects its palette pair
   auto const hover{pointer[1] >= 225 && pointer[0] >= 284 ? (pointer[0] < 302 ? 4 : 1) : 0};
-  if(input_policy & 1) graphics::draw_glyph(frame, font, face, 62, {305, 226},
-    {
-      .ink{static_cast<uint8_t>(hover == 1 ? 253 : 255)},
-      .edge{static_cast<uint8_t>(hover == 1 ? 252 : 254)}
-    });
-  if(input_policy & 4) graphics::draw_glyph(frame, font, face, 60, {287, 226},
-    {
-      .ink{static_cast<uint8_t>(hover == 4 ? 253 : 255)},
-      .edge{static_cast<uint8_t>(hover == 4 ? 252 : 254)}
-    });
+  if(input_policy & 1) {
+    graphics::draw_glyph(frame, font, face, 62, {305, 226},
+      {
+        .ink{static_cast<uint8_t>(hover == 1 ? 253 : 255)},
+        .edge{static_cast<uint8_t>(hover == 1 ? 252 : 254)}
+      });
+  }
+  if(input_policy & 4) {
+    graphics::draw_glyph(frame, font, face, 60, {287, 226},
+      {
+        .ink{static_cast<uint8_t>(hover == 4 ? 253 : 255)},
+        .edge{static_cast<uint8_t>(hover == 4 ? 252 : 254)}
+      });
+  }
   framework::render::expand_palette(frame, colours.colours, output);
 }
 

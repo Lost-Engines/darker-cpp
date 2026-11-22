@@ -73,7 +73,10 @@ void check_nightmare(darker::resources::archive_set const &archives) {
     .time_multiplier{record.time_multiplier},
     .text_cursor{briefing.consumed_text()}
   };
-  unsigned int removed{0}, waves{0}, checkpoints{0}, altitude_changes{0};
+  unsigned int removed{0};
+  unsigned int waves{0};
+  unsigned int checkpoints{0};
+  unsigned int altitude_changes{0};
   uint8_t score{0};
   uint16_t weapons{briefing.weapon_toggles};
   context.activate_reserves = [&](uint8_t const opcode, uint8_t const count){
@@ -85,8 +88,11 @@ void check_nightmare(darker::resources::archive_set const &archives) {
     beacons.command(opcode, origin, count, static_cast<uint16_t>(context.clock), scenario.bytes(record.beacon_sequence));
   };
   context.select_weapon = [&](uint8_t const selection){
-    if(selection < 4) combat.primary_weapon = selection;
-    else combat.secondary_weapon = selection;
+    if(selection < 4) {
+      combat.primary_weapon = selection;
+    } else {
+      combat.secondary_weapon = selection;
+    }
   };
   context.toggle_weapons = [&](uint16_t const mask){
     weapons ^= mask;

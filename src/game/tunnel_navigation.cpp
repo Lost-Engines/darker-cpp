@@ -17,7 +17,8 @@ uint8_t choose_tunnel_heading(scenario_actor &actor, city_map const &cells, tunn
   auto &state{*actor.tunnel};
   auto const type_at{[&](uint16_t const cell){
     packed_cell_reference const reference{cell};
-    auto const x{reference.column()}, y{reference.row()};
+    auto const x{reference.column()};
+    auto const y{reference.row()};
     return y < city_map_size.row ? cells[city_cell_index(x, y)].type : uint8_t{0};
   }};
   auto const boundary{network.crossing(type_at(actor.current_cell), {actor.current_cell, state.route})};
@@ -106,7 +107,8 @@ void advance_tunnel_actor(scenario_actor &actor, object_pose const &player, std:
     }, frame_step);
   auto const preferred{choose_tunnel_heading(actor, cells, network)};
   auto const path{network.trace(cells, {actor.current_cell, actor.tunnel->route}, actor.pose.position, 152, preferred)};
-  auto heading{actor.pose.angles.heading}, pitch{actor.pose.angles.pitch};
+  auto heading{actor.pose.angles.heading};
+  auto pitch{actor.pose.angles.pitch};
   if(path) {
     actor.current_cell = path->connection.cell;
     actor.tunnel->route = path->connection.route;
