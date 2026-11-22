@@ -354,7 +354,7 @@ default:
 ### 7.5 Lambda brace style
 
 - Use attached braces for lambda bodies, with the spacing in §16.2.
-- Format lambda internals the same way as ordinary function bodies.
+- Indent multi-line lambda bodies like ordinary function bodies (see §16.3).
 
 Example:
 
@@ -543,6 +543,12 @@ unsigned int get_named_node_index(std::vector<std::string> const &node_names,
 
 - Use lowercase snake_case for `constexpr` and `const` object names.
 - Macro-style uppercase is reserved for preprocessor constants.
+- Give recovered executable addresses and offsets descriptive `constexpr` names and use those names in runtime logic. Document the source mapping at the declaration, including the executable build and original symbol or map entry when known.
+
+```cpp
+uint32_t constexpr mission_volume_address{0x0040'1234u}; // example.exe v1.2, virtual address of mission_volume in the audio map
+auto const mission_volume{image.read_u16(mission_volume_address)};
+```
 
 ### 9.7 Macro names
 
@@ -741,6 +747,13 @@ std::vector<uint8_t> bytes;
 
 - Write a simple assignment to an existing object as `name = expression;`, with spaces around `=`.
 - For a declaration with an initialiser, write `type name{expression};`, including with `auto` or `auto const`. Use `=` for initialisation only when direct braces cannot express the intended result, and space it as in an assignment.
+- Give each state field its own assignment statement. When several fields need the same computed value, evaluate the expression once and reuse its named result.
+
+```cpp
+auto const next_sample{state.sample()};
+state.previous = next_sample;
+state.current = next_sample;
+```
 
 ### 11.3 Designated initializers
 
@@ -1133,7 +1146,7 @@ public:
 - Omit empty `()` for parameterless lambdas (modern C++ style).
 - Attach the opening body brace to the closing `]` or `)` when that token ends the lambda header (`[]{` or `[](int value){`).
 - For a trailing return type, keep `->` attached on both sides and put one space before `{` (`[](size_t count)->float {`).
-- A one-line lambda may have an empty body or a single short, simple statement. Keep the body braces directly against their contents (`[&](auto const &plane){return plane.contains(point);}`).
+- A one-line lambda may have an empty body or a single short, simple statement. Omit spaces immediately after `{` and before `}` (`[&](auto const &plane){return plane.contains(point);}`).
 - Do not specify a lambda trailing return type unless inference is insufficient or the annotation materially improves clarity.
 
 Example:
@@ -1150,8 +1163,15 @@ auto percentage{[this](size_t count)->float {
 
 ### 16.3 Multi-line lambda formatting
 
-- Use attached braces and normal block indentation.
+- Prefer a multi-line body when the complete lambda is harder to scan on one line. This includes a single `return` with a nontrivial expression, such as the offset calculation below.
+- Keep the opening brace attached and put the body statements on the following lines, indented one level. Start the closing brace on a new line.
 - For lambdas passed inline, wrap arguments cleanly and keep the lambda body readable.
+
+```cpp
+auto const operand{[&](unsigned int const index){
+  return code.le16(program_counter + 1 + index * 2);
+}};
+```
 
 ### 16.4 Callback conventions
 
