@@ -281,6 +281,8 @@ logger << "DEBUG: on_close, event_type " << event_type
 ### 7.1 Function/class/struct brace placement
 
 - Use attached braces for functions, classes, structs, and namespaces.
+- Put the contents of a nonempty class or struct on lines below its opening brace. Indent members one level and start the closing brace on a new line aligned with the type declaration. Follow §7.7 for access labels.
+- Give each data member its own declaration, starting on a separate line.
 
 Example:
 
@@ -289,12 +291,17 @@ class network {
 public:
   void run();
 };
+
+struct playback_state {
+  int track{-1};
+  bool fading{false};
+};
 ```
 
 ### 7.2 `if/else` brace and `else` placement
 
 - Opening brace stays on the same line as the condition.
-- For braced branches, keep `} else {` and `} else if(...) {` together on one line.
+- In a braced chain, keep each `} else {` or `} else if(...) {` on one line, with one space on both sides of `else`.
 
 Example:
 
@@ -363,6 +370,7 @@ auto predicate{[](int const value){
 - Put consecutive statements or declarations on separate lines, including a declaration followed by a short guard clause.
 - A control statement can keep its body unbraced on the same line as its header if the body is a single short, readable statement such as a `return`, `throw`, assignment or function call.
 - Use braces if the body starts on a new line, contains multiple statements, or is itself a control statement. Follow §7.2 for `else if` chains.
+- Put the contents of a nonempty braced control body on lines below its opening brace. Indent its statements one level and start the closing brace on a new line aligned with the control header.
 - Put ordinary function body statements on lines below the opening brace (see §13.9).
 
 ```cpp
@@ -372,7 +380,10 @@ if(!level) return {};
 if(ready) run_once();                    // allowed
 
 for(auto const &task : tasks) {           // braces are required for a nested control statement
-  if(task.is_ready()) dispatch(task);
+  if(task.is_ready()) {
+    dispatch(task);
+    record_dispatch(task);
+  }
 }
 ```
 
@@ -1499,6 +1510,7 @@ target_link_libraries(example_tool
   - C-style cast detection
   - forbidden `using namespace` (except allowed literal namespaces in source files)
   - syntax-aware checks for switch label placement and separate lines for consecutive statements (see §7.3 and §7.6)
+  - syntax-aware checks for braced body layout in controls, classes and structs, and one declaration per data member (see §7.1 and §7.6)
 
 ### 23.1 Tools and automation
 
