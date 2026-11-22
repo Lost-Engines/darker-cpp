@@ -98,9 +98,9 @@ TEST_CASE("Distant objects with shade code 31 render without a preceding mesh", 
   // A complete special-model header with zero LOD thresholds selects the point
   // path. No bytecode is needed, and an empty city leaves the shade latch zero.
   std::vector<std::byte> bytes(17);
-  bytes[1] = std::byte{1};                                                     // one special model at pool offset zero
-  bytes[4] = std::byte{11};                                                    // pool size
-  bytes[11] = std::byte{255};                                                  // header +5: ramp 7, shade code 31
+  bytes[1] = std::byte{1};                                                      // one special model at pool offset zero
+  bytes[4] = std::byte{11};                                                     // pool size
+  bytes[11] = std::byte{255};                                                   // header +5: ramp 7, shade code 31
   darker::resources::geometry_bank const bank{std::move(bytes)};
   darker::game::city_map cells{};
   darker::graphics::city_renderer renderer;

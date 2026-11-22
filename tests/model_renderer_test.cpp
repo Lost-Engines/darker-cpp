@@ -68,11 +68,11 @@ TEST_CASE("Reused model storage does not make previous vertices valid", "[graphi
 
   // A second model tries to reuse three vertices without emitting any of its own.
   std::array<std::byte, 17> invalid{};
-  invalid[11] = std::byte{0x02};                                               // flat triangle
-  invalid[12] = std::byte{1};                                                  // colour
+  invalid[11] = std::byte{0x02};                                                // flat triangle
+  invalid[12] = std::byte{1};                                                   // colour
   invalid[13] = std::byte{0};
   invalid[14] = std::byte{1};
   invalid[15] = std::byte{2};
-  invalid[16] = std::byte{0x0d};                                               // return
+  invalid[16] = std::byte{0x0d};                                                // return
   REQUIRE_THROWS_AS(darker::graphics::draw_model(workspace, frame, invalid, 0, projection, {}), std::invalid_argument);
 }
