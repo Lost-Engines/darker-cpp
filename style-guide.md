@@ -49,7 +49,7 @@ Notes:
 ### 1.1 Language scope
 
 - House style targets modern C++.
-- Baseline language expectation is C++26.
+- Baseline language expectation is C++23.
 - Adopt C++26 features proactively when toolchain and project constraints permit.
 
 ### 1.2 In-scope file types (`.cpp`, `.h`)
@@ -294,13 +294,15 @@ public:
 ### 7.2 `if/else` brace and `else` placement
 
 - Opening brace stays on the same line as the condition.
-- Place `else` as `} else {`.
+- For braced branches, keep `} else {` and `} else if(...) {` together on one line.
 
 Example:
 
 ```cpp
 if(ready) {
   run_once();
+} else if(cache_valid) {
+  use_cache();
 } else {
   rebuild_state();
 }
@@ -309,22 +311,27 @@ if(ready) {
 ### 7.3 Loop/switch brace style
 
 - Use attached braces for `for(...)`, `while(...)`, and `switch(...)`.
-- Keep `case` labels at the same indentation level as `switch`.
-- Indent statements inside each `case` by one level.
-- Add braces inside a `case` only when needed to control scope (for example local variable lifetime).
+- Put each `case` and `default` label on its own line, aligned with `switch`. End the line at the colon or follow it with an inline comment.
+- Stack labels that share a body on consecutive lines.
+- Indent the arm one level below its label. Give consecutive statements separate lines and apply normal block indentation inside nested scopes.
+- Add braces inside an arm only when needed to control scope (for example local variable lifetime).
 
 Example:
 
 ```cpp
-switch(mode) {
-case mode_type::a:
+switch(opcode) {
+case 1:
   {
-    int const value{1};
+    auto const speed{read_speed()};
+    set_speed(speed);
   }
   break;
-case mode_type::b:
-  execute();
+case 2:
+case 3:                                  // both opcodes pause playback
+  pause_playback();
   break;
+default:
+  throw format_error{"unsupported playback opcode"};
 }
 ```
 
@@ -339,13 +346,13 @@ case mode_type::b:
 
 ### 7.5 Lambda brace style
 
-- Use attached braces for lambda bodies.
+- Use attached braces for lambda bodies, with the spacing in §16.2.
 - Format lambda internals the same way as ordinary function bodies.
 
 Example:
 
 ```cpp
-auto predicate{[&](int value) {
+auto predicate{[](int const value){
   if(value < 0) return false;
   return true;
 }};
@@ -353,20 +360,19 @@ auto predicate{[&](int value) {
 
 ### 7.6 Single-line statement policy
 
-- Single-line guard clauses are acceptable for simple exits:
-  - `if(!ready) return;`
-- Single-line bodies are also acceptable for simple assignment/function-call bodies when readability stays high.
-- This allowance applies to control statements only, not function definitions (see §13.9).
-- Use braces once a branch has multiple statements.
-- If the body appears on a new line, braces are mandatory (no newline-separated unbraced bodies).
-
-Example:
+- Put consecutive statements or declarations on separate lines, including a declaration followed by a short guard clause.
+- A control statement can keep its body unbraced on the same line as its header if the body is a single short, readable statement such as a `return`, `throw`, assignment or function call.
+- Use braces if the body starts on a new line, contains multiple statements, or is itself a control statement. Follow §7.2 for `else if` chains.
+- Put ordinary function body statements on lines below the opening brace (see §13.9).
 
 ```cpp
+auto const level{sound_attenuation(distance)};
+if(!level) return {};
+
 if(ready) run_once();                    // allowed
 
-if(ready) {                              // required when body is on next line
-  run_once();
+for(auto const &task : tasks) {           // braces are required for a nested control statement
+  if(task.is_ready()) dispatch(task);
 }
 ```
 
@@ -374,7 +380,7 @@ if(ready) {                              // required when body is on next line
 
 - Do not indent:
   - `public:`, `private:`, `protected:` labels
-  - `case` labels under `switch`
+  - `case` and `default` labels under `switch`
   - primary content inside `namespace` scopes
 
 ### 7.8 Conditional indentation in special blocks
@@ -389,6 +395,7 @@ if(ready) {                              // required when body is on next line
 
 - Use no space before `(` in control statements:
   - `if(...)`, `for(...)`, `while(...)`, `switch(...)`, `catch(...)`
+- Use one space after the closing `)` before a body on the same line, whether the body starts with `{` or is a short unbraced statement (see §7.6).
 
 ### 8.2 Function declaration/definition spacing
 
@@ -408,15 +415,23 @@ void set_enabled(bool enabled) {
 
 ### 8.3 Operator spacing (arithmetic, assignment, comparison, logical)
 
-- Use spaces around binary operators.
+- Separate binary operators such as `=`, `+`, `-`, `>` and `&&` from their operands with spaces wherever they share a line, including inside function arguments and conditions.
 - Keep unary operators compact (`++i`, `!flag`).
+
+```cpp
+auto const chunk_size{reader.u32(offset + 4)};
+if(chunk_size > riff_end_offset - offset - 8) throw format_error{"waveform chunk exceeds RIFF"};
+```
 
 ### 8.4 Comma/semicolon/colon spacing
 
 - One space after commas.
 - No space before commas or semicolons.
+- Use one space after a semicolon that separates clauses on the same line in a control header, as in `for(size_t i{0}; i != count; ++i)`.
+- When a semicolon terminates a statement, start the next statement on a new line (see §7.6).
 - No space before `:` in labels (for example `case ready:`).
 - Use one space on both sides of `:` in range-for clauses.
+- Use one space between `?` or `:` and each adjacent operand on the same line in a ternary expression, as in `visible ? opacity : 0.0f`.
 
 Example:
 
@@ -636,6 +651,7 @@ for(size_t i{0}; i != item_count; ++i) {
 
 - Prefer scoped enums (`enum class`) over unscoped enums.
 - Use lowercase snake_case names for enum types and enumerators.
+- Place each enumerator on its own line; never combine multiple enumerators on one line.
 - If an enum is stored/transmitted/packed, specify an explicit underlying type sized to the value range (for example `uint8_t`).
 - For purely internal enums without storage/ABI constraints, an explicit underlying type is optional.
 - Convert enums explicitly when integer conversion is required (`static_cast`), rather than relying on implicit conversion.
@@ -712,8 +728,8 @@ std::vector<uint8_t> bytes;
 
 ### 11.2 Assignment vs initialization distinctions
 
-- Use `=` primarily for assignment after declaration.
-- At declaration site, prefer braces unless language constraints require another form.
+- Write a simple assignment to an existing object as `name = expression;`, with spaces around `=`.
+- For a declaration with an initialiser, write `type name{expression};`, including with `auto` or `auto const`. Use `=` for initialisation only when direct braces cannot express the intended result, and space it as in an assignment.
 
 ### 11.3 Designated initializers
 
@@ -732,6 +748,7 @@ result = item{
 ### 11.4 Literal formatting (`1.0f`, digit separators, chrono literals)
 
 - Use explicit suffixes where type clarity matters (`1.0f`, `5s`).
+- Use a lowercase `f` suffix for decimal `float` literals. Put a digit on both sides of any decimal point (`0.5f`, `1.0f`). Scientific notation can use a whole-number mantissa (`1e-5f`).
 - Use digit separators for large literals when it improves readability (`100'000'000.0f`).
 - For bitmasks and protocol/register bit patterns, prefer binary literals with separators for legibility.
 - Group binary digits on meaningful boundaries (field/byte); if no natural boundary exists, group in nibbles.
@@ -760,8 +777,21 @@ auto constexpr status_text{"ready"sv};
 
 ### 11.6 Ternary operator formatting
 
-- Keep short ternaries inline.
-- For long ternaries, wrap cleanly and keep branches simple enough to scan.
+- Keep simple ternaries inline. Wrap longer ones where it makes the choice easier to read.
+- Avoid complex ternaries. Use a named condition or intermediate value when it clarifies a dense condition or branch.
+- Prefer braced `if`/`else` blocks on multiple lines when dense branches or nested ternaries make the decision hard to follow. Nest the blocks when indentation clarifies which decisions depend on an earlier branch.
+
+```cpp
+if(allow_cache) {
+  if(auto const cached{cache.find(key)}; cached != cache.end()) {
+    result = cached->second;
+  } else {
+    result = load_and_cache(key);
+  }
+} else {
+  result = load(key);
+}
+```
 
 ### 11.7 Boolean expression clarity
 
@@ -1076,7 +1106,7 @@ public:
 
 ### 15.5 Modern C++ feature preference
 
-- Prefer the most modern C++ feature set available to the target toolchain (C++26 baseline).
+- Prefer the most modern C++ feature set available to the target toolchain (C++23 baseline, C++26 adoption when viable).
 - Prefer modern constructs over legacy equivalents when readability and maintainability improve.
 
 ## 16. Lambdas and Callables
@@ -1090,11 +1120,9 @@ public:
 
 - Follow normal function formatting for lambda parameters and return type annotations.
 - Omit empty `()` for parameterless lambdas (modern C++ style).
-- Do not place a space before a lambda body opening brace (`[]{`, `[](int v){}`).
-- If a lambda has no trailing return type, keep the closing `]` or `)` (if used) attached directly to the opening brace:
-  - `[](int value){`
-- If a lambda has a trailing return type, keep `)->type` compact with no spaces around `->`, and keep the single ordinary body-opening space before `{`:
-  - `[](size_t count)->float {`
+- Attach the opening body brace to the closing `]` or `)` when that token ends the lambda header (`[]{` or `[](int value){`).
+- For a trailing return type, keep `->` attached on both sides and put one space before `{` (`[](size_t count)->float {`).
+- A one-line lambda may have an empty body or a single short, simple statement. Keep the body braces directly against their contents (`[&](auto const &plane){return plane.contains(point);}`).
 - Do not specify a lambda trailing return type unless inference is insufficient or the annotation materially improves clarity.
 
 Example:
@@ -1470,6 +1498,7 @@ target_link_libraries(example_tool
   - `#pragma once` enforcement in first-party headers
   - C-style cast detection
   - forbidden `using namespace` (except allowed literal namespaces in source files)
+  - syntax-aware checks for switch label placement and separate lines for consecutive statements (see §7.3 and §7.6)
 
 ### 23.1 Tools and automation
 
