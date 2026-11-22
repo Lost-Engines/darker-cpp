@@ -15,8 +15,9 @@ void advance_game_clock(game_clock &clock, uint64_t interrupts) noexcept {
   auto const advances{clock.step_limit == 65535 ? interrupts : std::min<uint64_t>(interrupts, clock.step_limit - pending)};
   auto const next{static_cast<uint16_t>(clock.ticks + static_cast<uint16_t>(advances))};
   auto changes{static_cast<uint16_t>(clock.ticks ^ next)};
-  if(advances >= 65536) changes = 65535;
-  else {
+  if(advances >= 65536) {
+    changes = 65535;
+  } else {
     changes |= changes >> 1;
     changes |= changes >> 2;
     changes |= changes >> 4;

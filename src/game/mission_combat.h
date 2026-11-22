@@ -21,14 +21,14 @@ namespace darker::game {
 struct combat_timing {
   campaign_clock elapsed_ticks{};
   game_duration frame_step{};
-  uint16_t changes{};
+  uint16_t changes{0};
 };
 
 struct combat_input {
-  bool primary_pressed{};
-  bool secondary_pressed{};
-  bool secondary_held{};
-  bool primary_released{};
+  bool primary_pressed{false};
+  bool secondary_pressed{false};
+  bool secondary_held{false};
+  bool primary_released{false};
 };
 
 struct combat_scenario {

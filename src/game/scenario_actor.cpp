@@ -15,7 +15,7 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   if(moving && world_mode == resources::world_kind::underground && !tunnel) throw std::invalid_argument{"Underground actor creation requires route initialisation"};
   scenario_actor actor{
     .category{placement.form == resources::placement_form::absolute_static ? actor_category::stationary
-      : placement.definition_slot > 28                             ? actor_category::ground : actor_category::air},
+      : placement.definition_slot > 28 ? actor_category::ground : actor_category::air},
     .index{index},
     .definition_slot{placement.definition_slot},
     .attributes{static_cast<uint8_t>((moving ? placement.attributes * 2 : 0) | static_cast<unsigned int>(placement.counted))},
@@ -29,7 +29,8 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   };
   actor.pose.angles.heading = placement.heading;
   if(moving && world_mode == resources::world_kind::underground) {
-    auto const column{placement.position.column >> 8}, row{placement.position.row >> 8};
+    auto const column{placement.position.column >> 8};
+    auto const row{placement.position.row >> 8};
     if(column >= city_map_size.column || row >= city_map_size.row) throw std::out_of_range{"Underground actor placement exceeds its map"};
     auto const start{tunnel->network.start(tunnel->cells[city_cell_index(column, row)].type, packed_cell_reference::from_coordinates(column, row).value, placement.heading)};
     actor.pose.position = start.position;
@@ -57,8 +58,9 @@ scenario_actor make_scenario_actor(resources::scenario_placement const &placemen
   if(placement.program_offset) {
     if(*placement.program_offset < shared_offset) throw std::invalid_argument{"Scenario actor program precedes shared section"};
     auto const cursor{*placement.program_offset - shared_offset};
-    if(actor.route) actor.route->cursor = cursor;
-    else {
+    if(actor.route) {
+      actor.route->cursor = cursor;
+    } else {
       actor.script.continuation = cursor;
       actor.script.checkpoint = cursor;
     }

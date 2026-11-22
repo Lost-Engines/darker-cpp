@@ -8,10 +8,12 @@ TEST_CASE("Beacon fade frames match native dimming and restoration", "[game][bea
   for(auto const &sample : darker::test_reference::beacon_change_samples) {
     CAPTURE(sample.opcode, sample.origin, sample.count, sample.clock, sample.dimming);
     darker::game::city_map cells;
-    for(size_t i{0}; i < cells.size(); ++i) cells[i] = {
-      .type{1},
-      .state{static_cast<uint8_t>(i * 37 + sample.seed)}
-    };
+    for(size_t i{0}; i < cells.size(); ++i) {
+      cells[i] = {
+        .type{1},
+        .state{static_cast<uint8_t>(i * 37 + sample.seed)}
+      };
+    }
     darker::game::beacon_changes fade;
     std::array<std::byte, 1> const queue{static_cast<std::byte>(sample.origin)};
     if(!sample.dimming) fade.command(0x14, 0, 0, 0, {});

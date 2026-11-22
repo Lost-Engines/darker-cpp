@@ -15,9 +15,13 @@ void beacon_changes::command(uint8_t const opcode, uint8_t origin, uint8_t lengt
     origin = std::to_integer<uint8_t>(queue[queue_cursor++]);
     length = 1;
     dimming = true;
-  } else if(opcode == 0x12) stride = 18;
-  else if(opcode == 0x13) stride = 0x900;
-  else throw std::invalid_argument{"Unknown beacon change command"};
+  } else if(opcode == 0x12) {
+    stride = 18;
+  } else if(opcode == 0x13) {
+    stride = 0x900;
+  } else {
+    throw std::invalid_argument{"Unknown beacon change command"};
+  }
   position = static_cast<uint16_t>(((origin & 15) * 256 + (origin >> 4) * 2) * 9);
   deadline = static_cast<uint16_t>(clock + 256);
   count = length;

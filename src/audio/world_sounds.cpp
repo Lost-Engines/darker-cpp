@@ -88,7 +88,8 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
     .patch{definition.fm_patch}
   };
   switch(definition.sound_entry) {
-  case 0x391d: {
+  case 0x391d:
+    {
     auto const phase{static_cast<uint8_t>(clock + state.identity)};
     auto const triangle{static_cast<uint8_t>(phase ^ (phase & 128 ? 255 : 0))};
     auto const amplitude{std::min(255u, 64u + (state.damage >> 8))};
@@ -103,7 +104,8 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
     if(pose.speed == 0) result.pitch >>= 1;
     result.active = !(state.flags & 8);
     break;
-  case 0x3957: {
+  case 0x3957:
+    {
     auto const remaining{static_cast<uint16_t>(state.deadline - clock)};
     if(std::bit_cast<int8_t>(static_cast<uint8_t>(remaining >> 8)) > 0) {
       result.pitch = static_cast<uint16_t>(result.pitch + (remaining >> 4));
@@ -116,7 +118,9 @@ fm_note object_sound(game::object_definition const &definition, game::object_pos
     if(state.flags & 0x20) {
       result.level = static_cast<uint16_t>((uint32_t{result.level} * (state.fade * 257u)) >> 16);
       result.active = result.level != 0;
-    } else result.active = !(state.flags & 8);
+    } else {
+      result.active = !(state.flags & 8);
+    }
     break;
   default:
     throw std::invalid_argument{"Object sound requires a non-player sound callback"};
@@ -140,9 +144,11 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       .patch{definition.patch},
       .active{true}
     }});
-    if(definition.flags & game::effect_sound_definition::spatial_stereo_flag) candidates.back().note.attenuation = stereo_attenuation({
-      static_cast<uint16_t>(sound.position.column - listener.position.column), static_cast<uint16_t>(sound.position.row - listener.position.row),
-      static_cast<uint16_t>(sound.position.height - listener.position.height)}, basis, *level);
+    if(definition.flags & game::effect_sound_definition::spatial_stereo_flag) {
+      candidates.back().note.attenuation = stereo_attenuation({
+        static_cast<uint16_t>(sound.position.column - listener.position.column), static_cast<uint16_t>(sound.position.row - listener.position.row),
+        static_cast<uint16_t>(sound.position.height - listener.position.height)}, basis, *level);
+    }
   }};
   auto const append_actors{[&](game::actor_category const category){
     for(auto const &actor : combat.actors) {
@@ -213,7 +219,9 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
       }
     };
     append(engine, player_source, 0x100000000ULL);
-  } else append_player(0);
+  } else {
+    append_player(0);
+  }
   append_actors(game::actor_category::air);
   // fixed records are visited in address order: boost, beacons, charge, messages, ambient, switches, shield
   if(player_source && player[1].active) {
@@ -230,7 +238,9 @@ fm_frame world_sounds::mix(fm_frame const &player, game::mission_combat &combat,
     auto const before{candidates.size()};
     append(boost, player_source, 0x100010000ULL);
     if(candidates.size() != before) candidates.back().note.generation = player[1].generation;
-  } else append_player(1);
+  } else {
+    append_player(1);
+  }
   for(auto const &sound : ambient) {
     if((sound.identity >> 16) < 2) append(sound, nullptr, 0x400000000ULL + (sound.identity & 0xffff0000u));
   }

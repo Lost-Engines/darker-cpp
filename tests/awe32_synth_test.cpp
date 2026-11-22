@@ -20,12 +20,12 @@ TEST_CASE("AWE32 native library sounds and releases notes independently of outpu
     synth.send({0xc0, 0});
     synth.send({0x90, 60, 100});
     std::vector<float> pcm(48000 * 4);
-    for(size_t offset{}; offset < pcm.size();) {
+    for(size_t offset{0}; offset < pcm.size();) {
       auto const count{std::min(block * 2, pcm.size() - offset)};
       synth.render(std::span{pcm}.subspan(offset, count));
       offset += count;
     }
-    double energy{};
+    double energy{0.0};
     REQUIRE(std::ranges::all_of(pcm, [](float value){
       return std::isfinite(value);
     }));
@@ -35,7 +35,7 @@ TEST_CASE("AWE32 native library sounds and releases notes independently of outpu
     synth.reset();
     std::vector<float> tail(48000 * 8);
     synth.render(tail);
-    double late{};
+    double late{0.0};
     for(size_t i{tail.size() - 48000}; i < tail.size(); ++i) late += std::abs(tail[i]);
     REQUIRE(late < energy * 0.1);
     return pcm;
@@ -53,13 +53,13 @@ TEST_CASE("All six AWE32 arrangements survive consecutive group changes", "[audi
   }};
   darker::audio::fm_stream stream{48000};
   std::array<std::vector<std::byte>, 6> songs;
-  for(unsigned int group{}; group < songs.size(); ++group) songs[group] = load(42 + group * 5);
+  for(unsigned int group{0}; group < songs.size(); ++group) songs[group] = load(42 + group * 5);
   stream.configure_awe32_music(DARKER_TEST_AWE32_ROM, load(37), std::move(songs));
-  for(int group{}; group < 6; ++group) {
+  for(int group{0}; group < 6; ++group) {
     stream.select_music(group);
     std::vector<float> pcm(48000 * 12);
     stream.render(pcm);
-    double energy{};
+    double energy{0.0};
     REQUIRE(std::ranges::all_of(pcm, [](float value){
       return std::isfinite(value);
     }));
@@ -68,7 +68,7 @@ TEST_CASE("All six AWE32 arrangements survive consecutive group changes", "[audi
     if(group == 0) {
       // with the known ROM and opening arrangement, discarding register-read
       // PCM caused a 0.750-sized discontinuity; retaining it stays below 0.488
-      float largest_step{};
+      float largest_step{0.0f};
       for(size_t i{2}; i < pcm.size(); ++i) {
         largest_step = std::max(largest_step, std::abs(pcm[i] - pcm[i - 2]));
       }

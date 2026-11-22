@@ -37,7 +37,8 @@ bool callback(ambient_source &source, ambient_context const &context, game::city
     sound.position.row = static_cast<uint16_t>((sound.position.row & 255) + row * 256);
   }};
   switch(source.callback) {
-  case 0x3685: {
+  case 0x3685:
+    {
     auto const centre{game::make_radar_coverage(cells, context.listener, true).centre};
     if((centre[0] | centre[1]) & 128) return false;
     if(cells[centre[1] * 128 + centre[0]].state & 0xe0) return false;
@@ -48,7 +49,8 @@ bool callback(ambient_source &source, ambient_context const &context, game::city
     }
     return true;
   }
-  case 0x372f: {
+  case 0x372f:
+    {
     auto const centre{game::beacon_grid_cell(context.listener)};
     if((centre[0] | centre[1]) & 128) return false;
     auto const cell{cells[centre[1] * 128 + centre[0]]};
@@ -63,7 +65,8 @@ bool callback(ambient_source &source, ambient_context const &context, game::city
     return true;
   case 0x36d8:
     return !context.supplementary && region(source, context, 64, 88, {0xffff, 0x0c17, 0x706f, 0x3b6f});
-  case 0x365f: {
+  case 0x365f:
+    {
     auto const phase{static_cast<uint16_t>(context.clock >> 2)};
     auto const high{static_cast<uint8_t>(~(phase >> 8))};
     auto low{static_cast<uint8_t>(high & 3 ? 0 : phase)};
@@ -89,9 +92,11 @@ std::array<ambient_source, 10> make_ambient_sources(uint16_t const clock) {
   /// Original records 37A6/37BA/380A–3896 retain their stored durations, flags and fixed positions
   struct record {
     uint16_t pitch;
-    uint8_t duration, flags;
+    uint8_t duration;
+    uint8_t flags;
     maths::world_position position;
-    uint16_t level, callback;
+    uint16_t level;
+    uint16_t callback;
     uint8_t patch;
   };
   std::array<record, 10> constexpr records{{

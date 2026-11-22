@@ -7,7 +7,12 @@
 
 namespace darker::game {
 
-enum class hangar_return_phase { none, approaching, settling, complete };
+enum class hangar_return_phase {
+  none,
+  approaching,
+  settling,
+  complete
+};
 
 struct hangar_state {
   uint16_t return_site{0x7162};

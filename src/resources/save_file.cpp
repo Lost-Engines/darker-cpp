@@ -96,7 +96,7 @@ void write_save(std::filesystem::path const &path, save_file const &save) {
     std::ofstream stream;
     stream.exceptions(std::ios::failbit | std::ios::badbit);
     stream.open(temporary, std::ios::binary | std::ios::trunc);
-    stream.write(reinterpret_cast<char const*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+    stream.write(reinterpret_cast<char const *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
     stream.close();
     std::filesystem::rename(temporary, path);
   } catch(...) {

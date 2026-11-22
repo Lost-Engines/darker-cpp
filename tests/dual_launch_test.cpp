@@ -68,15 +68,19 @@ TEST_CASE("Dual Launch firing matches native stage changes and capsule targeting
       .definition_strength{40}
     };
     darker::game::projectile *tail{nullptr};
-    if(s[5] >= 0) tail = pool.launch({
-      .definition{darker::game::original_object_definitions[s[5]]},
-      .emitter{emitter}
-    });
-    if(!s[3]) {
-      while(pool.objects().free_head()) pool.launch({
-        .definition{darker::game::original_object_definitions[0]},
+    if(s[5] >= 0) {
+      tail = pool.launch({
+        .definition{darker::game::original_object_definitions[s[5]]},
         .emitter{emitter}
       });
+    }
+    if(!s[3]) {
+      while(pool.objects().free_head()) {
+        pool.launch({
+          .definition{darker::game::original_object_definitions[0]},
+          .emitter{emitter}
+        });
+      }
     }
     darker::game::caero_energy_state energy{
       .reserve{static_cast<uint16_t>(s[1])}
@@ -119,8 +123,9 @@ TEST_CASE("Dual Launch steering and displacement match native updates", "[weapon
     shot.angular_motion.pitch = static_cast<uint16_t>(sample[11]);
     shot.angular_motion.turn = static_cast<uint16_t>(sample[12]);
     uint16_t pitch{614};
-    if(sample[18]) darker::game::advance_direct_projectile(shot.placement, *shot.parameters.definition, static_cast<uint16_t>(sample[17]));
-    else {
+    if(sample[18]) {
+      darker::game::advance_direct_projectile(shot.placement, *shot.parameters.definition, static_cast<uint16_t>(sample[17]));
+    } else {
       auto const separation{darker::game::dual_launch_separation(shot.placement, target)};
       REQUIRE(separation >= 20);
       darker::game::advance_dual_projectile(shot, target, separation, static_cast<uint16_t>(sample[17]));

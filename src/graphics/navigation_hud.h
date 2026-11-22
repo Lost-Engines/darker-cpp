@@ -11,7 +11,11 @@ namespace darker::graphics {
 
 using world_position = vec2<uint16_t>;
 
-enum class radar_group { a, b, underground };
+enum class radar_group {
+  a,
+  b,
+  underground
+};
 
 struct radar_contact {
   world_position position;
@@ -20,7 +24,10 @@ struct radar_contact {
   bool covered{true};
 };
 
-enum class radar_scale { normal, enlarged };
+enum class radar_scale {
+  normal,
+  enlarged
+};
 
 namespace radar_layout {
 inline pixel_position constexpr centre{54, 215};

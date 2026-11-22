@@ -21,9 +21,9 @@ struct audio_output::implementation {
     config.playback.channels = channels;
     config.sampleRate = sample_rate;
     config.pUserData = this;
-    config.dataCallback = [](ma_device *const device, void *const output, void const*, ma_uint32 const frames){
-      auto &self{*static_cast<implementation*>(device->pUserData)};
-      self.callback(self.userdata, {static_cast<float*>(output), static_cast<size_t>(frames) * channels});
+    config.dataCallback = [](ma_device *const device, void *const output, void const *, ma_uint32 const frames){
+      auto &self{*static_cast<implementation *>(device->pUserData)};
+      self.callback(self.userdata, {static_cast<float *>(output), static_cast<size_t>(frames) * channels});
     };
     auto const result{ma_device_init(nullptr, &config, &device)};
     if(result != MA_SUCCESS) {
@@ -36,8 +36,8 @@ struct audio_output::implementation {
     ma_device_uninit(&device);
   }
 
-  implementation(implementation const&) = delete;
-  implementation &operator=(implementation const&) = delete;
+  implementation(implementation const &) = delete;
+  implementation &operator=(implementation const &) = delete;
   implementation(implementation &&) = delete;
   implementation &operator=(implementation &&) = delete;
 };

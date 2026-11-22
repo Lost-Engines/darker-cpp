@@ -54,7 +54,8 @@ void advance_aircraft_spawning(aircraft_spawning &state, std::vector<scenario_ac
     return static_cast<uint8_t>(value < 0 ? -value : value);
   }};
   for(auto const site : state.sites) {
-    auto const column{site & 255}, row{site >> 8};
+    auto const column{site & 255};
+    auto const row{site >> 8};
     auto const flags{cells[city_cell_index(column, row)].state};
     if(!(flags & 0xc0) || (flags & 0x20)) continue;
     auto &timer{state.timers[timer_index++]};

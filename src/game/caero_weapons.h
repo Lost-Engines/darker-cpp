@@ -32,7 +32,11 @@ struct caero_fire_request {
   bool released{false};
 };
 
-enum class diffuser_impact { rejected, gas, destroyed };
+enum class diffuser_impact {
+  rejected,
+  gas,
+  destroyed
+};
 
 struct diffuser_state {
   uint16_t cell{0};

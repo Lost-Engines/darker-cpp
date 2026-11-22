@@ -4,7 +4,7 @@
 #include <array>
 #include <cstdint>
 namespace darker::test_reference {
-inline std::array<uint8_t,512> constexpr fade_gains{
+inline std::array<uint8_t, 512> constexpr fade_gains{
   0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12, 12,
   12, 13, 13, 14, 14, 14, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24,
   24, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33, 34, 34, 34, 35, 35, 35,
@@ -22,7 +22,7 @@ inline std::array<uint8_t,512> constexpr fade_gains{
   24, 24, 24, 23, 23, 23, 22, 22, 22, 21, 21, 20, 20, 20, 19, 19, 19, 18, 18, 17, 17, 17, 16, 16, 16, 15, 15, 14, 14, 14, 13, 13,
   12, 12, 12, 11, 11, 11, 10, 10, 9, 9, 9, 8, 8, 7, 7, 7, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 0,
 };
-inline std::array<uint64_t,65> constexpr fade_components{
+inline std::array<uint64_t, 65> constexpr fade_components{
   0xd80ac658736bb725ULL, 0xd80ac658736bb725ULL, 0xf0a2521be20307a5ULL, 0xa3997b5c05b34f5ULL,
   0xe9279010b6e290a5ULL, 0x2d3389a8539993e9ULL, 0xf97022edb70e8dd5ULL, 0x272b5e0b896c48d9ULL,
   0xfb0dae0199c889a5ULL, 0x243b77d61e6c3b1dULL, 0x86821e1561904e39ULL, 0xa5c35b1edacdbc69ULL,

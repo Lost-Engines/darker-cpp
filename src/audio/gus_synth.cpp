@@ -21,7 +21,7 @@ auto read_file(std::filesystem::path const &path)->std::vector<uint8_t> {
   if(!file || size < 0 || size > 1048576) throw std::runtime_error{"Missing or invalid Gravis file: " + path.string()};
   std::vector<uint8_t> bytes(static_cast<size_t>(size));
   file.seekg(0);
-  if(!file.read(reinterpret_cast<char*>(bytes.data()), size)) throw std::runtime_error{"Cannot read Gravis file: " + path.string()};
+  if(!file.read(reinterpret_cast<char *>(bytes.data()), size)) throw std::runtime_error{"Cannot read Gravis file: " + path.string()};
   return bytes;
 }
 auto word(std::span<uint8_t const> bytes, size_t offset)->uint16_t {
@@ -31,30 +31,42 @@ auto word(std::span<uint8_t const> bytes, size_t offset)->uint16_t {
 } // anonymous namespace
 
 struct gus_synth::implementation {
-  uc_engine *cpu{};
+  uc_engine *cpu{nullptr};
   gf1_device chip;
   std::filesystem::path directory;
   struct opened_file {
     std::vector<uint8_t> bytes;
-    size_t offset{};
+    size_t offset{0};
   };
   std::map<uint16_t, opened_file> files;
   std::array<uint8_t, 65536> ports{};
-  uint16_t next_handle{5}, allocation{0x5000}, entry_segment{}, entry_offset{};
-  uint16_t dma_address{}, dma_length{};
-  uint8_t dma_page{}, dma_flip{};
-  uint32_t reads{};
-  unsigned int rate{}, pending_irq{};
-  uint64_t phase{}, bios_phase{};
-  std::array<int16_t, 2> previous{}, current{};
+  uint16_t next_handle{5};
+  uint16_t allocation{0x5000};
+  uint16_t entry_segment{0};
+  uint16_t entry_offset{0};
+  uint16_t dma_address{0};
+  uint16_t dma_length{0};
+  uint8_t dma_page{0};
+  uint8_t dma_flip{0};
+  uint32_t reads{0};
+  unsigned int rate{0};
+  unsigned int pending_irq{0};
+  uint64_t phase{0};
+  uint64_t bios_phase{0};
+  std::array<int16_t, 2> previous{};
+  std::array<int16_t, 2> current{};
   std::deque<std::array<int16_t, 2>> pending_samples;
-  bool boot{true}, resident{}, primed{};
+  bool boot{true};
+  bool resident{false};
+  bool primed{false};
   std::string failure;
 
   explicit implementation(std::filesystem::path const &path, unsigned int sample_rate, unsigned int ram_kib)
     : chip{[this](std::span<std::byte> destination){
-        check(uc_mem_read(cpu, static_cast<uint32_t>(dma_page) * 65536 + dma_address, destination.data(), destination.size()));
-      }, ram_kib}, directory{path}, rate{sample_rate} {
+      check(uc_mem_read(cpu, static_cast<uint32_t>(dma_page) * 65536 + dma_address, destination.data(), destination.size()));
+    }, ram_kib},
+      directory{path},
+      rate{sample_rate} {
   }
 
   ~implementation() {
@@ -65,7 +77,7 @@ struct gus_synth::implementation {
     if(result != UC_ERR_OK) throw std::runtime_error{std::string{"UltraMID: "} + uc_strerror(result)};
   }
   auto reg(int name)->uint16_t {
-    uint16_t value{};
+    uint16_t value{0};
     check(uc_reg_read(cpu, name, &value));
     return value;
   }
@@ -92,8 +104,13 @@ struct gus_synth::implementation {
     reg(UC_X86_REG_FLAGS, static_cast<uint16_t>((reg(UC_X86_REG_FLAGS) & ~1) | set));
   }
   void interrupt(unsigned int number) {
-    auto const ax{reg(UC_X86_REG_AX)}, bx{reg(UC_X86_REG_BX)}, cx{reg(UC_X86_REG_CX)}, dx{reg(UC_X86_REG_DX)}, ds{reg(UC_X86_REG_DS)};
-    auto const ah{ax >> 8}, al{ax & 255};
+    auto const ax{reg(UC_X86_REG_AX)};
+    auto const bx{reg(UC_X86_REG_BX)};
+    auto const cx{reg(UC_X86_REG_CX)};
+    auto const dx{reg(UC_X86_REG_DX)};
+    auto const ds{reg(UC_X86_REG_DS)};
+    auto const ah{ax >> 8};
+    auto const al{ax & 255};
     carry(false);
     if(number == 0x10) return;                                                 // discard the TSR's BIOS console banner
     if(number == 0x2f) {
@@ -137,37 +154,37 @@ struct gus_synth::implementation {
       break;
     case 0x3d:
       {
-        auto name{string(static_cast<uint32_t>(ds) * 16 + dx)};
-        std::replace(name.begin(), name.end(), '\\', '/');
-        name = name.substr(name.find_last_of('/') + 1);
-        for(auto &letter : name) letter = static_cast<char>(std::toupper(static_cast<unsigned char>(letter)));
-        if(name != "ULTRAMID.INI" && !name.ends_with(".PAT")) throw std::runtime_error{"Unexpected UltraMID file request: " + name};
-        files.emplace(next_handle, opened_file{read_file(directory / name)});
-        reg(UC_X86_REG_AX, next_handle++);
-      }
+      auto name{string(static_cast<uint32_t>(ds) * 16 + dx)};
+      std::replace(name.begin(), name.end(), '\\', '/');
+      name = name.substr(name.find_last_of('/') + 1);
+      for(auto &letter : name) letter = static_cast<char>(std::toupper(static_cast<unsigned char>(letter)));
+      if(name != "ULTRAMID.INI" && !name.ends_with(".PAT")) throw std::runtime_error{"Unexpected UltraMID file request: " + name};
+      files.emplace(next_handle, opened_file{read_file(directory / name)});
+      reg(UC_X86_REG_AX, next_handle++);
+    }
       break;
     case 0x3f:
       {
-        auto &file{files.at(bx)};
-        auto const count{std::min<size_t>(cx, file.bytes.size() - std::min(file.offset, file.bytes.size()))};
-        if(count) check(uc_mem_write(cpu, static_cast<uint32_t>(ds) * 16 + dx, file.bytes.data() + file.offset, count));
-        file.offset += count;
-        reg(UC_X86_REG_AX, static_cast<uint16_t>(count));
-      }
+      auto &file{files.at(bx)};
+      auto const count{std::min<size_t>(cx, file.bytes.size() - std::min(file.offset, file.bytes.size()))};
+      if(count) check(uc_mem_write(cpu, static_cast<uint32_t>(ds) * 16 + dx, file.bytes.data() + file.offset, count));
+      file.offset += count;
+      reg(UC_X86_REG_AX, static_cast<uint16_t>(count));
+    }
       break;
     case 0x3e:
       files.erase(bx);
       break;
     case 0x42:
       {
-        auto &file{files.at(bx)};
-        int64_t const offset{static_cast<int32_t>(static_cast<uint32_t>(cx) << 16 | dx)};
-        int64_t const target{offset + static_cast<int64_t>(al == 1 ? file.offset : al == 2 ? file.bytes.size() : 0)};
-        if(target < 0 || target > 1048576) throw std::runtime_error{"Invalid UltraMID file seek"};
-        file.offset = static_cast<size_t>(target);
-        reg(UC_X86_REG_AX, static_cast<uint16_t>(target));
-        reg(UC_X86_REG_DX, static_cast<uint16_t>(target >> 16));
-      }
+      auto &file{files.at(bx)};
+      int64_t const offset{static_cast<int32_t>(static_cast<uint32_t>(cx) << 16 | dx)};
+      int64_t const target{offset + static_cast<int64_t>(al == 1 ? file.offset : al == 2 ? file.bytes.size() : 0)};
+      if(target < 0 || target > 1048576) throw std::runtime_error{"Invalid UltraMID file seek"};
+      file.offset = static_cast<size_t>(target);
+      reg(UC_X86_REG_AX, static_cast<uint16_t>(target));
+      reg(UC_X86_REG_DX, static_cast<uint16_t>(target >> 16));
+    }
       break;
     case 0x40:
       reg(UC_X86_REG_AX, cx);
@@ -198,9 +215,9 @@ struct gus_synth::implementation {
       break;
     case 0x47:
       {
-        char constexpr path[]{"ULTRASND"};
-        check(uc_mem_write(cpu, static_cast<uint32_t>(ds) * 16 + reg(UC_X86_REG_SI), path, sizeof(path)));
-      }
+      char constexpr path[]{"ULTRASND"};
+      check(uc_mem_write(cpu, static_cast<uint32_t>(ds) * 16 + reg(UC_X86_REG_SI), path, sizeof(path)));
+    }
       break;
     case 0x58:
       reg(UC_X86_REG_AX, 0);
@@ -265,12 +282,12 @@ struct gus_synth::implementation {
     size_t const header{static_cast<size_t>(word(executable, 8)) * 16};
     if(header >= executable.size()) throw std::runtime_error{"Invalid UltraMID executable header"};
     check(uc_mem_write(cpu, 0x10100, executable.data() + header, executable.size() - header));
-    for(unsigned int i{}; i < word(executable, 6); ++i) {
+    for(unsigned int i{0}; i < word(executable, 6); ++i) {
       auto const position{word(executable, 24) + i * 4};
       uint32_t const address{static_cast<uint32_t>(word(executable, position + 2) + 0x1010) * 16 + word(executable, position)};
       memory_word(address, static_cast<uint16_t>(memory_word(address) + 0x1010));
     }
-    for(unsigned int i{}; i < 256; ++i) memory_word(i * 4 + 2, i >= 0x78 && i <= 0x7f ? 0 : 0xf000);
+    for(unsigned int i{0}; i < 256; ++i) memory_word(i * 4 + 2, i >= 0x78 && i <= 0x7f ? 0 : 0xf000);
     uint8_t const iret{0xcf};
     check(uc_mem_write(cpu, 0xf0000, &iret, 1));
     memory_word(0x410, 0x21);
@@ -289,16 +306,16 @@ struct gus_synth::implementation {
     reg(UC_X86_REG_DS, 0x1000);
     reg(UC_X86_REG_ES, 0x1000);
     uc_hook hook{};
-    auto const intr{+[](uc_engine*, uint32_t number, void *context){
-      auto &self{*static_cast<implementation*>(context)};
+    auto const intr{+[](uc_engine *, uint32_t number, void *context){
+      auto &self{*static_cast<implementation *>(context)};
       try {
         self.interrupt(number);
       } catch(std::exception const &error) {
         self.hook_failure(error);
       }
     }};
-    auto const in{+[](uc_engine*, uint32_t port, int size, void *context)->uint32_t {
-      auto &self{*static_cast<implementation*>(context)};
+    auto const in{+[](uc_engine *, uint32_t port, int size, void *context)->uint32_t {
+      auto &self{*static_cast<implementation *>(context)};
       try {
         return self.input(port, static_cast<unsigned int>(size));
       } catch(std::exception const &error) {
@@ -306,17 +323,17 @@ struct gus_synth::implementation {
         return 0;
       }
     }};
-    auto const out{+[](uc_engine*, uint32_t port, int size, uint32_t value, void *context){
-      auto &self{*static_cast<implementation*>(context)};
+    auto const out{+[](uc_engine *, uint32_t port, int size, uint32_t value, void *context){
+      auto &self{*static_cast<implementation *>(context)};
       try {
         self.output(port, static_cast<unsigned int>(size), value);
       } catch(std::exception const &error) {
         self.hook_failure(error);
       }
     }};
-    check(uc_hook_add(cpu, &hook, UC_HOOK_INTR, reinterpret_cast<void*>(intr), this, 1, 0));
-    check(uc_hook_add(cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void*>(in), this, 1, 0, UC_X86_INS_IN));
-    check(uc_hook_add(cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void*>(out), this, 1, 0, UC_X86_INS_OUT));
+    check(uc_hook_add(cpu, &hook, UC_HOOK_INTR, reinterpret_cast<void *>(intr), this, 1, 0));
+    check(uc_hook_add(cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void *>(in), this, 1, 0, UC_X86_INS_IN));
+    check(uc_hook_add(cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void *>(out), this, 1, 0, UC_X86_INS_OUT));
     run(static_cast<uint32_t>(reg(UC_X86_REG_CS)) * 16 + reg(UC_X86_REG_IP), 0, 100000000);
     if(!resident) throw std::runtime_error{"UltraMID did not finish initialisation"};
     for(unsigned int vector{0x78}; vector < 0x80; ++vector) {
@@ -373,7 +390,7 @@ void gus_synth::send(midi_message const message) noexcept {
   }
 }
 void gus_synth::reset() noexcept {
-  for(uint8_t channel{}; channel < 16; ++channel) {
+  for(uint8_t channel{0}; channel < 16; ++channel) {
     send({static_cast<uint8_t>(0xb0 | channel), 123, 0});
   }
 }
@@ -383,14 +400,14 @@ void gus_synth::render(std::span<float> const stereo) noexcept {
     state->previous = state->current;
     state->primed = true;
   }
-  for(size_t i{}; i + 1 < stereo.size(); i += 2) {
+  for(size_t i{0}; i + 1 < stereo.size(); i += 2) {
     while(state->phase >= state->rate) {
       state->phase -= state->rate;
       state->previous = state->current;
       state->current = state->sample();
     }
     float const fraction{static_cast<float>(state->phase) / static_cast<float>(state->rate)};
-    for(size_t channel{}; channel < 2; ++channel) {
+    for(size_t channel{0}; channel < 2; ++channel) {
       stereo[i + channel] = (state->previous[channel] + fraction * (state->current[channel] - state->previous[channel])) / 32768.0f;
     }
     state->phase += 44100;

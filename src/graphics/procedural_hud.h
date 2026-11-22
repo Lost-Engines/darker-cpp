@@ -9,7 +9,11 @@
 
 namespace darker::graphics {
 
-enum class target_marker { small, large, skimma_aim };
+enum class target_marker {
+  small,
+  large,
+  skimma_aim
+};
 
 void draw_aircraft_threats(framework::render::indexed_cockpit_framebuffer &target,
   resources::font_resource const &font, std::array<uint8_t, 4> const &errors);

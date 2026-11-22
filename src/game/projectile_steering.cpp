@@ -18,7 +18,8 @@ int16_t signed_word(int const value) {
 
 map_guidance_target resolve_map_guidance(uint16_t const cell, city_map const &cells, resources::geometry_bank const &bank, uint8_t const damage_mask) {
   /// D089 resolves a building's variant origin and vertical aim bounds through the native linked model lookup
-  auto const column{cell & 255}, row{cell >> 8};
+  auto const column{cell & 255};
+  auto const row{cell >> 8};
   if(column >= city_map_size.column || row >= city_map_size.row) throw std::out_of_range{"Guided projectile target is outside the city"};
   auto const &object{cells[city_cell_index(column, row)]};
   if(object.type == 0) throw std::invalid_argument{"Guided projectile building target is empty"};

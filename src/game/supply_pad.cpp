@@ -18,7 +18,8 @@ int constexpr pad_surface_height{264};
 
 uint16_t approach_word(uint16_t const value, uint16_t const target, uint16_t const step) noexcept {
   /// 7CDB compares signed words before and after a wrapping add or subtract
-  auto const current{std::bit_cast<int16_t>(value)}, desired{std::bit_cast<int16_t>(target)};
+  auto const current{std::bit_cast<int16_t>(value)};
+  auto const desired{std::bit_cast<int16_t>(target)};
   bool const below{current < desired};
   auto const next{std::bit_cast<int16_t>(static_cast<uint16_t>(below ? value + step : value - step))};
   return static_cast<uint16_t>(below ? std::min(next, desired) : std::max(next, desired));

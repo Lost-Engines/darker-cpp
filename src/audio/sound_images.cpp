@@ -57,7 +57,8 @@ void sound_images::start(std::span<std::byte const> const song, fm_sink const &s
   sequence.assign(song.begin(), song.end());
   for(size_t i{0}; i < registers.size(); ++i) registers[i] = read(0x138e + i);
   for(size_t p{0x1af2}; word(p); p += 2) {
-    auto const address{read(p)}, value{read(p + 1)};
+    auto const address{read(p)};
+    auto const value{read(p + 1)};
     registers[address] = value;
     sink({address, value});
   }
@@ -91,7 +92,8 @@ void sound_images::start(std::span<std::byte const> const song, fm_sink const &s
 
 void sound_images::instrument(track &part, fm_sink const &sink) {
   /// C093 writes the two-operator instrument, muting both operators before replacing their envelopes
-  auto const low{static_cast<uint8_t>(part.operators)}, high{static_cast<uint8_t>(part.operators >> 8)};
+  auto const low{static_cast<uint8_t>(part.operators)};
+  auto const high{static_cast<uint8_t>(part.operators >> 8)};
   write(high | 0x40, 63, sink);
   write(low | 0x40, 63, sink);
   for(auto const &[offset, base] : {std::pair{0, 0x60}, {2, 0x80}, {6, 0xe0}}) {
@@ -114,7 +116,9 @@ void sound_images::pitch(track &part, uint8_t const note, fm_sink const &sink) {
   if(block < 0 && remainder < 448) {
     ++block;
     frequency = static_cast<uint16_t>(std::bit_cast<int16_t>(frequency) >> 1);
-  } else frequency = static_cast<uint16_t>((frequency & 0x7ff) + (block * 1024));
+  } else {
+    frequency = static_cast<uint16_t>((frequency & 0x7ff) + (block * 1024));
+  }
   write(part.channel | 0xa0, static_cast<uint8_t>(frequency), sink);
   part.key = static_cast<uint8_t>((frequency >> 8) | 0x20);
   write(part.channel | 0xb0, part.key, sink);
@@ -160,7 +164,9 @@ void sound_images::event(track &part, fm_sink const &sink) {
       }
       note = static_cast<uint8_t>(read(part.instrument + 8) + 24);
       part.note = note;
-    } else note = static_cast<uint8_t>(op - 24 + read(part.instrument + 8));
+    } else {
+      note = static_cast<uint8_t>(op - 24 + read(part.instrument + 8));
+    }
     pitch(part, note, sink);
     part.velocity = byte(part);
     level(part, sink);

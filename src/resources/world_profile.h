@@ -8,7 +8,11 @@
 
 namespace darker::resources {
 
-enum class world_kind : uint8_t { delphi, halon, underground };
+enum class world_kind : uint8_t {
+  delphi,
+  halon,
+  underground
+};
 
 struct world_profile {
   std::string_view name;

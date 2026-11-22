@@ -113,7 +113,8 @@ void midi_music::event(track &part, midi_sink const &sink) {
   case 0x9c:
     part.loop = part.cursor;
     break;
-  case 0x9d: {
+  case 0x9d:
+    {
     auto const controller{byte(part)};
     send(0xb0, controller, byte(part));
     break;

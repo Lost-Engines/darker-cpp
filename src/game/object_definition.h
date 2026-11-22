@@ -19,14 +19,14 @@ struct steering_response {
 };
 
 struct craft_definition_data {
-  uint8_t acceleration{};
-  uint8_t deceleration{};
-  uint8_t cruise_height{};
-  uint8_t cooldown_shift{};
-  uint8_t cruise_speed{};
-  uint8_t attack_speed{};
-  uint8_t weapon_slot{};
-  uint8_t flags{};
+  uint8_t acceleration{0};
+  uint8_t deceleration{0};
+  uint8_t cruise_height{0};
+  uint8_t cooldown_shift{0};
+  uint8_t cruise_speed{0};
+  uint8_t attack_speed{0};
+  uint8_t weapon_slot{0};
+  uint8_t flags{0};
 };
 
 enum class projectile_flag : uint8_t {
@@ -34,11 +34,11 @@ enum class projectile_flag : uint8_t {
 };
 
 struct projectile_definition_data {
-  uint8_t launch_cost{};                                                       // also scales the firing delay for hostile weapons
-  uint8_t lifetime{};
+  uint8_t launch_cost{0};                                                      // also scales the firing delay for hostile weapons
+  uint8_t lifetime{0};
   std::array<uint8_t, 4> reserved{};
-  uint8_t steering_shift{};
-  uint8_t flags{};
+  uint8_t steering_shift{0};
+  uint8_t flags{0};
 
   constexpr bool has_flag(projectile_flag const flag) const noexcept {
     /// Test a named property while retaining the original packed definition byte
@@ -48,12 +48,12 @@ struct projectile_definition_data {
 
 struct player_definition_data {
   std::array<uint8_t, 2> reserved{};
-  uint8_t initial_height{};
-  uint8_t cooldown_shift{};
-  uint8_t drive_multiplier{};
-  uint8_t drive_bias{};
-  uint8_t weapon_slot{};
-  uint8_t flags{};
+  uint8_t initial_height{0};
+  uint8_t cooldown_shift{0};
+  uint8_t drive_multiplier{0};
+  uint8_t drive_bias{0};
+  uint8_t weapon_slot{0};
+  uint8_t flags{0};
 };
 
 class object_role_data {

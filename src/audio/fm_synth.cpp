@@ -14,7 +14,8 @@ struct fm_synth::implementation {
   std::unique_ptr<DBOPL::Chip> dosbox;
   unsigned int rate{0};
   uint64_t phase{0};
-  float previous{0}, current{0};
+  float previous{0};
+  float current{0};
   bool primed{false};
 
   float sample() noexcept {
@@ -47,8 +48,11 @@ fm_synth::~fm_synth() = default;
 
 void fm_synth::write(fm_write const command) noexcept {
   /// DOSBox writes immediately; Nuked retains its hardware register-write delay
-  if(state->dosbox) state->dosbox->WriteReg(command.address, command.value);
-  else OPL3_WriteRegBuffered(state->chip.get(), command.address, command.value);
+  if(state->dosbox) {
+    state->dosbox->WriteReg(command.address, command.value);
+  } else {
+    OPL3_WriteRegBuffered(state->chip.get(), command.address, command.value);
+  }
 }
 
 void fm_synth::write(fm_program const &program) noexcept {

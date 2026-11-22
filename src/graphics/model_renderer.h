@@ -9,9 +9,15 @@
 
 namespace darker::graphics {
 
-enum class model_shading { flat, gouraud };
+enum class model_shading {
+  flat,
+  gouraud
+};
 
-enum class model_path { direct, near_clipped };
+enum class model_path {
+  direct,
+  near_clipped
+};
 
 struct model_animation {
   std::array<int16_t, 256> parameters{};

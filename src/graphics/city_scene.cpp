@@ -127,7 +127,8 @@ void order_city_models(std::vector<city_draw_item> &items) {
   // or the current record's low byte when returning from its farther subtree
   auto const absent{items.size()};
   struct branches {
-    size_t farther, nearer;
+    size_t farther;
+    size_t nearer;
   };
   std::vector<branches> tree(items.size(), {absent, absent});
   size_t root{absent};

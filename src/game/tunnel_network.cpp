@@ -37,11 +37,15 @@ vec2<int> boundary(uint8_t const encoded) {
 uint8_t segment_length(int const x, int const y) {
   /// D0BE/92E6 take the integer square root of sixteen times the squared perimeter distance
   unsigned int const square{static_cast<unsigned int>(vec2<int>{x, y}.length_sq() * 16)};
-  unsigned int low{0}, high{256};
+  unsigned int low{0};
+  unsigned int high{256};
   while(low + 1 < high) {
     auto const middle{(low + high) / 2};
-    if(middle * middle <= square) low = middle;
-    else high = middle;
+    if(middle * middle <= square) {
+      low = middle;
+    } else {
+      high = middle;
+    }
   }
   return static_cast<uint8_t>(low);
 }
@@ -67,7 +71,8 @@ uint16_t proximity(tunnel_segment const edge, uint16_t const x, uint16_t const y
   }
   along >>= 1;
   if(along >= edge.length) return 0xffff;
-  auto const start{(edge.heights & 15) * 4}, end{(edge.heights >> 4) * 4};
+  auto const start{(edge.heights & 15) * 4};
+  auto const end{(edge.heights >> 4) * 4};
   auto const vertical{std::abs(start + (end - start) * along / edge.length - height)};
   bool const negative{(perpendicular & 0x8000) != 0};
   perpendicular = static_cast<uint16_t>((perpendicular << 1) | (negative ? 1 : 0));
@@ -83,10 +88,14 @@ tunnel_network::tunnel_network(std::span<std::byte const> const source) {
   for(size_t tile{0}; tile < 200; ++tile) {
     data[tile * 16] = source[tile * 10];
     for(size_t edge{0}; edge < 3; ++edge) {
-      auto const input{tile * 10 + 1 + edge * 3}, output{tile * 16 + 1 + edge * 5};
-      uint8_t const first{std::to_integer<uint8_t>(source[input])}, second{std::to_integer<uint8_t>(source[input + 1])};
-      auto const a{boundary(first)}, b{boundary(second)};
-      auto const x{a[0] - b[0]}, y{b[1] - a[1]};
+      auto const input{tile * 10 + 1 + edge * 3};
+      auto const output{tile * 16 + 1 + edge * 5};
+      uint8_t const first{std::to_integer<uint8_t>(source[input])};
+      uint8_t const second{std::to_integer<uint8_t>(source[input + 1])};
+      auto const a{boundary(first)};
+      auto const b{boundary(second)};
+      auto const x{a[0] - b[0]};
+      auto const y{b[1] - a[1]};
       data[output] = source[input];
       data[output + 1] = source[input + 1];
       data[output + 2] = source[input + 2];
@@ -141,7 +150,8 @@ maths::world_position tunnel_network::point(uint8_t const type, uint8_t const ro
   auto const edge{segment(type, route)};
   if(edge.length == 0) throw std::invalid_argument{"Cannot interpolate a zero-length tunnel segment"};
   bool const reverse{(route & 0x80) != 0};
-  auto const from{boundary(reverse ? edge.second : edge.first)}, to{boundary(reverse ? edge.first : edge.second)};
+  auto const from{boundary(reverse ? edge.second : edge.first)};
+  auto const to{boundary(reverse ? edge.first : edge.second)};
   int const divisor{edge.length * 2};
   int const along{std::bit_cast<int16_t>(distance)};
   auto const x{(cell & 255) * 256 + from[0] * 8 + (to[0] - from[0]) * 8 * along / divisor};
@@ -175,7 +185,8 @@ tunnel_start tunnel_network::start(uint8_t const type, uint16_t const cell, uint
 tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connection const source, uint8_t const preferred_heading) const {
   /// D136/D159 cross a boundary and choose a connected segment by endpoint, height and heading error
   auto const type_at{[&](uint16_t const cell){
-    auto const x{cell & 255}, y{cell >> 8};
+    auto const x{cell & 255};
+    auto const y{cell >> 8};
     if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel connection leaves its map"};
     return cells[city_cell_index(x, y)].type;
   }};
@@ -196,7 +207,9 @@ tunnel_connection tunnel_network::connect(city_map const &cells, tunnel_connecti
     int first{segment_offset(type_at(cell), 2)};
     bool const junction{first == 0xe8d1 - 0xe580};
     if(junction) first = 0xecc1 - 0xe580 - ((entry & 0x60) >> 1);
-    int best_score{127}, best_angle{255}, best_offset{-1};
+    int best_score{127};
+    int best_angle{255};
+    int best_offset{-1};
     uint8_t best_route{0};
     for(unsigned int i{0}; i < 3; ++i) {
       auto const candidate{segment_at(first + static_cast<int>(i) * 5)};
@@ -233,7 +246,8 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
   /// D284 projects onto the current edge, corrects crossings and samples a target through successive connected edges
   if(source.route & 0x40) return std::nullopt;
   auto const type_at{[&](uint16_t const cell){
-    auto const x{cell & 255}, y{cell >> 8};
+    auto const x{cell & 255};
+    auto const y{cell >> 8};
     if(x >= city_map_size.column || y >= city_map_size.row) throw std::out_of_range{"Tunnel projection leaves its map"};
     return cells[city_cell_index(x, y)].type;
   }};
@@ -244,7 +258,8 @@ std::optional<tunnel_trace> tunnel_network::trace(city_map const &cells, tunnel_
     auto const edge{segment(type_at(source.cell), source.route)};
     if(edge.length == 0) throw std::invalid_argument{"Cannot project onto a zero-length tunnel segment"};
     bool const reverse{(source.route & 0x80) != 0};
-    auto const from{boundary(reverse ? edge.second : edge.first)}, to{boundary(reverse ? edge.first : edge.second)};
+    auto const from{boundary(reverse ? edge.second : edge.first)};
+    auto const to{boundary(reverse ? edge.first : edge.second)};
     auto const x{static_cast<uint16_t>((source.cell & 255) * 256 + from[0] * 8)};
     auto const y{static_cast<uint16_t>((source.cell >> 8) * 256 + from[1] * 8)};
     auto const dx{std::bit_cast<int16_t>(static_cast<uint16_t>(position.column - x))};
@@ -277,7 +292,8 @@ std::optional<tunnel_connection> tunnel_network::reacquire(city_map const &cells
   uint16_t best{64};
   uint8_t route{0};
   auto const search{[&](int const x_offset, int const y_offset){
-    auto const column{static_cast<uint8_t>(cell + x_offset)}, row{static_cast<uint8_t>((cell >> 8) + y_offset)};
+    auto const column{static_cast<uint8_t>(cell + x_offset)};
+    auto const row{static_cast<uint8_t>((cell >> 8) + y_offset)};
     if(row >= city_map_size.row) return;
     auto const type{cells[city_cell_index(column & packed_cell_reference::column_mask, row)].type};
     if(type == 0) return;

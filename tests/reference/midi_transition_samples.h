@@ -2,7 +2,12 @@
 #include <array>
 #include <cstdint>
 namespace darker::test_reference {
-struct midi_transition_sample { unsigned int variant; bool pause; unsigned int events; uint64_t fingerprint; };
+struct midi_transition_sample {
+  unsigned int variant;
+  bool pause;
+  unsigned int events;
+  uint64_t fingerprint;
+};
 inline auto constexpr midi_transition_samples = std::to_array<midi_transition_sample>({
   {1, false, 1225, 0x29a96d66d58803d8ULL},
   {1, true, 1032, 0xa126214b8da2402aULL},

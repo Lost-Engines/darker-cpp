@@ -82,39 +82,52 @@ caero_fire_result fire_caero_weapon(projectile_pool &pool, caero_energy_state &e
     }
     lifetime = charge >> 4;
     charge = 0;
-    if(!lifetime || !target_reference{request.target}.permits_air_weapon()) return {
-      .ready{true}
-    };
+    if(!lifetime || !target_reference{request.target}.permits_air_weapon()) {
+      return {
+        .ready{true}
+      };
+    }
   } else if(selection == caero_weapon::diffuser_gas || selection == caero_weapon::diffuser_trigger) {
-    if(energy.reserve < cost || target_reference{request.target}.is_object_encoded()) return {
-      .next_selection{std::to_underlying(request.pressed ? caero_weapon::diffuser_trigger : caero_weapon::none)}
-    };
-    if(!request.pressed) return {
-      .ready{true}
-    };
+    if(energy.reserve < cost || target_reference{request.target}.is_object_encoded()) {
+      return {
+        .next_selection{std::to_underlying(request.pressed ? caero_weapon::diffuser_trigger : caero_weapon::none)}
+      };
+    }
+    if(!request.pressed) {
+      return {
+        .ready{true}
+      };
+    }
     energy.reserve -= cost;
     next_selection = selection == caero_weapon::diffuser_gas ? caero_weapon::diffuser_trigger : caero_weapon::diffuser_gas;
   } else {
     if(energy.reserve < cost) return {};
     if(selection == caero_weapon::dual_launch_follow_up) {
       auto const *capsule{pool.objects().tail()};
-      if(!capsule || capsule->parameters.definition != &original_object_definitions[caero_definition_slot(caero_weapon::dual_launch_capsule)]) return {
-        .ready{true},
-        .next_selection{std::to_underlying(caero_weapon::dual_launch_capsule)}
-      };
-      if(!request.released) return {
-        .ready{true}
-      };
+      if(!capsule || capsule->parameters.definition != &original_object_definitions[caero_definition_slot(caero_weapon::dual_launch_capsule)]) {
+        return {
+          .ready{true},
+          .next_selection{std::to_underlying(caero_weapon::dual_launch_capsule)}
+        };
+      }
+      if(!request.released) {
+        return {
+          .ready{true}
+        };
+      }
       target = capsule->native_id;
     }
     if((selection == caero_weapon::caero_weapon || selection == caero_weapon::brent_hunter) && !target_reference{request.target}.permits_air_weapon()) return {};
     if(selection == caero_weapon::brent_ground && target_reference{request.target}.is_object_encoded()) return {};
-    if(selection != caero_weapon::dual_launch_follow_up && !request.pressed) return {
-      .ready{true}
-    };
+    if(selection != caero_weapon::dual_launch_follow_up && !request.pressed) {
+      return {
+        .ready{true}
+      };
+    }
     energy.reserve -= cost;
-    if(selection == caero_weapon::dual_launch_capsule) next_selection = caero_weapon::dual_launch_follow_up;
-    else if(selection == caero_weapon::dual_launch_follow_up) next_selection = caero_weapon::dual_launch_capsule;
+    if(selection == caero_weapon::dual_launch_capsule) {
+      next_selection = caero_weapon::dual_launch_follow_up;
+    } else if(selection == caero_weapon::dual_launch_follow_up) next_selection = caero_weapon::dual_launch_capsule;
   }
   return {
     .shot{pool.launch({

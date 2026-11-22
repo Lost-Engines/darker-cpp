@@ -40,7 +40,8 @@ void place_air_reserve(scenario_actor &actor, object_pose const &player, std::sp
     auto const cell{static_cast<uint8_t>((player.position[axis] >> 8) + (difference(axis) < 0 ? reserve_distance_cells : -reserve_distance_cells))};
     actor.pose.position[axis] = static_cast<uint16_t>((cell << 8) | (actor.pose.position[axis] & 255));
   }
-  uint8_t overlaps{0}, clearance{0};
+  uint8_t overlaps{0};
+  uint8_t clearance{0};
   // C3E2 retains authored Nightmare positions and checks ground actors instead.
   auto const obstacle_category{mode == air_reserve_mode::nightmare ? actor_category::ground : actor_category::air};
   for(auto const &other : active) {
@@ -76,8 +77,11 @@ void activate_scenario_reserves(std::vector<scenario_actor> &active, std::vector
     })};
     auto actor{*next};
     reserves.erase(next);
-    if(actor.route) actor.route->origin = static_cast<uint16_t>(clock - 4096);
-    else actor.script.deadline = clock;
+    if(actor.route) {
+      actor.route->origin = static_cast<uint16_t>(clock - 4096);
+    } else {
+      actor.script.deadline = clock;
+    }
     if(category == actor_category::air && !actor.tunnel) {
       if(mode == air_reserve_mode::nightmare) {
         // C350/C35A choose C3E2 for Nightmare: fade in where the wave was authored.

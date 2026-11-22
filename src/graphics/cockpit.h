@@ -10,7 +10,11 @@
 
 namespace darker::graphics {
 
-enum class craft { caero, skimma, upgraded_skimma };
+enum class craft {
+  caero,
+  skimma,
+  upgraded_skimma
+};
 
 enum class cockpit_sheet : unsigned int {
   delphi_skimma = 15,

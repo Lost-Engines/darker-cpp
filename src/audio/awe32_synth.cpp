@@ -11,12 +11,14 @@ namespace darker::audio {
 
 struct awe32_synth::implementation {
   EMU8K chip;
-  uc_engine *cpu{};
-  unsigned int rate{};
-  uint64_t phase{};
-  std::array<int16_t, 2> previous{}, current{};
+  uc_engine *cpu{nullptr};
+  unsigned int rate{0};
+  uint64_t phase{0};
+  std::array<int16_t, 2> previous{};
+  std::array<int16_t, 2> current{};
   std::deque<std::array<int16_t, 2>> pending_samples;
-  bool primed{}, initialised{};
+  bool primed{false};
+  bool initialised{false};
 
   ~implementation() {
     if(cpu) uc_close(cpu);
@@ -29,23 +31,23 @@ struct awe32_synth::implementation {
   void call(uint16_t address, std::span<uint16_t const> arguments = {}) {
     uint16_t stack{0xff00};
     std::array<uint16_t, 4> words{0xff00};
-    for(size_t i{}; i < arguments.size(); ++i) words[i + 1] = arguments[i];
+    for(size_t i{0}; i < arguments.size(); ++i) words[i + 1] = arguments[i];
     check(uc_reg_write(cpu, UC_X86_REG_SP, &stack));
     // x86 arguments are little endian, independently of the host
     std::array<uint8_t, 8> bytes{};
-    for(size_t i{}; i < words.size(); ++i) {
+    for(size_t i{0}; i < words.size(); ++i) {
       bytes[i * 2] = static_cast<uint8_t>(words[i]);
       bytes[i * 2 + 1] = static_cast<uint8_t>(words[i] >> 8);
     }
     check(uc_mem_write(cpu, 0x5ff00, bytes.data(), bytes.size()));
     check(uc_emu_start(cpu, 0x10000 + address, 0x1ff00, 0, 2000000));
-    uint16_t ip{};
+    uint16_t ip{0};
     check(uc_reg_read(cpu, UC_X86_REG_IP, &ip));
     if(ip != 0xff00) throw std::runtime_error{"AWE32 driver exceeded its instruction budget at " + std::to_string(address)};
   }
 
-  static uint32_t input(uc_engine*, uint32_t port, int size, void *context) {
-    auto &self{*static_cast<implementation*>(context)};
+  static uint32_t input(uc_engine *, uint32_t port, int size, void *context) {
+    auto &self{*static_cast<implementation *>(context)};
     // polling must advance the hardware, but runtime reads must not cut pieces
     // out of active voices. Keep their PCM in playback order
     std::array<int16_t, 2> pcm{};
@@ -65,10 +67,13 @@ struct awe32_synth::implementation {
     return pcm;
   }
 
-  static void output(uc_engine*, uint32_t port, int size, uint32_t value, void *context) {
-    auto &self{*static_cast<implementation*>(context)};
-    if(size == 1) self.chip.Outb(port, static_cast<uint8_t>(value));
-    else self.chip.Outw(port, static_cast<uint16_t>(value));
+  static void output(uc_engine *, uint32_t port, int size, uint32_t value, void *context) {
+    auto &self{*static_cast<implementation *>(context)};
+    if(size == 1) {
+      self.chip.Outb(port, static_cast<uint8_t>(value));
+    } else {
+      self.chip.Outw(port, static_cast<uint16_t>(value));
+    }
   }
 };
 
@@ -93,8 +98,8 @@ awe32_synth::awe32_synth(std::filesystem::path const &rom, std::span<std::byte c
   segment = 0x5000;
   implementation::check(uc_reg_write(state->cpu, UC_X86_REG_SS, &segment));
   uc_hook hook{};
-  implementation::check(uc_hook_add(state->cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void*>(implementation::input), state.get(), 1, 0, UC_X86_INS_IN));
-  implementation::check(uc_hook_add(state->cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void*>(implementation::output), state.get(), 1, 0, UC_X86_INS_OUT));
+  implementation::check(uc_hook_add(state->cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void *>(implementation::input), state.get(), 1, 0, UC_X86_INS_IN));
+  implementation::check(uc_hook_add(state->cpu, &hook, UC_HOOK_INSN, reinterpret_cast<void *>(implementation::output), state.get(), 1, 0, UC_X86_INS_OUT));
   // execute only the original embedded synthesis library; sequencing remains C++
   state->call(0x1002);
   state->initialised = true;
@@ -107,7 +112,7 @@ void awe32_synth::send(midi_message const message) noexcept {
   std::array<uint16_t, 3> const arguments{message.second, message.first, channel};
   switch(message.status & 0xf0) {
   case 0x80:
-      state->call(0x3e0a, arguments);
+    state->call(0x3e0a, arguments);
     break;
   case 0x90:
     state->call(0x3eea, arguments);
@@ -128,7 +133,7 @@ void awe32_synth::send(midi_message const message) noexcept {
 
 void awe32_synth::reset() noexcept {
   // the original sequencer stops voices without reinitialising channel controllers
-  for(uint8_t channel{}; channel < 16; ++channel) send({static_cast<uint8_t>(0xb0 | channel), 123, 0});
+  for(uint8_t channel{0}; channel < 16; ++channel) send({static_cast<uint8_t>(0xb0 | channel), 123, 0});
 }
 
 void awe32_synth::render(std::span<float> const stereo) noexcept {
@@ -137,14 +142,14 @@ void awe32_synth::render(std::span<float> const stereo) noexcept {
     state->previous = state->current;
     state->primed = true;
   }
-  for(size_t i{}; i + 1 < stereo.size(); i += 2) {
+  for(size_t i{0}; i + 1 < stereo.size(); i += 2) {
     while(state->phase >= state->rate) {
       state->phase -= state->rate;
       state->previous = state->current;
       state->current = state->sample();
     }
     float const fraction{static_cast<float>(state->phase) / static_cast<float>(state->rate)};
-    for(size_t channel{}; channel < 2; ++channel) {
+    for(size_t channel{0}; channel < 2; ++channel) {
       stereo[i + channel] = (state->previous[channel] + fraction * (state->current[channel] - state->previous[channel])) / 32768.0f;
     }
     state->phase += 44100;

@@ -8,9 +8,15 @@
 
 namespace darker::graphics {
 
-enum class coordinate_font { small, large };
+enum class coordinate_font {
+  small,
+  large
+};
 
-enum class weapon_icon_slot { primary, secondary };
+enum class weapon_icon_slot {
+  primary,
+  secondary
+};
 
 struct caero_bitmap_state {
   uint8_t row{0};

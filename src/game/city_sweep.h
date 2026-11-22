@@ -10,7 +10,11 @@
 
 namespace darker::game {
 
-enum class city_contact { none, terrain, building };
+enum class city_contact {
+  none,
+  terrain,
+  building
+};
 
 struct city_collision_result {
   city_contact contact{city_contact::none};

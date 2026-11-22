@@ -27,8 +27,10 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     };
     darker::game::city_map cells{};
     std::array<darker::resources::city_type, 2> types{};
-    std::array<int, 4> constexpr columns{0, -1, 0, 1}, rows{-1, 0, 1, 0};
-    auto column{static_cast<uint8_t>(s[1] >> 8)}, row{static_cast<uint8_t>(s[2] >> 8)};
+    std::array<int, 4> constexpr columns{0, -1, 0, 1};
+    std::array<int, 4> constexpr rows{-1, 0, 1, 0};
+    auto column{static_cast<uint8_t>(s[1] >> 8)};
+    auto row{static_cast<uint8_t>(s[2] >> 8)};
     for(size_t i{0}; i < types.size(); ++i) {
       types[i].collision_marker = static_cast<uint8_t>(s[13 + i]);
       column = static_cast<uint8_t>(column - columns[s[4] / 2]);
@@ -38,10 +40,12 @@ TEST_CASE("Mobile launcher guards and paired shots match the native combat helpe
     darker::game::projectile_pool pool{darker::game::projectile_list::hostile};
     darker::game::launch_emitter const emitter{};
     if(!s[12]) {
-      while(pool.objects().free_head()) REQUIRE(pool.launch({
-        .definition{darker::game::original_object_definitions[18]},
-        .emitter{emitter}
-      }));
+      while(pool.objects().free_head()) {
+        REQUIRE(pool.launch({
+          .definition{darker::game::original_object_definitions[18]},
+          .emitter{emitter}
+        }));
+      }
     }
     auto const *shot{darker::game::fire_vehicle_missile(pool, vehicle, player, cells, types,
       static_cast<uint8_t>(s[4]), static_cast<uint16_t>(s[10]), static_cast<uint8_t>(s[11]), 0x400)};

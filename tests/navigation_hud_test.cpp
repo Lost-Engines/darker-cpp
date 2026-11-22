@@ -73,8 +73,11 @@ TEST_CASE("Skimma masked callbacks match independently extracted sprite coverage
   for(auto const &sample : darker::test_reference::skimma) {
     auto target{cache};
     darker::graphics::skimma_bitmap_state state;
-    if(sample.bearing) state.bearing = sample.state;
-    else state.weapons[sample.index] = sample.state;
+    if(sample.bearing) {
+      state.bearing = sample.state;
+    } else {
+      state.weapons[sample.index] = sample.state;
+    }
     darker::graphics::update_skimma_bitmaps(cache, target, darker::graphics::craft::upgraded_skimma, {}, state);
     uint64_t checksum{14695981039346656037ULL};
     for(auto const pixel : target.pixels) checksum = (checksum ^ pixel) * 1099511628211ULL;

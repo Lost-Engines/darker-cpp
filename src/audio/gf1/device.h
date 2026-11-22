@@ -8,7 +8,7 @@
 
 namespace darker::audio {
 namespace gf1_detail {
-  struct device_state;
+struct device_state;
 }
 
 class gf1_device {

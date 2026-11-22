@@ -36,7 +36,8 @@ std::array<uint8_t, 2> beacon_grid_cell(maths::map_position const position) noex
 
 std::array<uint8_t, 2> beacon_grid_coordinates(maths::map_position const position) noexcept {
   /// 5C65/573C map both player coordinates to the nearest beacon and blank the pair outside coverage
-  auto const column{lookup[position.column >> 8]}, row{lookup[position.row >> 8]};
+  auto const column{lookup[position.column >> 8]};
+  auto const row{lookup[position.row >> 8]};
   uint8_t constexpr outside_map_bit{0x80};
   if((column | row) & outside_map_bit) return {};
   return {static_cast<uint8_t>(column + 1), static_cast<uint8_t>(row + 1)};

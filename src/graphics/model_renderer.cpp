@@ -167,8 +167,9 @@ private:
   uint8_t colour(uint8_t const source) const noexcept {
     /// 3383 resolves the supplied distance shade table and dynamic colour codes
     unsigned int shade{static_cast<unsigned int>(source & model_colours::shade_mask)};
-    if(shade < model_colours::shade_count) shade = colours.shades[shade];
-    else {
+    if(shade < model_colours::shade_count) {
+      shade = colours.shades[shade];
+    } else {
       // special shade codes combine beacon light with the brightest distance shade, then compress into the normal ramp
       unsigned int const value{static_cast<uint8_t>((colours.dynamic & model_colours::shade_mask) + colours.shades.back())};
       shade = std::min(model_colours::shade_count - 1, static_cast<unsigned int>(static_cast<uint8_t>(value + 11 - (value >> 2))) >> 1);
@@ -179,7 +180,17 @@ private:
 public:
   interpreter(model_workspace &storage, framework::render::indexed_surface frame, std::span<std::byte const> const bytes,
     projection_parameters const parameters, model_colours const &palette, raster_viewport const bounds, model_path const drawing_path, model_animation const &animation_state, model_shading const shading_mode)
-    : target{frame}, pool{bytes}, projection{parameters}, colours{palette}, animation{animation_state}, distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)}, viewport{bounds}, path{drawing_path}, shading{shading_mode}, screen_origin{parameters.origin}, workspace{storage} {
+    : target{frame},
+      pool{bytes},
+      projection{parameters},
+      colours{palette},
+      animation{animation_state},
+      distance_high{static_cast<uint8_t>(parameters.depth.whole >> 8)},
+      viewport{bounds},
+      path{drawing_path},
+      shading{shading_mode},
+      screen_origin{parameters.origin},
+      workspace{storage} {
     /// Keep bytecode, projection cache and vertex storage together for one drawing invocation
   }
 
@@ -210,58 +221,64 @@ public:
         break;
       case model_opcode::disc:
         {
-          auto const index{colour(byte(position))};
-          auto const radius{word(position)};
-          if(cursor == 0) throw std::invalid_argument{"Model disc has no preceding vertex"};
-          --cursor;
-          auto const centre{workspace.camera_vertices[cursor]};
-          auto const depth{path == model_path::near_clipped ? signed_word(centre.depth >> render_geometry::fraction_bits) : last_depth};
-          if(path == model_path::near_clipped && depth < render_geometry::near_depth) break;
-          if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
-          auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : workspace.vertices[cursor]};
-          draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, viewport);
-        }
+        auto const index{colour(byte(position))};
+        auto const radius{word(position)};
+        if(cursor == 0) throw std::invalid_argument{"Model disc has no preceding vertex"};
+        --cursor;
+        auto const centre{workspace.camera_vertices[cursor]};
+        auto const depth{path == model_path::near_clipped ? signed_word(centre.depth >> render_geometry::fraction_bits) : last_depth};
+        if(path == model_path::near_clipped && depth < render_geometry::near_depth) break;
+        if(depth == 0) throw std::domain_error{"Model disc has zero depth"};
+        auto const point{path == model_path::near_clipped ? project_vertex(centre, screen_origin) : workspace.vertices[cursor]};
+        draw_disc(target, {point.x, point.y}, radius / static_cast<uint16_t>(depth), index, viewport);
+      }
         break;
       case model_opcode::line:
         {
-          auto const index{colour(byte(position))};
-          auto const a{byte(position)};
-          auto const b{byte(position)};
-          if(!defined[a] || !defined[b]) throw std::invalid_argument{"Model line references an undefined vertex"};
-          screen_vertex first{}, last{};
-          if(path == model_path::near_clipped) {
-            auto const left{workspace.camera_vertices[a]}, right{workspace.camera_vertices[b]};
-            bool const left_inside{left.depth >= render_geometry::near_depth_fixed}, right_inside{right.depth >= render_geometry::near_depth_fixed};
-            if(!left_inside && !right_inside) break;
-            first = left_inside ? project_vertex(left, screen_origin) : near_intersection(right, left, screen_origin);
-            last = right_inside ? project_vertex(right, screen_origin) : near_intersection(left, right, screen_origin);
-          } else {
-            first = workspace.vertices[a];
-            last = workspace.vertices[b];
-          }
-          draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, viewport);
+        auto const index{colour(byte(position))};
+        auto const a{byte(position)};
+        auto const b{byte(position)};
+        if(!defined[a] || !defined[b]) throw std::invalid_argument{"Model line references an undefined vertex"};
+        screen_vertex first{};
+        screen_vertex last{};
+        if(path == model_path::near_clipped) {
+          auto const left{workspace.camera_vertices[a]};
+          auto const right{workspace.camera_vertices[b]};
+          bool const left_inside{left.depth >= render_geometry::near_depth_fixed};
+          bool const right_inside{right.depth >= render_geometry::near_depth_fixed};
+          if(!left_inside && !right_inside) break;
+          first = left_inside ? project_vertex(left, screen_origin) : near_intersection(right, left, screen_origin);
+          last = right_inside ? project_vertex(right, screen_origin) : near_intersection(left, right, screen_origin);
+        } else {
+          first = workspace.vertices[a];
+          last = workspace.vertices[b];
         }
+        draw_world_line(target, {first.x, first.y}, {last.x, last.y}, index, viewport);
+      }
         break;
       case model_opcode::call:
       case model_opcode::jump:
         {
-          auto const operand{position};
-          auto const destination{relative(operand, word(position))};
-          if(opcode == model_opcode::call) run(destination, depth + 1);
-          else position = destination;
+        auto const operand{position};
+        auto const destination{relative(operand, word(position))};
+        if(opcode == model_opcode::call) {
+          run(destination, depth + 1);
+        } else {
+          position = destination;
         }
+      }
         break;
       case model_opcode::reset_vertex_cursor:
         cursor = 0;
         break;
       case model_opcode::set_vertex_cursor:
         {
-          auto const address{word(position)};
-          unsigned int constexpr native_vertex_buffer{0xfc00};
-          unsigned int constexpr projected_vertex_bytes{4};                    // two 16-bit screen coordinates
-          if(address < native_vertex_buffer || (address % projected_vertex_bytes)) throw std::invalid_argument{"Invalid projected vertex cursor"};
-          cursor = (address - native_vertex_buffer) / projected_vertex_bytes;
-        }
+        auto const address{word(position)};
+        unsigned int constexpr native_vertex_buffer{0xfc00};
+        unsigned int constexpr projected_vertex_bytes{4};                      // two 16-bit screen coordinates
+        if(address < native_vertex_buffer || (address % projected_vertex_bytes)) throw std::invalid_argument{"Invalid projected vertex cursor"};
+        cursor = (address - native_vertex_buffer) / projected_vertex_bytes;
+      }
         break;
       case model_opcode::zero_c:
         projection.zero_component(2);
@@ -348,66 +365,69 @@ public:
       case model_opcode::shaded_quad:
       case model_opcode::shaded_polygon:
         {
-          // fixed triangle/quad opcodes encode count minus one; shaded forms add 12, variable polygons store it as an operand
-          bool const shaded{opcode >= model_opcode::shaded_triangle};
-          unsigned int const count{static_cast<unsigned int>(opcode == model_opcode::flat_polygon || opcode == model_opcode::shaded_polygon ? byte(position) : shaded ? std::to_underlying(opcode) - 12 : std::to_underlying(opcode)) + 1};
-          auto const source_colour{byte(position)};
-          auto const index{colour(source_colour)};
-          for(unsigned int i{0}; i < count; ++i) {
-            auto const source{byte(position)};
-            if(!defined[source]) throw std::invalid_argument{"Model face references an undefined vertex"};
-            if(path == model_path::near_clipped) workspace.camera_face[i] = workspace.camera_vertices[source];
-            else workspace.face[i] = workspace.vertices[source];
-            if(shaded) {
-              auto const operand{byte(position)};
-              if(shading == model_shading::gouraud) {
-                if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
-                auto const shade{colours.shades[operand]};
-                // high byte is the palette index; low byte starts at half a shade plus shade for native interpolation bias
-                workspace.vertex_shades[i] = static_cast<uint16_t>(((source_colour & model_colours::ramp_mask) + shade) * 256 + shade + 128);
-                workspace.shaded_face[i] = {
+        // fixed triangle/quad opcodes encode count minus one; shaded forms add 12, variable polygons store it as an operand
+        bool const shaded{opcode >= model_opcode::shaded_triangle};
+        unsigned int const count{static_cast<unsigned int>(opcode == model_opcode::flat_polygon || opcode == model_opcode::shaded_polygon ? byte(position) : shaded ? std::to_underlying(opcode) - 12 : std::to_underlying(opcode)) + 1};
+        auto const source_colour{byte(position)};
+        auto const index{colour(source_colour)};
+        for(unsigned int i{0}; i < count; ++i) {
+          auto const source{byte(position)};
+          if(!defined[source]) throw std::invalid_argument{"Model face references an undefined vertex"};
+          if(path == model_path::near_clipped) {
+            workspace.camera_face[i] = workspace.camera_vertices[source];
+          } else {
+            workspace.face[i] = workspace.vertices[source];
+          }
+          if(shaded) {
+            auto const operand{byte(position)};
+            if(shading == model_shading::gouraud) {
+              if(operand >= colours.shades.size()) throw std::invalid_argument{"Vertex shade exceeds the original palette ramp"};
+              auto const shade{colours.shades[operand]};
+              // high byte is the palette index; low byte starts at half a shade plus shade for native interpolation bias
+              workspace.vertex_shades[i] = static_cast<uint16_t>(((source_colour & model_colours::ramp_mask) + shade) * 256 + shade + 128);
+              workspace.shaded_face[i] = {
                   .position{path == model_path::direct ? screen_vertex{workspace.face[i]} : screen_vertex{}},
                   .shade{workspace.vertex_shades[i]}
                 };
-              }
             }
           }
-          if(shaded && shading == model_shading::gouraud) {
-            auto const projected_count{path == model_path::near_clipped
-              ? clip_near_shaded_polygon(std::span{workspace.camera_face}.first(count), std::span{workspace.vertex_shades}.first(count), screen_origin, workspace.shaded_face) : count};
-            draw_gouraud_polygon(target, std::span{workspace.shaded_face}.first(projected_count), viewport);
-            break;
-          }
-          auto const projected_count{path == model_path::near_clipped
-            ? clip_near_polygon(std::span{workspace.camera_face}.first(count), screen_origin, workspace.face) : count};
-          draw_flat_polygon(target, std::span{workspace.face}.first(projected_count), index, viewport);
         }
+        if(shaded && shading == model_shading::gouraud) {
+          auto const projected_count{path == model_path::near_clipped
+              ? clip_near_shaded_polygon(std::span{workspace.camera_face}.first(count), std::span{workspace.vertex_shades}.first(count), screen_origin, workspace.shaded_face) : count};
+          draw_gouraud_polygon(target, std::span{workspace.shaded_face}.first(projected_count), viewport);
+          break;
+        }
+        auto const projected_count{path == model_path::near_clipped
+            ? clip_near_polygon(std::span{workspace.camera_face}.first(count), screen_origin, workspace.face) : count};
+        draw_flat_polygon(target, std::span{workspace.face}.first(projected_count), index, viewport);
+      }
         break;
       case model_opcode::skip_back_facing:
         {
-          std::array<uint8_t, 3> const indices{byte(position), byte(position), byte(position)};
-          for(auto const index : indices) {
-            if(!defined[index]) throw std::invalid_argument{"Model visibility test references an undefined vertex"};
-          }
-          auto const skip{byte(position)};
-          bool hidden{false};
-          if(path == model_path::near_clipped) {
-            std::array const triangle{workspace.camera_vertices[indices[0]], workspace.camera_vertices[indices[1]], workspace.camera_vertices[indices[2]]};
-            std::array<screen_vertex, 6> clipped{};
-            auto const count{clip_near_polygon(triangle, screen_origin, clipped)};
-            hidden = count == 0 || back_facing(clipped[0], clipped[1], clipped[2]);
-          } else {
-            hidden = back_facing(vertex(indices[0]), vertex(indices[1]), vertex(indices[2]));
-          }
-          if(hidden) position += skip;
+        std::array<uint8_t, 3> const indices{byte(position), byte(position), byte(position)};
+        for(auto const index : indices) {
+          if(!defined[index]) throw std::invalid_argument{"Model visibility test references an undefined vertex"};
         }
+        auto const skip{byte(position)};
+        bool hidden{false};
+        if(path == model_path::near_clipped) {
+          std::array const triangle{workspace.camera_vertices[indices[0]], workspace.camera_vertices[indices[1]], workspace.camera_vertices[indices[2]]};
+          std::array<screen_vertex, 6> clipped{};
+          auto const count{clip_near_polygon(triangle, screen_origin, clipped)};
+          hidden = count == 0 || back_facing(clipped[0], clipped[1], clipped[2]);
+        } else {
+          hidden = back_facing(vertex(indices[0]), vertex(indices[1]), vertex(indices[2]));
+        }
+        if(hidden) position += skip;
+      }
         break;
       case model_opcode::skip_near:
         {
-          auto const threshold{byte(position)};
-          auto const skip{byte(position)};
-          if(static_cast<uint8_t>(distance_high - threshold) & 128) position += skip;
-        }
+        auto const threshold{byte(position)};
+        auto const skip{byte(position)};
+        if(static_cast<uint8_t>(distance_high - threshold) & 128) position += skip;
+      }
         break;
       default:
         throw std::invalid_argument{std::format("Unsupported flat model opcode {:02x} at pool offset {:04x}", std::to_underlying(opcode), at)};

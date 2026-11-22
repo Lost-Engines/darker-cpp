@@ -12,7 +12,10 @@
 
 void check_scenario_resources(darker::resources::archive_set const &archives) {
   /// Compare all setup fields and exact multilingual bytes against the independently verified analysis export
-  size_t records{0}, placements{0}, native_blocks{0}, constructed{0};
+  size_t records{0};
+  size_t placements{0};
+  size_t native_blocks{0};
+  size_t constructed{0};
   std::array<darker::resources::geometry_bank, 3> const banks{darker::resources::geometry_bank{archives.load({0, 30})},
     darker::resources::geometry_bank{archives.load({0, 31})}, darker::resources::geometry_bank{archives.load({0, 32})}};
   darker::game::tunnel_network const network{archives.load({0, 78})};

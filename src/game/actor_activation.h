@@ -8,7 +8,10 @@
 
 namespace darker::game {
 
-enum class air_reserve_mode { campaign, nightmare };
+enum class air_reserve_mode {
+  campaign,
+  nightmare
+};
 
 bool retire_distant_actor(scenario_actor &actor, object_pose const &player, clock_tick clock) noexcept;
 

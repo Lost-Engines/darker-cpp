@@ -54,7 +54,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     player.upgraded = v[0] == 27;
     if(v[25]) player.tunnel.emplace();
     player.lifecycle.flags = static_cast<uint8_t>(v[3]);
-    auto &damage{std::visit([](auto &craft)->darker::game::player_damage_state& {
+    auto &damage{std::visit([](auto &craft)->darker::game::player_damage_state & {
       return craft.damage;
     }, player.craft)};
     damage.shield_enabled = v[4] != 0;
@@ -104,7 +104,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       actor.index = static_cast<uint8_t>(i);
       for(size_t axis{0}; axis < 3; ++axis) actor.pose.position[axis] = static_cast<uint16_t>(sample[at + 3 + axis]);
     }
-    darker::maths::world_position start{}, end{};
+    darker::maths::world_position start{};
+    darker::maths::world_position end{};
     for(size_t axis{0}; axis < 3; ++axis) {
       start[axis] = static_cast<uint16_t>(sample[1 + axis]);
       end[axis] = static_cast<uint16_t>(sample[4 + axis]);
@@ -198,8 +199,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         actor.attitude.pitch_rate, actor.attitude.bank_rate, actor.awareness.level, actor.awareness.cooldown,
         std::to_underlying(actor.parameters.update_entry), actor.expiry, actor.flags};
       for(size_t field{0}; field < actual.size(); ++field) {
-        if(actual[field] != s[32 + i * 10 + field]) throw std::runtime_error{"Aircraft contact differs from native: actor=" + std::to_string(i)
-          + ", field=" + std::to_string(field) + ", seed=" + std::to_string(s[0]) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(s[32 + i * 10 + field])};
+        if(actual[field] != s[32 + i * 10 + field]) {
+          throw std::runtime_error{"Aircraft contact differs from native: actor=" + std::to_string(i)
+            + ", field=" + std::to_string(field) + ", seed=" + std::to_string(s[0]) + ", actual=" + std::to_string(actual[field]) + ", expected=" + std::to_string(s[32 + i * 10 + field])};
+        }
       }
     }
     if(combat.random_state != s[62]) throw std::runtime_error{"Aircraft contact random sequence differs from native"};
@@ -234,8 +237,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       };
     }
     auto const token{darker::game::acquire_caero_target(player, actors, city, bank, 0x20)};
-    if(token != s[13]) throw std::runtime_error{"Target acquisition differs from native: actual=" + std::to_string(token)
-      + ", expected=" + std::to_string(s[13]) + ", building=" + std::to_string(s[0]) + ", height=" + std::to_string(s[4])};
+    if(token != s[13]) {
+      throw std::runtime_error{"Target acquisition differs from native: actual=" + std::to_string(token)
+        + ", expected=" + std::to_string(s[13]) + ", building=" + std::to_string(s[0]) + ", height=" + std::to_string(s[4])};
+    }
   }
   auto cells{darker::game::make_city_map(archives.load({
     .archive{0},
@@ -263,7 +268,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         .height{0}
       }
     };
-    std::vector<darker::game::scenario_actor> active, free;
+    std::vector<darker::game::scenario_actor> active;
+    std::vector<darker::game::scenario_actor> free;
     if(v[4]) {
       free.emplace_back();
       free.back().script.checkpoint = 0xe800;
@@ -595,7 +601,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     };
     unsigned int shots{0};
     bool message{test.message == nullptr};
-    bool saw_burst{false}, saw_trail{false};
+    bool saw_burst{false};
+    bool saw_trail{false};
     for(uint32_t clock{8}; clock < 300000; clock += 8) {
       auto const target{std::ranges::find_if(combat.actors, [&](auto const &actor){
         return ((actor.attributes & 1) || test.stage == 84) && !(actor.flags & 0x20);
@@ -655,7 +662,7 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       darker::game::advance_mission_script(script, context);
       for(auto const &event : context.messages) {
         if(mission < 3 && !context.objectives_complete) throw std::runtime_error{"Return message preceded objective completion"};
-        std::string const actual{reinterpret_cast<char const*>(text.data() + event.offset), event.length};
+        std::string const actual{reinterpret_cast<char const *>(text.data() + event.offset), event.length};
         if(mission < 3 && actual != std::array{"Well done- you can return to base.", "Mission accomplished. Return to base.", "Good job, Tolly. Return to base."}[mission]) throw std::runtime_error{"Incorrect first-mission return message"};
         message |= test.message && actual == test.message;
       }
@@ -700,8 +707,10 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   }
   struct transfer_case {
     uint8_t stage;
-    uint16_t origin, destination;
-    size_t actors, messages;
+    uint16_t origin;
+    uint16_t destination;
+    size_t actors;
+    size_t messages;
   };
   for(auto const test : std::array<transfer_case, 11>{{
     {16, 0x7162, 0x3064, 4, 0}, {18, 0x3064, 0x7162, 4, 2}, {23, 0x7162, 0x4c64, 0, 0},
@@ -711,7 +720,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     auto const &transfer{campaign.scenario(stage)};
     auto const record_index{darker::resources::select_campaign_stage(stage).record};
     auto const &record{transfer.records()[record_index]};
-    auto const origin{test.origin}, destination{test.destination};
+    auto const origin{test.origin};
+    auto const destination{test.destination};
     darker::resources::font_resource const fonts{archives.load({0, 29})};
     darker::presentation::player briefing{archives, fonts, transfer, record_index};
     do {
@@ -728,17 +738,19 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
       .next_return_site{briefing.departure_destination}
     };
     darker::game::initialise_caero_hangar(player, transfer_cells, hangar, bank.header_at(bank.special_models()[25]).height);
-    for(uint32_t clock{8}; clock <= 4000; clock += 8) traffic.advance(player, transfer_cells, bank,
-        {
-          .elapsed_ticks{clock},
-          .frame_step{8},
-          .changes{0}
-        },
-        {},
-        {
-          .routes{transfer.bytes(record.shared)},
-          .time_multiplier{50}
-        });
+    for(uint32_t clock{8}; clock <= 4000; clock += 8) {
+      traffic.advance(player, transfer_cells, bank,
+          {
+            .elapsed_ticks{clock},
+            .frame_step{8},
+            .changes{0}
+          },
+          {},
+          {
+            .routes{transfer.bytes(record.shared)},
+            .time_multiplier{50}
+          });
+    }
     // isolate the departure boundary and destination handoff from manual navigation
     player.pose().position.row -= 768;
     darker::game::advance_hangar_departure(player, transfer_cells, hangar, 8);
@@ -833,10 +845,12 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
   {
     auto const actors{darker::game::make_scenario_group(scenario.records()[1].groups[0], bank, 1, darker::resources::world_kind::delphi, scenario.records()[1].shared.offset)};
     std::vector<darker::graphics::scene_object> objects;
-    for(auto const &actor : actors) objects.push_back({
-      .model_offset{actor.parameters.model_token},
-      .pose{actor.pose}
-    });
+    for(auto const &actor : actors) {
+      objects.push_back({
+        .model_offset{actor.parameters.model_token},
+        .pose{actor.pose}
+      });
+    }
     darker::graphics::city_renderer renderer;
     darker::graphics::distance_shading const lighting;
     darker::game::city_map const empty_city{};
@@ -991,14 +1005,16 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     throw std::runtime_error{"Mimic launch did not register the missile camera"};
   }
   guided.primary_weapon = 0;
-  for(uint16_t clock{108}; clock < 2200; clock += 8) guided.advance(gunner, empty_city, bank,
-        {
-          .elapsed_ticks{clock},
-          .frame_step{8},
-          .changes{0}
-        },
-        {},
-        {});
+  for(uint16_t clock{108}; clock < 2200; clock += 8) {
+    guided.advance(gunner, empty_city, bank,
+          {
+            .elapsed_ticks{clock},
+            .frame_step{8},
+            .changes{0}
+          },
+          {},
+          {});
+  }
   if(guided.camera_projectile) throw std::runtime_error{"Expired projectile retained the missile camera"};
   {
     darker::resources::geometry_bank const tunnel_bank{archives.load({0, 32})};
@@ -1014,7 +1030,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     std::array<size_t, 3> const doors{56 * 128 + 61, 49 * 128 + 65, 41 * 128 + 62};
     std::array<uint32_t, 6> const times{57344, 73728, 155648, 172032, 253952, 270336};
     size_t events{0};
-    bool sparks{false}, bursts{false};
+    bool sparks{false};
+    bool bursts{false};
     for(uint32_t clock{0}; clock <= 280000; clock += 512) {
       std::array<uint8_t, 3> const previous{tunnel_cells[doors[0]].state, tunnel_cells[doors[1]].state, tunnel_cells[doors[2]].state};
       tunnel.advance(observer, tunnel_cells, tunnel_bank,
@@ -1380,7 +1397,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     struct tunnel_case {
       uint8_t stage;
       uint16_t entry;
-      unsigned int reserves, objectives;
+      unsigned int reserves;
+      unsigned int objectives;
     };
     for(auto const test : std::array<tunnel_case, 8>{{{17, 0x3064, 13, 16}, {24, 0x3f64, 14, 20}, {36, 0x3060, 15, 19}, {46, 0x1784, 10, 14}, {55, 0x1088, 18, 23}, {67, 0x4362, 24, 36}, {86, 0x693a, 10, 18}, {92, 0x693e, 29, 41}}}) {
       auto const &scenario{campaign.scenario(test.stage)};
@@ -1437,18 +1455,20 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
         stationary.front().pose.position = {};
         stationary.front().previous_position = {};
         darker::game::mission_combat idle{stationary};
-        for(uint32_t time{8}; time < 1024; time += 8) idle.advance(player, city, underground_bank,
-        {
-          .elapsed_ticks{time},
-          .frame_step{8},
-          .changes{0}
-        },
-        {},
-        {
-          .routes{},
-          .time_multiplier{50},
-          .network{&network}
-        });
+        for(uint32_t time{8}; time < 1024; time += 8) {
+          idle.advance(player, city, underground_bank,
+          {
+            .elapsed_ticks{time},
+            .frame_step{8},
+            .changes{0}
+          },
+          {},
+          {
+            .routes{},
+            .time_multiplier{50},
+            .network{&network}
+          });
+        }
         if(idle.actors.size() != stationary.size() || idle.completed_objectives != 0) throw std::runtime_error{"Stationary tunnel objects expired without an impact"};
         for(size_t i{0}; i < stationary.size(); ++i) {
           if(idle.actors[i].pose.position != stationary[i].pose.position || idle.actors[i].flags != stationary[i].flags
@@ -1672,7 +1692,8 @@ void check_mission_combat(darker::resources::archive_set const &archives) {
     context.change_beacons = [&](uint8_t op, uint8_t origin, uint8_t count){
       fade.command(op, origin, count, static_cast<uint16_t>(context.clock), {});
     };
-    unsigned int messages{0}, last_change{0};
+    unsigned int messages{0};
+    unsigned int last_change{0};
     for(uint32_t clock{0}; clock <= 40000; clock += 16) {
       auto const previous{blackout_cells};
       context.clock = clock;

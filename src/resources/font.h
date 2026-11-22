@@ -7,7 +7,11 @@
 
 namespace darker::resources {
 
-enum class font_face { interface, compact, wide };
+enum class font_face {
+  interface,
+  compact,
+  wide
+};
 
 struct font_glyph {
   uint8_t width{0};

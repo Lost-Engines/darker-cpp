@@ -33,7 +33,7 @@ struct map_coordinates {
   static constexpr size_t size() noexcept {
     return 2;
   }
-  bool operator==(map_coordinates const&) const = default;
+  bool operator==(map_coordinates const &) const = default;
 };
 
 template<typename T>
@@ -54,7 +54,7 @@ struct world_coordinates {
   static constexpr size_t size() noexcept {
     return 3;
   }
-  bool operator==(world_coordinates const&) const = default;
+  bool operator==(world_coordinates const &) const = default;
 };
 
 using map_position = map_coordinates<world_format::position_component>;

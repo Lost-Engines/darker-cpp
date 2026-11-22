@@ -9,7 +9,15 @@
 
 namespace darker::game {
 
-enum class scenario_setup_kind { halon_approach, anchor_escorts, raise_actor, escort_departure, final_approach, nightmare_player, copy_player_model };
+enum class scenario_setup_kind {
+  halon_approach,
+  anchor_escorts,
+  raise_actor,
+  escort_departure,
+  final_approach,
+  nightmare_player,
+  copy_player_model
+};
 
 scenario_setup_kind identify_scenario_setup(std::span<std::byte const> code);
 void apply_player_scenario_setup(scenario_setup_kind kind, player_flight &player, int16_t model_height, weapon_ammunition &second_weapon);

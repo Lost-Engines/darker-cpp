@@ -208,12 +208,14 @@ TEST_CASE("Physical sound channels match consecutive native allocation frames", 
   darker::audio::voice_allocation allocator;
   for(auto const &sample : darker::test_reference::voice_allocation) {
     std::vector<darker::audio::sound_candidate> candidates;
-    for(size_t i{0}; i < sample[0]; ++i) candidates.push_back({sample[1 + i * 2],
-      {
-        .pitch{400},
-        .level{static_cast<uint16_t>(sample[2 + i * 2])},
-        .active{true}
-      }});
+    for(size_t i{0}; i < sample[0]; ++i) {
+      candidates.push_back({sample[1 + i * 2],
+        {
+          .pitch{400},
+          .level{static_cast<uint16_t>(sample[2 + i * 2])},
+          .active{true}
+        }});
+    }
     auto const frame{allocator.allocate(candidates)};
     for(size_t i{0}; i < frame.size(); ++i) {
       CHECK(allocator.identities()[i] == sample[49 + i]);
@@ -228,16 +230,18 @@ TEST_CASE("Rejected transient sounds retire instead of restarting later", "[audi
   combat.effects.spawn(0x7319, {0, 0, 0}, 0);
   darker::audio::world_sounds mixer;
   std::array<darker::game::effect_sound, 9> louder{};
-  for(size_t i{0}; i < louder.size(); ++i) louder[i] = {
-    .definition{
-      .duration{0},
-      .pitch{400},
-      .level{65535},
-      .patch{0},
-      .flags{2}
-    },
-    .identity{static_cast<uint32_t>(i * 65536 + 1)}
-  };
+  for(size_t i{0}; i < louder.size(); ++i) {
+    louder[i] = {
+      .definition{
+        .duration{0},
+        .pitch{400},
+        .level{65535},
+        .patch{0},
+        .flags{2}
+      },
+      .identity{static_cast<uint32_t>(i * 65536 + 1)}
+    };
+  }
   mixer.mix({}, combat, {}, 0, louder);
   REQUIRE_FALSE(combat.effects.sounds().empty());
   auto const frame{mixer.mix({}, combat, {})};
@@ -318,7 +322,9 @@ TEST_CASE("Stereo carrier levels produce independent PCM without altering centre
     }
     return result;
   }};
-  auto const left{energy({0, 63})}, right{energy({63, 0})}, centre{energy({255, 255})};
+  auto const left{energy({0, 63})};
+  auto const right{energy({63, 0})};
+  auto const centre{energy({255, 255})};
   CHECK(left[0] > left[1] * 100);
   CHECK(right[1] > right[0] * 100);
   // Nuked OPL retains the chip's inter-channel sample timing; compare accumulated energy within that skew
@@ -376,10 +382,13 @@ TEST_CASE("Mission notification reaches PCM through the fixed voice allocator", 
 TEST_CASE("Transient sound slots follow native oldest eviction and free-list reuse", "[audio]") {
   darker::game::effect_system effects;
   for(auto const &sample : darker::test_reference::sound_pool_samples) {
-    if(sample[0]) effects.spark({}, 3, 40000, 0);
-    else effects.retire_sounds([&](auto const &sound){
-      return (sample[1] & (1u << (sound.identity - 17))) != 0;
-    });
+    if(sample[0]) {
+      effects.spark({}, 3, 40000, 0);
+    } else {
+      effects.retire_sounds([&](auto const &sound){
+        return (sample[1] & (1u << (sound.identity - 17))) != 0;
+      });
+    }
     REQUIRE(effects.gun_sounds().size() == sample[2]);
     for(size_t i{0}; i < effects.gun_sounds().size(); ++i) CHECK(effects.gun_sounds()[i].identity == sample[3 + i]);
   }

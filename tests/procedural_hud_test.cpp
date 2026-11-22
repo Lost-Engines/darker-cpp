@@ -32,10 +32,13 @@ TEST_CASE("Missile camera marker matches native timer boundaries and remains lit
         framework::render::indexed_cockpit_framebuffer frame{};
         frame.pixels.fill(42);
         darker::graphics::draw_missile_camera_indicator(frame, ticks[i], enabled, following);
-        if(following || (enabled && native_blink[i])) REQUIRE(frame.pixels == expected.pixels);
-        else REQUIRE(std::ranges::all_of(frame.pixels, [](auto const pixel){
-          return pixel == 42;
-        }));
+        if(following || (enabled && native_blink[i])) {
+          REQUIRE(frame.pixels == expected.pixels);
+        } else {
+          REQUIRE(std::ranges::all_of(frame.pixels, [](auto const pixel){
+            return pixel == 42;
+          }));
+        }
       }
     }
   }

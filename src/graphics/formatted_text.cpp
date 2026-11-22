@@ -44,7 +44,11 @@ private:
 
 public:
   formatter(std::span<std::byte const> const source, resources::font_resource const &resource,
-    resources::font_face const selection, formatted_page &output) : text{source}, font{resource}, face{selection}, page{output} {
+    resources::font_face const selection, formatted_page &output)
+    : text{source},
+      font{resource},
+      face{selection},
+      page{output} {
     /// Share one state and byte cursor across nested runs, as B292/B294 do
   }
 
@@ -67,10 +71,10 @@ public:
         break;
       case 2:
         {
-          auto const low{byte()};
-          auto const colour{static_cast<uint16_t>(low | byte() << 8)};
-          if(colour != 0xffff) cursor.colour = colour;
-        }
+        auto const low{byte()};
+        auto const colour{static_cast<uint16_t>(low | byte() << 8)};
+        if(colour != 0xffff) cursor.colour = colour;
+      }
         break;
       case 3:
         cursor.x = cursor.margin;
@@ -90,15 +94,15 @@ public:
         break;
       case 7:
         {
-          std::array<uint8_t, 3> digits{};
-          size_t count{0};
-          auto value{cursor.runtime_number};
-          do {
-            digits[count++] = static_cast<uint8_t>('0' + value % 10);
-            value /= 10;
-          } while(value);
-          while(count) glyph(digits[--count]);
-        }
+        std::array<uint8_t, 3> digits{};
+        size_t count{0};
+        auto value{cursor.runtime_number};
+        do {
+          digits[count++] = static_cast<uint8_t>('0' + value % 10);
+          value /= 10;
+        } while(value);
+        while(count) glyph(digits[--count]);
+      }
         break;
       default:
         throw std::invalid_argument{"Unknown original text formatting command"};

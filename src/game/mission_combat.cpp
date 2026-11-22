@@ -60,7 +60,9 @@ void impact_projectile_world(city_collision_result const &contact, maths::world_
   auto const slot{static_cast<size_t>(found - original_object_definitions.begin())};
   if(projectile_damages_building(slot, contact.category, cell.state, linked)) {
     damage_world_cell(contact.column, contact.row, impact.height, cells, bank, effects, clock, counter);
-  } else effects.spawn(0x7386, impact, clock);
+  } else {
+    effects.spawn(0x7386, impact, clock);
+  }
 }
 
 } // anonymous namespace
@@ -118,7 +120,7 @@ void mission_combat::collide_player(player_flight &player, maths::world_position
   }
   auto const reaction{hit_actor(*victim, 0x5c, clock, random_state, player.tunnel.has_value())};
   effects.spawn(reaction.effect, reaction.at_actor ? victim->pose.position : end, clock);
-  auto &damage{std::visit([](auto &craft)->player_damage_state& {
+  auto &damage{std::visit([](auto &craft)->player_damage_state & {
     return craft.damage;
   }, player.craft)};
   auto const amount{static_cast<uint8_t>(next_random(random_state) | 0x80)};
@@ -216,8 +218,8 @@ void mission_combat::activate_reserves(actor_category const category, uint8_t co
   /// C37A adds each admitted record's objective bit without the signed clamp used by removal
   auto const counted{[&]{
     return std::ranges::count_if(actors, [](auto const &actor){
-    return actor.attributes & 1;
-  });
+      return actor.attributes & 1;
+    });
   }};
   auto const before{counted()};
   activate_scenario_reserves(actors, reserves, category, count, player, clock, reserve_mode);
@@ -286,7 +288,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   player_hit = false;
   player_contact = {};
   auto *caero{std::get_if<caero_flight_state>(&player.craft)};
-  auto &damage{std::visit([](auto &craft)->player_damage_state& {
+  auto &damage{std::visit([](auto &craft)->player_damage_state & {
     return craft.damage;
   }, player.craft)};
   auto const player_definition{player.definition_slot()};
@@ -361,59 +363,68 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
         if(!actor.route) throw std::logic_error{"Ground callback has no vehicle route"};
         actor.previous_position = actor.pose.position;
         auto const event{advance_vehicle_route(*actor.route, actor.pose, actor.flags, routes, clock, bank.header_at(actor.parameters.model_token).height, random_state)};
-        if(event.firing_direction) fire_vehicle_missile(hostile_projectiles, actor, player.pose(), cells, bank.city_types(),
-          *event.firing_direction, clock, difficulty, bank.special_models()[18]);
+        if(event.firing_direction) {
+          fire_vehicle_missile(hostile_projectiles, actor, player.pose(), cells, bank.city_types(),
+            *event.firing_direction, clock, difficulty, bank.special_models()[18]);
+        }
         if(event.damage_cell) {
           damage_world_cell(static_cast<uint8_t>(*event.damage_cell), static_cast<uint8_t>(*event.damage_cell >> 8), 0xe0, cells, bank, effects, clock, world_damage_counter);
         }
         if(event.deadline) actor.expiry = *event.deadline;
         if(event.effect) {
           auto const &effect{*event.effect};
-          if(effect.recipe) effects.spawn(effect.recipe, effect.position, clock);
-          else effects.spark(effect.position, effect.phase, effect.sound_level, clock);
+          if(effect.recipe) {
+            effects.spawn(effect.recipe, effect.position, clock);
+          } else {
+            effects.spark(effect.position, effect.phase, effect.sound_level, clock);
+          }
         }
         continue;
       }
       if(actor.parameters.update_entry == object_update::inactive) continue;
-      if(callback == object_update::falling_aircraft) advance_falling_aircraft(actor, frame_step);
-      else if(callback == object_update::departing_aircraft) advance_aircraft_departure(actor, clock, frame_step);
-      else if(callback == object_update::tunnel_actor) {
+      if(callback == object_update::falling_aircraft) {
+        advance_falling_aircraft(actor, frame_step);
+      } else if(callback == object_update::departing_aircraft) {
+        advance_aircraft_departure(actor, clock, frame_step);
+      } else if(callback == object_update::tunnel_actor) {
         if(!network) throw std::logic_error{"Underground actor update requires its route network"};
         advance_tunnel_actor(actor, player.pose(), actors, cells, *network, frame_step);
-      } else advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
-        [&](scenario_actor &source, actor_course const course, uint8_t const distance){
-          auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state, player_definition <= 25 ? 0x30 : 0x20)};
-          if(shot) effects.gun_impact(shot->end, shot->hit, clock);
-          if(shot && shot->hit) {
-            apply_player_damage(damage, 0x15, 3, !caero, player.damage_cheat, random_state);
-            player_hit = true;
-          }
-          if(source.selected_target == native_object_layout::player || target_reference{source.selected_target}.is_ground_encoded()) {
-            if(auto const slot{aircraft_projectile_definition(source, player.lifecycle.flags, course, distance, clock, difficulty, building_attacks)}) {
-              // CAF0 records the attempt time even if the hostile pool is exhausted
-              source.last_shot = clock;
-              auto const &definition{original_object_definitions[*slot]};
-              launch_emitter const launcher{
-                .position{source.pose.position},
-                .fractions{source.pose.fractions},
-                .angles{source.pose.angles},
-                .speed{source.pose.speed},
-                .side_flags{source.flags},
-                .definition_strength{source.parameters.definition->impact_strength}
-              };
-              hostile_projectiles.launch({
-                .definition{definition},
-                .emitter{launcher},
-                .model_token{bank.special_models()[*slot]},
-                .clock{clock},
-                .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
-                .target_token{source.selected_target}
-              });
+      } else {
+        advance_surface_actor(actor, player.pose(), actors, cells, bank, damage_mask, frame_step,
+          [&](scenario_actor &source, actor_course const course, uint8_t const distance){
+            auto const shot{fire_skimma_gun(source, player.pose(), player.lifecycle.flags, player_extent, course, distance, clock, changes, random_state, player_definition <= 25 ? 0x30 : 0x20)};
+            if(shot) effects.gun_impact(shot->end, shot->hit, clock);
+            if(shot && shot->hit) {
+              apply_player_damage(damage, 0x15, 3, !caero, player.damage_cheat, random_state);
+              player_hit = true;
             }
-          }
-        }, [&](scenario_actor &source){
-          drop_aircraft_bomb(hostile_projectiles, source, building_attacks, clock, bank.special_models()[14]);
-        }, &threat_errors);
+            if(source.selected_target == native_object_layout::player || target_reference{source.selected_target}.is_ground_encoded()) {
+              if(auto const slot{aircraft_projectile_definition(source, player.lifecycle.flags, course, distance, clock, difficulty, building_attacks)}) {
+                // CAF0 records the attempt time even if the hostile pool is exhausted
+                source.last_shot = clock;
+                auto const &definition{original_object_definitions[*slot]};
+                launch_emitter const launcher{
+                  .position{source.pose.position},
+                  .fractions{source.pose.fractions},
+                  .angles{source.pose.angles},
+                  .speed{source.pose.speed},
+                  .side_flags{source.flags},
+                  .definition_strength{source.parameters.definition->impact_strength}
+                };
+                hostile_projectiles.launch({
+                  .definition{definition},
+                  .emitter{launcher},
+                  .model_token{bank.special_models()[*slot]},
+                  .clock{clock},
+                  .lifetime{static_cast<uint16_t>(definition.role_data.projectile().lifetime * 256)},
+                  .target_token{source.selected_target}
+                });
+              }
+            }
+          }, [&](scenario_actor &source){
+            drop_aircraft_bomb(hostile_projectiles, source, building_attacks, clock, bank.special_models()[14]);
+          }, &threat_errors);
+      }
       if(auto const severity{damage_trail_severity(actor.awareness.cooldown, actor.flags, changes)}) {
         effects.trail(actor.previous_position, *severity, random_state, clock);
       }
@@ -500,7 +511,7 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
   }};
   for(auto *shot{projectiles.objects().head()}; shot;) {
     auto const destination{resolve_target(*shot)};
-    auto const *paired{std::get_if<object_pose const*>(&destination)};
+    auto const *paired{std::get_if<object_pose const *>(&destination)};
     auto const separation{shot->parameters.update_entry == object_update::dual_launch && paired && *paired && *paired != &shot->placement
       ? std::optional<uint16_t>{dual_launch_separation(shot->placement, **paired)} : std::nullopt};
     auto const result{(shot->flags & 8) ? (update_projectile_deadline(*shot, clock) ? projectile_update_result::expired : projectile_update_result::advanced)
@@ -511,8 +522,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       shot = projectiles.recycle(*shot);
       continue;
     }
-    if(result == projectile_update_result::detonated) detonate_dual_launch(*shot, clock, player.tunnel.has_value());
-    else if(separation) skimma.dual_launch_pitch = static_cast<uint16_t>((0x80c - std::min<uint16_t>(*separation, 0xcd)) >> 2);
+    if(result == projectile_update_result::detonated) {
+      detonate_dual_launch(*shot, clock, player.tunnel.has_value());
+    } else if(separation) skimma.dual_launch_pitch = static_cast<uint16_t>((0x80c - std::min<uint16_t>(*separation, 0xcd)) >> 2);
     shot = shot->next;
   }
   for(auto *shot{hostile_projectiles.objects().head()}; shot;) {
@@ -527,19 +539,24 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
     shot = shot->next;
   }
   bool const reloading{std::bit_cast<int16_t>(static_cast<uint16_t>(clock - skimma.ring.reload_deadline)) < 0};
-  if(caero ? !secondary_weapon : (!(skimma.slots.at(skimma.selection).flags & 1) || reloading)) target.clear();
-  else {
+  if(caero ? !secondary_weapon : (!(skimma.slots.at(skimma.selection).flags & 1) || reloading)) {
+    target.clear();
+  } else {
     if(target.token == weapon_target::no_target) target.token = acquire_caero_target(player.pose(), actors, cells, bank, damage_mask);
     if(target.token != 0xffff) {
       if(target_reference{target.token}.is_object_encoded()) {
         auto const found{std::ranges::find_if(actors, [&](auto const &actor){
           return native_object_layout::actor(actor.index) == target.token;
         })};
-        if(found == actors.end()) target.clear();
-        else {
+        if(found == actors.end()) {
+          target.clear();
+        } else {
           auto const extent{bank.header_at(found->parameters.model_token).extent};
-          if(caero) target.project_caero(pose.position, found->pose.position, extent, targeting_basis, secondary_weapon);
-          else target.project_skimma(pose.position, found->pose.position, extent, targeting_basis, skimma.selection, true, false, true);
+          if(caero) {
+            target.project_caero(pose.position, found->pose.position, extent, targeting_basis, secondary_weapon);
+          } else {
+            target.project_skimma(pose.position, found->pose.position, extent, targeting_basis, skimma.selection, true, false, true);
+          }
         }
       } else {
         auto const aim{resolve_map_guidance(target.token, cells, bank, damage_mask)};
@@ -549,8 +566,9 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
           .row{aim.position.row},
           .height{aim.height}
         };
-        if(caero) target.project_caero(pose.position, position, aim.height_extent, targeting_basis, secondary_weapon, cell.type, cell.state);
-        else {
+        if(caero) {
+          target.project_caero(pose.position, position, aim.height_extent, targeting_basis, secondary_weapon, cell.type, cell.state);
+        } else {
           auto const model{bank.city_model_offset(cell.type, cell.state, damage_mask)};
           auto const bytes{bank.model_pool()};
           bool const linked{bytes[model] != std::byte{0} || bytes[model + 1] != std::byte{0}};
@@ -592,12 +610,15 @@ void mission_combat::advance(player_flight &player, city_map &cells, resources::
       auto const &cell{cells[city_cell_index(contact.column, contact.row)]};
       auto const result{diffuser.hit(shot->parameters.definition == &original_object_definitions[4], contact.category, cell.state,
         packed_cell_reference::from_coordinates(contact.column, contact.row).value, clock)};
-      if(result == diffuser_impact::destroyed) damage_world_cell(contact.column, contact.row, impact.height, cells, bank, effects, clock, world_damage_counter);
-      else if(result == diffuser_impact::gas) {
+      if(result == diffuser_impact::destroyed) {
+        damage_world_cell(contact.column, contact.row, impact.height, cells, bank, effects, clock, world_damage_counter);
+      } else if(result == diffuser_impact::gas) {
         auto const &type{bank.city_types()[cell.type - 1]};
         effects.spawn(0x75d4, {static_cast<uint16_t>(contact.column * 256 + type.column_fraction),
           static_cast<uint16_t>(contact.row * 256 + type.row_fraction), impact.height}, clock);
-      } else effects.spawn(0x75a3, impact, clock);
+      } else {
+        effects.spawn(0x75a3, impact, clock);
+      }
     } else if(!victim) impact_projectile_world(contact, impact, *shot->parameters.definition, cells, bank, effects, clock, player.tunnel ? 0x7386 : 0x721c, world_damage_counter, damage_mask);
     shot->flags |= 0x28;
     shot->parameters.update_entry = object_update::effect_only;

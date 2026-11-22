@@ -4,7 +4,8 @@
 namespace darker::game {
 
 projectile_pool::projectile_pool(projectile_list const category)
-  : count{category == projectile_list::player ? projectile_limits::player_capacity : projectile_limits::hostile_capacity}, first_id{static_cast<uint16_t>(category == projectile_list::player ? native_object_layout::player_projectiles : native_object_layout::hostile_projectiles)} {
+  : count{category == projectile_list::player ? projectile_limits::player_capacity : projectile_limits::hostile_capacity},
+    first_id{static_cast<uint16_t>(category == projectile_list::player ? native_object_layout::player_projectiles : native_object_layout::hostile_projectiles)} {
   /// 1D3C/1D49 build separate twelve-shot player and six-shot hostile free lists
   uint16_t id{first_id};
   for(auto &record : std::span{storage}.first(count)) {

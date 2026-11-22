@@ -41,11 +41,16 @@ camera_basis orient_model(camera_basis const &camera, camera_angles const angles
   auto const heading{maths::angle_phase(static_cast<uint16_t>(maths::angle_format::half_turn - angles.heading))};
   auto const pitch{maths::angle_phase(angles.pitch)};
   auto const roll{maths::angle_phase(angles.roll)};
-  auto const hs{maths::original_sine[heading]}, hc{maths::phase_cosine(heading)};
-  auto const ps{maths::original_sine[pitch]}, pc{maths::phase_cosine(pitch)};
-  auto const rs{maths::original_sine[roll]}, rc{maths::phase_cosine(roll)};
-  auto const hsrs{multiply(hs, rs)}, hcrs{multiply(hc, rs)};
-  auto const hsrc{multiply(hs, rc)}, hcrc{multiply(hc, rc)};
+  auto const hs{maths::original_sine[heading]};
+  auto const hc{maths::phase_cosine(heading)};
+  auto const ps{maths::original_sine[pitch]};
+  auto const pc{maths::phase_cosine(pitch)};
+  auto const rs{maths::original_sine[roll]};
+  auto const rc{maths::phase_cosine(roll)};
+  auto const hsrs{multiply(hs, rs)};
+  auto const hcrs{multiply(hc, rs)};
+  auto const hsrc{multiply(hs, rc)};
+  auto const hcrc{multiply(hc, rc)};
   mat3<int16_t> const axes{
     multiply(hc, pc), multiply(hs, pc), ps,
     word(multiply(ps, hcrs) - hsrc), word(hcrc + multiply(ps, hsrs)), word(-multiply(rs, pc)),

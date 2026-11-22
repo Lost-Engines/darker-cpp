@@ -74,16 +74,17 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
     case 0x05:
     case 0x06:
       {
-        uint16_t target{context.current_cell};
-        if(opcode < 2) {
-          auto const column{byte()};
-          target = static_cast<uint16_t>(column | byte() * 256);
-        } else if(opcode < 4) target = native_object_layout::actor(byte());
-        else if(opcode == 6) target = native_object_layout::player;
-        if(!context.set_target) throw std::runtime_error{"Mission target change has no object consumer"};
-        context.set_target(target, (opcode & 1) != 0);
-        delay(10);
-      }
+      uint16_t target{context.current_cell};
+      if(opcode < 2) {
+        auto const column{byte()};
+        target = static_cast<uint16_t>(column | byte() * 256);
+      } else if(opcode < 4) {
+        target = native_object_layout::actor(byte());
+      } else if(opcode == 6) target = native_object_layout::player;
+      if(!context.set_target) throw std::runtime_error{"Mission target change has no object consumer"};
+      context.set_target(target, (opcode & 1) != 0);
+      delay(10);
+    }
       break;
     case 0x07:
       break;
@@ -102,23 +103,23 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
     case 0x0a:
     case 0x0b:
       {
-        auto const count{byte()};
-        if(!context.activate_reserves) throw std::runtime_error{"Mission reserve activation has no world consumer"};
-        context.objectives_complete = context.activate_reserves(opcode, count);
-      }
+      auto const count{byte()};
+      if(!context.activate_reserves) throw std::runtime_error{"Mission reserve activation has no world consumer"};
+      context.objectives_complete = context.activate_reserves(opcode, count);
+    }
       break;
     case 0x0c:
     case 0x0d:
     case 0x0e:
       {
-        auto const duration{byte()};
-        auto const interval{byte()};
-        if(context.suppress_messages) break;
-        auto const width{read_byte(context.text, context.text_cursor)};
-        if(!width) break;
-        auto const length{read_byte(context.text, context.text_cursor)};
-        if(length > context.text.size() - context.text_cursor) throw std::invalid_argument{"Counted mission message exceeds its language section"};
-        context.messages.push_back({
+      auto const duration{byte()};
+      auto const interval{byte()};
+      if(context.suppress_messages) break;
+      auto const width{read_byte(context.text, context.text_cursor)};
+      if(!width) break;
+      auto const length{read_byte(context.text, context.text_cursor)};
+      if(length > context.text.size() - context.text_cursor) throw std::invalid_argument{"Counted mission message exceeds its language section"};
+      context.messages.push_back({
           .offset{context.text_cursor},
           .length{length},
           .width{width},
@@ -126,9 +127,9 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
           .alignment{static_cast<message_alignment>(opcode - 0x0c)},
           .text{context.text}
         });
-        context.text_cursor += length;
-        delay(interval);
-      }
+      context.text_cursor += length;
+      delay(interval);
+    }
       break;
     case 0x0f:
       context.message_setting = byte();
@@ -154,10 +155,10 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
     case 0x30:
       if(!context.toggle_weapons) throw std::logic_error{"Mission weapon toggle has no player consumer"};
       {
-        auto const range{byte()};
-        auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
-        context.toggle_weapons(std::rotl(mask, range >> 4));
-      }
+      auto const range{byte()};
+      auto const mask{static_cast<uint16_t>(static_cast<int16_t>(0x8000) >> (range & 15))};
+      context.toggle_weapons(std::rotl(mask, range >> 4));
+    }
       break;
     case 0x38:
       if(!context.set_altitude) throw std::logic_error{"Mission altitude mode has no player consumer"};
@@ -182,15 +183,16 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
     case 0x13:
     case 0x14:
       {
-        uint8_t origin{0}, count{0};
-        if(opcode == 0x12 || opcode == 0x13) {
-          origin = byte();
-          count = byte();
-        }
-        if(!context.change_beacons) throw std::runtime_error{"Mission beacon change has no world consumer"};
-        context.change_beacons(opcode, origin, count);
-        if(opcode != 0x14) delay(6);
+      uint8_t origin{0};
+      uint8_t count{0};
+      if(opcode == 0x12 || opcode == 0x13) {
+        origin = byte();
+        count = byte();
       }
+      if(!context.change_beacons) throw std::runtime_error{"Mission beacon change has no world consumer"};
+      context.change_beacons(opcode, origin, count);
+      if(opcode != 0x14) delay(6);
+    }
       break;
     case 0x1a:
       script.checkpoint = cursor;
@@ -198,31 +200,31 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
       break;
     case 0x1b:
       {
-        auto const target{static_cast<uint16_t>(script.checkpoint_clock + byte() * 8)};
-        wait(negative_difference(target, static_cast<uint16_t>(context.clock >> 8)));
-      }
+      auto const target{static_cast<uint16_t>(script.checkpoint_clock + byte() * 8)};
+      wait(negative_difference(target, static_cast<uint16_t>(context.clock >> 8)));
+    }
       break;
     case 0x1e:
       wait(context.objectives_complete);
       break;
     case 0x1c:
       {
-        auto const index{byte()};
-        auto const mask{byte()};
-        if(index >= context.object_flags.size()) throw std::out_of_range{"Mission wait refers to an unknown object"};
-        wait(flag_condition(context.object_flags[index], mask));
-      }
+      auto const index{byte()};
+      auto const mask{byte()};
+      if(index >= context.object_flags.size()) throw std::out_of_range{"Mission wait refers to an unknown object"};
+      wait(flag_condition(context.object_flags[index], mask));
+    }
       break;
     case 0x1d:
       {
-        auto const column_byte{byte()};
-        auto const row{byte()};
-        auto const mask{byte()};
-        auto const index{city_cell_index(column_byte >> 1, row)};
-        if(index >= context.cells.size()) throw std::out_of_range{"Mission wait refers to an unknown world cell"};
-        auto const &cell{context.cells[index]};
-        wait(flag_condition(column_byte & 1 ? cell.state : cell.type, mask));
-      }
+      auto const column_byte{byte()};
+      auto const row{byte()};
+      auto const mask{byte()};
+      auto const index{city_cell_index(column_byte >> 1, row)};
+      if(index >= context.cells.size()) throw std::out_of_range{"Mission wait refers to an unknown world cell"};
+      auto const &cell{context.cells[index]};
+      wait(flag_condition(column_byte & 1 ? cell.state : cell.type, mask));
+    }
       break;
     case 0x1f:
       wait(byte() <= context.object_counter);
@@ -257,11 +259,11 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
       break;
     case 0x25:
       {
-        auto const displacement{std::bit_cast<int8_t>(byte())};
-        auto const target{static_cast<ptrdiff_t>(cursor) + displacement};
-        if(target < 0 || static_cast<size_t>(target) >= context.program.size()) throw std::invalid_argument{"Mission branch exceeds its shared section"};
-        cursor = static_cast<size_t>(target);
-      }
+      auto const displacement{std::bit_cast<int8_t>(byte())};
+      auto const target{static_cast<ptrdiff_t>(cursor) + displacement};
+      if(target < 0 || static_cast<size_t>(target) >= context.program.size()) throw std::invalid_argument{"Mission branch exceeds its shared section"};
+      cursor = static_cast<size_t>(target);
+    }
       break;
     case 0x27:
       if(!context.set_tunnel_oscillation) throw std::logic_error{"Scripted tunnel direction has no actor consumer"};
@@ -269,10 +271,10 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
       break;
     case 0x2f:
       {
-        auto const selection{byte()};
-        if(!context.select_weapon) throw std::runtime_error{"Mission weapon selection has no player consumer"};
-        context.select_weapon(selection);
-      }
+      auto const selection{byte()};
+      if(!context.select_weapon) throw std::runtime_error{"Mission weapon selection has no player consumer"};
+      context.select_weapon(selection);
+    }
       break;
     case 0x34:
       if(!context.replace_world_objectives) throw std::logic_error{"Scripted building objectives have no world consumer"};
@@ -284,17 +286,17 @@ size_t advance_mission_script(mission_script &script, mission_context &context) 
       break;
     case 0x31:
       {
-        auto const setting{byte()};
-        if(!context.set_aircraft_spawning) throw std::runtime_error{"Mission aircraft spawning setting has no world consumer"};
-        context.set_aircraft_spawning(setting);
-      }
+      auto const setting{byte()};
+      if(!context.set_aircraft_spawning) throw std::runtime_error{"Mission aircraft spawning setting has no world consumer"};
+      context.set_aircraft_spawning(setting);
+    }
       break;
     case 0x32:
       {
-        auto const setting{byte()};
-        if(!context.set_building_attacks) throw std::runtime_error{"Mission building attack setting has no combat consumer"};
-        context.set_building_attacks(setting);
-      }
+      auto const setting{byte()};
+      if(!context.set_building_attacks) throw std::runtime_error{"Mission building attack setting has no combat consumer"};
+      context.set_building_attacks(setting);
+    }
       break;
     default:
       throw std::runtime_error{std::format("Mission opcode {:02x} at {:04x} is not connected yet", opcode, offset)};

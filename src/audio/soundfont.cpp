@@ -38,7 +38,7 @@ void soundfont::send(midi_message const message) noexcept {
   int const channel{message.status & 15};
   switch(message.status & 0xf0) {
   case 0x80:
-      tsf_channel_note_off(synth, channel, message.first);
+    tsf_channel_note_off(synth, channel, message.first);
     break;
   case 0x90:
     tsf_channel_note_on(synth, channel, message.first, message.second / 127.0f);

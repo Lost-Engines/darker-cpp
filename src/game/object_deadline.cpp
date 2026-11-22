@@ -20,8 +20,9 @@ bool advance_object_deadline(uint8_t &flags, clock_tick &deadline, uint8_t &obje
     return false;
   }
   uint8_t fade{255};
-  if(delta < fade_ticks) fade = static_cast<uint8_t>(delta);
-  else if(std::bit_cast<int8_t>(static_cast<uint8_t>(altitude >> 8)) >= high_altitude_expiry) {
+  if(delta < fade_ticks) {
+    fade = static_cast<uint8_t>(delta);
+  } else if(std::bit_cast<int8_t>(static_cast<uint8_t>(altitude >> 8)) >= high_altitude_expiry) {
     flags |= expiring_flag;
     mode = expiring_flag;
     deadline = static_cast<uint16_t>(clock + 255);

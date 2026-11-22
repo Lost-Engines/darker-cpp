@@ -30,9 +30,11 @@ font_glyph font_resource::glyph(font_face const face, uint8_t const code, unsign
   /// E1FE uses a phase-relative offset table; low/high nibbles select coverage and the two-colour pattern
   auto const &font{directories.at(static_cast<size_t>(face))};
   if(alignment > 3) throw std::out_of_range{"Font alignment must be between zero and three"};
-  if(code < 33) return {
-    .advance{4}
-  };
+  if(code < 33) {
+    return {
+      .advance{4}
+    };
+  }
   unsigned int const index{code - 33u};
   // E1FE does not bound the glyph index by the directory count. Two German
   // pages reach the following table bytes; preserve those reads
@@ -51,7 +53,7 @@ font_glyph font_resource::glyph(font_face const face, uint8_t const code, unsign
       auto const phase_table{font.offset + font.count * (3 + phase * 2)};
       auto const phase_source{phase_table + byte(phase_table + doubled_index) + (byte(phase_table + doubled_index + 1) << 8)};
       auto const adjusted{static_cast<uint8_t>(width + phase - 4)};
-      unsigned int const stride{std::bit_cast<int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8   ? 3u : 4u};
+      unsigned int const stride{std::bit_cast<int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8 ? 3u : 4u};
       if(phase_source > data.size() || stride * height > data.size() - phase_source) return glyph(face, '?', alignment);
     }
   }
@@ -59,7 +61,7 @@ font_glyph font_resource::glyph(font_face const face, uint8_t const code, unsign
   auto const source{table + byte(table + doubled_index) + (byte(table + doubled_index + 1) << 8)};
   // E243 selects one of four fixed planar loops, even for out-of-directory widths
   auto const adjusted{static_cast<uint8_t>(width + alignment - 4)};
-  unsigned int const stride{std::bit_cast<int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8   ? 3u : 4u};
+  unsigned int const stride{std::bit_cast<int8_t>(adjusted) <= 0 ? 1u : adjusted <= 4 ? 2u : adjusted <= 8 ? 3u : 4u};
   auto const size{stride * height};
   if(source > data.size() || size > data.size() - source) throw std::invalid_argument{"Font glyph exceeds its resource"};
   return {

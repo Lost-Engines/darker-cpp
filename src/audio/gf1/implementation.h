@@ -11,7 +11,7 @@ void DmaChannel::Write(Bitu, void*) {
 void DmaChannel::Register_Callback(void (*callback)(DmaChannel*, DMAEvent)) {
   if(callback) callback(this, DMA_UNMASKED);
 }
-auto GetDMAChannel(unsigned int)->DmaChannel * {
+auto GetDMAChannel(unsigned int)->DmaChannel* {
   return &context->dma;
 }
 void PIC_ActivateIRQ(Bitu irq) {
@@ -35,7 +35,7 @@ gf1_device::gf1_device(std::function<void(std::span<std::byte>)> dma_read, unsig
   core.registers.dma1 = core.registers.dma2 = 3;
   core.registers.irq1 = core.registers.irq2 = 5;
   gf1_detail::MakeTables();
-  for(uint8_t i{}; i < 32; ++i) core.channels[i] = new gf1_detail::GUSChannels{i};
+  for(uint8_t i{0}; i < 32; ++i) core.channels[i] = new gf1_detail::GUSChannels{i};
   core.registers.gRegData = 1;
   gf1_detail::GUSReset();
   core.registers.gRegData = 0;
